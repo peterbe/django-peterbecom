@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content_title %}{{ post.title }}{% endblock %}
+
+{% block extrajs %}
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<script src="{{ static("js/blogitem.js") }}"></script>
+{% endblock %}
+
+{% block content_body %}
+{{ post.text_rendered|safe }}
+
+<h3>Comments</h3>
+<div id="comments-outer">
+{{ show_comments(post)|safe }}
+</div>
+
+<div id="preview-comment-outer" class="preview" style="display:none"></div>
+<form action="{{ url('submit', post.oid) }}" method="post" id="comment">
+<div class="meta">
+  <input type="hidden" name="csrfmiddlewaretoken" value="">
+  <input type="text" name="parent" value="">
+  <input name="name" placeholder="Your full name" title="Your full name"><br>
+  <input name="email" placeholder="Your email" title="Your email"><br>
+  <span class="note">Your email will never ever be published</span>
+  <br>
+  <br>
+    <button type="submit" class="btn preview primary">Preview first</button>
+    <button type="submit" class="btn post">Post comment</button><br>
+  <br>
+  <p class="cancel" style="display:none"><a href="./" title="Abandon ship!">Cancel</a></p>
+
+
+</div>
+<textarea name="comment"></textarea>
+</form>
+{% endblock %}
