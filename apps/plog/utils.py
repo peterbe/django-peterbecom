@@ -1,4 +1,8 @@
 import re
+import zope.structuredtext
+from pygments import highlight
+from pygments.lexers import PythonLexer, JavascriptLexer, TextLexer
+from pygments.formatters import HtmlFormatter
 
 
 _BASESTRING_TYPES = (basestring, type(None))
@@ -144,3 +148,36 @@ def render_comment_text(text):
     html = re.sub('\n\n\n+', '\n\n', html)
     html = html.replace('\n', '<br>')
     return html
+
+
+def stx_to_html(text, codesyntax):
+    rendered = zope.structuredtext.stx2html(
+      text,
+      header=0
+    )
+    _regex = re.compile(r'(<pre>(.*?)</pre>)', re.DOTALL)
+
+    if codesyntax == 'cpp':
+        lexer = JavascriptLexer()
+    elif codesyntax == 'python':
+        lexer = PythonLexer()
+    elif codesyntax:
+        raise NotImplementedError(codesyntax)
+    else:
+        lexer = TextLexer()
+
+    def match(s):
+        outer, inner = s.groups()
+        new_inner = inner
+        new_inner = (new_inner
+                     .replace('&gt;', '>')
+                     .replace('&lt;', '<')
+                     )
+        lines = new_inner.splitlines()
+        lines = [re.sub('^\s', '', x) for x in lines]
+        new_inner = '\n'.join(lines)
+        if lexer:
+            new_inner = highlight(new_inner, lexer, HtmlFormatter())
+        return new_inner
+
+    return _regex.sub(match, rendered)

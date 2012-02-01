@@ -10,7 +10,7 @@
 						<a href="{{ url('blog_post', blogitem.oid) }}">{{ blogitem.title }}</a>
 					</h1>
 				</div>
-                                {{ blogitem.text_rendered }}
+                                {{ blogitem.rendered|safe }}
 			</div>
 		</div>
 

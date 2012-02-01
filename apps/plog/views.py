@@ -7,11 +7,6 @@ from django import http
 from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
 from .models import BlogItem, BlogComment, Category
-import zope.structuredtext
-
-from pygments import highlight
-from pygments.lexers import PythonLexer, JavascriptLexer, TextLexer
-from pygments.formatters import HtmlFormatter
 from .utils import render_comment_text
 
 
@@ -35,12 +30,7 @@ def blog_post(request, oid):
             post = BlogItem.objects.get(oid__iexact=oid)
         except BlogItem.DoesNotExist:
             raise http.Http404(oid)
-    if not post.text_rendered:
-        if post.display_format == 'structuredtext':
-            post.text_rendered = _stx_to_html(post.text, post.codesyntax)
-        else:
-            raise NotImplementedError(post.display_format)
-        #post.save()
+
     data = {
       'post': post,
 #      'comments_html':
@@ -61,39 +51,6 @@ def _render_comments(parent):
 
 def _render_comment(comment):
     return render_to_string('plog/comment.html', {'comment': comment})
-
-def _stx_to_html(text, codesyntax):
-    rendered = zope.structuredtext.stx2html(
-      text,
-      header=0
-    )
-    _regex = re.compile(r'(<pre>(.*?)</pre>)', re.DOTALL)
-
-    if codesyntax == 'cpp':
-        lexer = JavascriptLexer()
-    elif codesyntax == 'python':
-        lexer = PythonLexer()
-    elif codesyntax:
-        raise NotImplementedError(codesyntax)
-    else:
-        lexer = TextLexer()
-
-    def match(s):
-        outer, inner = s.groups()
-        new_inner = inner
-        new_inner = (new_inner
-                     .replace('&gt;', '>')
-                     .replace('&lt;', '<')
-                     )
-        lines = new_inner.splitlines()
-        lines = [re.sub('^\s', '', x) for x in lines]
-        new_inner = '\n'.join(lines)
-        if lexer:
-            new_inner = highlight(new_inner, lexer, HtmlFormatter())
-        return new_inner
-
-        return outer.replace(inner, new_inner)
-    return _regex.sub(match, rendered)
 
 
 @json_view

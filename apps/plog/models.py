@@ -1,7 +1,7 @@
 import uuid
 import datetime
 from django.db import models
-from .utils import render_comment_text
+from .utils import render_comment_text, stx_to_html
 
 
 class ArrayField(models.CharField):
@@ -48,6 +48,20 @@ class BlogItem(models.Model):
 
     def __repr__(self):
         return '<%s: %r>' % (self.__class__.__name__, self.oid)
+
+    @models.permalink
+    def get_absolute_url(self):
+        return ('blog_post', [self.oid])
+
+    @property
+    def rendered(self):
+        if not self.text_rendered:
+            if self.display_format == 'structuredtext':
+                self.text_rendered = stx_to_html(self.text, self.codesyntax)
+            else:
+                raise NotImplementedError(self.display_format)
+            self.save()
+        return self.text_rendered
 
 
 class BlogComment(models.Model):

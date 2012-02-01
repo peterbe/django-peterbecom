@@ -4,10 +4,11 @@
 	<title>peterbe.com</title>
 	<!--<link href='http://fonts.googleapis.com/css?family=Play' rel='stylesheet' type='text/css'>-->
 	<!--<link href='http://fonts.googleapis.com/css?family=Cedarville+Cursive' rel='stylesheet' type='text/css'>-->
-	<meta name="description" content="fireblur labs is a HTML5-based mobile development startup in NJ" />
-	<meta name="copyright" content="Copyright (c) Peter Bengtsson">
+	<meta name="description" content="Stuff in Peter's head">
+	<meta name="copyright" content="Peter Bengtsson">
 	<link rel="stylesheet" href="{{ static("css/bootstrap.min.css") }}">
 	<link rel="stylesheet" href="{{ static("css/main.css") }}">
+	<link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
         {#
 	<script language="javascript">
 		if ((navigator.userAgent.match(/iPhone/i)) ||
@@ -20,10 +21,13 @@
         #}
 </head>
 <body>
-<div class="topbar">
-	<div class="fill">
-		<div class="container">
+<div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+              <div class="container">
 			<a class="brand" href="/"><span class="logo-text">Peterbe.com</span></a>
+			<form action="/search" class="navbar-search pull-right">
+				<input type="text" name="q" class="search-query" placeholder="Search">
+			</form>
 			<div class="pull-right">
 				<ul class="nav">
 					<li><a href="#about">About</a></li>

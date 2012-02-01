@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block content_body %}
-{{ post.text_rendered|safe }}
+{{ post.rendered|safe }}
 
 <h3>Comments</h3>
 <div id="comments-outer">
@@ -19,7 +19,7 @@
 <form action="{{ url('submit', post.oid) }}" method="post" id="comment">
 <div class="meta">
   <input type="hidden" name="csrfmiddlewaretoken" value="">
-  <input type="text" name="parent" value="">
+  <input type="hidden" name="parent" value="">
   <input name="name" placeholder="Your full name" title="Your full name"><br>
   <input name="email" placeholder="Your email" title="Your email"><br>
   <span class="note">Your email will never ever be published</span>
