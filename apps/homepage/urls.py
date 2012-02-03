@@ -5,4 +5,5 @@ import views
 urlpatterns = patterns('',
     url('^$', views.home, name='home'),
     (r'^rss.xml$', PlogFeed()),
+    url('^search$', views.search, name='search'),
 )

@@ -26,12 +26,12 @@
               <div class="container">
 			<a class="brand" href="/"><span class="logo-text">Peterbe.com</span></a>
 			<form action="/search" class="navbar-search pull-right">
-				<input type="text" name="q" class="search-query" placeholder="Search">
+				<input type="text" name="q" class="search-query" placeholder="Search" {% if q %}value="{{ q }}"{% endif %}>
 			</form>
 			<div class="pull-right">
 				<ul class="nav">
-					<li><a href="#about">About</a></li>
-					<li><a href="#contact">Contact Us</a></li>
+					<li><a href="/about">About</a></li>
+					<li><a href="/contact">Contact Us</a></li>
 				</ul>
 			</div>
 		</div>

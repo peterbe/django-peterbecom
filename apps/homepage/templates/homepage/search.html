@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>{{ count_documents }} {% if count_documents == 1 %}thing{% else %}things{% endif %} found
+{% if count_documents_shown < count_documents %}
+  (but only {{ count_documents_shown }} {% if count_documents_shown == 1 %}thing{% else %}things{% endif %} shown)
+{% endif %}
+</h2>
+
+{% for document in documents %}
+		<div class="row">
+			<div class="span16">
+				<div class="page-header">
+					<h3>
+						<a href="{{ document.url }}">{{ document.title|safe }}</a>
+                                                <small>{{ document.date.strftime('%d %b %Y') }}</small>
+					</h3>
+                                        <a href="{{ document.url }}">{{ base_url }}{{ document.url }}</a>
+				</div>
+                                {{ document.summary|safe }}
+			</div>
+		</div>
+
+{% endfor %}
+
+{% endblock %}

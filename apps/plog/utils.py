@@ -1,7 +1,10 @@
 import re
 import zope.structuredtext
 from pygments import highlight
-from pygments.lexers import PythonLexer, JavascriptLexer, TextLexer
+################################################################################
+from pygments.lexers import (PythonLexer, JavascriptLexer, TextLexer,
+  HtmlLexer, CssLexer)
+
 from pygments.formatters import HtmlFormatter
 
 
@@ -161,6 +164,10 @@ def stx_to_html(text, codesyntax):
         lexer = JavascriptLexer()
     elif codesyntax == 'python':
         lexer = PythonLexer()
+    elif codesyntax == 'xml' or codesyntax == 'xml':
+        lexer = HtmlLexer()
+    elif codesyntax == 'css':
+        lexer = CssLexer()
     elif codesyntax:
         raise NotImplementedError(codesyntax)
     else:

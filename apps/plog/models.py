@@ -31,6 +31,19 @@ class Category(models.Model):
 
 
 class BlogItem(models.Model):
+    """
+    Indexes executed for this:
+
+        CREATE INDEX plog_blogitem_text_eng_idx ON plog_blogitem
+        USING gin(to_tsvector('english', text));
+
+        CREATE INDEX plog_blogitem_title_eng_idx ON plog_blogitem
+        USING gin(to_tsvector('english', title));
+
+        REINDEX TABLE plog_blogitem;
+
+
+    """
     oid = models.CharField(max_length=100, db_index=True)
     title = models.CharField(max_length=200)
     alias = models.CharField(max_length=200, null=True)
@@ -65,6 +78,16 @@ class BlogItem(models.Model):
 
 
 class BlogComment(models.Model):
+    """
+    Indexes executed for this:
+
+        CREATE INDEX plog_blogcomment_comment_eng_idx ON plog_blogcomment
+        USING gin(to_tsvector('english', comment));
+
+        REINDEX TABLE plog_blogcomment;
+
+    """
+
     oid = models.CharField(max_length=100, db_index=True)
     blogitem = models.ForeignKey(BlogItem, null=True)
     parent = models.ForeignKey('BlogComment', null=True)
@@ -85,3 +108,13 @@ class BlogComment(models.Model):
     @classmethod
     def next_oid(cls):
         return 'c' + uuid.uuid4().hex[:6]
+
+    def get_absolute_url(self):
+        return self.blogitem.get_absolute_url() + '#%s' % self.oid
+
+    def correct_blogitem_parent(self):
+        assert self.blogitem is None
+        if self.parent.blogitem is None:
+            self.parent.correct_blogitem_parent()
+        self.blogitem = self.parent.blogitem
+        self.save()
