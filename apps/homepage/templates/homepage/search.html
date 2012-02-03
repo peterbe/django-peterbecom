@@ -1,5 +1,13 @@
 {% extends "base.html" %}
 
+{% block extrahead %}
+<style>
+a.better { font-weight: bold; }
+.row .page-header { padding-bottom:5px; margin: 25px 0 5px 0;}
+.page-header a.url { color:green; }
+</style>
+{% endblock %}
+
 {% block content %}
 
 <h2>{{ count_documents }} {% if count_documents == 1 %}thing{% else %}things{% endif %} found
@@ -7,6 +15,12 @@
   (but only {{ count_documents_shown }} {% if count_documents_shown == 1 %}thing{% else %}things{% endif %} shown)
 {% endif %}
 </h2>
+
+{% if better %}
+<div class="alert alert-info">
+  <p>Perhaps you want to try <a class="better" href="{{ better_url }}">{{ better }}</a> instead.</p>
+</div>
+{% endif %}
 
 {% for document in documents %}
 		<div class="row">
@@ -16,7 +30,7 @@
 						<a href="{{ document.url }}">{{ document.title|safe }}</a>
                                                 <small>{{ document.date.strftime('%d %b %Y') }}</small>
 					</h3>
-                                        <a href="{{ document.url }}">{{ base_url }}{{ document.url }}</a>
+                                        <a class="url" href="{{ document.url }}">{{ base_url }}{{ document.url }}</a>
 				</div>
                                 {{ document.summary|safe }}
 			</div>

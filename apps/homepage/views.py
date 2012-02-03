@@ -4,7 +4,9 @@ from cgi import escape as html_escape
 import logging
 import re
 import datetime
+import urllib
 from django.shortcuts import render
+from django.core.urlresolvers import reverse
 from django.contrib.sites.models import RequestSite
 from apps.plog.models import Category, BlogItem, BlogComment
 from apps.plog.utils import render_comment_text
@@ -26,7 +28,6 @@ def search(request):
     documents = []
     data['base_url'] = 'http://%s' % RequestSite(request).domain
     tag_strip = re.compile('<[^>]+>')
-
 
     def append(item, words):
 
@@ -69,10 +70,29 @@ def search(request):
               'type': type_,
             })
 
+    def create_search(s):
+        words = re.findall('\w+', s)
+        words_orig = words[:]
+
+        if 'or' in words:
+            which = words.index('or')
+            words_orig.remove('or')
+            if (which + 1) < len(words) and which > 0:
+                before = words.pop(which - 1)
+                words.pop(which - 1)
+                after = words.pop(which - 1)
+                words.insert(which - 1, '%s | %s' % (before, after))
+        while 'and' in words_orig:
+            words_orig.remove('and')
+        while 'and' in words:
+            words.remove('and')
+
+        escaped = ' & '.join(words)
+        return escaped, words_orig
+
     if len(search) > 1:
         data['q'] = search
-        words = re.findall('\w+', search)
-        search_escaped = ' & '.join(words)
+        search_escaped, words = create_search(search)
         regex = re.compile(r'\b(%s)' % '|'.join(re.escape(word) for word in words),
                            re.I | re.U)
         regex_ext = re.compile(r'\b(%s\w*)\b' % '|'.join(re.escape(word) for word in words),
@@ -93,10 +113,13 @@ def search(request):
             for field in fields:
                 if not_ids:
                     qs = qs.exclude(pk__in=not_ids)
-                _sql = ("to_tsvector('english'," + field + ") "
-                        "@@ plainto_tsquery('english', %s)")
+                _sql = "to_tsvector('english'," + field + ") "
+                if ' | ' in search_escaped or ' & ' in search_escaped:
+                    _sql += "@@ to_tsquery('english', %s)"
+                else:
+                    _sql += "@@ plainto_tsquery('english', %s)"
                 items = (qs
-                         .extra(where=[_sql], params=[search]))
+                         .extra(where=[_sql], params=[search_escaped]))
                 count = items.count()
                 count_documents += count
                 t0 = time.time()
@@ -116,5 +139,11 @@ def search(request):
     data['documents'] = documents
     data['count_documents'] = count_documents
     data['count_documents_shown'] = len(documents)
+    data['better'] = None
+    if not count_documents:
+        if ' or ' not in data['q'] and len(data['q'].split()) > 1:
+            data['better'] = data['q'].replace(' ', ' or ')
+    if data['better']:
+        data['better_url'] = reverse('search') + '?' + urllib.urlencode({'q': data['better']})
 
     return render(request, 'homepage/search.html', data)
