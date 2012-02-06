@@ -147,3 +147,10 @@ def search(request):
         data['better_url'] = reverse('search') + '?' + urllib.urlencode({'q': data['better']})
 
     return render(request, 'homepage/search.html', data)
+
+
+def about(request):
+    return render(request, 'homepage/about.html')
+
+def contact(request):
+    return render(request, 'homepage/contact.html')

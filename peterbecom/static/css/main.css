@@ -149,3 +149,5 @@ form#comment .meta input { margin-bottom: 8px; }
 form#comment .meta .note { font-size:0.9em; }
 form#comment textarea { width:60%; height:150px; }
 form#comment .cancel a { font-size:0.9em; margin:5px; }
+
+dd small { color: rgb(153,153,153); }

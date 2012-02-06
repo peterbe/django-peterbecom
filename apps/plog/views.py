@@ -36,6 +36,9 @@ def blog_post(request, oid):
 #      'comments_html':
 #          '\n'.join(_render_comments(post)),
     }
+    data['previous_post'] = post.get_previous_by_pub_date()
+    data['next_post'] = post.get_next_by_pub_date()
+
     return render(request, 'plog/post.html', data)
 
 def _render_comments(parent):

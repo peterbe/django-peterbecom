@@ -1,16 +1,32 @@
 {% extends "base.html" %}
 
-{% block content_title %}{{ post.title }}{% endblock %}
+{% block title_prefix %}{{ post.title }}{% endblock %}
 
 {% block extrajs %}
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 <script src="{{ static("js/blogitem.js") }}"></script>
 {% endblock %}
 
-{% block content_body %}
+{% block content %}
+<section id="post">
+  <div class="page-header">
+    <h1>{{ post.title }}
+      <small>{{ post.pub_date.strftime('%d %B %Y') }}</small>
+    </h1>
+    {% if post.url %}
+    <h4><a href="{{ post.url }}">{{ post.url }}</a></h4>
+    {% endif %}
+  </div>
+</section>
+
 {{ post.rendered|safe }}
 
-<h3>Comments</h3>
+<section id="comments">
+  <div class="page-header">
+    <h2>Comments</h2>
+  </div>
+
+
 <div id="comments-outer">
 {{ show_comments(post)|safe }}
 </div>
@@ -34,4 +50,32 @@
 </div>
 <textarea name="comment"></textarea>
 </form>
+
+</section>
+
+<section id="related">
+  <div class="page-header">
+    <h2>Related posts</h2>
+  </div>
+
+  <div class="row">
+    <div class="span6">
+      <dl>
+        {% if previous_post %}
+        <dt>Previous:</dt>
+        <dd><a href="{{ previous_post.get_absolute_url() }}">{{ previous_post.title }}</a>
+        <small>{{ previous_post.pub_date.strftime('%d %B %Y') }}</small>
+        </dd>
+        {% endif %}
+
+        {% if next_post %}
+        <dt>Next:</dt>
+        <dd><a href="{{ next_post.get_absolute_url() }}">{{ next_post.title }}</a>
+        <small>{{ next_post.pub_date.strftime('%d %B %Y') }}</small>
+        </dd>
+        {% endif %}
+      </dl>
+    </div>
+  </div>
+</section>
 {% endblock %}
