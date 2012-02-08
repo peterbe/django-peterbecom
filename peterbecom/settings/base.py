@@ -159,3 +159,20 @@ LOGGING = {
         },
     }
 }
+
+
+CACHES = {
+    'default': {
+        'BACKEND': 'redis_cache.RedisCache',
+        'LOCATION': 'localhost:6379',
+        'OPTIONS': {
+            'DB': 1,
+            #'PASSWORD': 'yadayada',
+            #'PARSER_CLASS': 'redis.connection.HiredisParser'
+        },
+    },
+}
+
+REDIS_BACKENDS = {
+    'master': 'redis://localhost:6379?socket_timeout=0.5'
+}

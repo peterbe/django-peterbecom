@@ -10,9 +10,14 @@
 {% block content %}
 <section id="post">
   <div class="page-header">
-    <h1>{{ post.title }}
-      <small>{{ post.pub_date.strftime('%d %B %Y') }}</small>
+    <h1>{{ post.title }}<br>
+    <small style="float:right">{{ post.pub_date.strftime('%d %B %Y') }}</small>
+    {% set count = post.count_comments() %}
+    {% if count %}
+    <small>{{ count }} comment{% if count != 1 %}s{% endif %}</small>
+    {% endif %}
     </h1>
+
     {% if post.url %}
     <h4><a href="{{ post.url }}">{{ post.url }}</a></h4>
     {% endif %}
@@ -76,6 +81,20 @@
         {% endif %}
       </dl>
     </div>
+
+    {% if related %}
+    <div class="span6">
+      <dl>
+        <dt>Related by keywords:</dt>
+        {% for each in related %}
+        <dd><a href="{{ each.get_absolute_url() }}">{{ each.title }}</a>
+        <small>{{ each.pub_date.strftime('%d %B %Y') }}</small>
+        </dd>
+        {% endfor %}
+      </dl>
+    </div>
+    {% endif %}
+
   </div>
 </section>
 {% endblock %}

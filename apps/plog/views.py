@@ -1,13 +1,22 @@
+import logging
 import datetime
 import re
 import functools
 import json
+from collections import defaultdict
 from pprint import pprint
 from django import http
+from django.core.cache import cache
 from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
+from django.views.decorators.http import require_POST
 from .models import BlogItem, BlogComment, Category
 from .utils import render_comment_text
+from redisutils import get_redis_connection
+
+
+ONE_HOUR = 60 * 60
+ONE_DAY = ONE_HOUR * 24
 
 
 def json_view(f):
@@ -33,21 +42,72 @@ def blog_post(request, oid):
 
     data = {
       'post': post,
-#      'comments_html':
-#          '\n'.join(_render_comments(post)),
     }
     data['previous_post'] = post.get_previous_by_pub_date()
     data['next_post'] = post.get_next_by_pub_date()
-
+    data['related'] = get_related_posts(post)
+    post.save()
     return render(request, 'plog/post.html', data)
 
+
+def get_related_posts(post):
+    cache_key = 'related_ids:%s' % post.pk
+    related_pks = cache.get(cache_key)
+    if related_pks is None:
+        related_pks = _get_related_pks(post, 10)
+        cache.set(cache_key, related_pks, ONE_DAY)
+
+    _posts = {}  # cache of posts
+    for post in BlogItem.objects.filter(pk__in=related_pks):
+        # so we only need 1 query to fetch 10 items in the particular order
+        _posts[post.pk] = post
+    related = []
+    for pk in related_pks:
+        related.append(_posts[pk])
+    return related
+
+
+def _get_related_pks(post, max_):
+    redis = get_redis_connection()
+    count_keywords = redis.get('kwcount')
+    if not count_keywords:
+        for p in (BlogItem.objects
+                  .filter(pub_date__lt=datetime.datetime.utcnow())):
+            for keyword in p.keywords:
+                redis.sadd('kw:%s' % keyword, p.pk)
+                redis.incr('kwcount')
+
+    _keywords = post.keywords
+    _related = defaultdict(int)
+    for i, keyword in enumerate(_keywords):
+        ids = redis.smembers('kw:%s' % keyword)
+        for pk in ids:
+            pk = int(pk)
+            if pk != post.pk:
+                _related[pk] += (len(_keywords) - i)
+    items = sorted(((v, k) for (k, v) in _related.items()), reverse=True)
+    return [y for (x, y) in items][:max_]
+
+
 def _render_comments(parent):
+    raise DeprecatedError('not used anymore')
     html = []
     if parent.__class__ == BlogItem:
-        filter_ = {'blogitem': parent}
+        filter_ = {'blogitem': parent, 'parent': None}
     else:
         filter_ = {'parent': parent}
-    for comment in BlogComment.objects.filter(**filter_).order_by('add_date'):
+    print (BlogComment.objects
+                    .filter(**filter_)
+                    .exclude(approved=False)
+                    .order_by('add_date')).query
+    for comment in (BlogComment.objects
+                    .filter(**filter_)
+                    .exclude(approved=False)
+                    .order_by('add_date')):
+        if comment.blogitem is None:
+            # legacy problem
+            logging.info("correct missing blogitem parent for comment %r" % comment.oid)
+            comment.correct_blogitem_parent()
         html.append(_render_comment(comment))
         html.extend(_render_comments(comment))
     return html
@@ -67,7 +127,8 @@ def prepare_json(request):
     }
     return data
 
-# XXX POST only
+
+@require_POST
 @json_view
 def preview_json(request):
     comment = request.POST.get('comment', u'').strip()
@@ -91,16 +152,20 @@ def preview_json(request):
     return {'html': html}
 
 
-# XXX POST only
+@require_POST
 @json_view
 def submit_json(request, oid):
     post = get_object_or_404(BlogItem, oid=oid)
     comment = request.POST['comment'].strip()
+    if not comment:
+        return http.HttpResponseBadRequest("Missing comment")
     name = request.POST.get('name', u'').strip()
     email = request.POST.get('email', u'').strip()
     parent = request.POST.get('parent')
     if parent:
         parent = get_object_or_404(BlogComment, oid=parent)
+    else:
+        parent = None  # in case it was u''
 
     search = {'comment': comment}
     if name:
@@ -119,7 +184,7 @@ def submit_json(request, oid):
           oid=BlogComment.next_oid(),
           blogitem=post,
           parent=parent,
-          approved=False,
+          approved=True,  #False,  # optimism
           comment=comment,
           name=name,
           email=email,

@@ -124,16 +124,19 @@ body { padding-top: 40px; }
 
 
 /* comments */
-div.comment {
+div.c {
   border-top:1px solid #cccccc;
   margin-bottom:10px;
 }
-div.commentinline {
+div.ci {
   border-top:1px solid #cccccc;
   padding:3px 4px 4px 4px;
   margin-top:10px;
   margin-bottom:10px;
   margin-left:15px;
+}
+span.cr {
+  font-size:80%;
 }
 .sn {
   font-weight:bold;

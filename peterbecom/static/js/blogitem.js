@@ -6,6 +6,7 @@ function L() {
 var F = (function() {
   var form = $('form#comment');
   var preview = $('#preview-comment-outer');
+  var _submitting = false;
 
   function commentData() {
     return {
@@ -30,7 +31,8 @@ var F = (function() {
        });
      },
     setup_reply: function(parent) {
-      form.detach().insertAfter($('.commenttext:eq(0)', parent));
+      if (parent.size() != 1) throw "Must be exactly 1 parent";
+      form.detach().insertAfter($('.ct:eq(0)', parent));
       preview.detach().insertBefore(form);
       $('input[name="parent"]', form).val(parent.attr('id'));
       $('p.cancel:hidden', form).show();
@@ -38,11 +40,13 @@ var F = (function() {
 
     },
     reset: function() {
+      form.css('opacity', 1);
       $('.cancel:visible', form).hide();
       $('textarea', form).val('');
       $('input[name="parent"]', form).val('');
       $('#comments-outer').append(form.detach());
       form.insertBefore(preview.detach());
+      _submitting = false;
       return false;
     },
     preview: function(callback) {
@@ -65,9 +69,19 @@ var F = (function() {
       });
     },
     submit: function() {
+      var data = commentData();
+      if (!$.trim(data.comment).length) {
+        alert("Please first write something");
+        return false;
+      }
+      if (_submitting) {
+        return false;
+      }
+      _submitting = true;
+      form.css('opacity', 0.3);
       $.ajax({
          url: form.attr('action'),
-        data: commentData(),
+        data: data,
         type: 'POST',
         dataType: 'json',
         success: function(response) {
@@ -82,7 +96,9 @@ var F = (function() {
           F.reset();
         },
         error: function (jqXHR, textStatus, errorThrown) {
+          form.css('opacity', 1);
           alert('Error: ' + errorThrown);
+          _submitting = false;
         }
       });
       return false;

@@ -1,16 +1,14 @@
-<div id="{{ comment.oid }}" class="commentinline comment">
+<div id="{{ comment.oid }}" class="ci c">
 <span class="sn">{% if comment.name %}{{ comment.name }}{% else %}<em>Anonymous</em>{% endif %}</span> -
 <small>{{ comment.add_date.strftime('%d %B %Y') }}</small>
 
 {% if not preview %}
-<span style="font-size:70%">[<a
+<span class="cr">[<a
 rel="nofollow" class="reply" data-oid="{{ comment.oid }}" href="#{{ comment.oid }}"
 >&#171;&#171; Reply to this</a>]</span>
 {% endif %}
 <br>
-
-<span class="commenttext">{{ comment.rendered|safe }}</span>
-
+<span class="ct">{{ comment.rendered|safe }}</span>
 {% if not preview %}
 {{ show_comments(comment)|safe }}
 {% endif %}

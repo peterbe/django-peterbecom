@@ -1,6 +1,7 @@
 import uuid
 import datetime
 from django.db import models
+from django.core.cache import cache
 from .utils import render_comment_text, stx_to_html
 
 
@@ -76,6 +77,17 @@ class BlogItem(models.Model):
             self.save()
         return self.text_rendered
 
+    def count_comments(self):
+        cache_key = 'nocomments:%s' % self.pk
+        count = cache.get(cache_key)
+        if count is None:
+            count = self._count_comments()
+            cache.set(cache_key, count, 60 * 60 * 24)
+        return count
+
+    def _count_comments(self):
+        return BlogComment.objects.filter(blogitem=self).count()
+
 
 class BlogComment(models.Model):
     """
@@ -118,3 +130,20 @@ class BlogComment(models.Model):
             self.parent.correct_blogitem_parent()
         self.blogitem = self.parent.blogitem
         self.save()
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender=BlogComment)
+@receiver(post_save, sender=BlogItem)
+def invalidate_blogitem_comment_count(sender, instance, **kwargs):
+    if sender is BlogItem:
+        pk = instance.pk
+    elif sender is BlogComment:
+        if instance.blogitem is None:
+            instance.correct_blogitem_parent()  # legacy
+        pk = instance.blogitem.pk
+    else:
+        raise NotImplementedError(sender)
+    cache_key = 'nocomments:%s' % pk
+    cache.delete(cache_key)

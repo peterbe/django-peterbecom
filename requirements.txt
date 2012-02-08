@@ -2,3 +2,5 @@ Jinja2
 jingo
 pygments
 zope.structuredtext
+redis
+hiredis
