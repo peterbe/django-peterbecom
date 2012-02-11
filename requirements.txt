@@ -4,3 +4,6 @@ pygments
 zope.structuredtext
 redis
 hiredis
+Celery
+django-celery
+akismet

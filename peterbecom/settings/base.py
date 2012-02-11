@@ -126,6 +126,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
+    'djcelery',
     'apps.plog',
     'apps.homepage',
     'apps.legacy',
@@ -176,3 +177,8 @@ CACHES = {
 REDIS_BACKENDS = {
     'master': 'redis://localhost:6379?socket_timeout=0.5'
 }
+
+BROKER_URL = "redis://localhost:6379/0"
+
+AKISMET_USERAGENT = "Peterbe.com/2.0"
+AKISMET_KEY = None  # override in settings/local.py

@@ -21,3 +21,13 @@ urlpatterns = patterns('',
 )
 
 urlpatterns += staticfiles_urlpatterns()
+
+
+import djcelery
+djcelery.setup_loader()
+
+import logging
+from django.conf import settings
+from django.contrib.sites.models import Site
+site = Site.objects.get(pk=settings.SITE_ID)
+logging.info("Using Site domain: %s" % site.domain)

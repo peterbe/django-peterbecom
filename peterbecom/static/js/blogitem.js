@@ -91,7 +91,10 @@ var F = (function() {
           } else {
             parent = $('#comments-outer');
           }
-          parent.append(response.html);
+          parent
+            .hide()
+              .append(response.html)
+                .fadeIn(700);
           $('textarea', form).val('');
           F.reset();
         },

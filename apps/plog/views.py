@@ -7,12 +7,14 @@ from collections import defaultdict
 from pprint import pprint
 from django import http
 from django.core.cache import cache
+from django.db import transaction
 from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST
 from .models import BlogItem, BlogComment, Category
 from .utils import render_comment_text
 from redisutils import get_redis_connection
+from . import tasks
 
 
 ONE_HOUR = 60 * 60
@@ -32,6 +34,8 @@ def json_view(f):
 
 
 def blog_post(request, oid):
+    if oid.endswith('/'):
+        oid = oid[:-1]
     try:
         post = BlogItem.objects.get(oid=oid)
     except BlogItem.DoesNotExist:
@@ -152,8 +156,9 @@ def preview_json(request):
     return {'html': html}
 
 
+# Not using @json_view so I can use response.set_cookie first
 @require_POST
-@json_view
+@transaction.commit_on_success
 def submit_json(request, oid):
     post = get_object_or_404(BlogItem, oid=oid)
     comment = request.POST['comment'].strip()
@@ -170,10 +175,8 @@ def submit_json(request, oid):
     search = {'comment': comment}
     if name:
         search['name'] = name
-        request.COOKIES['name'] = name
     if email:
         search['email'] = email
-        request.COOKIES['email'] = email
     if parent:
         search['parent'] = parent
 
@@ -184,13 +187,22 @@ def submit_json(request, oid):
           oid=BlogComment.next_oid(),
           blogitem=post,
           parent=parent,
-          approved=True,  #False,  # optimism
+          approved=False,
           comment=comment,
           name=name,
           email=email,
+          ip_address=request.META.get('REMOTE_ADDR'),
+          user_agent=request.META.get('HTTP_USER_AGENT')
         )
+        tasks.akismet_rate.delay(comment.pk)
     html = render_to_string('plog/comment.html', {
       'comment': comment,
       'preview': False,
     })
-    return {'html': html, 'parent': parent and parent.oid or None}
+    data = {'html': html, 'parent': parent and parent.oid or None}
+    response = http.HttpResponse(json.dumps(data), mimetype="application/json")
+    if name:
+        response.set_cookie('name', name)
+    if email:
+        response.set_cookie('email', email)
+    return response

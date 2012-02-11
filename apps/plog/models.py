@@ -2,6 +2,8 @@ import uuid
 import datetime
 from django.db import models
 from django.core.cache import cache
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from .utils import render_comment_text, stx_to_html
 
 
@@ -109,6 +111,9 @@ class BlogComment(models.Model):
     add_date = models.DateTimeField(default=datetime.datetime.utcnow)
     name = models.CharField(max_length=100, blank=True)
     email = models.CharField(max_length=100, blank=True)
+    user_agent = models.CharField(max_length=300, blank=True, null=True)
+    ip_address = models.IPAddressField(blank=True, null=True)
+    akismet_pass = models.NullBooleanField(null=True)
 
     @property
     def rendered(self):
@@ -131,8 +136,6 @@ class BlogComment(models.Model):
         self.blogitem = self.parent.blogitem
         self.save()
 
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 
 @receiver(post_save, sender=BlogComment)
 @receiver(post_save, sender=BlogItem)

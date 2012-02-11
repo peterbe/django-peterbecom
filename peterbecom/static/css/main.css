@@ -136,7 +136,12 @@ div.ci {
   margin-left:15px;
 }
 span.cr {
-  font-size:80%;
+  font-size:90%;
+}
+span.not-approved {
+  float:right;
+  font-size:90%;
+  color:red;
 }
 .sn {
   font-weight:bold;

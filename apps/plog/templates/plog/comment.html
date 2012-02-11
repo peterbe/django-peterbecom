@@ -3,6 +3,11 @@
 <small>{{ comment.add_date.strftime('%d %B %Y') }}</small>
 
 {% if not preview %}
+{% if not comment.approved %}
+<span class="not-approved">
+  <strong>Note:</strong> This comment has not been approved yet
+</span>
+{% endif %}
 <span class="cr">[<a
 rel="nofollow" class="reply" data-oid="{{ comment.oid }}" href="#{{ comment.oid }}"
 >&#171;&#171; Reply to this</a>]</span>
