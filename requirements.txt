@@ -7,3 +7,5 @@ hiredis
 Celery
 django-celery
 akismet
+django-celery-email
+isodate

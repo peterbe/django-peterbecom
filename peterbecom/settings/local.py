@@ -1,3 +1,16 @@
+from . import base
+
+
+#INSTALLED_APPS = base.INSTALLED_APPS + ('debug_toolbar',)
+#MIDDLEWARE_CLASSES = base.MIDDLEWARE_CLASSES + ('debug_toolbar.middleware.DebugToolbarMiddleware',)
+#INTERNAL_IPS = ('127.0.0.1',)
+
+ADMINS = (
+    ('Peter', 'mail@peterbecom'),
+)
+
+#print base.INSTALLED_APPS
+
 AKISMET_KEY = '5e2984bdcb9b'
 
 DEBUG_PROPAGATE_EXCEPTIONS = DEBUG = TEMPLATE_DEBUG = True
@@ -23,3 +36,8 @@ DATABASES = {
         'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
     }
 }
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+
+INSTALLED_APPS = base.INSTALLED_APPS + ('gunicorn',)

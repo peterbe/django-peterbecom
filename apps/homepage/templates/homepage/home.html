@@ -11,20 +11,40 @@
 					<a href="{{ url('blog_post', post.oid) }}">{{ post.title }}</a><br>
                                         <small style="float:right">{{ post.pub_date.strftime('%d %B %Y') }}</small>
                                         {% set count = post.count_comments() %}
-                                        {% if count %}
                                         <small>{{ count }} comment{% if count != 1 %}s{% endif %}</small>
-                                        {% endif %}
 
+                                        {% for category in post.categories.all() %}
+                                          {% if loop.first %}&nbsp; <small>{% endif %}
+                                          <a rel="nofollow" href="{{ url('only_category', category.name.replace(' ','+')) }}"
+                                             title="Filter by the '{{ category.name }}' category"
+                                          >{{ category.name }}</a>{% if not loop.last %}, {% endif %}
+                                          {% if loop.last %}</small>{% endif %}
+                                        {% endfor %}
 					</h1>
 
 					{% if post.url %}
 					    <h4><a href="{{ post.url }}">{{ post.url }}</a></h4>
 					{% endif %}
 				</div>
+
                                 {{ post.rendered|safe }}
+
 			</div>
 		</div>
 
 {% endfor %}
+
+<ul class="pager">
+  {% if previous_page %}
+    <li class="previous">
+    <a href="?page={{ previous_page }}">&larr; Newer</a>
+    </li>
+  {% endif %}
+  {% if next_page %}
+    <li class="next">
+    <a href="?page={{ next_page }}">Older &rarr;</a>
+    </li>
+  {% endif %}
+</ul>
 
 {% endblock %}

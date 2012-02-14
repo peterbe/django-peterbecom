@@ -1,11 +1,19 @@
 import re
 import zope.structuredtext
 from pygments import highlight
-################################################################################
 from pygments.lexers import (PythonLexer, JavascriptLexer, TextLexer,
   HtmlLexer, CssLexer)
-
 from pygments.formatters import HtmlFormatter
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
+
+
+def valid_email(value):
+    try:
+        validate_email(value)
+        return True
+    except ValidationError:
+        return False
 
 
 _BASESTRING_TYPES = (basestring, type(None))

@@ -2,7 +2,7 @@ import uuid
 import datetime
 from django.db import models
 from django.core.cache import cache
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save, pre_delete
 from django.dispatch import receiver
 from .utils import render_comment_text, stx_to_html
 
@@ -32,6 +32,9 @@ class Category(models.Model):
     def __repr__(self):
         return '<%s: %r>' % (self.__class__.__name__, self.name)
 
+    def __unicode__(self):
+        return self.name
+
 
 class BlogItem(models.Model):
     """
@@ -55,12 +58,13 @@ class BlogItem(models.Model):
     text_rendered = models.TextField(blank=True)
     summary = models.TextField()
     url = models.URLField(null=True)
-    pub_date = models.DateTimeField()
+    pub_date = models.DateTimeField(db_index=True)
     display_format = models.CharField(max_length=20)
     categories = models.ManyToManyField(Category)
     keywords = ArrayField(max_length=500)
     plogrank = models.FloatField(null=True)
     codesyntax = models.CharField(max_length=20, blank=True)
+    modify_date = models.DateTimeField(default=datetime.datetime.utcnow)
 
     def __repr__(self):
         return '<%s: %r>' % (self.__class__.__name__, self.oid)
@@ -88,7 +92,10 @@ class BlogItem(models.Model):
         return count
 
     def _count_comments(self):
-        return BlogComment.objects.filter(blogitem=self).count()
+        return BlogComment.objects.filter(blogitem=self, approved=True).count()
+
+    def __unicode__(self):
+        return self.title
 
 
 class BlogComment(models.Model):
@@ -115,6 +122,11 @@ class BlogComment(models.Model):
     ip_address = models.IPAddressField(blank=True, null=True)
     akismet_pass = models.NullBooleanField(null=True)
 
+    def __repr__(self):
+        return ('<%s: %r (%sapproved)>' %
+                (self.__class__.__name__, self.oid + ' ' +self.comment[:20],
+                 self.approved and '' or 'not '))
+
     @property
     def rendered(self):
         if not self.comment_rendered:
@@ -137,6 +149,7 @@ class BlogComment(models.Model):
         self.save()
 
 
+@receiver(pre_delete, sender=BlogComment)
 @receiver(post_save, sender=BlogComment)
 @receiver(post_save, sender=BlogItem)
 def invalidate_blogitem_comment_count(sender, instance, **kwargs):
@@ -145,8 +158,22 @@ def invalidate_blogitem_comment_count(sender, instance, **kwargs):
     elif sender is BlogComment:
         if instance.blogitem is None:
             instance.correct_blogitem_parent()  # legacy
-        pk = instance.blogitem.pk
+        pk = instance.blogitem_id
     else:
         raise NotImplementedError(sender)
     cache_key = 'nocomments:%s' % pk
     cache.delete(cache_key)
+
+
+@receiver(pre_save, sender=BlogComment)
+@receiver(pre_save, sender=BlogItem)
+def update_modify_date(sender, instance, **kwargs):
+    if getattr(instance, '_modify_date_set', False):
+        return
+    if sender is BlogItem:
+        instance.modify_date = datetime.datetime.utcnow()
+    elif sender is BlogComment:
+        if instance.blogitem:
+            instance.blogitem.modify_date = datetime.datetime.utcnow()
+    else:
+        raise NotImplementedError(sender)

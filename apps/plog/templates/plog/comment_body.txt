@@ -1,0 +1,20 @@
+Post: {{ post.title }}
+{{ base_url }}{{ post.get_absolute_url() }}#{{ comment.oid }}
+
+Name: {{ comment.name }}
+Email: {{ comment.email }}
+IP Address: {{ comment.ip_address }}
+User Agent: {{ comment.user_agent }}
+Akismet pass: {{ comment.akismet_pass }}
+Comment:
+{{ line_indent(comment.comment) }}
+
+{% if comment.approved %}
+Comment already approved
+{% else %}
+Approve:
+{{ base_url }}{{ approve_url }}
+{% endif %}
+
+Delete:
+{{ base_url }}{{ delete_url }}

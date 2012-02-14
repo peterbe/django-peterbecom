@@ -1,0 +1,5 @@
+* Signal on BlogComment save that notices when a comment goes from NOT
+  approved to approved.
+  
+* Configure http://pypi.python.org/pypi/django-celery-email
+

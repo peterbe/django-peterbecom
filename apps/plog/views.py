@@ -5,14 +5,21 @@ import functools
 import json
 from collections import defaultdict
 from pprint import pprint
+from django.contrib.sites.models import Site
+from django.core.urlresolvers import reverse
+from django.template import Context, loader
 from django import http
 from django.core.cache import cache
 from django.db import transaction
 from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
+from django.core.mail import send_mail
 from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+from django.template import Template
+from django.conf import settings
 from .models import BlogItem, BlogComment, Category
-from .utils import render_comment_text
+from .utils import render_comment_text, valid_email
 from redisutils import get_redis_connection
 from . import tasks
 
@@ -50,7 +57,7 @@ def blog_post(request, oid):
     data['previous_post'] = post.get_previous_by_pub_date()
     data['next_post'] = post.get_next_by_pub_date()
     data['related'] = get_related_posts(post)
-    post.save()
+
     return render(request, 'plog/post.html', data)
 
 
@@ -92,29 +99,6 @@ def _get_related_pks(post, max_):
     items = sorted(((v, k) for (k, v) in _related.items()), reverse=True)
     return [y for (x, y) in items][:max_]
 
-
-def _render_comments(parent):
-    raise DeprecatedError('not used anymore')
-    html = []
-    if parent.__class__ == BlogItem:
-        filter_ = {'blogitem': parent, 'parent': None}
-    else:
-        filter_ = {'parent': parent}
-    print (BlogComment.objects
-                    .filter(**filter_)
-                    .exclude(approved=False)
-                    .order_by('add_date')).query
-    for comment in (BlogComment.objects
-                    .filter(**filter_)
-                    .exclude(approved=False)
-                    .order_by('add_date')):
-        if comment.blogitem is None:
-            # legacy problem
-            logging.info("correct missing blogitem parent for comment %r" % comment.oid)
-            comment.correct_blogitem_parent()
-        html.append(_render_comment(comment))
-        html.extend(_render_comments(comment))
-    return html
 
 def _render_comment(comment):
     return render_to_string('plog/comment.html', {'comment': comment})
@@ -180,10 +164,10 @@ def submit_json(request, oid):
     if parent:
         search['parent'] = parent
 
-    for comment in BlogComment.objects.filter(**search):
+    for blog_comment in BlogComment.objects.filter(**search):
         break
     else:
-        comment = BlogComment.objects.create(
+        blog_comment = BlogComment.objects.create(
           oid=BlogComment.next_oid(),
           blogitem=post,
           parent=parent,
@@ -194,10 +178,18 @@ def submit_json(request, oid):
           ip_address=request.META.get('REMOTE_ADDR'),
           user_agent=request.META.get('HTTP_USER_AGENT')
         )
-        tasks.akismet_rate.delay(comment.pk)
+        if not settings.DEBUG:
+            tasks.akismet_rate.delay(blog_comment.pk)
+
+        tos = [x[1] for x in settings.ADMINS]
+        from_ = ['%s <%s>' % x for x in settings.ADMINS][0]
+        body = _get_comment_body(post, blog_comment)
+        send_mail("Peterbe.com: New comment on '%s'" % post.title,
+                  body, from_, tos)
+
     html = render_to_string('plog/comment.html', {
-      'comment': comment,
-      'preview': False,
+      'comment': blog_comment,
+      'preview': True,
     })
     data = {'html': html, 'parent': parent and parent.oid or None}
     response = http.HttpResponse(json.dumps(data), mimetype="application/json")
@@ -206,3 +198,75 @@ def submit_json(request, oid):
     if email:
         response.set_cookie('email', email)
     return response
+
+
+@login_required
+def approve_comment(request, oid, comment_oid):
+    blogitem = get_object_or_404(BlogItem, oid=oid)
+    blogcomment = get_object_or_404(BlogComment, oid=comment_oid)
+    if blogcomment.blogitem != blogitem:
+        raise http.Http404("bad rel")
+
+    blogcomment.approved = True
+    blogcomment.save()
+
+    if (blogcomment.parent and blogcomment.parent.email
+        and valid_email(blogcomment.parent.email)
+        and blogcomment.email != blogcomment.parent.email):
+        parent = blogcomment.parent
+        tos = [parent.email]
+        from_ = 'Peterbe.com <noreply+%s@peterbe.com>' % blogcomment.oid
+        body = _get_comment_reply_body(blogitem, blogcomment, parent)
+        subject = 'Peterbe.com: Reply to your comment'
+        send_mail(subject, body, from_, tos)
+    if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
+        return http.HttpResponse('OK')
+    else:
+        url = blogitem.get_absolute_url()
+        if blogcomment.blogitem:
+            url += '#%s' % blogcomment.blogitem.oid
+        return http.HttpResponse('''<html>Comment approved<br>
+        <a href="%s">%s</a>
+        </html>
+        ''' % (url, blogitem.title))
+
+
+def _get_comment_body(blogitem, blogcomment):
+    base_url = 'http://%s' % Site.objects.get(pk=settings.SITE_ID).domain
+    approve_url = reverse('approve_comment', args=[blogitem.oid, blogcomment.oid])
+    delete_url = reverse('delete_comment', args=[blogitem.oid, blogcomment.oid])
+    message = template = loader.get_template('plog/comment_body.txt')
+    context = {
+      'post': blogitem,
+      'comment': blogcomment,
+      'approve_url': approve_url,
+      'delete_url': delete_url,
+      'base_url': base_url,
+    }
+    return template.render(Context(context)).strip()
+
+
+def _get_comment_reply_body(blogitem, blogcomment, parent):
+    base_url = 'http://%s' % Site.objects.get(pk=settings.SITE_ID).domain
+    approve_url = reverse('approve_comment', args=[blogitem.oid, blogcomment.oid])
+    delete_url = reverse('delete_comment', args=[blogitem.oid, blogcomment.oid])
+    message = template = loader.get_template('plog/comment_reply_body.txt')
+    context = {
+      'post': blogitem,
+      'comment': blogcomment,
+      'parent': parent,
+      'base_url': base_url,
+    }
+    return template.render(Context(context)).strip()
+
+
+@login_required
+def delete_comment(request, oid, comment_oid):
+    blogitem = get_object_or_404(BlogItem, oid=oid)
+    blogcomment = get_object_or_404(BlogComment, oid=oid)
+    if blogcomment.blogitem != blogitem:
+        raise http.Http404("bad rel")
+
+    blogcomment.delete()
+
+    return http.HttpResponse("Comment deleted")

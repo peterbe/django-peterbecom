@@ -13,9 +13,16 @@
     <h1>{{ post.title }}<br>
     <small style="float:right">{{ post.pub_date.strftime('%d %B %Y') }}</small>
     {% set count = post.count_comments() %}
-    {% if count %}
     <small>{{ count }} comment{% if count != 1 %}s{% endif %}</small>
-    {% endif %}
+
+    {% for category in post.categories.all() %}
+      {% if loop.first %}&nbsp; <small>{% endif %}
+        <a href="{{ url('only_category', category.name.replace(' ','+')) }}"
+           rel="nofollow"
+           title="Filter by the '{{ category.name }}' category"
+           >{{ category.name }}</a>{% if not loop.last %}, {% endif %}
+      {% if loop.last %}</small>{% endif %}
+    {% endfor %}
     </h1>
 
     {% if post.url %}
@@ -31,9 +38,8 @@
     <h2>Comments</h2>
   </div>
 
-
 <div id="comments-outer">
-{{ show_comments(post)|safe }}
+{{ show_comments(post, user)|safe }}
 </div>
 
 <div id="preview-comment-outer" class="preview" style="display:none"></div>

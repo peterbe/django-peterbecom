@@ -1,3 +1,4 @@
+import re
 import time
 from pprint import pprint
 from cgi import escape as html_escape
@@ -5,19 +6,72 @@ import logging
 import re
 import datetime
 import urllib
+from django import http
+from django.conf import settings
+from django.db.models import Q
+from django.views.decorators.cache import cache_page
 from django.shortcuts import render
 from django.core.urlresolvers import reverse
 from django.contrib.sites.models import RequestSite
 from apps.plog.models import Category, BlogItem, BlogComment
 from apps.plog.utils import render_comment_text
 
-def home(request):
+from isodate import UTC
+def utc_now():
+    """Return a timezone aware datetime instance in UTC timezone
+
+    This funciton is mainly for convenience. Compare:
+
+        >>> from datetimeutil import utc_now
+        >>> utc_now()
+        datetime.datetime(2012, 1, 5, 16, 42, 13, 639834,
+          tzinfo=<isodate.tzinfo.Utc object at 0x101475210>)
+
+    Versus:
+
+        >>> import datetime
+        >>> from datetimeutil import UTC
+        >>> datetime.datetime.now(UTC)
+        datetime.datetime(2012, 1, 5, 16, 42, 13, 639834,
+          tzinfo=<isodate.tzinfo.Utc object at 0x101475210>)
+
+    """
+    return datetime.datetime.now(UTC)
+
+
+def home(request, oc=None):
     data = {}
+    qs = BlogItem.objects.filter(pub_date__lt=datetime.datetime.utcnow())
+    if oc:
+        ocs = [x.strip().replace('+',' ') for x
+               in re.split('/oc-(.*?)', oc) if x.strip()]
+        categories = Category.objects.filter(name__in=ocs)
+        if len(categories) != len(ocs):
+            raise http.Http404("Unrecognized categories")
+        cat_q = None
+        for category in categories:
+            if cat_q is None:
+                cat_q = Q(categories=category)
+            else:
+                cat_q = cat_q | Q(categories=category)
+        qs = qs.filter(cat_q)
+        data['categories'] = categories
+
+    BATCH_SIZE = 10
+    page = max(1, int(request.GET.get('page', 1))) - 1
+    n, m = page * BATCH_SIZE, (page + 1) * BATCH_SIZE
+    #print page
+    #print (n,m)
+    max_count = qs.count()
+    #print "max_count", max_count
+    if (page + 1) * BATCH_SIZE < max_count:
+        data['next_page'] = page + 2
+    data['previous_page'] = page
     data['blogitems'] =  (
-      BlogItem.objects
-      .filter(pub_date__lt=datetime.datetime.utcnow())
+      qs
+      .prefetch_related('categories')
       .order_by('-pub_date')
-    )[:10]
+    )[n:m]
 
     return render(request, 'homepage/home.html', data)
 
@@ -149,8 +203,71 @@ def search(request):
     return render(request, 'homepage/search.html', data)
 
 
+#@cache_page(60 * 60 * int(settings.DEBUG))
 def about(request):
     return render(request, 'homepage/about.html')
 
+
+@cache_page(60 * 60 * int(settings.DEBUG))
 def contact(request):
     return render(request, 'homepage/contact.html')
+
+
+@cache_page(60 * 60 * 24 * int(settings.DEBUG))
+def sitemap(request):
+    base_url = 'http://%s' % RequestSite(request).domain
+
+    urls = []
+    urls.append('<?xml version="1.0" encoding="iso-8859-1"?>')
+    urls.append('<urlset xmlns="http://www.google.com/schemas/sitemap/0.84">')
+
+    def add(loc, lastmod=None, changefreq='monthly', priority=None):
+        url = '<url><loc>%s%s</loc>' % (base_url, loc)
+        if lastmod:
+            url += '<lastmod>%s</lastmod>' % lastmod.strftime('%Y-%m-%d')
+        if priority:
+            url += '<priority>%s</priority>' % priority
+        if changefreq:
+            url += '<changefreq>%s</changefreq>' % changefreq
+        url += '</url>'
+        urls.append(url)
+
+    now = utc_now()
+    latest_blogitem, = (BlogItem.objects
+                        .filter(pub_date__lt=now)
+                        .order_by('-pub_date')[:1])
+    add('/', priority=1.0, changefreq='daily', lastmod=latest_blogitem.pub_date)
+    add(reverse('about'), changefreq='weekly', priority=0.5)
+    add(reverse('contact'), changefreq='weekly', priority=0.5)
+
+    for blogitem in (BlogItem.objects
+                     .filter(pub_date__lt=now)
+                     .order_by('-pub_date')[:1000]):
+        if not blogitem.modify_date:
+            # legacy!
+            try:
+                latest_comment, = (BlogComment.objects
+                               .filter(approved=True, blogitem=blogitem)
+                               .order_by('-add_date')[:1])
+                blogitem.modify_date = latest_comment.add_date
+            except ValueError:
+                blogitem.modify_date = blogitem.pub_date
+            blogitem._modify_date_set = True
+            blogitem.save()
+
+        age = (now - blogitem.modify_date).days
+        if age < 14:
+            changefreq = 'daily'
+        elif age < 60:
+            changefreq = 'weekly'
+        elif age < 100:
+            changefreq = 'monthly'
+        else:
+            changefreq = None
+        add(reverse('blog_post', args=[blogitem.oid]),
+            lastmod=blogitem.modify_date,
+            changefreq=changefreq
+            )
+
+    urls.append('</urlset>')
+    return http.HttpResponse('\n'.join(urls), mimetype="text/xml")

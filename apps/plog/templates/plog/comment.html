@@ -2,19 +2,27 @@
 <span class="sn">{% if comment.name %}{{ comment.name }}{% else %}<em>Anonymous</em>{% endif %}</span> -
 <small>{{ comment.add_date.strftime('%d %B %Y') }}</small>
 
-{% if not preview %}
 {% if not comment.approved %}
 <span class="not-approved">
   <strong>Note:</strong> This comment has not been approved yet
 </span>
 {% endif %}
+
+{% if not preview %}
 <span class="cr">[<a
 rel="nofollow" class="reply" data-oid="{{ comment.oid }}" href="#{{ comment.oid }}"
 >&#171;&#171; Reply to this</a>]</span>
+{% if user.is_staff %}
+  {% if not comment.approved %}
+  <button data-oid="{{ comment.oid }}" name="approve">Approve</button>
+  {% endif %}
+  <button data-oid="{{ comment.oid }}" name="delete">Delete</button>
+{% endif %}
+
 {% endif %}
 <br>
 <span class="ct">{{ comment.rendered|safe }}</span>
 {% if not preview %}
-{{ show_comments(comment)|safe }}
+{{ show_comments(comment, user)|safe }}
 {% endif %}
 </div>

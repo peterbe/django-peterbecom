@@ -87,7 +87,8 @@ var F = (function() {
         success: function(response) {
           var parent;
           if (response.parent) {
-            parent = $('.commenttext:eq(0)', $('#' + response.parent));
+            //parent = $('.commenttext:eq(0)', $('#' + response.parent));
+            parent = $('#' + response.parent);
           } else {
             parent = $('#comments-outer');
           }
@@ -108,6 +109,7 @@ var F = (function() {
     }
   }
 })();
+
 
 $(function() {
   var form = $('form#comment');
@@ -147,5 +149,18 @@ $(function() {
 
   form.on('submit', F.submit);
   $('.cancel a', form).on('click', F.reset);
+
+  $('#comments button[name="approve"]').click(function() {
+    var oid = $(this).data('oid');
+    var url = location.href;
+    url = url.split('#')[0];
+    url += '/approve/' + $(this).data('oid');
+    var button = $(this);
+    $.post(url, {csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()}, function(response) {
+      $('.not-approved', '#' + oid).remove();
+      button.remove();
+    });
+    return false;
+  });
 
 });
