@@ -8,13 +8,13 @@ import datetime
 import urllib
 from django import http
 from django.conf import settings
-from django.db.models import Q
 from django.views.decorators.cache import cache_page
 from django.shortcuts import render
 from django.core.urlresolvers import reverse
 from django.contrib.sites.models import RequestSite
 from apps.plog.models import Category, BlogItem, BlogComment
 from apps.plog.utils import render_comment_text
+from .utils import parse_ocs_to_categories
 
 from isodate import UTC
 def utc_now():
@@ -43,17 +43,8 @@ def home(request, oc=None):
     data = {}
     qs = BlogItem.objects.filter(pub_date__lt=datetime.datetime.utcnow())
     if oc:
-        ocs = [x.strip().replace('+',' ') for x
-               in re.split('/oc-(.*?)', oc) if x.strip()]
-        categories = Category.objects.filter(name__in=ocs)
-        if len(categories) != len(ocs):
-            raise http.Http404("Unrecognized categories")
-        cat_q = None
-        for category in categories:
-            if cat_q is None:
-                cat_q = Q(categories=category)
-            else:
-                cat_q = cat_q | Q(categories=category)
+        categories = parse_ocs_to_categories(oc)
+        cat_q = make_categories_q(categories)
         qs = qs.filter(cat_q)
         data['categories'] = categories
 
