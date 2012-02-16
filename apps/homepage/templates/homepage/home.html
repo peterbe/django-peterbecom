@@ -1,7 +1,18 @@
 {% extends "base.html" %}
 
 {% block title %}Peterbe.com - Stuff in Peter's head{% endblock %}
-{% block content %}
+
+{% block pre_content %}
+<header class="jumbotron masthead">
+  <div class="inner">
+    <h1>Peterbe.com</h1>
+    <p>A blog and website by Peter Bengtsson</p>
+  </div>
+</header>
+{% endblock %}
+
+
+{% block content %}  
 
 {% for post in blogitems %}
 		<div class="row">

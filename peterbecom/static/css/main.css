@@ -8,9 +8,9 @@ body { padding-top: 40px; }
 	margin: 0 -20px;
 }
 
-.logo-text { font-family: 'Play'; }
+/*.logo-text { font-family: 'Play'; }*/
 
-.hero-unit-style
+/*.hero-unit-style
 {
 	border: 1px solid #eee;
 	background: white;
@@ -20,7 +20,7 @@ body { padding-top: 40px; }
 	background-size: 100%;
 	color: white;
 	font-smooth: always;
-}
+}*/
 
 .footer-style
 {
@@ -159,3 +159,54 @@ form#comment textarea { width:60%; height:150px; }
 form#comment .cancel a { font-size:0.9em; margin:5px; }
 
 dd small { color: rgb(153,153,153); }
+
+/* Jumbotrons
+-------------------------------------------------- */
+.jumbotron {
+  position: relative;
+  background: url('../images/fork-smaller.jpg') no-repeat;
+  border:1px solid #efefef;
+  padding:100px;
+  -webkit-box-shadow:0 5px 10px rgba(0, 0, 0, 0.2);-moz-box-shadow:0 5px 10px rgba(0, 0, 0, 0.2);box-shadow:0 5px 10px rgba(0, 0, 0, 0.2);
+}
+.jumbotron h1 {
+  margin-bottom: 9px;
+  font-size: 81px;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+.jumbotron p {
+  margin-bottom: 18px;
+  font-weight: 300;
+}
+
+/* Masthead (docs home) */
+.masthead {
+  padding-top: 36px;
+  margin-bottom: 22px;
+}
+.masthead h1,
+.masthead p {
+  text-align: center;
+}
+.masthead h1 {
+  margin-bottom: 18px;
+}
+.masthead p {
+  margin-left: 5%;
+  margin-right: 5%;
+  font-size: 30px;
+  line-height: 36px;
+}
+
+
+/* Specific jumbotrons
+------------------------- */
+/* supporting docs pages */
+.subhead {
+  padding-bottom: 0;
+  margin-bottom: 9px;
+}
+.subhead h1 {
+  font-size: 54px;
+}

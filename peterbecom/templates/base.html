@@ -2,23 +2,11 @@
 <html lang="en">
 <head>
 	<title>{% block title %}{% block title_prefix %}{% endblock %} - Peterbe.com{% endblock %}</title>
-	<!--<link href='http://fonts.googleapis.com/css?family=Play' rel='stylesheet' type='text/css'>-->
-	<!--<link href='http://fonts.googleapis.com/css?family=Cedarville+Cursive' rel='stylesheet' type='text/css'>-->
 	<meta name="description" content="Stuff in Peter's head">
 	<meta name="copyright" content="Peter Bengtsson">
 	<link rel="stylesheet" href="{{ static("css/bootstrap.min.css") }}">
 	<link rel="stylesheet" href="{{ static("css/main.css") }}">
 	<link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
-        {#
-	<script language="javascript">
-		if ((navigator.userAgent.match(/iPhone/i)) ||
-			(navigator.userAgent.match(/iPod/i)) ||
-			(navigator.userAgent.match(/iPad/i)) ||
-			(navigator.userAgent.match(/Android/i))) {
-				location.replace("http://www.fireblur.com/m/");
-		}
-	</script>
-        #}
         {% block extrahead %}
         {% endblock %}
 </head>
@@ -40,6 +28,8 @@
 	</div>
 </div>
 <div class="container">
+	{% block pre_content %}
+	{% endblock %}
 	<div class="content">
 		{% block content %}
 
@@ -56,128 +46,6 @@
                 {% endblock %}
                 {% endblock %}
 
-                {#
-
-		<div class="row">
-			<div class="span16">
-				<a name="tech"></a>
-				<div class="page-header">
-					<h1>
-						Technology <small>What's our stack?</small>
-					</h1>
-				</div>
-				<div class="row">
-					<div class="span3">
-						<p>
-							Front-End
-						</p>
-						<ul>
-							<li><a href="http://www.w3.org/TR/html5/">HTML5</a></li>
-							<li><a href="http://www.w3.org/TR/CSS/">CSS3</a></li>
-							<li><a href="https://developer.mozilla.org/en/JavaScript">JavaScript</a></li>
-							<li><a href="http://twitter.github.com/bootstrap/">Bootstrap</a> (&hearts; love it)</li>
-						</ul>
-					</div>
-					<div class="span3">
-						<p>
-							Middle Tier
-						</p>
-						<ul>
-							<li><a href="http://nodejs.org/">Node.js</a></li>
-							<li><a href="http://expressjs.com/">Express</a></li>
-							<li><a href="http://nginx.org/">nginx</a></li>
-							<li><a href="http://tomcat.apache.org/">Apache Tomcat</a></li>
-						</ul>
-					</div>
-					<div class="span3">
-						<p>
-							Database and Cache
-						</p>
-						<ul>
-							<li><a href="http://www.mysql.com/">MySQL</a></li>
-							<li><a href="http://memcached.org/">memcached</a></li>
-						</ul>
-					</div>
-					<div class="span3">
-						<p>
-							Servers and Hosting
-						</p>
-						<ul>
-							<li><a href="http://www.ubuntu.com/">Linux</a></li>
-							<li><a href="http://www.rackspace.com/cloud/">Rackspace Cloud</a></li>
-						</ul>
-					</div>
-					<div class="span3">
-						<img src="http://c981366.r66.cf2.rackcdn.com/code-snippet2.png" style="border-radius: 5px; border: 1px solid #ccc; padding: 5px; opacity: 0.4">
-					</div>
-				</div>
-				<br />
-			</div>
-		</div>
-		<div class="row">
-			<div class="span16">
-				<a name="products"></a>
-				<div class="page-header">
-					<h1>
-						Products <small>What are we working on?</small>
-					</h1>
-				</div>
-				<p>
-					<img src="http://c981366.r66.cf2.rackcdn.com/served-io-logo.png" />
-				</p>
-				<p>
-					served.io is the next-generation in mobile food ordering.
-				</p>
-				<p>
-					Coming soon &#8212; click over to <a href="http://served.io">served.io</a> to sign up for more information.
-				</p>
-				<p>
-					<span class="label important">Important</span> Restaurant owners &#8212; if you are interested in being part of the trial program or a launch partner, click <a href="http://goo.gl/sg9F7">here</a>
-				</p>
-				<br />
-				<a href="https://twitter.com/servedapp" class="twitter-follow-button" data-show-count="false">Follow @servedapp</a> <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script> <br />
-				<br />
-				<br />
-			</div>
-		</div>
-		<div class="row">
-			<div class="span16">
-				<a name="jobs"></a>
-				<div class="page-header">
-					<h1>
-						Jobs <small>Want to be a part of something great?</small>
-					</h1>
-				</div>
-				<p>
-					We are not hiring at this time &#8212; however, we are on the lookout for great engineers, product managers, and business dev folks &#8212; feel free to send in your resume to <a href="mailto:rich&#64;fireblur.com">rich&#64;fireblur.com</a>
-				</p>
-				<br />
-				<br />
-			</div>
-		</div>
-		<div class="row">
-			<div class="span16">
-				<a name="contact"></a>
-				<div class="page-header">
-					<h1>
-						Contact Us <small>We'd love to hear from you</small>
-					</h1>
-				</div>
-				<div class="row">
-					<div class="span2">
-						<img src="http://c981366.r66.cf2.rackcdn.com/default-image.png" />
-					</div>
-					<div class="span4">
-						<address> Rich Fernandes<br>
-						Founder and CEO<br>
-						<a href="mailto:rich&#64;fireblur.com">rich&#64;fireblur.com</a><br>
-						<br>
-						<a href="https://twitter.com/itsrichf" class="twitter-follow-button" data-show-count="true">Follow @itsrichf</a> <span class="psst-text-small">&uarr; follow me :)</span> <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script> </address>
-					</div>
-				</div>
-			</div>
-		</div>
-                #}
 	</div>
 </div>
 <div class="footer-style">

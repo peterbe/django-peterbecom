@@ -9,7 +9,7 @@ import urllib
 from django import http
 from django.conf import settings
 from django.views.decorators.cache import cache_page
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.core.urlresolvers import reverse
 from django.contrib.sites.models import RequestSite
 from apps.plog.models import Category, BlogItem, BlogComment
@@ -262,3 +262,9 @@ def sitemap(request):
 
     urls.append('</urlset>')
     return http.HttpResponse('\n'.join(urls), mimetype="text/xml")
+
+
+def blog_post_by_alias(request, alias):
+    blogitem = get_object_or_404(BlogItem, alias=alias)
+    url = reverse('blog_post', args=[blogitem.oid])
+    return http.HttpResponsePermanentRedirect(url)

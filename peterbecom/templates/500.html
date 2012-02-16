@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title_prefix %}Internal Server Error{% endblock %}
+
+{% block extrahead %}
+<style>
+p { margin: 30px 0; }
+
+.content input.search-query {
+  font-size:1.1em;
+  font-weight: bold;
+  width: 500px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+        <h1 style="text-align:center">Internal Server Error</h1>
+        <p style="text-align:center">
+        <img src="/static/images/failure.jpg" alt="Failure">
+        <br><br>
+        I'm sorry. This means I made some sort of mistake wiring this site up.
+        Will try to fix it. </p>
+{% endblock %}
