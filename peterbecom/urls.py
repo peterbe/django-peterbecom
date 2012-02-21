@@ -7,16 +7,14 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
+    url(r'^admin/', include(admin.site.urls)),
     # Examples:
     # url(r'^$', 'peterbecom.views.home', name='home'),
     # url(r'^peterbecom/', include('peterbecom.foo.urls')),
     url(r'^plog/', include('apps.plog.urls')),
     url(r'', include('apps.homepage.urls')),
-
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
-
-    url(r'^admin/', include(admin.site.urls)),
 )
 
 urlpatterns += staticfiles_urlpatterns()

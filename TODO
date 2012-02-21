@@ -1,5 +1,5 @@
-* Signal on BlogComment save that notices when a comment goes from NOT
-  approved to approved.
-  
+* Try localhost:8000/search?q= (hint: causes server error)
+
 * Configure http://pypi.python.org/pypi/django-celery-email
+
 

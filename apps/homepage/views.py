@@ -14,7 +14,8 @@ from django.core.urlresolvers import reverse
 from django.contrib.sites.models import RequestSite
 from apps.plog.models import Category, BlogItem, BlogComment
 from apps.plog.utils import render_comment_text
-from .utils import parse_ocs_to_categories
+from .utils import parse_ocs_to_categories, make_categories_q
+
 
 from isodate import UTC
 def utc_now():
