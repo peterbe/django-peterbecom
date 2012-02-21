@@ -181,15 +181,27 @@ def search(request):
         #print 'Searchin for %r:\n%s' % (search, '\n'.join(times))
         logging.info('Searchin for %r:\n%s' % (search, '\n'.join(times)))
 
+    count_documents_shown = len(documents)
     data['documents'] = documents
     data['count_documents'] = count_documents
-    data['count_documents_shown'] = len(documents)
+    data['count_documents_shown'] = count_documents_shown
     data['better'] = None
     if not count_documents:
         if ' or ' not in data['q'] and len(data['q'].split()) > 1:
             data['better'] = data['q'].replace(' ', ' or ')
     if data['better']:
         data['better_url'] = reverse('search') + '?' + urllib.urlencode({'q': data['better']})
+
+    if count_documents == 1:
+        page_title = '1 thing found'
+    else:
+        page_title = '%s things found' % count_documents
+    if count_documents_shown < count_documents:
+        if count_documents_shown == 1:
+            page_title += ' (but only 1 thing shown)'
+        else:
+            page_title += ' (but only %s things shown)' % count_documents_shown
+    data['page_title'] = page_title
 
     return render(request, 'homepage/search.html', data)
 

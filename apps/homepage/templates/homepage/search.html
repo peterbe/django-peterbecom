@@ -8,13 +8,11 @@ a.better { font-weight: bold; }
 </style>
 {% endblock %}
 
+{% block title_prefix %}Search: {{ page_title }}{% endblock %}
+
 {% block content %}
 
-<h2>{{ count_documents }} {% if count_documents == 1 %}thing{% else %}things{% endif %} found
-{% if count_documents_shown < count_documents %}
-  (but only {{ count_documents_shown }} {% if count_documents_shown == 1 %}thing{% else %}things{% endif %} shown)
-{% endif %}
-</h2>
+<h2>{{ page_title }}</h2>
 
 {% if better %}
 <div class="alert alert-info">
