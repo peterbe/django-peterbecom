@@ -212,12 +212,12 @@ def about(request):
     return render(request, 'homepage/about.html')
 
 
-@cache_page(60 * 60 * int(settings.DEBUG))
+@cache_page(60 * 60 * 24)
 def contact(request):
     return render(request, 'homepage/contact.html')
 
 
-@cache_page(60 * 60 * 24 * int(settings.DEBUG))
+@cache_page(60 * 60 * 24)
 def sitemap(request):
     base_url = 'http://%s' % RequestSite(request).domain
 

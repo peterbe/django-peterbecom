@@ -273,7 +273,7 @@ def delete_comment(request, oid, comment_oid):
     return http.HttpResponse("Comment deleted")
 
 
-@cache_page(60 * 60 * 1 * int(settings.DEBUG))  # might want to up this later
+@cache_page(60 * 60 * 1)  # might want to up this later
 def plog_index(request):
     groups = defaultdict(list)
     now = datetime.datetime.utcnow()
