@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title_prefix %}Blog archive{% endblock %}
+
+{% block extrahead %}
+<style>
+dt { font-size: 1.2em; margin-top:10px; }
+dd a { margin-right: 10px; }
+dd .c { float:right; font-size: 0.9em; color: rgb(153, 153, 153); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<dl>
+  {% for key, label in group_dates %}
+  <dt>{{ label }}</dt>
+  {% for item in groups[key] %}
+    <dd><a href="{{ url('blog_post', item.oid) }}">{{ item.title }}</a>
+    <span class="c">{% for category in item.categories %}
+    {{ category }}{% if not loop.last %}, {% endif %}
+    {% endfor %}</span>
+    </dd>
+  {% endfor %}
+  {% endfor %}
+</dl>
+
+{% endblock %}

@@ -10,6 +10,7 @@ from django.core.urlresolvers import reverse
 from django.template import Context, loader
 from django import http
 from django.core.cache import cache
+from django.views.decorators.cache import cache_page
 from django.db import transaction
 from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
@@ -270,3 +271,34 @@ def delete_comment(request, oid, comment_oid):
     blogcomment.delete()
 
     return http.HttpResponse("Comment deleted")
+
+
+@cache_page(60 * 60 * 1 * int(settings.DEBUG))  # might want to up this later
+def plog_index(request):
+    groups = defaultdict(list)
+    now = datetime.datetime.utcnow()
+    group_dates = []
+
+    _categories = dict((x.pk, x.name) for x in
+                        Category.objects.all())
+    blogitem_categories = defaultdict(list)
+    for cat_item in BlogItem.categories.through.objects.all():
+        blogitem_categories[cat_item.blogitem_id].append(
+          _categories[cat_item.category_id]
+        )
+    for item in (BlogItem.objects
+                 .filter(pub_date__lt=now)
+                 .values('pub_date', 'oid', 'title', 'pk')
+                 .order_by('-pub_date')):
+        group = item['pub_date'].strftime('%Y.%m')
+        item['categories'] = blogitem_categories[item['pk']]
+        groups[group].append(item)
+        tup = (group, item['pub_date'].strftime('%B, %Y'))
+        if tup not in group_dates:
+            group_dates.append(tup)
+
+    data = {
+      'groups': groups,
+      'group_dates': group_dates,
+    }
+    return render(request, 'plog/index.html', data)

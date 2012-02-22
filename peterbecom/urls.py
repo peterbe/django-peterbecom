@@ -1,3 +1,4 @@
+from django import http
 from django.conf.urls import patterns, include, url
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
@@ -12,6 +13,7 @@ urlpatterns = patterns('',
     # url(r'^$', 'peterbecom.views.home', name='home'),
     # url(r'^peterbecom/', include('peterbecom.foo.urls')),
     url(r'^plog/', include('apps.plog.urls')),
+    url(r'^plog$', lambda x: http.HttpResponseRedirect('/plog/')),
     url(r'', include('apps.homepage.urls')),
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
