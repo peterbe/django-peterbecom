@@ -2,7 +2,7 @@ import re
 import zope.structuredtext
 from pygments import highlight
 from pygments.lexers import (PythonLexer, JavascriptLexer, TextLexer,
-  HtmlLexer, CssLexer)
+  HtmlLexer, CssLexer, SqlLexer)
 from pygments.formatters import HtmlFormatter
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
@@ -176,6 +176,8 @@ def stx_to_html(text, codesyntax):
         lexer = HtmlLexer()
     elif codesyntax == 'css':
         lexer = CssLexer()
+    elif codesyntax == 'sql':
+        lexer = SqlLexer()
     elif codesyntax:
         raise NotImplementedError(codesyntax)
     else:

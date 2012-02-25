@@ -4,6 +4,32 @@ from django.db.models import Q
 from apps.plog.models import Category
 
 
+def split_search(q, keywords):
+    params = {}
+    s = []
+    if re.findall('[^\w]', ''.join(keywords)):
+        raise ValueError("keywords can not contain non \w characters")
+
+    regex = re.compile(r'\b(%s):' % '|'.join(keywords), re.I)
+    bits = regex.split(q)
+    if len(bits) == 1:
+        # there was no keyword at all
+        return q, {}
+
+    skip_next = False
+    for i, bit in enumerate(bits):
+        if skip_next:
+            skip_next = False
+        else:
+            if bit in keywords:
+                params[bit.lower()] = bits[i+1].strip()
+                skip_next = True
+            elif bit.strip():
+                s.append(bit.strip())
+
+    return ' '.join(s), params
+
+
 def parse_ocs_to_categories(oc):
     ocs = [x.strip().replace('/', '').replace('+',' ')
            for x
