@@ -186,6 +186,14 @@ REDIS_BACKENDS = {
 }
 
 BROKER_URL = "redis://localhost:6379/0"
+CELERY_IMPORTS = ("plog.tasks", )
+CELERYD_CONCURRENCY = 5
+CELERY_RESULT_BACKEND = "redis"
+CELERY_REDIS_HOST = "localhost"
+CELERY_REDIS_PORT = 6379
+CELERY_REDIS_DB = 0
+
+
 
 AKISMET_USERAGENT = "Peterbe.com/2.0"
 AKISMET_KEY = None  # override in settings/local.py

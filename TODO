@@ -1,3 +1,12 @@
 * Configure http://pypi.python.org/pypi/django-celery-email
 
+* Upgrade use of celery (see runting warnings)
 
+* Home page page_cache decorator from djangopeoplenet
+
+* Make a link to github on About page
+
+* Download all peterbe-static-content locally and check CSS float on
+  /plog/blogitem-20031013-0008
+  
+* Referenced images inside blogitem text should use STATIC_URL
