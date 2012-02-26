@@ -4,7 +4,7 @@ from akismet import Akismet
 from django.conf import settings
 from apps.plog.models import BlogComment
 from django.contrib.sites.models import Site
-from celery.decorators import task
+from celery.task import task
 
 
 site = Site.objects.get(pk=settings.SITE_ID)
@@ -49,3 +49,9 @@ def akismet_rate(pk):
             ))
         blog_comment.akisment_pass = is_spam
         blog_comment.save()
+
+
+@task()
+def sample_task():
+    time.sleep(2)
+    open('/tmp/sample_task.log','a').write('time:%s\n'time.time())
