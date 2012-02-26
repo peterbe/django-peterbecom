@@ -54,4 +54,4 @@ def akismet_rate(pk):
 @task()
 def sample_task():
     time.sleep(2)
-    open('/tmp/sample_task.log','a').write('time:%s\n'time.time())
+    open('/tmp/sample_task.log','a').write('time:%s\n' % time.time())
