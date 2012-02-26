@@ -2,3 +2,4 @@ celery-with-redis
 all_texts.py
 all_texts.txt
 all_urls.txt
+peterbecom/settings/local.py

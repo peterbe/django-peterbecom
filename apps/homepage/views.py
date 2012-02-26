@@ -42,6 +42,12 @@ def utc_now():
     return datetime.datetime.now(UTC)
 
 
+def _home_key_prefixer(*args, **kwargs):
+    print "ARGS", args
+    print "KWARGS", kwargs
+    return None
+
+#@cache_page(60 * 60, key_prefix=_home_key_prefixer)
 def home(request, oc=None):
     data = {}
     qs = BlogItem.objects.filter(pub_date__lt=datetime.datetime.utcnow())
@@ -54,10 +60,7 @@ def home(request, oc=None):
     BATCH_SIZE = 10
     page = max(1, int(request.GET.get('page', 1))) - 1
     n, m = page * BATCH_SIZE, (page + 1) * BATCH_SIZE
-    #print page
-    #print (n,m)
     max_count = qs.count()
-    #print "max_count", max_count
     if (page + 1) * BATCH_SIZE < max_count:
         data['next_page'] = page + 2
     data['previous_page'] = page
@@ -289,7 +292,7 @@ def search(request):
     return render(request, 'homepage/search.html', data)
 
 
-#@cache_page(60 * 60 * int(settings.DEBUG))
+@cache_page(60 * 60 * 1)
 def about(request):
     return render(request, 'homepage/about.html')
 
