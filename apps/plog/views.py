@@ -43,7 +43,6 @@ def json_view(f):
 
 
 def blog_post(request, oid):
-    print repr(oid)
     if oid.endswith('/'):
         oid = oid[:-1]
     try:
@@ -52,7 +51,6 @@ def blog_post(request, oid):
         try:
             post = BlogItem.objects.get(oid__iexact=oid)
         except BlogItem.DoesNotExist:
-            print "HERE"
             raise http.Http404(oid)
 
     data = {
@@ -272,8 +270,10 @@ def _get_comment_reply_body(blogitem, blogcomment, parent):
 
 @login_required
 def delete_comment(request, oid, comment_oid):
+    user = request.user
+    assert user.is_staff or user.is_superuser
     blogitem = get_object_or_404(BlogItem, oid=oid)
-    blogcomment = get_object_or_404(BlogComment, oid=oid)
+    blogcomment = get_object_or_404(BlogComment, oid=comment_oid)
     if blogcomment.blogitem != blogitem:
         raise http.Http404("bad rel")
 

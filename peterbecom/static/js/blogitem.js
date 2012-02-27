@@ -163,4 +163,17 @@ $(function() {
     return false;
   });
 
+  $('#comments button[name="delete"]').click(function() {
+    var oid = $(this).data('oid');
+    var url = location.href;
+    url = url.split('#')[0];
+    url += '/delete/' + oid;
+    var button = $(this);
+    $.post(url, {csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()}, function(response) {
+      $('#' + oid).remove();
+      button.remove();
+    });
+    return false;
+  });
+
 });
