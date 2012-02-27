@@ -21,6 +21,7 @@ from django.template import Template
 from django.conf import settings
 from .models import BlogItem, BlogComment, Category
 from .utils import render_comment_text, valid_email
+from apps.homepage.utils import utc_now
 from redisutils import get_redis_connection
 from . import tasks
 
@@ -42,6 +43,7 @@ def json_view(f):
 
 
 def blog_post(request, oid):
+    print repr(oid)
     if oid.endswith('/'):
         oid = oid[:-1]
     try:
@@ -50,13 +52,20 @@ def blog_post(request, oid):
         try:
             post = BlogItem.objects.get(oid__iexact=oid)
         except BlogItem.DoesNotExist:
+            print "HERE"
             raise http.Http404(oid)
 
     data = {
       'post': post,
     }
-    data['previous_post'] = post.get_previous_by_pub_date()
-    data['next_post'] = post.get_next_by_pub_date()
+    try:
+        data['previous_post'] = post.get_previous_by_pub_date()
+    except BlogItem.DoesNotExist:
+        data['previous_post'] = None
+    try:
+        data['next_post'] = post.get_next_by_pub_date(pub_date__lt=utc_now())
+    except BlogItem.DoesNotExist:
+        data['next_post'] = None
     data['related'] = get_related_posts(post)
 
     return render(request, 'plog/post.html', data)
