@@ -1,3 +1,4 @@
+import urllib
 import logging
 import datetime
 import re
@@ -20,9 +21,9 @@ from django.contrib.auth.decorators import login_required
 from django.template import Template
 from django.conf import settings
 from .models import BlogItem, BlogComment, Category
-from .utils import render_comment_text, valid_email
-from apps.homepage.utils import utc_now
+from .utils import render_comment_text, valid_email, utc_now
 from redisutils import get_redis_connection
+from apps.view_cache_utils import cache_page_with_prefix
 from . import tasks
 
 
@@ -42,6 +43,31 @@ def json_view(f):
     return wrapper
 
 
+def _blog_post_key_prefixer(request):
+    if request.method != 'GET':
+        return None
+    prefix = urllib.urlencode(request.GET)
+    oid = request.path.split('/')[-1]
+    cache_key = 'latest_comment_add_date:%s' % oid
+    latest_date = cache.get(cache_key)
+    if latest_date is None:
+        try:
+            blogitem = BlogItem.objects.get(oid=oid)
+        except BlogItem.DoesNotExist:
+            # don't bother, something's really wrong
+            return None
+        latest_date = blogitem.modify_date
+        for c in (BlogComment.objects
+                  .filter(blogitem=blogitem, add_date__gt=latest_date)
+                  .order_by('-add_date')[:1]):
+            latest_date = c.add_date
+        latest_date = latest_date.strftime('%f')
+        cache.set(cache_key, latest_date, ONE_DAY)
+    prefix += latest_date
+    return prefix
+
+
+@cache_page_with_prefix(ONE_DAY, _blog_post_key_prefixer)
 def blog_post(request, oid):
     if oid.endswith('/'):
         oid = oid[:-1]
@@ -91,7 +117,7 @@ def _get_related_pks(post, max_):
     count_keywords = redis.get('kwcount')
     if not count_keywords:
         for p in (BlogItem.objects
-                  .filter(pub_date__lt=datetime.datetime.utcnow())):
+                  .filter(pub_date__lt=utc_now())):
             for keyword in p.keywords:
                 redis.sadd('kw:%s' % keyword, p.pk)
                 redis.incr('kwcount')
@@ -141,7 +167,7 @@ def preview_json(request):
       'name': name,
       'email': email,
       'rendered': html,
-      'add_date': datetime.datetime.utcnow(),
+      'add_date': utc_now(),
       }
     html = render_to_string('plog/comment.html', {
       'comment': comment,
@@ -287,7 +313,7 @@ def delete_comment(request, oid, comment_oid):
 @cache_page(60 * 60 * 1)  # might want to up this later
 def plog_index(request):
     groups = defaultdict(list)
-    now = datetime.datetime.utcnow()
+    now = utc_now()
     group_dates = []
 
     _categories = dict((x.pk, x.name) for x in

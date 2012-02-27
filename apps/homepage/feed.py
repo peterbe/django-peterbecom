@@ -3,6 +3,7 @@ import re
 from django.contrib.syndication.views import Feed
 from apps.plog.models import BlogItem
 from .utils import parse_ocs_to_categories, make_categories_q
+from apps.plog.utils import utc_now
 
 
 class PlogFeed(Feed):
@@ -22,7 +23,7 @@ class PlogFeed(Feed):
 
     def items(self, categories):
         qs = (BlogItem.objects
-                .filter(pub_date__lt=datetime.datetime.utcnow()))
+                .filter(pub_date__lt=utc_now()))
         if categories:
             qs = qs.filter(make_categories_q(categories))
         return qs.order_by('-pub_date')[:10]

@@ -25,11 +25,11 @@ urlpatterns += staticfiles_urlpatterns()
 import djcelery
 djcelery.setup_loader()
 
-import logging
-from django.conf import settings
-from django.contrib.sites.models import Site
-site = Site.objects.get(pk=settings.SITE_ID)
-if site.domain == 'example.com':
-    logging.critical("Using unconfigured Site domain: %s" % site.domain)
-else:
-    logging.info("Using Site domain: %s" % site.domain)
+#import logging
+#from django.conf import settings
+#from django.contrib.sites.models import Site
+#site = Site.objects.get(pk=settings.SITE_ID)
+#if site.domain == 'example.com':
+#    logging.critical("Using unconfigured Site domain: %s" % site.domain)
+#else:
+#    logging.info("Using Site domain: %s" % site.domain)

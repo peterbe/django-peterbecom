@@ -10,26 +10,46 @@ import urllib
 from django import http
 from django.conf import settings
 from django.views.decorators.cache import cache_page
+from django.core.cache import cache
 from django.shortcuts import render, get_object_or_404
 from django.core.urlresolvers import reverse
 from django.contrib.sites.models import RequestSite
 from apps.plog.models import Category, BlogItem, BlogComment
-from apps.plog.utils import render_comment_text
+from apps.plog.utils import render_comment_text, utc_now
 from redisutils import get_redis_connection
-from .utils import (parse_ocs_to_categories, make_categories_q, split_search,
-  utc_now)
+from .utils import (parse_ocs_to_categories, make_categories_q, split_search)
+from apps.view_cache_utils import cache_page_with_prefix
 
 
 
-def _home_key_prefixer(*args, **kwargs):
-    print "ARGS", args
-    print "KWARGS", kwargs
-    return None
+def _home_key_prefixer(request):
+    if request.method != 'GET':
+        return None
+    prefix = urllib.urlencode(request.GET)
+    cache_key = 'latest_comment_add_date'
+    latest_date = cache.get(cache_key)
+    if latest_date is None:
 
-#@cache_page(60 * 60, key_prefix=_home_key_prefixer)
+        # legacy fix. Some old blogitems didn't have a modify_date
+        for x in BlogItem.objects.filter(modify_date__isnull=True):
+            x.modify_date = x.pub_date
+            for c in BlogComment.objects.filter(blogitem=x).order_by('-add_date')[:1]:
+                x.modify_date = c.add_date
+            x.save()
+
+        latest, = (BlogItem.objects
+                   .order_by('-modify_date')
+                   .values('modify_date')[:1])
+        latest_date = latest['modify_date'].strftime('%f')
+        cache.set(cache_key, latest_date, 60 * 60)
+    prefix += latest_date
+    return prefix
+
+
+@cache_page_with_prefix(60 * 60, _home_key_prefixer)
 def home(request, oc=None):
     data = {}
-    qs = BlogItem.objects.filter(pub_date__lt=datetime.datetime.utcnow())
+    qs = BlogItem.objects.filter(pub_date__lt=utc_now())
     if oc:
         categories = parse_ocs_to_categories(oc)
         cat_q = make_categories_q(categories)

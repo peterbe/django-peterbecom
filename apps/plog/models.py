@@ -4,7 +4,7 @@ from django.db import models
 from django.core.cache import cache
 from django.db.models.signals import post_save, pre_save, pre_delete
 from django.dispatch import receiver
-from .utils import render_comment_text, stx_to_html
+from .utils import render_comment_text, stx_to_html, utc_now
 
 
 class ArrayField(models.CharField):
@@ -64,7 +64,7 @@ class BlogItem(models.Model):
     keywords = ArrayField(max_length=500)
     plogrank = models.FloatField(null=True)
     codesyntax = models.CharField(max_length=20, blank=True)
-    modify_date = models.DateTimeField(default=datetime.datetime.utcnow)
+    modify_date = models.DateTimeField(default=utc_now)
 
     def __repr__(self):
         return '<%s: %r>' % (self.__class__.__name__, self.oid)
@@ -115,7 +115,7 @@ class BlogComment(models.Model):
     approved = models.BooleanField(default=False)
     comment = models.TextField()
     comment_rendered = models.TextField(blank=True, null=True)
-    add_date = models.DateTimeField(default=datetime.datetime.utcnow)
+    add_date = models.DateTimeField(default=utc_now)
     name = models.CharField(max_length=100, blank=True)
     email = models.CharField(max_length=100, blank=True)
     user_agent = models.CharField(max_length=300, blank=True, null=True)
@@ -165,15 +165,47 @@ def invalidate_blogitem_comment_count(sender, instance, **kwargs):
     cache.delete(cache_key)
 
 
+#@receiver(pre_delete, sender=BlogComment)
+@receiver(post_save, sender=BlogComment)
+@receiver(post_save, sender=BlogItem)
+def invalidate_latest_comment_add_dates(sender, instance, **kwargs):
+    cache_key = 'latest_comment_add_date'
+    cache.delete(cache_key)
+
+    if sender is BlogItem:
+        pk = instance.pk
+    elif sender is BlogComment:
+        if instance.blogitem is None:
+            instance.correct_blogitem_parent()  # legacy
+        pk = instance.blogitem_id
+    else:
+        raise NotImplementedError(sender)
+    cache_key = 'latest_comment_add_date:%s' % pk
+    cache.delete(cache_key)
+
+
+@receiver(post_save, sender=BlogComment)
+@receiver(post_save, sender=BlogItem)
+def invalidate_latest_comment_add_date_by_oid(sender, instance, **kwargs):
+    if sender is BlogItem:
+        oid = instance.oid
+    elif sender is BlogComment:
+        oid = instance.blogitem.oid
+    else:
+        raise NotImplementedError(sender)
+    cache_key = 'latest_comment_add_date:%s' % oid
+    cache.delete(cache_key)
+
+
 @receiver(pre_save, sender=BlogComment)
 @receiver(pre_save, sender=BlogItem)
 def update_modify_date(sender, instance, **kwargs):
     if getattr(instance, '_modify_date_set', False):
         return
     if sender is BlogItem:
-        instance.modify_date = datetime.datetime.utcnow()
+        instance.modify_date = utc_now()
     elif sender is BlogComment:
         if instance.blogitem:
-            instance.blogitem.modify_date = datetime.datetime.utcnow()
+            instance.blogitem.modify_date = utc_now()
     else:
         raise NotImplementedError(sender)
