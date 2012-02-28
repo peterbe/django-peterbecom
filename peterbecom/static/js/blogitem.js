@@ -7,6 +7,7 @@ var F = (function() {
   var form = $('form#comment');
   var preview = $('#preview-comment-outer');
   var _submitting = false;
+  var _preparing = false;
 
   function commentData() {
     return {
@@ -20,6 +21,8 @@ var F = (function() {
 
   return {
      prepare: function() {
+       if (_preparing) return;  // to avoid excessive calls
+       _preparing = true;
        $.getJSON('/plog/prepare.json', function(response) {
          $('input[name="csrfmiddlewaretoken"]', form).val(response.csrf_token);
          if (response.name) {
@@ -31,6 +34,7 @@ var F = (function() {
        });
      },
     setup_reply: function(parent) {
+      _preparing = false;
       if (parent.size() != 1) throw "Must be exactly 1 parent";
       form.detach().insertAfter($('.ct:eq(0)', parent));
       preview.detach().insertBefore(form);
@@ -51,9 +55,11 @@ var F = (function() {
     },
     preview: function(callback) {
       preview.hide();
+      var data = commentData();
+
       $.ajax({
          url: '/plog/preview.json',
-        data: commentData(),
+        data: data,
         type: 'POST',
         dataType: 'json',
         success: function(response) {

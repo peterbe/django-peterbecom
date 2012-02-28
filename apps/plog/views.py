@@ -121,6 +121,8 @@ def prepare_json(request):
       'email': request.COOKIES.get('email',
         request.COOKIES.get('__blogcomment_email')),
     }
+    # http://stackoverflow.com/a/7503362/205832
+    request.META['CSRF_COOKIE_USED'] = True
     return data
 
 
