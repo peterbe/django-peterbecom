@@ -3,7 +3,11 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 from apps.plog.models import BlogItem, BlogComment, Category
 from apps.plog.utils import utc_now
-
+from django.test import TestCase
+from django.conf import settings
+from django.template.loader import render_to_string
+from django.template import Context
+from django.core.urlresolvers import reverse
 
 
 class HomepageTestCase(TestCase):
@@ -103,3 +107,16 @@ class HomepageTestCase(TestCase):
             assert each in response.content
         assert '?page=1' in response.content
         assert '?page=3' in response.content
+
+
+    def test_render_to_string(self):
+        assert not settings.DEBUG
+        reverse('home')
+        context = {'name': 'Peter'}
+        html = render_to_string('homepage/test.html', context)
+        assert 'Name:Peter' in html
+
+        ccontext = Context(context)
+        html = render_to_string('homepage/test.html', context_instance=ccontext)
+        assert 'Name:Peter' in html
+        assert 'main.css' not in html

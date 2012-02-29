@@ -33,3 +33,8 @@ djcelery.setup_loader()
 #    logging.critical("Using unconfigured Site domain: %s" % site.domain)
 #else:
 #    logging.info("Using Site domain: %s" % site.domain)
+
+
+import jingo
+from compressor.contrib.jinja2ext import CompressorExtension
+jingo.env.add_extension(CompressorExtension)

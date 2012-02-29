@@ -5,3 +5,5 @@ all_texts.txt
 all_urls.txt
 peterbecom/settings/local.py
 peterbecom/static/images/favicon.jpg
+peterbecom/static/CACHE/
+log.log

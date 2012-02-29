@@ -10,3 +10,4 @@ akismet
 django-celery-email
 isodate
 django-redis-cache
+django_compressor

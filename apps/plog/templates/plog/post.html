@@ -4,7 +4,9 @@
 
 {% block extrajs %}
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+{% compress js %}
 <script src="{{ static("js/blogitem.js") }}"></script>
+{% endcompress %}
 {% endblock %}
 
 {% block content %}

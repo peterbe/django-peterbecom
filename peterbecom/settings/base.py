@@ -82,6 +82,7 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    'compressor.finders.CompressorFinder',
 )
 
 # Make this unique, and don't share it with anybody.
@@ -134,9 +135,12 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
     'djcelery',
+    'compressor',
     'apps.plog',
     'apps.homepage',
     'apps.legacy',
+
+
 )
 
 # A sample logging configuration. The only tangible logging
@@ -201,3 +205,10 @@ AKISMET_KEY = None  # override in settings/local.py
 
 SESSION_COOKIE_HTTPONLY = True
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+
+
+COMPRESS_ROOT = path('static')
+COMPRESS_CSS_FILTERS = [
+    'compressor.filters.css_default.CssAbsoluteFilter',
+    'compressor.filters.cssmin.CSSMinFilter',
+]
