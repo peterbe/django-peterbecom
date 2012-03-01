@@ -106,6 +106,7 @@ class FetchFromCacheMiddleware(object):
             return None # No cache information available, need to rebuild.
 
         request._cache_update_cache = False
+        response.write('\n<!-- cache HIT -->\n')
         return response
 
 class CacheMiddleware(UpdateCacheMiddleware, FetchFromCacheMiddleware):
