@@ -63,7 +63,7 @@ def _blog_post_key_prefixer(request):
             latest_date = c.add_date
         latest_date = latest_date.strftime('%f')
         cache.set(cache_key, latest_date, ONE_DAY)
-    prefix += latest_date
+    prefix += str(latest_date)
     return prefix
 
 

@@ -21,7 +21,6 @@ from .utils import (parse_ocs_to_categories, make_categories_q, split_search)
 from apps.view_cache_utils import cache_page_with_prefix
 
 
-
 def _home_key_prefixer(request):
     if request.method != 'GET':
         return None
@@ -42,7 +41,7 @@ def _home_key_prefixer(request):
                    .values('modify_date')[:1])
         latest_date = latest['modify_date'].strftime('%f')
         cache.set(cache_key, latest_date, 60 * 60)
-    prefix += latest_date
+    prefix += str(latest_date)
     return prefix
 
 
