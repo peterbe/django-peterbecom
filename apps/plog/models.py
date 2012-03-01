@@ -157,6 +157,8 @@ def invalidate_blogitem_comment_count(sender, instance, **kwargs):
         pk = instance.pk
     elif sender is BlogComment:
         if instance.blogitem is None:
+            if not instance.parent:  # legacy
+                return
             instance.correct_blogitem_parent()  # legacy
         pk = instance.blogitem_id
     else:

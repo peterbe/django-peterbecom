@@ -4,6 +4,7 @@ from django.conf.urls.defaults import patterns, include, url
 import views
 urlpatterns = patterns('',
     url('^$', views.plog_index, name='plog_index'),
+    url('^new-comments$', views.new_comments, name='new_comments'),
     url('^prepare.json$', views.prepare_json, name='prepare'),
     url('^preview.json$', views.preview_json, name='preview'),
     url('^(.*)/submit$', views.submit_json, name='submit'),

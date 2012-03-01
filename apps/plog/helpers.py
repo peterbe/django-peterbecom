@@ -2,6 +2,8 @@ import jinja2
 from jingo import register
 from django.template.loader import render_to_string
 from .models import BlogItem, BlogComment, Category
+from .timesince import smartertimesince
+from .utils import utc_now
 
 
 @register.function
@@ -29,3 +31,10 @@ def line_indent(text):
     print "WORK HARDER ON THIS"
     print repr(text)
     return text
+
+@register.function
+def timesince(date):
+    if date.tzinfo:
+        return smartertimesince(date, utc_now())
+    else:
+        return smartertimesince(date)

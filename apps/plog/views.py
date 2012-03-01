@@ -13,7 +13,7 @@ from django import http
 from django.core.cache import cache
 from django.views.decorators.cache import cache_page
 from django.db import transaction
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from django.views.decorators.http import require_POST
@@ -45,6 +45,8 @@ def json_view(f):
 
 def _blog_post_key_prefixer(request):
     if request.method != 'GET':
+        return None
+    if request.user.is_authenticated():
         return None
     prefix = urllib.urlencode(request.GET)
     oid = request.path.split('/')[-1]
@@ -341,3 +343,25 @@ def plog_index(request):
       'group_dates': group_dates,
     }
     return render(request, 'plog/index.html', data)
+
+
+def new_comments(request):
+    data = {}
+    comments = BlogComment.objects.all()
+    if request.GET.get('admin'):
+        if not request.user.is_authenticated():
+            return redirect('/admin/')
+    else:
+        comments = comments.filter(approved=True)
+
+    # legacy stuff that can be removed in march 2012
+    for c in comments.filter(blogitem__isnull=True):
+        if not c.parent:
+            c.delete()
+        else:
+            c.correct_blogitem_parent()
+
+    data['comments'] = (comments
+                        .order_by('-add_date')
+                        .select_related('blogitem')[:100])
+    return render(request, 'plog/new-comments.html', data)
