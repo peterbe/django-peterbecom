@@ -64,6 +64,8 @@ class BlogItem(models.Model):
     keywords = ArrayField(max_length=500)
     plogrank = models.FloatField(null=True)
     codesyntax = models.CharField(max_length=20, blank=True)
+    disallow_comments = models.BooleanField(default=False)
+    hide_comments = models.BooleanField(default=False)
     modify_date = models.DateTimeField(default=utc_now)
 
     def __repr__(self):

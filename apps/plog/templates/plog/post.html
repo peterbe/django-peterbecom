@@ -8,11 +8,13 @@
 {% endblock %}
 
 {% block content %}
+{% set count = post.count_comments() %}
+
 <section id="post">
   <div class="page-header">
     <h1>{{ post.title }}<br>
     <small style="float:right">{{ post.pub_date.strftime('%d %B %Y') }}</small>
-    {% set count = post.count_comments() %}
+
     <small>{{ count }} comment{% if count != 1 %}s{% endif %}</small>
 
     {% for category in post.categories.all() %}
@@ -33,15 +35,27 @@
 
 {{ post.rendered|safe }}
 
+{% if post.hide_comments and post.disallow_comments %}
+<p><em>Comments closed for this page</em></p>
+{% else %}
 <section id="comments">
   <div class="page-header">
     <h2>Comments</h2>
   </div>
 
+{% if post.hide_comments %}
+  {% if count %}
+  <p><em>Comments hidden. Sorry.</em></p>
+  {% endif %}
+{% else %}
 <div id="comments-outer">
 {{ show_comments(post, user)|safe }}
 </div>
+{% endif %}
 
+{% if post.disallow_comments %}
+<p><em>Comments closed</em></p>
+{% else %}
 <div id="preview-comment-outer" class="preview" style="display:none"></div>
 <form action="{{ url('submit', post.oid) }}" method="post" id="comment">
 <div class="meta">
@@ -61,8 +75,10 @@
 </div>
 <textarea name="comment" tabindex="1"></textarea>
 </form>
+{% endif %}
 
 </section>
+{% endif %}
 
 <section id="related">
   <div class="page-header">
