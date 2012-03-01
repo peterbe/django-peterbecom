@@ -230,6 +230,8 @@ def submit_json(request, oid):
     data = {'html': html, 'parent': parent and parent.oid or None}
     response = http.HttpResponse(json.dumps(data), mimetype="application/json")
     if name:
+        if isinstance(name, unicode):
+            name = name.encode('utf-8')
         response.set_cookie('name', name)
     if email:
         response.set_cookie('email', email)
