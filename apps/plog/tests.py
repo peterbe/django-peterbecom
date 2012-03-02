@@ -3,7 +3,7 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 from apps.plog.models import BlogItem, BlogComment, Category
 from apps.plog.utils import utc_now
-from redisutils import get_redis_connection
+from apps.redisutils import get_redis_connection
 
 
 class PlogTestCase(TestCase):

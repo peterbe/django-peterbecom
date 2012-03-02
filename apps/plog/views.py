@@ -22,7 +22,7 @@ from django.template import Template
 from django.conf import settings
 from .models import BlogItem, BlogComment, Category
 from .utils import render_comment_text, valid_email, utc_now
-from redisutils import get_redis_connection
+from apps.redisutils import get_redis_connection
 from apps.view_cache_utils import cache_page_with_prefix
 from . import tasks
 

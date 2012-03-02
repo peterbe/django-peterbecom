@@ -16,7 +16,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.sites.models import RequestSite
 from apps.plog.models import Category, BlogItem, BlogComment
 from apps.plog.utils import render_comment_text, utc_now
-from redisutils import get_redis_connection
+from apps.redisutils import get_redis_connection
 from .utils import (parse_ocs_to_categories, make_categories_q, split_search)
 from apps.view_cache_utils import cache_page_with_prefix
 
