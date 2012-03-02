@@ -232,10 +232,7 @@ _image_extension_regex = re.compile('\.(png|jpg|jpeg|gif)$', re.I)
 # Note: this is quite experimental still
 def cache_prefix_files(text):
     hash_ = str(int(time.time()))
-    if '//' in settings.STATIC_URL:  # some CDN
-        static_url = settings.STATIC_URL
-    else:
-        static_url = '/'
+    static_url = settings.STATIC_URL.replace('/static/', '/')
     prefix = '%sCONTENTCACHE-%s' % (static_url, hash_)
     assert not prefix.endswith('/')
 
