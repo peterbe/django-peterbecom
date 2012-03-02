@@ -33,9 +33,10 @@
     <h4><a href="{{ post.url }}">{{ post.url }}</a></h4>
     {% endif %}
   </div>
-</section>
 
 {{ post.rendered|safe }}
+
+</section>
 
 {% if post.hide_comments and post.disallow_comments %}
 <p><em>Comments closed for this page</em></p>

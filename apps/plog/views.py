@@ -183,6 +183,8 @@ def preview_json(request):
 @transaction.commit_on_success
 def submit_json(request, oid):
     post = get_object_or_404(BlogItem, oid=oid)
+    if post.disallow_comments:
+        return http.HttpResponseBadRequest("No comments please")
     comment = request.POST['comment'].strip()
     if not comment:
         return http.HttpResponseBadRequest("Missing comment")

@@ -4,7 +4,7 @@ from django.db import models
 from django.core.cache import cache
 from django.db.models.signals import post_save, pre_save, pre_delete
 from django.dispatch import receiver
-from .utils import render_comment_text, stx_to_html, utc_now
+from . import utils
 
 
 class ArrayField(models.CharField):
@@ -66,7 +66,7 @@ class BlogItem(models.Model):
     codesyntax = models.CharField(max_length=20, blank=True)
     disallow_comments = models.BooleanField(default=False)
     hide_comments = models.BooleanField(default=False)
-    modify_date = models.DateTimeField(default=utc_now)
+    modify_date = models.DateTimeField(default=utils.utc_now)
 
     def __repr__(self):
         return '<%s: %r>' % (self.__class__.__name__, self.oid)
@@ -77,11 +77,15 @@ class BlogItem(models.Model):
 
     @property
     def rendered(self):
-        if not self.text_rendered:
+        return self._render()
+
+    def _render(self, refresh=False):
+        if not self.text_rendered or refresh:
             if self.display_format == 'structuredtext':
-                self.text_rendered = stx_to_html(self.text, self.codesyntax)
+                self.text_rendered = utils.stx_to_html(self.text, self.codesyntax)
             else:
                 raise NotImplementedError(self.display_format)
+            self.text_rendered = utils.cache_prefix_files(self.text_rendered)
             self.save()
         return self.text_rendered
 
@@ -117,7 +121,7 @@ class BlogComment(models.Model):
     approved = models.BooleanField(default=False)
     comment = models.TextField()
     comment_rendered = models.TextField(blank=True, null=True)
-    add_date = models.DateTimeField(default=utc_now)
+    add_date = models.DateTimeField(default=utils.utc_now)
     name = models.CharField(max_length=100, blank=True)
     email = models.CharField(max_length=100, blank=True)
     user_agent = models.CharField(max_length=300, blank=True, null=True)
@@ -132,7 +136,7 @@ class BlogComment(models.Model):
     @property
     def rendered(self):
         if not self.comment_rendered:
-            self.comment_rendered = render_comment_text(self.comment)
+            self.comment_rendered = utils.render_comment_text(self.comment)
             self.save()
         return self.comment_rendered
 
@@ -207,9 +211,9 @@ def update_modify_date(sender, instance, **kwargs):
     if getattr(instance, '_modify_date_set', False):
         return
     if sender is BlogItem:
-        instance.modify_date = utc_now()
+        instance.modify_date = utils.utc_now()
     elif sender is BlogComment:
         if instance.blogitem:
-            instance.blogitem.modify_date = utc_now()
+            instance.blogitem.modify_date = utils.utc_now()
     else:
         raise NotImplementedError(sender)

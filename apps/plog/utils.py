@@ -1,3 +1,4 @@
+import time
 import datetime
 import re
 import zope.structuredtext
@@ -5,6 +6,7 @@ from pygments import highlight
 from pygments.lexers import (PythonLexer, JavascriptLexer, TextLexer,
   HtmlLexer, CssLexer, SqlLexer)
 from pygments.formatters import HtmlFormatter
+from django.conf import settings
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from isodate import UTC
@@ -222,3 +224,25 @@ def stx_to_html(text, codesyntax):
         return new_inner
 
     return _regex.sub(match, rendered)
+
+
+_SRC_regex = re.compile('(src|href)="([^"]+)"')
+_image_extension_regex = re.compile('\.(png|jpg|jpeg|gif)$', re.I)
+
+# Note: this is quite experimental still
+def cache_prefix_files(text):
+    hash_ = str(int(time.time()))
+    if '//' in settings.STATIC_URL:  # some CDN
+        static_url = settings.STATIC_URL
+    else:
+        static_url = '/'
+    prefix = '%sCONTENTCACHE-%s' % (static_url, hash_)
+    assert not prefix.endswith('/')
+
+    def matcher(match):
+        attr, url = match.groups()
+        if url.startswith('/') and _image_extension_regex.findall(url):
+            url = '%s%s' % (prefix, url)
+        return '%s="%s"' % (attr, url)
+
+    return _SRC_regex.sub(matcher, text)
