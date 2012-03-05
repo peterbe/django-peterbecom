@@ -160,6 +160,7 @@ $(function() {
     var oid = $(this).data('oid');
     var url = location.href;
     url = url.split('#')[0];
+    url = url.split('?')[0];
     url += '/approve/' + $(this).data('oid');
     var button = $(this);
     $.post(url, {csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()}, function(response) {
@@ -173,6 +174,7 @@ $(function() {
     var oid = $(this).data('oid');
     var url = location.href;
     url = url.split('#')[0];
+    url = url.split('?')[0];
     url += '/delete/' + oid;
     var button = $(this);
     $.post(url, {csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()}, function(response) {

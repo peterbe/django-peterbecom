@@ -266,7 +266,7 @@ def approve_comment(request, oid, comment_oid):
     else:
         url = blogitem.get_absolute_url()
         if blogcomment.blogitem:
-            url += '#%s' % blogcomment.blogitem.oid
+            url += '#%s' % blogcomment.oid
         return http.HttpResponse('''<html>Comment approved<br>
         <a href="%s">%s</a>
         </html>
@@ -347,13 +347,29 @@ def plog_index(request):
     return render(request, 'plog/index.html', data)
 
 
+def _new_comment_key_prefixer(request):
+    if request.method != 'GET':
+        return None
+    if request.user.is_authenticated():
+        return None
+    prefix = urllib.urlencode(request.GET)
+    cache_key = 'latest_comment_add_date'
+    latest_date = cache.get(cache_key)
+    if latest_date is None:
+        latest, = (BlogItem.objects
+                   .order_by('-modify_date')
+                   .values('modify_date')[:1])
+        latest_date = latest['modify_date'].strftime('%f')
+        cache.set(cache_key, latest_date, 60 * 60)
+    prefix += str(latest_date)
+    return prefix
+
+
+@cache_page_with_prefix(ONE_HOUR, _new_comment_key_prefixer)
 def new_comments(request):
     data = {}
     comments = BlogComment.objects.all()
-    if request.GET.get('admin'):
-        if not request.user.is_authenticated():
-            return redirect('/admin/')
-    else:
+    if not request.user.is_authenticated():
         comments = comments.filter(approved=True)
 
     # legacy stuff that can be removed in march 2012
