@@ -2,7 +2,7 @@
 
 import os
 HERE = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-path = lambda x: os.path.join(HERE, x)
+path = lambda *x: os.path.join(HERE, *x)
 
 DEBUG = TEMPLATE_DEBUG = False
 
@@ -62,7 +62,8 @@ MEDIA_URL = ''
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = ''
+#STATIC_ROOT = ''
+STATIC_ROOT = path('collected', 'static')
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
@@ -75,6 +76,8 @@ STATICFILES_DIRS = (
     # Don't forget to use absolute paths, not relative paths.
     path('static'),
 )
+
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.CachedStaticFilesStorage'
 
 # List of finder classes that know how to find static files in
 # various locations.
@@ -206,8 +209,8 @@ AKISMET_KEY = None  # override in settings/local.py
 SESSION_COOKIE_HTTPONLY = True
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
-
-COMPRESS_ROOT = path('static')
+assert STATIC_ROOT
+COMPRESS_ROOT = STATIC_ROOT
 COMPRESS_CSS_FILTERS = [
     'compressor.filters.css_default.CssAbsoluteFilter',
     'compressor.filters.cssmin.CSSMinFilter',
