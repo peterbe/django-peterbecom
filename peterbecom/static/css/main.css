@@ -8,19 +8,6 @@ body { padding-top: 40px; }
 	margin: 0 -20px;
 }
 
-/*.logo-text { font-family: 'Play'; }*/
-
-/*.hero-unit-style
-{
-	border: 1px solid #eee;
-	background: white;
-	height: 290px;
-	background-image: url('http://c981366.r66.cf2.rackcdn.com/nj2.png');
-	background-repeat: no-repeat;
-	background-size: 100%;
-	color: white;
-	font-smooth: always;
-}*/
 
 .footer-style
 {
@@ -36,26 +23,6 @@ body { padding-top: 40px; }
 	color: white;
 	font-weight: normal;
 }
-
-.psst-text
-{
-	font-size: 32px;
-	font-family: 'Cedarville Cursive';
-	text-shadow: 1px 0 0 #333, 0 -1px 0 #333, 0 1px 0 #333, -1px 0 0 #333;
-}
-
-.psst-text-small
-{
-	font-size: 14px;
-	font-family: 'Cedarville Cursive';
-}
-
-.hero-text
-{
-	color: white;
-	text-shadow: 1px 0 0 #000, 0 -1px 0 #000, 0 1px 0 #000, -1px 0 0 #000;
-}
-
 
 
 .highlight .hll { background-color: #ffffcc }
@@ -197,6 +164,7 @@ dd small { color: rgb(153,153,153); }
   margin-right: 5%;
   font-size: 30px;
   line-height: 36px;
+  text-shadow: 1px 1px 4px #fff;
 }
 
 

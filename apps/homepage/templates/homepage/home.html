@@ -14,6 +14,23 @@
 
 {% block content %}
 
+{% if categories %}
+<div class="alert alert-info">
+    <strong>Filtered home page!</strong>
+    Currently only showing blog entries under the
+    {% if categories.count() == 1 %}
+    category:
+    {% else %}
+    categories:
+    {% endif %}
+    {% for category in categories %}
+    <a href="{{ url('only_category', category.name.replace(' ','+')) }}" rel="nofollow"
+    ><strong>{{ category }}</strong></a>{% if loop.last %}.{% else %}, {% endif %}
+    {% endfor %}
+    <a href="/">Clear filter</a>
+</div>
+{% endif %}
+
 {% for post in blogitems %}
 		<div class="row">
 			<div class="span16">
