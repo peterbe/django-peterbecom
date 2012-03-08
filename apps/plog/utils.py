@@ -1,3 +1,4 @@
+import markdown
 import time
 import datetime
 import re
@@ -10,6 +11,7 @@ from django.conf import settings
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from isodate import UTC
+from gfm import gfm
 
 
 def utc_now():
@@ -192,22 +194,10 @@ def stx_to_html(text, codesyntax):
       text,
       header=0
     )
+
     _regex = re.compile(r'(<pre>(.*?)</pre>)', re.DOTALL)
 
-    if codesyntax == 'cpp':
-        lexer = JavascriptLexer()
-    elif codesyntax == 'python':
-        lexer = PythonLexer()
-    elif codesyntax == 'xml' or codesyntax == 'xml':
-        lexer = HtmlLexer()
-    elif codesyntax == 'css':
-        lexer = CssLexer()
-    elif codesyntax == 'sql':
-        lexer = SqlLexer()
-    elif codesyntax:
-        raise NotImplementedError(codesyntax)
-    else:
-        lexer = TextLexer()
+    lexer = _get_lexer(codesyntax)
 
     def match(s):
         outer, inner = s.groups()
@@ -224,6 +214,66 @@ def stx_to_html(text, codesyntax):
         return new_inner
 
     return _regex.sub(match, rendered)
+
+def _get_lexer(codesyntax):
+    if codesyntax in ('cpp', 'javascript'):
+        return JavascriptLexer()
+    elif codesyntax == 'python':
+        return PythonLexer()
+    elif codesyntax == 'xml' or codesyntax == 'xml':
+        return HtmlLexer()
+    elif codesyntax == 'css':
+        return CssLexer()
+    elif codesyntax == 'sql':
+        return SqlLexer()
+    elif codesyntax:
+        raise NotImplementedError(codesyntax)
+    else:
+        return TextLexer()
+
+_codesyntax_regex = re.compile('```(python|cpp|javascript|xml|html|css|sql)')
+_markdown_pre_regex = re.compile('```([^`]+)```')
+
+def markdown_to_html(text, codesyntax):
+#    print "PRE"
+    def matcher(match):
+        found = match.group()
+        try:
+            codesyntax = _codesyntax_regex.findall(found)[0]
+        except IndexError:
+            codesyntax = None
+        #def codesyntax_finder(m):
+        #    codesyntax = m.group()
+        #    print "\tCODESYNTAX", repr(codesyntax)
+        #    return '```'
+
+        found = _codesyntax_regex.sub('```', found)
+#        print "FOUND"
+#        print repr(found)
+
+        ##print repr(codesyntax)
+#        print repr(found)
+        if codesyntax:
+            def highlighter(m):
+ #               print "IN HERE"
+ #               print "\t", repr(codesyntax)
+ #               print "\t", repr(m.group())
+ #               print "\t", repr('\n%s\n' % _highlight_it(m.group().strip(), codesyntax))
+                lexer = _get_lexer(codesyntax)
+                code = m.group().replace('```', '')
+                return highlight(code, lexer, HtmlFormatter())
+            found = _markdown_pre_regex.sub(highlighter, found)
+        found = found.replace('```', '<pre>', 1)
+        found = found.replace('```', '</pre>')
+        print ""
+        return found
+
+    text = _markdown_pre_regex.sub(matcher, text)
+    print repr(text)
+    #print gfm(text)
+    print "\n"
+    html = markdown.markdown(gfm(text))
+    return html
 
 
 _SRC_regex = re.compile('(src|href)="([^"]+)"')

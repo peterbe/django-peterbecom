@@ -1,0 +1,27 @@
+
+{% set count = post.count_comments() %}
+<section id="post">
+  <div class="page-header">
+    <h1>{{ post.title }}<br>
+    <small style="float:right">{{ post.pub_date.strftime('%d %B %Y') }}</small>
+
+    <small>{{ count }} comment{% if count != 1 %}s{% endif %}</small>
+
+    {% for category in post.categories.all() %}
+      {% if loop.first %}&nbsp; <small>{% endif %}
+        <a href="{{ url('only_category', category.name.replace(' ','+')) }}"
+           rel="nofollow"
+           title="Filter by the '{{ category.name }}' category"
+           >{{ category.name }}</a>{% if not loop.last %}, {% endif %}
+      {% if loop.last %}</small>{% endif %}
+    {% endfor %}
+    </h1>
+
+    {% if post.url %}
+    <h4><a href="{{ post.url }}">{{ post.url }}</a></h4>
+    {% endif %}
+  </div>
+
+{{ post.rendered|safe }}
+
+</section>

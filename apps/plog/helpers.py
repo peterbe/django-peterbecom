@@ -4,7 +4,9 @@ from django.template.loader import render_to_string
 from .models import BlogItem, BlogComment, Category
 from .timesince import smartertimesince
 from .utils import utc_now
-
+from django.template import Context
+from django.template.loader import get_template
+#from bootstrapform import
 
 @register.function
 def show_comments(parent, user):
@@ -38,3 +40,10 @@ def timesince(date):
         return smartertimesince(date, utc_now())
     else:
         return smartertimesince(date)
+
+
+@register.function
+def bootstrapform(form):
+    template = get_template("bootstrapform/form.html")
+    context = Context({'form': form})
+    return template.render(context)

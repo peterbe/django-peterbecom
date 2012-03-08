@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title_prefix %}{{ page_title }}{% endblock %}
+
+{% block extrahead %}
+<style>
+#id_oid, #id_title { width:50%; }
+#id_text, #id_summary, #id_url { width:100%; }
+</style>
+{% endblock %}
+
+{% block extrajs %}
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<script src="{{ static("js/editpost.js") }}"></script>
+{% endblock %}
+
+{% block content %}
+<div id="thumbnails" style="width:200px; float:right;">
+<h4>Thumbnails</h4>
+<a href="{{ url('plog_add_file') }}">add files</a>
+<div class="inner"></div>
+</div>
+
+<h2>{{ page_title }}</h2>
+
+<form action="" method="post">{{ csrf() }}
+{{ bootstrapform(form)|safe }}
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">Save changes</button>
+    <button class="btn">Cancel</button>
+  </div>
+</form>
+
+<p style="border-top:1px solid #ccc">
+preview &darr;
+&nbsp;
+<a href="{{ url('blog_post', blogitem.oid) }}">view &rarr;</a>
+</p>
+
+<div id="preview-container"></div>
+
+{% endblock %}

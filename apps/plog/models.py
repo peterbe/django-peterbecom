@@ -1,9 +1,12 @@
+import time
+import os
 import uuid
 import datetime
 from django.db import models
 from django.core.cache import cache
 from django.db.models.signals import post_save, pre_save, pre_delete
 from django.dispatch import receiver
+from django.conf import settings
 from . import utils
 
 
@@ -84,7 +87,7 @@ class BlogItem(models.Model):
             if self.display_format == 'structuredtext':
                 self.text_rendered = utils.stx_to_html(self.text, self.codesyntax)
             else:
-                raise NotImplementedError(self.display_format)
+                self.text_rendered = utils.markdown_to_html(self.text, self.codesyntax)
             self.text_rendered = utils.cache_prefix_files(self.text_rendered)
             self.save()
         return self.text_rendered
@@ -155,6 +158,27 @@ class BlogComment(models.Model):
         self.save()
 
 
+def _uploader_dir(instance, filename):
+    def fp(filename):
+        return os.path.join('peterbecom/static',
+                            'plog',
+                            instance.blogitem.oid,
+                            filename)
+    a, b = os.path.splitext(filename)
+    filename = '%s.%s%s' % (a, int(time.time()), b)
+    return fp(filename)
+
+
+class BlogFile(models.Model):
+    blogitem = models.ForeignKey(BlogItem)
+    file = models.FileField(upload_to=_uploader_dir)
+    add_date = models.DateTimeField(default=utils.utc_now)
+    modify_date = models.DateTimeField(default=utils.utc_now)
+
+    def __repr__(self):
+        return '<%s: %r>' % (self.__class__.__name__, self.blogitem.oid)
+
+
 @receiver(pre_delete, sender=BlogComment)
 @receiver(post_save, sender=BlogComment)
 @receiver(post_save, sender=BlogItem)
@@ -205,12 +229,13 @@ def invalidate_latest_comment_add_date_by_oid(sender, instance, **kwargs):
     cache.delete(cache_key)
 
 
+@receiver(pre_save, sender=BlogFile)
 @receiver(pre_save, sender=BlogComment)
 @receiver(pre_save, sender=BlogItem)
 def update_modify_date(sender, instance, **kwargs):
     if getattr(instance, '_modify_date_set', False):
         return
-    if sender is BlogItem:
+    if sender is BlogItem or sender is BlogFile:
         instance.modify_date = utils.utc_now()
     elif sender is BlogComment:
         if instance.blogitem:
