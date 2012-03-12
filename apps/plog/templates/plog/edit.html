@@ -34,7 +34,9 @@
 <p style="border-top:1px solid #ccc">
 preview &darr;
 &nbsp;
+{% if blogitem %}
 <a href="{{ url('blog_post', blogitem.oid) }}">view &rarr;</a>
+{% endif %}
 </p>
 
 <div id="preview-container"></div>
