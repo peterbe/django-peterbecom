@@ -422,7 +422,6 @@ def add_post(request):
         form = BlogForm(initial=initial)
     data['form'] = form
     data['page_title'] = 'Add post'
-    data['blogitem'] = blogitem
     return render(request, 'plog/edit.html', data)
 
 
