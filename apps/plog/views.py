@@ -225,6 +225,10 @@ def submit_json(request, oid):
         if not settings.DEBUG:
             tasks.akismet_rate.delay(blog_comment.pk)
 
+        if request.user.is_authenticated():
+            _approve_comment(blog_comment)
+            assert blog_comment.approved
+
         tos = [x[1] for x in settings.ADMINS]
         from_ = ['%s <%s>' % x for x in settings.ADMINS][0]
         body = _get_comment_body(post, blog_comment)
@@ -253,18 +257,8 @@ def approve_comment(request, oid, comment_oid):
     if blogcomment.blogitem != blogitem:
         raise http.Http404("bad rel")
 
-    blogcomment.approved = True
-    blogcomment.save()
+    _approve_comment(blogcomment)
 
-    if (blogcomment.parent and blogcomment.parent.email
-        and valid_email(blogcomment.parent.email)
-        and blogcomment.email != blogcomment.parent.email):
-        parent = blogcomment.parent
-        tos = [parent.email]
-        from_ = 'Peterbe.com <noreply+%s@peterbe.com>' % blogcomment.oid
-        body = _get_comment_reply_body(blogitem, blogcomment, parent)
-        subject = 'Peterbe.com: Reply to your comment'
-        send_mail(subject, body, from_, tos)
     if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
         return http.HttpResponse('OK')
     else:
@@ -275,6 +269,20 @@ def approve_comment(request, oid, comment_oid):
         <a href="%s">%s</a>
         </html>
         ''' % (url, blogitem.title))
+
+def _approve_comment(blogcomment):
+    blogcomment.approved = True
+    blogcomment.save()
+
+    if (blogcomment.parent and blogcomment.parent.email
+        and valid_email(blogcomment.parent.email)
+        and blogcomment.email != blogcomment.parent.email):
+        parent = blogcomment.parent
+        tos = [parent.email]
+        from_ = 'Peterbe.com <noreply+%s@peterbe.com>' % blogcomment.oid
+        body = _get_comment_reply_body(blogcomment.blogitem, blogcomment, parent)
+        subject = 'Peterbe.com: Reply to your comment'
+        send_mail(subject, body, from_, tos)
 
 
 def _get_comment_body(blogitem, blogcomment):

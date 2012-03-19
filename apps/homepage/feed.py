@@ -6,6 +6,9 @@ from .utils import parse_ocs_to_categories, make_categories_q
 from apps.plog.utils import utc_now
 
 
+smart_static_urls = re.compile('src="//')
+
+
 class PlogFeed(Feed):
     title = "Peterbe.com"
     description = "Peter Bengtssons's personal homepage about little things that concern him."
@@ -35,4 +38,11 @@ class PlogFeed(Feed):
         summary = item.summary
         if not summary:
             summary = item.rendered
+            # content that has
+            #  <img src="//aoisjdeqwd.cloudfront/oijsdfa.jpg"
+            # should default to
+            #  <img src="http://aoisjdeqwd.cloudfront/oijsdfa.jpg"
+            summary = smart_static_urls.sub('src="http://', summary)
+            # this is to please
+            # http://validator.w3.org/feed/check.cgi?url=http%3A%2F%2Fwww.peterbe.com%2Frss.xml
         return summary
