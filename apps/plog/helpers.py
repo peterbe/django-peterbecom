@@ -1,3 +1,4 @@
+import textwrap
 import jinja2
 from jingo import register
 from django.template.loader import render_to_string
@@ -29,10 +30,10 @@ def show_comments(parent, user):
 
 
 @register.function
-def line_indent(text):
-    print "WORK HARDER ON THIS"
-    print repr(text)
-    return text
+def line_indent(text, indent=' ' * 4):
+    return '\n'.join(textwrap.wrap(text,
+                                   initial_indent=indent,
+                                   subsequent_indent=indent))
 
 @register.function
 def timesince(date):
