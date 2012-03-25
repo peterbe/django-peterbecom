@@ -44,6 +44,7 @@ def akismet_rate(pk):
               blog_comment, blog_comment.comment[:50]
             ))
         else:
+            is_spam = False  # so that it's not None
             logging.info("Akisment thinks %r is NOT spam" % (
               blog_comment,
             ))
