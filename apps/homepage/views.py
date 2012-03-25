@@ -85,6 +85,8 @@ STOPWORDS = "a able about across after all almost also am among an and "\
 def search(request):
     data = {}
     search = request.GET.get('q', '')
+    if len(search) > 100:
+        return http.HttpResponse("Search too long")
     documents = []
     data['base_url'] = 'http://%s' % RequestSite(request).domain
     tag_strip = re.compile('<[^>]+>')
