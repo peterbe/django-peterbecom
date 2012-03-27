@@ -5,6 +5,9 @@
 <style>
 #id_oid, #id_title { width:50%; }
 #id_text, #id_summary, #id_url { width:100%; }
+#thumbnails {height:180px;
+overflow-y:scroll;}
+#thumbnails input { font-size:80%; height:11px; }
 </style>
 {% endblock %}
 
@@ -14,10 +17,18 @@
 {% endblock %}
 
 {% block content %}
-<div id="thumbnails" style="width:200px; float:right;">
+
+<div id="thumbnails" style="width:250px; float:right;">
+{% if blogitem %}
+<a style="float:right" href="{{ url('plog_add_file') }}?oid={{ blogitem.oid }}">add files</a>
+{% endif %}
+
 <h4>Thumbnails</h4>
-<a href="{{ url('plog_add_file') }}">add files</a>
+{% if blogitem %}
 <div class="inner"></div>
+{% else %}
+<em>after you can add em</em>
+{% endif %}
 </div>
 
 <h2>{{ page_title }}</h2>

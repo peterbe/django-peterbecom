@@ -83,6 +83,8 @@ def blog_post(request, oid):
         try:
             post = BlogItem.objects.get(oid__iexact=oid)
         except BlogItem.DoesNotExist:
+            if oid == 'add':
+                return redirect(reverse('add_post'))
             raise http.Http404(oid)
 
     data = {
@@ -527,7 +529,6 @@ def add_file(request):
     if request.method == 'POST':
         form = BlogFileUpload(request.POST, request.FILES)
         if form.is_valid():
-            #print form.cleaned_data['file']
             instance = form.save()
             url = reverse('edit_post', args=[instance.blogitem.oid])
             return redirect(url)
@@ -554,12 +555,40 @@ def post_thumbnails(request, oid):
         im = get_thumbnail(blogfile.file, '100x100', #crop='center',
                            quality=81)
 
+        full_im = get_thumbnail(blogfile.file, '1000x1000', #crop='center',
+                                upscale=False, quality=100)
+
         url_ = settings.STATIC_URL + im.url
+        full_url = settings.STATIC_URL + full_im.url
         tag = ('<img src="%s" alt="%s" width="%s" height="%s">' %
-                 (url_, blogitem.title, im.width, im.height))
+                 (url_,
+                  getattr(blogfile, 'title', blogitem.title),
+                  im.width,
+                  im.height))
         html += tag
+        delete_url = reverse('delete_post_thumbnail') + '?id=%s' % blogfile.pk
+        whole_tag = ('<a href="%s" title="%s">%s</a>' %
+                     (full_url, blogfile.blogitem.title,
+                      tag.replace('src="', 'class="floatright" src="')))
         html += ' (%s, %s)' % (im.width, im.height)
+        html += ' <a href="%s">delete</a>' % delete_url
+        html += '<br><input value="%s" title="Full size 1200x1200">' % full_url
         html += '<br><input value="%s">' % cgi.escape(tag).replace('"', '&quot;')
+        html += '<br><input value="%s">' % cgi.escape(whole_tag).replace('"', '&quot;')
         html += '<br>'
 
     return http.HttpResponse(html)
+
+
+@login_required
+def delete_post_thumbnail(request):
+    pk = request.REQUEST.get('id')
+    assert pk
+    blogfile = get_object_or_404(BlogFile, pk=pk)
+    blogitem = blogfile.blogitem
+    edit_post_url = reverse('edit_post', args=[blogitem.oid])
+    blogfile.delete()
+    return http.HttpResponse(
+       'Blogfile deleted.<br><a href="%s">Edit \'%s\'</a>' %
+       (edit_post_url, blogitem.title)
+    )

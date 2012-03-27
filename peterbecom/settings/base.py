@@ -211,6 +211,7 @@ AKISMET_KEY = None  # override in settings/local.py
 
 SESSION_COOKIE_HTTPONLY = True
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 61  # 2 months
 
 assert STATIC_ROOT
 COMPRESS_ROOT = STATIC_ROOT
@@ -221,3 +222,5 @@ COMPRESS_CSS_FILTERS = [
 
 
 UPLOAD_FILE_DIR = path('..', 'peterbecom-static-content')
+
+LOGIN_URL = '/admin/'

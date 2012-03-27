@@ -5,6 +5,7 @@ import views
 urlpatterns = patterns('',
     url('^$', views.plog_index, name='plog_index'),
     url('^edit/(.*)', views.edit_post, name='edit_post'),
+    url('^thumbnails/delete/', views.delete_post_thumbnail, name='delete_post_thumbnail'),
     url('^thumbnails/(.*)', views.post_thumbnails, name='post_thumbnails'),
     url('^add/$', views.add_post, name='add_post'),
     url('^add/file/$', views.add_file, name='plog_add_file'),
