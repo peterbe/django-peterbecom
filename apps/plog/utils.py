@@ -269,9 +269,9 @@ def markdown_to_html(text, codesyntax):
         return found
 
     text = _markdown_pre_regex.sub(matcher, text)
-    print repr(text)
+    #print repr(text)
     #print gfm(text)
-    print "\n"
+    #print "\n"
     html = markdown.markdown(gfm(text))
     return html
 
@@ -288,7 +288,10 @@ def cache_prefix_files(text):
 
     def matcher(match):
         attr, url = match.groups()
-        if url.startswith('/') and _image_extension_regex.findall(url):
+        if (url.startswith('/') and
+            not url.startswith('//') and
+            not '://' in url and
+            _image_extension_regex.findall(url)):
             url = '%s%s' % (prefix, url)
         return '%s="%s"' % (attr, url)
 

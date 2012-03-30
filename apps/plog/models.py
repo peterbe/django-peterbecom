@@ -1,3 +1,4 @@
+from hashlib import md5
 import time
 import os
 import uuid
@@ -160,11 +161,13 @@ class BlogComment(models.Model):
 
 def _uploader_dir(instance, filename):
     def fp(filename):
-        return os.path.join('peterbecom/static',
-                            'plog',
+        return os.path.join('plog',
                             instance.blogitem.oid,
                             filename)
     a, b = os.path.splitext(filename)
+    if isinstance(a, unicode):
+        a = a.encode('ascii', 'ignore')
+    a = md5(a).hexdigest()[:10]
     filename = '%s.%s%s' % (a, int(time.time()), b)
     return fp(filename)
 
