@@ -63,13 +63,15 @@ $(function() {
       Preview.update();
   }
 
-  $('#id_title').on('keydown', function() {
-    $('#id_oid').val(slugify($(this).val()));
-  });
+  if (!$('#id_oid').val().length) {
+    $('#id_title').on('keydown', function() {
+      $('#id_oid').val(slugify($(this).val()));
+    });
 
-  $('#id_oid').on('keydown', function() {
-    $('#id_title').off('keydown');
-  });
+    $('#id_oid').on('keydown', function() {
+      $('#id_title').off('keydown');
+    });
+  }
 
   Thumbnails();
 
