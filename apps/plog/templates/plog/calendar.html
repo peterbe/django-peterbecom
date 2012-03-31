@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title_prefix %}{{ page_title }}{% endblock %}
+
+{% block extrahead %}
+<link rel="stylesheet" href="{{ static("libs/fullcalendar/fullcalendar.css") }}">
+{% endblock %}
+
+{% block extrajs %}
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script src="{{ static("libs/fullcalendar/fullcalendar.min.js") }}"></script>
+<script src="{{ static("js/calendar.js") }}"></script>
+{% endblock %}
+
+{% block content %}
+<div id="calendar"></div>
+{% endblock %}

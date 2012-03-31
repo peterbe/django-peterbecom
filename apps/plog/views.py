@@ -1,3 +1,4 @@
+import time
 import urllib
 import logging
 import datetime
@@ -592,3 +593,37 @@ def delete_post_thumbnail(request):
        'Blogfile deleted.<br><a href="%s">Edit \'%s\'</a>' %
        (edit_post_url, blogitem.title)
     )
+
+
+def calendar(request):
+    data = {'page_title': 'Archive calendar'}
+    return render(request, 'plog/calendar.html', data)
+
+
+@json_view
+def calendar_data(request):
+    start = request.GET['start']
+    end = request.GET['end']
+    start = datetime.datetime.fromtimestamp(float(start))
+    end = datetime.datetime.fromtimestamp(float(end))
+    if not request.user.is_authenticated():
+        end = min(end, datetime.datetime.utcnow())
+        if end < start:
+            return []
+    assert start < end
+    assert (end - start).days < 50
+    start = utils.utcify(start)
+    end = utils.utcify(end)
+
+    qs = BlogItem.objects.filter(pub_date__gte=start, pub_date__lt=end)
+    items = []
+    for each in qs:
+        item = {
+          'title': each.title,
+          'start': time.mktime(each.pub_date.timetuple()),
+          'url': reverse('blog_post', args=[each.oid]),
+          'className': 'post',
+        }
+        items.append(item)
+
+    return items

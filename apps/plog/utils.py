@@ -14,6 +14,9 @@ from isodate import UTC
 from gfm import gfm
 
 
+def utcify(dateinstance):
+    return dateinstance.replace(tzinfo=UTC)
+
 def utc_now():
     """Return a timezone aware datetime instance in UTC timezone
 
