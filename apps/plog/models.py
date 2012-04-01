@@ -54,7 +54,7 @@ class BlogItem(models.Model):
 
 
     """
-    oid = models.CharField(max_length=100, db_index=True)
+    oid = models.CharField(max_length=100, db_index=True, unique=True)
     title = models.CharField(max_length=200)
     alias = models.CharField(max_length=200, null=True)
     bookmark = models.BooleanField(default=False)
@@ -119,7 +119,7 @@ class BlogComment(models.Model):
 
     """
 
-    oid = models.CharField(max_length=100, db_index=True)
+    oid = models.CharField(max_length=100, db_index=True, unique=True)
     blogitem = models.ForeignKey(BlogItem, null=True)
     parent = models.ForeignKey('BlogComment', null=True)
     approved = models.BooleanField(default=False)

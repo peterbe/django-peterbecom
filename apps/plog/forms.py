@@ -29,6 +29,15 @@ class BlogForm(forms.ModelForm):
         self.fields['summary'].required = False
         self.fields['keywords'].required = False
 
+    def clean_oid(self):
+        value = self.cleaned_data['oid']
+        filter_ = BlogItem.objects.filter(oid=value)
+        if self.instance:
+            filter_ = filter_.exclude(oid=self.instance.oid)
+        if filter_.exists():
+            raise forms.ValidationError("OID already in use")
+        return value
+
 
 class EditBlogForm(BlogForm):
 
