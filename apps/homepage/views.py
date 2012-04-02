@@ -276,7 +276,8 @@ def search(request):
         if ' or ' not in data['q'] and len(data['q'].split()) > 1:
             data['better'] = data['q'].replace(' ', ' or ')
     if data['better']:
-        data['better_url'] = reverse('search') + '?' + urllib.urlencode({'q': data['better']})
+       data['better_url'] = (reverse('search') + '?'
+                     + urllib.urlencode({'q': data['better'].encode('utf-8')}))
 
     if data['count_documents'] == 1:
         page_title = '1 thing found'
