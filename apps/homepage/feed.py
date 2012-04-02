@@ -29,6 +29,7 @@ class PlogFeed(Feed):
                 .filter(pub_date__lt=utc_now()))
         if categories:
             qs = qs.filter(make_categories_q(categories))
+        print qs.query
         return qs.order_by('-pub_date')[:10]
 
     def item_title(self, item):

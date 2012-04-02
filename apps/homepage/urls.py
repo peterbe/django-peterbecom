@@ -1,12 +1,13 @@
 from django.http import HttpResponsePermanentRedirect
 from django.conf.urls.defaults import patterns, include, url
+from django.views.decorators.cache import cache_page
 from .feed import PlogFeed
 import views
 
 
 urlpatterns = patterns('',
     url('^$', views.home, name='home'),
-    url(r'(.*?)/?rss.xml$', PlogFeed()),
+    url(r'(.*?)/?rss.xml$', cache_page(PlogFeed(), 60 * 60)),
     url('^search$', views.search, name='search'),
     url('^About$', lambda x: HttpResponsePermanentRedirect('/about/')),
     url('^about$', views.about, name='about'),
