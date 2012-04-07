@@ -1,3 +1,6 @@
+[submodule "vendor/src/django"]
+	path = vendor/src/django
+	url = git://github.com/django/django.git
 [submodule "vendor/src/django_compressor"]
 	path = vendor/src/django_compressor
 	url = git://github.com/jezdez/django_compressor.git
