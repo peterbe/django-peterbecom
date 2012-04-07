@@ -1,10 +1,11 @@
+import os
 import re
 import datetime
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.test import TestCase
-from apps.plog.models import BlogItem, BlogComment, Category
+from apps.plog.models import BlogItem, BlogComment, Category, BlogFile
 from apps.plog.utils import utc_now
 from apps.redisutils import get_redis_connection
 
@@ -124,3 +125,35 @@ code"""
         response = self.client.post(url, data)
         self.assertTrue('<div class="highlight">' in response.content)
         self.assertTrue('<span class="k">def</span>' in response.content)
+
+    def test_postmark_inbound(self):
+        here = os.path.dirname(__file__)
+        filepath = os.path.join(here, 'raw_data.1333828973.78.json')
+        url = reverse('inbound_email')
+        json_content = open(filepath).read()
+        response = self.client.post(url, data=json_content,
+            content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue("error" in response.content.lower())
+        self.assertTrue("no hashkey defined in subject line"
+                        in response.content.lower())
+
+        post = BlogItem.objects.create(
+          oid='some-longish-test-post',
+          title='TITLEX',
+          text='BLABLABLA',
+          display_format='structuredtext',
+          pub_date=utc_now() - datetime.timedelta(seconds=10),
+        )
+        hashkey = post.get_or_create_inbound_hashkey()
+        json_content = json_content.replace('Test subject',
+             '%s: Test Title' % hashkey)
+
+        response = self.client.post(url, data=json_content,
+            content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue("OK" in response.content)
+        self.assertTrue(BlogFile.objects.filter(blogitem=post))
+        blogfile, = BlogFile.objects.filter(blogitem=post)
+        self.assertEqual(blogfile.title, 'Test Title')
+        self.assertTrue(blogfile.file.read())

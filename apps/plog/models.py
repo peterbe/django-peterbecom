@@ -110,6 +110,38 @@ class BlogItem(models.Model):
     def __unicode__(self):
         return self.title
 
+    def get_or_create_inbound_hashkey(self):
+        cache_key = 'inbound_hashkey_%s' % self.pk
+        value = cache.get(cache_key)
+        if not value:
+            value = self._new_inbound_hashkey(5)
+            cache.set(cache_key, value, 60 * 60 * 60)
+            hash_cache_key = 'hashkey-%s' % value
+            cache.set(hash_cache_key, self.pk, 60 * 60 * 60)
+        return value
+
+    def _new_inbound_hashkey(self, length):
+        def mk():
+            from string import lowercase, uppercase
+            from random import choice
+            s = choice(list(uppercase))
+            while len(s) < length:
+                s += choice(list(lowercase + '012345789'))
+            return s
+
+        key = mk()
+        while cache.get('hashkey-%s' % key):
+            key = mk()
+        return key
+
+    @classmethod
+    def get_by_inbound_hashkey(cls, hashkey):
+        cache_key = 'hashkey-%s' % hashkey
+        value = cache.get(cache_key)
+        if not value:
+            raise cls.DoesNotExist("not found")
+        return cls.objects.get(pk=value)
+
 
 class BlogComment(models.Model):
     """

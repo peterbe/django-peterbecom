@@ -224,3 +224,5 @@ COMPRESS_CSS_FILTERS = [
 UPLOAD_FILE_DIR = path('..', 'peterbecom-static-content')
 
 LOGIN_URL = '/admin/'
+
+INBOUND_EMAIL_ADDRESS = 'setup@yourown.com'

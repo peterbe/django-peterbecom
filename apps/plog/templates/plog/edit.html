@@ -42,6 +42,16 @@ overflow-y:scroll;}
   </div>
 </form>
 
+{% if blogitem %}
+<div>
+<p>To email pictures send an email to:
+<code>{{ INBOUND_EMAIL_ADDRESS }}</code><br>
+with the subject line:
+<code>{{ blogitem.get_or_create_inbound_hashkey() }}: Your file title here</code>
+</p>
+</div>
+{% endif %}
+
 <p style="border-top:1px solid #ccc">
 preview &darr;
 &nbsp;

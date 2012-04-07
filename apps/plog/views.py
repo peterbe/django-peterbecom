@@ -6,6 +6,7 @@ import re
 import functools
 import json
 import cgi
+from cStringIO import StringIO
 from collections import defaultdict
 from pprint import pprint
 from django.contrib.sites.models import Site
@@ -23,6 +24,8 @@ from django.contrib.auth.decorators import login_required
 from django.template import Template
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
+from django.core.files import File
+from postmark.inbound import PostmarkInbound
 from .models import BlogItem, BlogComment, Category, BlogFile
 from .utils import render_comment_text, valid_email, utc_now
 from apps.redisutils import get_redis_connection
@@ -475,6 +478,7 @@ def edit_post(request, oid):
     data['form'] = form
     data['page_title'] = 'Edit post'
     data['blogitem'] = blogitem
+    data['INBOUND_EMAIL_ADDRESS'] = settings.INBOUND_EMAIL_ADDRESS
     return render(request, 'plog/edit.html', data)
 
 
@@ -634,10 +638,44 @@ def calendar_data(request):
 @csrf_exempt
 def inbound_email(request):
     raw_data = request.raw_post_data
-    filename = '/tmp/raw_data.%s.json' % (time.time(),)
-    with open(filename, 'w') as f:
-        f.write(raw_data)
+    #filename = '/tmp/raw_data.%s.json' % (time.time(),)
+    #with open(filename, 'w') as f:
+    #    f.write(raw_data)
+
     data = json.loads(raw_data)
-    logging.info(data)
-    logging.info(filename)
+    #logging.info(data)
+    #logging.info(filename)
+    #from pprint import pprint
+    #pprint(data)
+    inbound = PostmarkInbound(json=raw_data)
+    if not inbound.has_attachments():
+        m = "ERROR! No attachments"
+        logging.debug(m)
+        return http.HttpResponse(m)
+    try:
+        hashkey, subject = inbound.subject().split(':', 1)
+    except ValueError:
+        m = "ERROR! No hashkey defined in subject line"
+        logging.debug(m)
+        return http.HttpResponse(m)
+    try:
+        post = BlogItem.get_by_inbound_hashkey(hashkey)
+    except BlogItem.DoesNotExist:
+        m = "ERROR! Unrecognized hashkey"
+        logging.debug(m)
+        return http.HttpResponse(m)
+
+    attachments = inbound.attachments()
+    attachment = attachments[0]
+    blogfile = BlogFile(
+      blogitem=post,
+      title=subject.strip(),
+    )
+    content = StringIO(attachment.read())
+    f = File(content, name=attachment.name())
+    f.size = attachment.content_length()
+    blogfile.file.save(attachment.name(),
+                       f,
+                       save=True)
+    blogfile.save()
     return http.HttpResponse("OK\n")

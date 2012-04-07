@@ -1,0 +1,46 @@
+{
+  "From": "support@postmarkapp.com",
+  "FromFull": {
+    "Email": "support@postmarkapp.com",
+    "Name": "Postmarkapp Support"
+  },
+  "To": "\"Firstname Lastname\" <mailbox+hash@inbound.postmarkapp.com>",
+  "ToFull": [
+    {
+      "Email": "mailbox+hash@inbound.postmarkapp.com",
+      "Name": "Firstname Lastname"
+    }
+  ],
+  "Cc": "\"First Cc\" <firstcc@postmarkapp.com>, secondCc@postmarkapp.com",
+  "CcFull": [
+    {
+      "Email": "firstcc@postmarkapp.com",
+      "Name": "First Cc"
+    },
+    {
+      "Email": "secondCc@postmarkapp.com"
+    }
+  ],
+  "ReplyTo": "replyto@postmarkapp.com",
+  "Subject": "Test subject",
+  "MessageID": "73e6d360-66eb-11e1-8e72-a8904824019b",
+  "Date": "Mon, 5 Mar 2012 14:33:50 +0100",
+  "MailboxHash": "SampleHash",
+  "TextBody": "This is a test text body.",
+  "HtmlBody": "<html><body><p>This is a test html body.<\/p><\/body><\/html>",
+  "Tag": "TestTag",
+  "Headers": [
+    {
+      "Name": "X-Header-Test",
+      "Value": ""
+    }
+  ],
+  "Attachments": [
+    {
+      "Name": "test.txt",
+      "Content": "VGhpcyBpcyBhdHRhY2htZW50IGNvbnRlbnRzLCBiYXNlLTY0IGVuY29kZWQu",
+      "ContentType": "text/plain",
+      "ContentLength": 60
+    }
+  ]
+}
