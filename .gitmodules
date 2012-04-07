@@ -1,3 +1,6 @@
 [submodule "vendor/src/django_compressor"]
 	path = vendor/src/django_compressor
 	url = git://github.com/jezdez/django_compressor.git
+[submodule "vendor/src/postmark-inbound-python"]
+	path = vendor/src/postmark-inbound-python
+	url = git://github.com/jpadilla/postmark-inbound-python.git

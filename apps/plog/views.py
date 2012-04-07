@@ -628,3 +628,14 @@ def calendar_data(request):
         items.append(item)
 
     return items
+
+
+@require_POST
+@csrf_exempt
+def inbound_email(request):
+    raw_data = request.raw_post_data
+    f = '/tmp/raw_data.%s.json' % (time.time(),)
+    data = json.loads(raw_data)
+    logging.info(data)
+    logging.info(f)
+    return http.HttpResponse("OK\n")
