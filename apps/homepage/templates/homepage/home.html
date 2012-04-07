@@ -33,7 +33,7 @@
 
 {% for post in blogitems %}
 		<div class="row">
-			<div class="span16">
+			<div>
 				<div class="page-header">
 					<h1>
 					<a href="{{ url('blog_post', post.oid) }}">{{ post.title }}</a><br>
@@ -55,7 +55,11 @@
 					{% endif %}
 				</div>
 
+                                {% if post.has_carousel_tag %}
+                                {{ expand_carousel_thumbnails(post.rendered, post)|safe }}
+                                {% else %}
                                 {{ post.rendered|safe }}
+                                {% endif %}
 
 			</div>
 		</div>

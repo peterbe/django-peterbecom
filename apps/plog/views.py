@@ -569,7 +569,8 @@ def post_thumbnails(request, oid):
         html += tag
         delete_url = reverse('delete_post_thumbnail') + '?id=%s' % blogfile.pk
         whole_tag = ('<a href="%s" title="%s">%s</a>' %
-                     (full_url, blogfile.blogitem.title,
+                     (full_url,
+                      getattr(blogfile, 'title', blogitem.title),
                       tag.replace('src="', 'class="floatright" src="')))
         html += ' (%s, %s)' % (im.width, im.height)
         html += ' <a href="%s">delete</a>' % delete_url

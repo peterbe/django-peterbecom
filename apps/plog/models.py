@@ -93,6 +93,9 @@ class BlogItem(models.Model):
             self.save()
         return self.text_rendered
 
+    def has_carousel_tag(self):
+        return '::carousel::' in self.rendered
+
     def count_comments(self):
         cache_key = 'nocomments:%s' % self.pk
         count = cache.get(cache_key)
@@ -175,6 +178,7 @@ def _uploader_dir(instance, filename):
 class BlogFile(models.Model):
     blogitem = models.ForeignKey(BlogItem)
     file = models.FileField(upload_to=_uploader_dir)
+    title = models.CharField(max_length=300, null=True, blank=True)
     add_date = models.DateTimeField(default=utils.utc_now)
     modify_date = models.DateTimeField(default=utils.utc_now)
 

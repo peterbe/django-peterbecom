@@ -118,6 +118,17 @@ var F = (function() {
 
 
 $(function() {
+  var carousel = $('#carousel');
+  if (carousel.size()) {
+    $(carousel.carousel({
+       interval: 10000
+    });
+    if (location.hash && /#t\d+/.test(location.hash)) {
+      var nth = parseInt(location.hash.replace('#t', ''));
+      carousel.carousel(nth - 1);
+    }
+  }
+
   var form = $('form#comment');
 
   $(window).on('scroll', function() {

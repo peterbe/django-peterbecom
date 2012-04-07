@@ -1,9 +1,7 @@
-* Home page page_cache decorator from djangopeoplenet
-
-* Download all peterbe-static-content locally and check CSS float on
-  /plog/blogitem-20031013-0008
-  
-* Referenced images inside blogitem text should use STATIC_URL
-
-* Configure http://pypi.python.org/pypi/django-celery-email
-
+MIGRATION:
+BEGIN;
+-- Application: plog
+-- Model: BlogFile
+ALTER TABLE "plog_blogfile"
+	ADD "title" varchar(300);
+COMMIT;

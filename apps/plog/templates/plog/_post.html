@@ -22,6 +22,11 @@
     {% endif %}
   </div>
 
+
+{% if post.has_carousel_tag %}
+{{ expand_carousel(post.rendered, post)|safe }}
+{% else %}
 {{ post.rendered|safe }}
+{% endif %}
 
 </section>

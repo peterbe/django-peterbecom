@@ -1,0 +1,16 @@
+<div id="carousel" class="carousel" style="width:{{ min_(800, max_width) }}px;margin:auto">
+    <!-- Carousel items -->
+    <div class="carousel-inner">
+    {% for photo in photos %}
+    <div class="{% if loop.first %}active {% endif %}item">
+        <img src="{{ photo.full_url }}" width="{{ photo.width }}" height="{{ photo.height }}" alt="{{ photo.title }}">
+        <div class="carousel-caption">
+           <p>{{ photo.title }}</p>
+        </div>
+    </div>
+    {% endfor %}
+    </div>
+    <!-- Carousel nav -->
+    <a class="carousel-control left" href="#carousel" data-slide="prev">&lsaquo;</a>
+    <a class="carousel-control right" href="#carousel" data-slide="next">&rsaquo;</a>
+</div>
