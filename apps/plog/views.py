@@ -634,8 +634,10 @@ def calendar_data(request):
 @csrf_exempt
 def inbound_email(request):
     raw_data = request.raw_post_data
-    f = '/tmp/raw_data.%s.json' % (time.time(),)
+    filename = '/tmp/raw_data.%s.json' % (time.time(),)
+    with open(filename, 'w') as f:
+        f.write(raw_data)
     data = json.loads(raw_data)
     logging.info(data)
-    logging.info(f)
+    logging.info(filename)
     return http.HttpResponse("OK\n")
