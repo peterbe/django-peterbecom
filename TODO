@@ -1,7 +1,1 @@
-MIGRATION:
-BEGIN;
--- Application: plog
--- Model: BlogFile
-ALTER TABLE "plog_blogfile"
-	ADD "title" varchar(300);
-COMMIT;
+
