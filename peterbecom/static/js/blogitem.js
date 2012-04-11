@@ -120,7 +120,7 @@ var F = (function() {
 $(function() {
   var carousel = $('#carousel');
   if (carousel.size()) {
-    $(carousel.carousel({
+    carousel.carousel({
        interval: 10000
     });
     if (location.hash && /#t\d+/.test(location.hash)) {
