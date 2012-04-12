@@ -1,3 +1,5 @@
+import logging
+import time
 from django.conf import settings
 from django.core.cache import parse_backend_uri
 
@@ -11,7 +13,6 @@ connections = {}
 if not connections:  # don't set this repeatedly
     for alias, backend in settings.REDIS_BACKENDS.items():
         _, server, params = parse_backend_uri(backend)
-
         try:
             socket_timeout = float(params.pop('socket_timeout'))
         except (KeyError, ValueError):
@@ -32,9 +33,37 @@ if not connections:  # don't set this repeatedly
                                             socket_timeout=socket_timeout)
 
 
-def get_redis_connection(alias='master'):
-    return connections[alias]
+def wrapped_function(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except redislib.ConnectionError:
+            time.sleep(1)
+            logging.debug("redis ConnectionError, sleeping 1 second")
+            try:
+                return func(*args, **kwargs)
+            except redislib.ConnectionError:
+                time.sleep(2)
+                logging.debug("redis ConnectionError, sleeping 2 second")
+                try:
+                    return func(*args, **kwargs)
+                except redislib.ConnectionError:
+                    logging.debug("redis ConnectionError, still :(")
+                    raise
+    return wrapper
 
+class ReConnectionConnectionWrapper(object):
+    def __init__(self, connection):
+        self.connection = connection
+
+    def __getattr__(self, key):
+        print "getting key", repr(key)
+        return wrapped_function(getattr(self.connection, key))
+
+def get_redis_connection(alias='master', reconnection_wrapped=False):
+    if reconnection_wrapped:
+        return ReConnectionConnectionWrapper(connections[alias])
+    return connections[alias]
 
 def mock_redis():
     ret = dict(connections)

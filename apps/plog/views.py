@@ -125,7 +125,7 @@ def get_related_posts(post):
 
 
 def _get_related_pks(post, max_):
-    redis = get_redis_connection()
+    redis = get_redis_connection(reconnection_wrapped=True)
     count_keywords = redis.get('kwcount')
     if not count_keywords:
         for p in (BlogItem.objects

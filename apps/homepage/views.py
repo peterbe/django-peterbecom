@@ -162,7 +162,7 @@ def search(request):
     if len(search) > 1:
         _keyword_keys = ('keyword', 'keywords', 'category', 'categories')
         search, keyword_search = split_search(search, _keyword_keys)
-    redis = get_redis_connection()
+    redis = get_redis_connection(reconnection_wrapped=True)
 
     not_ids = defaultdict(set)
     times = []
