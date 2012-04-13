@@ -57,7 +57,6 @@ class ReConnectionConnectionWrapper(object):
         self.connection = connection
 
     def __getattr__(self, key):
-        print "getting key", repr(key)
         return wrapped_function(getattr(self.connection, key))
 
 def get_redis_connection(alias='master', reconnection_wrapped=False):
