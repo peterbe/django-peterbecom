@@ -75,4 +75,25 @@ $(function() {
 
   Thumbnails();
 
+  var display_format = $('#id_display_format').val();
+  if (display_format === 'markdown' || display_format === 'structuredtext') {
+    var mode;
+    if (display_format == 'markdown')
+      mode = 'gfm'; // github flavoured markdown
+    else if (display_format == 'structuredtext')
+      mode = 'rst'; // reStructuredText
+
+    var editor = CodeMirror.fromTextArea(document.getElementById("id_text"), {
+      mode: mode,
+       lineWrapping: true,
+        lineNumbers: true,
+        matchBrackets: true,
+        onBlur: function() {
+          $('#id_text').val(editor.getValue());
+          Preview.update();
+        }//,
+      //theme: "default"
+    });
+  }
+
 });

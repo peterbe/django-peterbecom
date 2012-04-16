@@ -2,17 +2,32 @@
 {% block title_prefix %}{{ page_title }}{% endblock %}
 
 {% block extrahead %}
+<link rel="stylesheet" href="{{ static("libs/codemirror/codemirror.css") }}">
+<!--<link rel="stylesheet" href="{{ static("libs/codemirror/docs.css") }}">-->
 <style>
 #id_oid, #id_title { width:50%; }
 #id_text, #id_summary, #id_url { width:100%; }
 #thumbnails {height:180px;
 overflow-y:scroll;}
 #thumbnails input { font-size:80%; height:11px; }
+
+/* override what bootstrap set */
+pre { line-height: 15px; }
+#id_text { height: 600px; }
+#id_summary { height: 85px; }
+/* override CodeMirror */
+.CodeMirror-scroll { height: 400px; }
+.CodeMirror { border-top: 1px solid #999; border-bottom: 1px solid #999; }
 </style>
 {% endblock %}
 
 {% block extrajs %}
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script src="{{ static("libs/codemirror/codemirror.js") }}"></script>
+<script src="{{ static("libs/codemirror/modes/xml.js") }}"></script>
+<script src="{{ static("libs/codemirror/modes/markdown.js") }}"></script>
+<script src="{{ static("libs/codemirror/modes/gfm.js") }}"></script>
+<script src="{{ static("libs/codemirror/modes/rst.js") }}"></script>
 <script src="{{ static("js/editpost.js") }}"></script>
 {% endblock %}
 
