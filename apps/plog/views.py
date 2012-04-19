@@ -37,7 +37,7 @@ from .forms import BlogForm, BlogFileUpload
 
 ONE_HOUR = 60 * 60
 ONE_DAY = ONE_HOUR * 24
-
+ONE_WEEK = ONE_DAY * 7
 
 def json_view(f):
     @functools.wraps(f)
@@ -72,12 +72,12 @@ def _blog_post_key_prefixer(request):
                   .order_by('-add_date')[:1]):
             latest_date = c.add_date
         latest_date = latest_date.strftime('%f')
-        cache.set(cache_key, latest_date, ONE_DAY)
+        cache.set(cache_key, latest_date, ONE_WEEK)
     prefix += str(latest_date)
     return prefix
 
 
-@cache_page_with_prefix(ONE_DAY, _blog_post_key_prefixer)
+@cache_page_with_prefix(ONE_WEEK, _blog_post_key_prefixer)
 def blog_post(request, oid):
     if oid.endswith('/'):
         oid = oid[:-1]
@@ -90,6 +90,9 @@ def blog_post(request, oid):
             if oid == 'add':
                 return redirect(reverse('add_post'))
             raise http.Http404(oid)
+
+    # this is temporarily here to see how often this is actually rendered
+    logging.info("PSEUDO-DEBUGGING cache miss on blog_post")
 
     data = {
       'post': post,
@@ -334,8 +337,29 @@ def delete_comment(request, oid, comment_oid):
     return http.HttpResponse("Comment deleted")
 
 
-@cache_page(60 * 60 * 1)  # might want to up this later
+def _plog_index_key_prefixer(request):
+    if request.method != 'GET':
+        return None
+    if request.user.is_authenticated():
+        return None
+    prefix = urllib.urlencode(request.GET)
+    cache_key = 'latest_post_modify_date'
+    latest_date = cache.get(cache_key)
+    if latest_date is None:
+        latest, = (BlogItem.objects
+                   .order_by('-modify_date')
+                   .values('modify_date')[:1])
+        latest_date = latest['modify_date'].strftime('%f')
+        cache.set(cache_key, latest_date, ONE_DAY)
+    prefix += str(latest_date)
+    return prefix
+
+@cache_page_with_prefix(ONE_DAY, _plog_index_key_prefixer)
 def plog_index(request):
+
+    # this is temporarily here to see how often this is actually rendered
+    logging.info("PSEUDO-DEBUGGING cache miss on plog_index")
+
     groups = defaultdict(list)
     now = utc_now()
     group_dates = []

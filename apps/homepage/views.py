@@ -47,6 +47,9 @@ def _home_key_prefixer(request):
 
 @cache_page_with_prefix(60 * 60, _home_key_prefixer)
 def home(request, oc=None):
+    # this is temporarily here to see how often this is actually rendered
+    logging.info("PSEUDO-DEBUGGING cache miss on home()")
+
     data = {}
     qs = BlogItem.objects.filter(pub_date__lt=utc_now())
     if oc:

@@ -254,6 +254,12 @@ def invalidate_latest_comment_add_dates(sender, instance, **kwargs):
     cache_key = 'latest_comment_add_date:%s' % pk
     cache.delete(cache_key)
 
+@receiver(post_save, sender=BlogItem)
+def invalidate_latest_post_modify_date(sender, instance, **kwargs):
+    assert sender is BlogItem
+    cache_key = 'latest_post_modify_date'
+    cache.delete(cache_key)
+
 
 @receiver(post_save, sender=BlogComment)
 @receiver(post_save, sender=BlogItem)
