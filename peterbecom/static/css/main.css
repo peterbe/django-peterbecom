@@ -188,3 +188,22 @@ img.floatleft {
   float: left;
   margin: 7px 7px 0 0;
 }
+
+
+/* Specifically for fusion_ad */
+#fusion_ad {
+  float: right;
+  width: 130px;
+  background-color: white;
+  padding-left: 15px;
+  padding-bottom: 15px;
+}
+
+#fusion_ad .fusionentire {
+  display: block;
+}
+@media (max-width: 900px) {
+  #fusion_ad { 
+    display: none;
+  }
+}
