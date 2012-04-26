@@ -16,6 +16,17 @@
 
 {% include "plog/_post.html" %}
 
+<div id="fusion_ad" style="float:right">
+<a href="http://fusionads.net">Powered by Fusion</a>
+</div>
+<script>
+(function(){
+  var fusion = document.createElement('script');
+  fusion.src = window.location.protocol + '//adn.fusionads.net/api/1.0/ad.js?zoneid=176&rand=' + Math.floor(Math.random()*9999999);
+  fusion.async = true;
+  (document.head || document.getElementsByTagName('head')[0]).appendChild(fusion);
+})();</script>
+
 {% if post.hide_comments and post.disallow_comments %}
 <p><em>Comments closed for this page</em></p>
 {% else %}
