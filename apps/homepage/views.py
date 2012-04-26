@@ -59,7 +59,10 @@ def home(request, oc=None):
         data['categories'] = categories
 
     BATCH_SIZE = 10
-    page = max(1, int(request.GET.get('page', 1))) - 1
+    try:
+        page = max(1, int(request.GET.get('page', 1))) - 1
+    except ValueError:
+        raise http.Http404('invalid page value')
     n, m = page * BATCH_SIZE, (page + 1) * BATCH_SIZE
     max_count = qs.count()
     if (page + 1) * BATCH_SIZE < max_count:
