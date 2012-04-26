@@ -187,7 +187,12 @@ def linkify(text, shorten=False, extra_params="",
 
 def render_comment_text(text):
     html = linkify(text, extra_params=' rel="nofollow"')
-    html = re.sub('\n\n\n+', '\n\n', html)
+
+    # So you can write comments with code with left indentation whitespace
+    def subber(m):
+        return m.group().replace(' ', u'&nbsp;')
+    html = re.sub(r'^\n*(\s+)', subber, html, flags=re.M)
+
     html = html.replace('\n', '<br>')
     return html
 
