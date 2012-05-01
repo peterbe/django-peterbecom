@@ -23,7 +23,10 @@ def stats_index(request):
     data['total_hits'] = total_hits
     data['total_misses'] = total_misses
     for v in urls.values():
-        v['ratio'] = round(100.0 * v['misses'] / v['hits'], 1)
+        if v['hits']:
+            v['ratio'] = round(100.0 * v['misses'] / v['hits'], 1)
+        else:
+            v['ratio'] = '--'
     data['urls'] = urls
 
     return render(request, 'stats/index.html', data)
