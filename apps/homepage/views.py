@@ -14,6 +14,7 @@ from django.core.cache import cache
 from django.shortcuts import render, get_object_or_404
 from django.core.urlresolvers import reverse
 from django.contrib.sites.models import RequestSite
+from django.utils.encoding import iri_to_uri
 from apps.plog.models import Category, BlogItem, BlogComment
 from apps.plog.utils import render_comment_text, utc_now
 from apps.redisutils import get_redis_connection
