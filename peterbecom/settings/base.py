@@ -145,8 +145,7 @@ INSTALLED_APPS = (
     'apps.plog',
     'apps.homepage',
     'apps.legacy',
-
-
+    'apps.stats',
 )
 
 # A sample logging configuration. The only tangible logging

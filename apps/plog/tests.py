@@ -12,8 +12,8 @@ from apps.redisutils import get_redis_connection
 
 class PlogTestCase(TestCase):
     def setUp(self):
-        redis = get_redis_connection()
-        redis.flushdb()
+        self.redis = get_redis_connection()
+        self.redis.flushdb()
 
     def _login(self):
         admin = User.objects.create(
@@ -62,6 +62,11 @@ class PlogTestCase(TestCase):
             apps.plog.views.render = old_render
 
         assert len(render_counts) == 2
+
+        self.assertTrue(self.redis.zrange('plog:hits', 0, -1, withscores=True),
+                        [('/plog/some-longish-test-post', 5.0)])
+        self.assertTrue(self.redis.zrange('plog:misses', 0, -1, withscores=True),
+                        [('/plog/some-longish-test-post', 1.0)])
 
     def test_text_rendering_with_images(self):
         blog = BlogItem.objects.create(

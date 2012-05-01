@@ -1,7 +1,6 @@
 from django.conf.urls.defaults import patterns, include, url
-#from feeds import BustFeed
 
-import views
+from . import views
 urlpatterns = patterns('',
     url('^$', views.plog_index, name='plog_index'),
     url('^edit/(.*)', views.edit_post, name='edit_post'),

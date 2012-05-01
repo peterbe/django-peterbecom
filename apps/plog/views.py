@@ -25,6 +25,8 @@ from django.template import Template
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files import File
+from django.utils.cache import get_cache_key
+from django.utils.encoding import iri_to_uri
 from postmark.inbound import PostmarkInbound
 from .models import BlogItem, BlogComment, Category, BlogFile
 from .utils import render_comment_text, valid_email, utc_now
@@ -58,6 +60,7 @@ def _blog_post_key_prefixer(request):
         return None
     prefix = urllib.urlencode(request.GET)
     oid = request.path.split('/')[-1]
+
     cache_key = 'latest_comment_add_date:%s' % oid
     latest_date = cache.get(cache_key)
     if latest_date is None:
@@ -74,6 +77,13 @@ def _blog_post_key_prefixer(request):
         latest_date = latest_date.strftime('%f')
         cache.set(cache_key, latest_date, ONE_WEEK)
     prefix += str(latest_date)
+
+    redis = get_redis_connection(reconnection_wrapped=True)
+    try:
+        redis.zincrby('plog:hits', iri_to_uri(request.get_full_path()), 1)
+    except Exception:
+        logging.error('Unable to redis.zincrby', exc_info=True)
+
     return prefix
 
 
@@ -91,8 +101,11 @@ def blog_post(request, oid):
                 return redirect(reverse('add_post'))
             raise http.Http404(oid)
 
-    # this is temporarily here to see how often this is actually rendered
-    logging.info("PSEUDO-DEBUGGING cache miss on blog_post")
+    redis = get_redis_connection(reconnection_wrapped=True)
+    try:
+        redis.zincrby('plog:misses', iri_to_uri(request.get_full_path()), 1)
+    except Exception:
+        logging.error('Unable to redis.zincrby', exc_info=True)
 
     data = {
       'post': post,
@@ -528,6 +541,9 @@ def preview_post(request):
 
         def count_comments(self):
             return 0
+
+        def has_carousel_tag(self):
+            return False
 
         @property
         def rendered(self):

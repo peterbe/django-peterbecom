@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title_prefix %}Stats{% endblock %}
+
+{% block content %}
+
+<dl>
+  <dt>Hits:</dt>
+  <dd>{{ total_hits }}</dd>
+  <dt>Misses:</dt>
+  <dd>{{ total_misses }}</dd>
+</dl>
+
+<table>
+  <thead>
+    <tr>
+      <td>URL</td>
+      <td>Hits</td>
+      <td>Misses</td>
+      <td>Ratio</td>
+    </tr>
+  </thead>
+  <tbody>
+    {% for url in urls %}
+    <tr>
+      <td>{{ url }}</td>
+      <td>{{ urls[url]['hits'] }}</td>
+      <td>{{ urls[url]['misses'] }}</td>
+      <td>{{ urls[url]['ratio'] }}%</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

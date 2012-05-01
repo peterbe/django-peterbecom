@@ -42,13 +42,23 @@ def _home_key_prefixer(request):
         latest_date = latest['modify_date'].strftime('%f')
         cache.set(cache_key, latest_date, 60 * 60)
     prefix += str(latest_date)
+
+    redis = get_redis_connection(reconnection_wrapped=True)
+    try:
+        redis.zincrby('homepage:hits', iri_to_uri(request.get_full_path()), 1)
+    except Exception:
+        logging.error('Unable to redis.zincrby', exc_info=True)
+
     return prefix
 
 
 @cache_page_with_prefix(60 * 60, _home_key_prefixer)
 def home(request, oc=None):
-    # this is temporarily here to see how often this is actually rendered
-    logging.info("PSEUDO-DEBUGGING cache miss on home()")
+    redis = get_redis_connection(reconnection_wrapped=True)
+    try:
+        redis.zincrby('homepage:misses', iri_to_uri(request.get_full_path()), 1)
+    except Exception:
+        logging.error('Unable to redis.zincrby', exc_info=True)
 
     data = {}
     qs = BlogItem.objects.filter(pub_date__lt=utc_now())

@@ -11,3 +11,7 @@ DATABASES = {
         'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
     }
 }
+
+REDIS_BACKENDS = {
+    'master': 'redis://localhost:6379?socket_timeout=0.5&db=9'
+}
