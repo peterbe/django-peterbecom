@@ -185,13 +185,15 @@ def linkify(text, shorten=False, extra_params="",
     return _URL_RE.sub(make_link, text)
 
 
+whitespace_start_regex = re.compile(r'^\n*(\s+)', re.M)
+
 def render_comment_text(text):
     html = linkify(text, extra_params=' rel="nofollow"')
 
     # So you can write comments with code with left indentation whitespace
     def subber(m):
         return m.group().replace(' ', u'&nbsp;')
-    html = re.sub(r'^\n*(\s+)', subber, html, flags=re.M)
+    html = whitespace_start_regex.sub(subber, html)
 
     html = html.replace('\n', '<br>')
     return html
