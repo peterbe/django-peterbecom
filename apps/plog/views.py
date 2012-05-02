@@ -101,6 +101,10 @@ def blog_post(request, oid):
                 return redirect(reverse('add_post'))
             raise http.Http404(oid)
 
+    if (request.method == 'GET' and
+        (request.GET.get('replypath') or request.GET.get('show-comments'))):
+        return http.HttpResponsePermanentRedirect(request.path)
+
     redis = get_redis_connection(reconnection_wrapped=True)
     try:
         redis.zincrby('plog:misses', iri_to_uri(request.get_full_path()), 1)

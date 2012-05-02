@@ -22,6 +22,8 @@ def stats_index(request):
 
     data['total_hits'] = total_hits
     data['total_misses'] = total_misses
+    data['total_ratio'] = round(100.0 *
+                                data['total_misses'] / data['total_hits'], 1)
     for v in urls.values():
         if v['hits']:
             v['ratio'] = round(100.0 * v['misses'] / v['hits'], 1)

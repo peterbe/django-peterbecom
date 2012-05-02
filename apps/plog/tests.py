@@ -1,6 +1,7 @@
 import os
 import re
 import datetime
+from urlparse import urlparse
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.conf import settings
@@ -162,3 +163,23 @@ code"""
         blogfile, = BlogFile.objects.filter(blogitem=post)
         self.assertEqual(blogfile.title, 'Test Title')
         self.assertTrue(blogfile.file.read())
+
+    def test_old_redirects(self):
+        blog = BlogItem.objects.create(
+          oid='myoid',
+          title='TITLEX',
+          text="""
+          ttest test
+          """,
+          display_format='structuredtext',
+          pub_date=utc_now() - datetime.timedelta(seconds=10),
+        )
+        url = reverse('blog_post', args=[blog.oid])
+
+        response = self.client.get(url)
+        assert response.status_code == 200
+
+        response = self.client.get(url, {'replypath': 'foo'})
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(urlparse(response['location']).path, url)
+        self.assertTrue(not urlparse(response['location']).query)

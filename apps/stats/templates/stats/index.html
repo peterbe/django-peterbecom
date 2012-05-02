@@ -8,15 +8,17 @@
   <dd>{{ total_hits }}</dd>
   <dt>Misses:</dt>
   <dd>{{ total_misses }}</dd>
+  <dt>Ratio:</dt>
+  <dd>{{ total_ratio }}%</dd>
 </dl>
 
-<table>
+<table class="condensed-table">
   <thead>
     <tr>
-      <td>URL</td>
-      <td>Hits</td>
-      <td>Misses</td>
-      <td>Ratio</td>
+      <th>URL</th>
+      <th>Hits</th>
+      <th>Misses</th>
+      <th>Ratio</th>
     </tr>
   </thead>
   <tbody>
@@ -25,7 +27,7 @@
       <td>{{ url }}</td>
       <td>{{ urls[url]['hits'] }}</td>
       <td>{{ urls[url]['misses'] }}</td>
-      <td>{{ urls[url]['ratio'] }}%</td>
+      <td>{% if urls[url]['ratio'] %}{{ urls[url]['ratio'] }}%{% else %}--{% endif %}</td>
     </tr>
     {% endfor %}
   </tbody>
