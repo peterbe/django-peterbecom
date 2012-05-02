@@ -78,8 +78,8 @@ def _blog_post_key_prefixer(request):
         cache.set(cache_key, latest_date, ONE_WEEK)
     prefix += str(latest_date)
 
-    redis = get_redis_connection(reconnection_wrapped=True)
     try:
+        redis = get_redis_connection()
         redis.zincrby('plog:hits', iri_to_uri(request.get_full_path()), 1)
     except Exception:
         logging.error('Unable to redis.zincrby', exc_info=True)
@@ -105,8 +105,8 @@ def blog_post(request, oid):
         (request.GET.get('replypath') or request.GET.get('show-comments'))):
         return http.HttpResponsePermanentRedirect(request.path)
 
-    redis = get_redis_connection(reconnection_wrapped=True)
     try:
+        redis = get_redis_connection()
         redis.zincrby('plog:misses', iri_to_uri(request.get_full_path()), 1)
     except Exception:
         logging.error('Unable to redis.zincrby', exc_info=True)
