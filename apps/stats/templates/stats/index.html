@@ -1,33 +1,82 @@
 {% extends "base.html" %}
 {% block title_prefix %}Stats{% endblock %}
 
+{% block extrajs %}
+<script type='text/javascript' src='https://www.google.com/jsapi'></script>
+<script type='text/javascript'>
+google.load('visualization', '1', {packages:['gauge']});
+google.setOnLoadCallback(drawChart);
+function drawChart() {
+  var data = google.visualization.arrayToDataTable([
+    ['Label', 'Value'],
+    ['Plog', {{ plog['total_ratio'] }}],
+    ['Homepage', {{ homepage['total_ratio'] }}]
+  ]);
+
+  var options = {
+    width: 450, height: 190,
+    redFrom: 90, redTo: 100,
+    yellowFrom:75, yellowTo: 90,
+    minorTicks: 5
+   };
+
+  var chart = new google.visualization.Gauge(document.getElementById('gauges'));
+  chart.draw(data, options);
+}
+</script>
+
+{% endblock %}
+
+
 {% block content %}
 
+<div id="gauges" style="float:right">
+
+</div>
+
+<div class="summary" id="plog">
+<h3>Plog</h3>
 <dl>
   <dt>Hits:</dt>
-  <dd>{{ total_hits }}</dd>
+  <dd>{{ plog['total_hits'] }}</dd>
   <dt>Misses:</dt>
-  <dd>{{ total_misses }}</dd>
+  <dd>{{ plog['total_misses'] }}</dd>
   <dt>Ratio:</dt>
-  <dd>{{ total_ratio }}%</dd>
+  <dd>{{ plog['total_ratio'] }}%</dd>
 </dl>
+</div>
 
+<div class="summary" id="homepage">
+<h3>Homepage</h3>
+<dl>
+  <dt>Hits:</dt>
+  <dd>{{ homepage['total_hits'] }}</dd>
+  <dt>Misses:</dt>
+  <dd>{{ homepage['total_misses'] }}</dd>
+  <dt>Ratio:</dt>
+  <dd>{{ homepage['total_ratio'] }}%</dd>
+</dl>
+</div>
+
+
+<h3>Plog URLs</h3>
 <table class="condensed-table">
   <thead>
     <tr>
-      <th>URL</th>
+      <th style="text-align:left">URL</th>
       <th>Hits</th>
       <th>Misses</th>
       <th>Ratio</th>
     </tr>
   </thead>
   <tbody>
+    {% set urls = plog['urls'] %}
     {% for url in urls %}
     <tr>
-      <td>{{ url }}</td>
+      <td><a href="{{ url }}">{{ url }}</a></td>
       <td>{{ urls[url]['hits'] }}</td>
       <td>{{ urls[url]['misses'] }}</td>
-      <td>{% if urls[url]['ratio'] %}{{ urls[url]['ratio'] }}%{% else %}--{% endif %}</td>
+      <td>{{ urls[url]['ratio'] }}</td>
     </tr>
     {% endfor %}
   </tbody>
