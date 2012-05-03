@@ -44,8 +44,8 @@ def _home_key_prefixer(request):
         cache.set(cache_key, latest_date, 60 * 60)
     prefix += str(latest_date)
 
-    redis = get_redis_connection(reconnection_wrapped=True)
     try:
+        redis = get_redis_connection()
         redis.zincrby('homepage:hits', iri_to_uri(request.get_full_path()), 1)
     except Exception:
         logging.error('Unable to redis.zincrby', exc_info=True)
@@ -55,12 +55,6 @@ def _home_key_prefixer(request):
 
 @cache_page_with_prefix(60 * 60, _home_key_prefixer)
 def home(request, oc=None):
-    redis = get_redis_connection(reconnection_wrapped=True)
-    try:
-        redis.zincrby('homepage:misses', iri_to_uri(request.get_full_path()), 1)
-    except Exception:
-        logging.error('Unable to redis.zincrby', exc_info=True)
-
     data = {}
     qs = BlogItem.objects.filter(pub_date__lt=utc_now())
     if oc:
@@ -68,6 +62,12 @@ def home(request, oc=None):
         cat_q = make_categories_q(categories)
         qs = qs.filter(cat_q)
         data['categories'] = categories
+
+    try:
+        redis = get_redis_connection()
+        redis.zincrby('homepage:misses', iri_to_uri(request.get_full_path()), 1)
+    except Exception:
+        logging.error('Unable to redis.zincrby', exc_info=True)
 
     BATCH_SIZE = 10
     try:
