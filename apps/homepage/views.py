@@ -18,6 +18,7 @@ from django.utils.encoding import iri_to_uri
 from apps.plog.models import Category, BlogItem, BlogComment
 from apps.plog.utils import render_comment_text, utc_now
 from apps.redisutils import get_redis_connection
+from apps.rediscounter import redis_increment
 from .utils import (parse_ocs_to_categories, make_categories_q, split_search)
 from apps.view_cache_utils import cache_page_with_prefix
 
@@ -45,8 +46,7 @@ def _home_key_prefixer(request):
     prefix += str(latest_date)
 
     try:
-        redis = get_redis_connection()
-        redis.zincrby('homepage:hits', iri_to_uri(request.get_full_path()), 1)
+        redis_increment('homepage:hits', request)
     except Exception:
         logging.error('Unable to redis.zincrby', exc_info=True)
 
@@ -63,9 +63,12 @@ def home(request, oc=None):
         qs = qs.filter(cat_q)
         data['categories'] = categories
 
+    ## Reasons for not being here
+    if request.method == 'HEAD':
+        return http.HttpResponse('')
+
     try:
-        redis = get_redis_connection()
-        redis.zincrby('homepage:misses', iri_to_uri(request.get_full_path()), 1)
+        redis_increment('homepage:misses', request)
     except Exception:
         logging.error('Unable to redis.zincrby', exc_info=True)
 

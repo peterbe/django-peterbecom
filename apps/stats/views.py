@@ -23,7 +23,10 @@ def stats_index(request):
             if uri not in urls:
                 urls[uri] = {'hits': 0, 'misses': 0}
             urls[uri]['misses'] += count
-        total_ratio = round(100.0 * total_misses / total_hits, 1)
+        if total_hits:
+            total_ratio = round(100.0 * total_misses / total_hits, 1)
+        else:
+            total_ratio = ''
         return {'urls': urls,
                 'total_hits': total_hits,
                 'total_misses': total_misses,
@@ -37,5 +40,7 @@ def stats_index(request):
             v['ratio'] = '%.1f%%' % (100.0 * v['misses'] / v['hits'])
         else:
             v['ratio'] = '--'
+
+    data['start_date'] = redis.get('counters-start')
 
     return render(request, 'stats/index.html', data)

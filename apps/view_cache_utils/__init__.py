@@ -45,15 +45,10 @@ from .middleware import CacheMiddleware
 
 
 ''' decorator for advanced view caching '''
-try:
-    # django svn >= rev. 11586
-    from django.utils.decorators import decorator_from_middleware_with_args
-    def cache_page_with_prefix(*args, **kwargs):
-        return decorator_from_middleware_with_args(CacheMiddleware)(*args)
+from django.utils.decorators import decorator_from_middleware_with_args
+def cache_page_with_prefix(*args, **kwargs):
+    return decorator_from_middleware_with_args(CacheMiddleware)(*args)
 
-except ImportError:
-    # django svn < rev. 11586, django 1.0, 1.1
-    cache_page_with_prefix = decorator_from_middleware(CacheMiddleware)
 
 
 def expire_page(path, key_prefix=None):

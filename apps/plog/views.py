@@ -25,12 +25,11 @@ from django.template import Template
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files import File
-from django.utils.cache import get_cache_key
-from django.utils.encoding import iri_to_uri
 from postmark.inbound import PostmarkInbound
 from .models import BlogItem, BlogComment, Category, BlogFile
 from .utils import render_comment_text, valid_email, utc_now
 from apps.redisutils import get_redis_connection
+from apps.rediscounter import redis_increment
 from apps.view_cache_utils import cache_page_with_prefix
 from . import tasks
 from . import utils
@@ -79,8 +78,7 @@ def _blog_post_key_prefixer(request):
     prefix += str(latest_date)
 
     try:
-        redis = get_redis_connection()
-        redis.zincrby('plog:hits', iri_to_uri(request.get_full_path()), 1)
+        redis_increment('plog:hits', request)
     except Exception:
         logging.error('Unable to redis.zincrby', exc_info=True)
 
@@ -101,13 +99,15 @@ def blog_post(request, oid):
                 return redirect(reverse('add_post'))
             raise http.Http404(oid)
 
-    if (request.method == 'GET' and
+    ## Reasons for not being here
+    if request.method == 'HEAD':
+        return http.HttpResponse('')
+    elif (request.method == 'GET' and
         (request.GET.get('replypath') or request.GET.get('show-comments'))):
         return http.HttpResponsePermanentRedirect(request.path)
 
     try:
-        redis = get_redis_connection()
-        redis.zincrby('plog:misses', iri_to_uri(request.get_full_path()), 1)
+        redis_increment('plog:misses', request)
     except Exception:
         logging.error('Unable to redis.zincrby', exc_info=True)
 
@@ -124,6 +124,7 @@ def blog_post(request, oid):
         data['next_post'] = None
     data['related'] = get_related_posts(post)
 
+    print 'rendering', request.method
     return render(request, 'plog/post.html', data)
 
 
