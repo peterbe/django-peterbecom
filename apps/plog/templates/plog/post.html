@@ -4,7 +4,7 @@
 
 {% block extrajs %}
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-{% if post.has_carousel_tag %}
+{% if post.has_carousel_tag() %}
 <script src="{{ static("libs/bootstrap/bootstrap-carousel.min.js") }}"></script>
 {% endif %}
 {% compress js %}
