@@ -73,13 +73,12 @@ function drawChart() {
     </tr>
   </thead>
   <tbody>
-    {% set urls = plog['urls'] %}
-    {% for url in urls %}
+    {% for url, hits, misses, ratio in urls %}
     <tr>
       <td><a href="{{ url }}">{{ url }}</a></td>
-      <td>{{ urls[url]['hits'] }}</td>
-      <td>{{ urls[url]['misses'] }}</td>
-      <td>{{ urls[url]['ratio'] }}</td>
+      <td>{{ hits }}</td>
+      <td>{{ misses }}</td>
+      <td>{{ ratio }}</td>
     </tr>
     {% endfor %}
   </tbody>

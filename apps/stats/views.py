@@ -9,15 +9,15 @@ def stats_index(request):
 
     def get_totals(prefix):
         total_hits = total_misses = 0
-        for uri, count in redis.zrange('%s:hits' % prefix,
-                                       0, -1, withscores=True):
+        for uri, count in redis.zrevrange('%s:hits' % prefix,
+                                       0, 100, withscores=True):
             count = int(count)
             total_hits += count
             if uri not in urls:
                 urls[uri] = {'hits': 0, 'misses': 0}
             urls[uri]['hits'] += count
-        for uri, count in redis.zrange('%s:misses' % prefix,
-                                       0, -1, withscores=True):
+        for uri, count in redis.zrevrange('%s:misses' % prefix,
+                                       0, 100, withscores=True):
             count = int(count)
             total_misses += count
             if uri not in urls:
@@ -27,7 +27,7 @@ def stats_index(request):
             total_ratio = round(100.0 * total_misses / total_hits, 1)
         else:
             total_ratio = ''
-        return {'urls': urls,
+        return {#'urls': urls,
                 'total_hits': total_hits,
                 'total_misses': total_misses,
                 'total_ratio': total_ratio}
@@ -35,11 +35,15 @@ def stats_index(request):
     data['plog'] = get_totals('plog')
     data['homepage'] = get_totals('homepage')
 
-    for v in data['plog']['urls'].values():
+    for v in urls.values():
         if v['hits']:
             v['ratio'] = '%.1f%%' % (100.0 * v['misses'] / v['hits'])
         else:
             v['ratio'] = '--'
+    urls = [(x, y['hits'], y['misses'], y['ratio'])
+            for x, y in urls.items()]
+    urls.sort(lambda x, y: cmp(y[1], x[1]))
+    data['urls'] = urls
 
     data['start_date'] = redis.get('counters-start')
 
