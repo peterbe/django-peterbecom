@@ -1,27 +1,26 @@
-html, body { background-color: #fff; }
-body { padding-top: 40px; }
-.container > footer p { text-align: center; }
-
-.content
-{
-	padding: 20px;
-	margin: 0 -20px;
+html, body { 
+    background-color: #fff; 
 }
-
-
-.footer-style
-{
-	width: "100%";
-	background-color: #333;
-	height: 30px;
-	text-align: center;
-	padding-top: 10px;
+body { 
+    padding-top: 40px; 
 }
-
-.footer-text
-{
-	color: white;
-	font-weight: normal;
+.container > footer p { 
+    text-align: center; 
+}
+.content {
+    padding: 20px;
+    margin: 0 -20px;
+}
+.footer-style {
+    width: 100%;
+    background-color: #333;
+    height: 30px;
+    text-align: center;
+    padding-top: 10px;
+}
+.footer-text {
+    color: white;
+    font-weight: normal;
 }
 
 
