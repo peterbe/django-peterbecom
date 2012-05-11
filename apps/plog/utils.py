@@ -245,43 +245,24 @@ _codesyntax_regex = re.compile('```(python|cpp|javascript|xml|html|css|sql)')
 _markdown_pre_regex = re.compile('```([^`]+)```')
 
 def markdown_to_html(text, codesyntax):
-#    print "PRE"
     def matcher(match):
         found = match.group()
         try:
             codesyntax = _codesyntax_regex.findall(found)[0]
         except IndexError:
             codesyntax = None
-        #def codesyntax_finder(m):
-        #    codesyntax = m.group()
-        #    print "\tCODESYNTAX", repr(codesyntax)
-        #    return '```'
-
         found = _codesyntax_regex.sub('```', found)
-#        print "FOUND"
-#        print repr(found)
-
-        ##print repr(codesyntax)
-#        print repr(found)
         if codesyntax:
             def highlighter(m):
- #               print "IN HERE"
- #               print "\t", repr(codesyntax)
- #               print "\t", repr(m.group())
- #               print "\t", repr('\n%s\n' % _highlight_it(m.group().strip(), codesyntax))
                 lexer = _get_lexer(codesyntax)
                 code = m.group().replace('```', '')
                 return highlight(code, lexer, HtmlFormatter())
             found = _markdown_pre_regex.sub(highlighter, found)
         found = found.replace('```', '<pre>', 1)
         found = found.replace('```', '</pre>')
-        print ""
         return found
 
     text = _markdown_pre_regex.sub(matcher, text)
-    #print repr(text)
-    #print gfm(text)
-    #print "\n"
     html = markdown.markdown(gfm(text))
     return html
 

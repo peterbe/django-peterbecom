@@ -30,14 +30,6 @@ def _home_key_prefixer(request):
     cache_key = 'latest_comment_add_date'
     latest_date = cache.get(cache_key)
     if latest_date is None:
-
-        # legacy fix. Some old blogitems didn't have a modify_date
-        for x in BlogItem.objects.filter(modify_date__isnull=True):
-            x.modify_date = x.pub_date
-            for c in BlogComment.objects.filter(blogitem=x).order_by('-add_date')[:1]:
-                x.modify_date = c.add_date
-            x.save()
-
         latest, = (BlogItem.objects
                    .order_by('-modify_date')
                    .values('modify_date')[:1])
