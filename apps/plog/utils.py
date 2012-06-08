@@ -230,7 +230,7 @@ def _get_lexer(codesyntax):
         return JavascriptLexer()
     elif codesyntax == 'python':
         return PythonLexer()
-    elif codesyntax == 'xml' or codesyntax == 'xml':
+    elif codesyntax == 'xml' or codesyntax == 'html':
         return HtmlLexer()
     elif codesyntax == 'css':
         return CssLexer()
