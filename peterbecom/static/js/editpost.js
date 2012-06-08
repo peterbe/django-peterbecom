@@ -19,7 +19,7 @@ var Preview = (function() {
            dataType: 'html',
            type: 'POST',
            error: function(a,b,c) {
-             alert(c);
+             if (c) alert(c);
            },
          success: function(response) {
            $('#preview-container').html(response);
