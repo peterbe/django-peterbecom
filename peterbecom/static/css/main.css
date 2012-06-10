@@ -1,11 +1,11 @@
-html, body { 
-    background-color: #fff; 
+html, body {
+    background-color: #fff;
 }
-body { 
-    padding-top: 40px; 
+body {
+    padding-top: 40px;
 }
-.container > footer p { 
-    text-align: center; 
+.container > footer p {
+    text-align: center;
 }
 .content {
     padding: 20px;
@@ -114,6 +114,10 @@ span.not-approved {
   /*font-size:80%*/
 }
 
+#buttons {
+  float: right;
+}
+
 /* general fix for bootstrap */
 textarea, input { color:rgb(70,70,70); }
 
@@ -202,7 +206,7 @@ img.floatleft {
   display: block;
 }
 @media (max-width: 900px) {
-  #fusion_ad { 
+  #fusion_ad {
     display: none;
   }
 }

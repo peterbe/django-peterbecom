@@ -124,6 +124,7 @@ def blog_post(request, oid):
         data['next_post'] = None
     data['related'] = get_related_posts(post)
 
+    data['show_buttons'] = True
     return render(request, 'plog/post.html', data)
 
 

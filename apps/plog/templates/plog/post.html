@@ -3,18 +3,30 @@
 {% block title_prefix %}{{ post.title }}{% endblock %}
 
 {% block extrajs %}
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-{% if post.has_carousel_tag() %}
-<script src="{{ static("libs/bootstrap/bootstrap-carousel.min.js") }}"></script>
-{% endif %}
-{% compress js %}
-<script src="{{ static("js/blogitem.js") }}"></script>
-{% endcompress %}
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+
+  {% if post.has_carousel_tag() %}
+  <script src="{{ static("libs/bootstrap/bootstrap-carousel.min.js") }}"></script>
+  {% endif %}
+
+  {% compress js %}
+  <script src="{{ static("js/blogitem.js") }}"></script>
+  {% endcompress %}
+
+  {% if show_buttons %}
+  <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+  {% endif %}
 {% endblock %}
 
 {% block content %}
 
 {% include "plog/_post.html" %}
+
+{% if show_buttons %}
+<section id="buttons">
+<a href="https://twitter.com/peterbe" class="twitter-follow-button" data-show-count="false">Follow @peterbe</a>
+</section>
+{% endif %}
 
 {% if post.hide_comments and post.disallow_comments %}
 <p><em>Comments closed for this page</em></p>
