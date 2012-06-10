@@ -14,6 +14,17 @@ a.better { font-weight: bold; }
 
 <h2>{{ page_title }}</h2>
 
+{% if not q %}
+<div class="row">
+  <div class="span12">
+  <form class="form-search">
+    <input type="text" name="q" class="input-xlarge search-query">
+    <button type="submit" class="btn">Search</button>
+  </form>
+  </div>
+</div>
+{% endif %}
+
 {% if better %}
 <div class="alert alert-info">
   <p>Perhaps you want to try <a class="better" href="{{ better_url }}">{{ better }}</a> instead.</p>
@@ -22,7 +33,7 @@ a.better { font-weight: bold; }
 
 {% for document in documents %}
 		<div class="row">
-			<div class="span16">
+			<div class="span12">
 				<div class="page-header">
 					<h3>
 						<a href="{{ document.url }}">{{ document.title|safe }}</a>

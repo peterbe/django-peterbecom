@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title>{% block title %}{% block title_prefix %}{% endblock %} - Peterbe.com{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Stuff in Peter's head">
     <meta name="copyright" content="Peter Bengtsson">
    {% compress css %}
@@ -26,6 +27,7 @@
 					<li><a href="{{ url('plog_index') }}">Archive</a></li>
 					<li><a href="{{ url('about') }}">About</a></li>
 					<li><a href="{{ url('contact') }}">Contact</a></li>
+					<li class="navbar-search-link"><a href="{{ url('search') }}">Search</a></li>
 				</ul>
 			</div>
 		</div>

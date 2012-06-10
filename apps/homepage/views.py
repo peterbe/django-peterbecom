@@ -291,7 +291,9 @@ def search(request):
        data['better_url'] = (reverse('search') + '?'
                      + urllib.urlencode({'q': data['better'].encode('utf-8')}))
 
-    if data['count_documents'] == 1:
+    if not data['q']:
+        page_title = ''
+    elif data['count_documents'] == 1:
         page_title = '1 thing found'
     else:
         page_title = '%s things found' % data['count_documents']
