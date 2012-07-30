@@ -6,6 +6,12 @@ a.better { font-weight: bold; }
 .row .page-header { padding-bottom:5px; margin: 25px 0 5px 0;}
 .page-header a.url { color:green; }
 </style>
+
+{% if first_document_url %}
+<link rel="prefetch" href="{{ first_document_url }}"> <!-- Firefox -->
+<link rel="prerender" href="{{ first_document_url }}"> <!-- Chrome -->
+{% endif %}
+
 {% endblock %}
 
 {% block title_prefix %}Search: {{ page_title }}{% endblock %}

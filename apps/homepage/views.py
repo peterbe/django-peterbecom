@@ -71,6 +71,8 @@ def home(request, oc=None):
         raise http.Http404('invalid page value')
     n, m = page * BATCH_SIZE, (page + 1) * BATCH_SIZE
     max_count = qs.count()
+    data['first_post'], = qs.order_by('-pub_date')[:1]
+
     if (page + 1) * BATCH_SIZE < max_count:
         data['next_page'] = page + 2
     data['previous_page'] = page
@@ -303,6 +305,11 @@ def search(request):
         else:
             page_title += ' (but only %s things shown)' % count_documents_shown
     data['page_title'] = page_title
+
+    if data['documents']:
+        data['first_document_url'] = data['documents'][0]['url']
+    else:
+        data['first_document_url'] = None
 
     return render(request, 'homepage/search.html', data)
 

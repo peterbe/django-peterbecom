@@ -2,6 +2,11 @@
 
 {% block title %}Peterbe.com - Stuff in Peter's head{% endblock %}
 
+{% block extrahead %}
+<link rel="prefetch" href="{{ url('blog_post', first_post.oid) }}"> <!-- Firefox -->
+<link rel="prerender" href="{{ url('blog_post', first_post.oid) }}"> <!-- Chrome -->
+{% endblock %}
+
 {% block pre_content %}
 <header class="jumbotron masthead">
   <div class="inner">
