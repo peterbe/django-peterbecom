@@ -5,16 +5,24 @@
 {% block content %}
 <h2>About this site</h2>
 
-<p>My name is Peter Bengtsson and I'm a web developer.<br>
+<p>My name is <strong>Peter Bengtsson</strong> and I'm a web developer.<br>
 This site is my notice board for things that go on in my head.</p>
 
-<p>I currently work for <a href="http://mozilla.org">Mozilla</a> in California.
+<p>I currently work for <a href="http://mozilla.org" class="bold">Mozilla</a> in California.
 There I work on the Webtools team which involves working on various tools that
 help the development of Firefox.</p>
 
 <p>Virtually all of my work is Open Source and available on
-<a href="https://github.com/peterbe">my Github account</a> including
+<a href="https://github.com/peterbe" class="bold">my Github account</a> including
 <a href="https://github.com/peterbe/django-peterbecom">this site itself</a>.
+</p>
+
+<p style="margin:40px; width: 600px;">
+<a href="http://aroundtheworldgame.com/"><img style="float:left" src="{{ static('images/aroundtheworld-scr.png') }}" alt="Around The World screenshot"></a>
+If you haven't already done so, check out my new game:
+<a href="http://aroundtheworldgame.com/" class="bold">Around The World</a> which is my spare time project.
+You can read more <a href="http://aroundtheworldgame.com/about">about it here</a> but the best thing
+is to just start playing and see if you like it.
 </p>
 
 {% endblock %}

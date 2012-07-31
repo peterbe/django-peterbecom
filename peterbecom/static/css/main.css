@@ -22,7 +22,9 @@ body {
     color: white;
     font-weight: normal;
 }
-
+a.bold {
+    font-weight: bold;
+}
 
 .highlight .hll { background-color: #ffffcc }
 .highlight  { background: #f8f8f8; }
