@@ -11,7 +11,7 @@ from django import http
 from django.conf import settings
 from django.views.decorators.cache import cache_page
 from django.core.cache import cache
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.core.urlresolvers import reverse
 from django.contrib.sites.models import RequestSite
 from django.utils.encoding import iri_to_uri
@@ -310,6 +310,12 @@ def search(request):
         data['first_document_url'] = data['documents'][0]['url']
     else:
         data['first_document_url'] = None
+
+    if not data['count_documents'] and len(search.split()) == 1 and not keyword_search:
+        if redis.smembers('kw:%s' % search):
+            url = reverse('search')
+            url += '?' + urllib.urlencode({'q': 'keyword:%s' % search})
+            return redirect(url)
 
     return render(request, 'homepage/search.html', data)
 

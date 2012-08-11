@@ -471,6 +471,13 @@ def add_post(request):
             for category in form.cleaned_data['categories']:
                 blogitem.categories.add(category)
             blogitem.save()
+
+            redis = get_redis_connection(reconnection_wrapped=True)
+            for keyword in keywords:
+                if not redis.smembers('kw:%s' % keyword):
+                    redis.sadd('kw:%s' % keyword, blogitem.pk)
+                    redis.incr('kwcount')
+
             url = reverse('edit_post', args=[blogitem.oid])
             return redirect(url)
     else:
@@ -511,6 +518,12 @@ def edit_post(request, oid):
             for category in form.cleaned_data['categories']:
                 blogitem.categories.add(category)
             blogitem.save()
+
+            redis = get_redis_connection(reconnection_wrapped=True)
+            for keyword in keywords:
+                if not redis.smembers('kw:%s' % keyword):
+                    redis.sadd('kw:%s' % keyword, blogitem.pk)
+                    redis.incr('kwcount')
 
             url = reverse('edit_post', args=[blogitem.oid])
             return redirect(url)
@@ -688,10 +701,6 @@ def inbound_email(request):
     #    f.write(raw_data)
 
     data = json.loads(raw_data)
-    #logging.info(data)
-    #logging.info(filename)
-    #from pprint import pprint
-    #pprint(data)
     inbound = PostmarkInbound(json=raw_data)
     if not inbound.has_attachments():
         m = "ERROR! No attachments"
