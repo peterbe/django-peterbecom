@@ -2,6 +2,13 @@
 
 {% block title_prefix %}{{ post.title }}{% endblock %}
 
+{% block extrahead %}
+<!-- {{ home_url_absolute }} -->
+<link rel="prefetch" href="/"> <!-- Firefox -->
+<link rel="prerender" href="/"> <!-- Chrome -->
+{% endblock %}
+
+
 {% block extrajs %}
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 

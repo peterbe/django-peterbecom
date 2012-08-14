@@ -3,8 +3,9 @@
 {% block title %}Peterbe.com - Stuff in Peter's head{% endblock %}
 
 {% block extrahead %}
-<link rel="prefetch" href="{{ url('blog_post', first_post.oid) }}"> <!-- Firefox -->
-<link rel="prerender" href="{{ url('blog_post', first_post.oid) }}"> <!-- Chrome -->
+<!-- {{ first_post_url_absolute }} -->
+<link rel="prefetch" href="{{ first_post_url }}"> <!-- Firefox -->
+<link rel="prerender" href="{{ first_post_url }}"> <!-- Chrome -->
 {% endblock %}
 
 {% block pre_content %}

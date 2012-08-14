@@ -71,8 +71,11 @@ def home(request, oc=None):
         raise http.Http404('invalid page value')
     n, m = page * BATCH_SIZE, (page + 1) * BATCH_SIZE
     max_count = qs.count()
-    data['first_post'], = qs.order_by('-pub_date')[:1]
-
+    first_post, = qs.order_by('-pub_date')[:1]
+    data['first_post_url'] = reverse('blog_post', args=[first_post.oid])
+    data['first_post_url_absolute'] = request.build_absolute_uri(
+        data['first_post_url']
+    )
     if (page + 1) * BATCH_SIZE < max_count:
         data['next_page'] = page + 2
     data['previous_page'] = page

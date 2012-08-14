@@ -123,8 +123,8 @@ def blog_post(request, oid):
     except BlogItem.DoesNotExist:
         data['next_post'] = None
     data['related'] = get_related_posts(post)
-
     data['show_buttons'] = True
+    data['home_url_absolute'] = request.build_absolute_uri('/')
     return render(request, 'plog/post.html', data)
 
 
