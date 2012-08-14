@@ -3,9 +3,8 @@
 {% block title_prefix %}{{ post.title }}{% endblock %}
 
 {% block extrahead %}
-<!-- {{ home_url_absolute }} -->
-<link rel="prefetch" href="/"> <!-- Firefox -->
-<link rel="prerender" href="/"> <!-- Chrome -->
+<link rel="prefetch" href="{{ home_url }}"> <!-- Firefox -->
+<link rel="prerender" href="{{ home_url }}"> <!-- Chrome -->
 {% endblock %}
 
 
