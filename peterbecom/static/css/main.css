@@ -219,6 +219,11 @@ img.floatleft {
   }
 
 
+.navbar {
+  opacity: 0.95;
+  box-shadow: 0px 10px 17px rgba(46, 46, 46, 0.7);
+}
+
 /* Landscape phones and down */
 @media (max-width: 480px) {
   .container,
