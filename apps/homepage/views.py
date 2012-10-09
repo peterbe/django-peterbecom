@@ -322,7 +322,7 @@ def search(request):
     return render(request, 'homepage/search.html', data)
 
 
-@cache_page(60 * 60 * 1)
+#@cache_page(60 * 60 * 1)
 def about(request):
     return render(request, 'homepage/about.html')
 
