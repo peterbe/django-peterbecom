@@ -44,6 +44,18 @@ help the development of Firefox.</p>
 
 <h2>Side projects</h2>
 
+<div class="project" id="hugepic">
+  <p class="floatleft"><a href="http://hugepic.io/"><img src="{{ static('images/hugepic-scr.png') }}" alt="HUGEpic screenshot"></a></p>
+  <h3>HUGEpic</h3>
+  <h4><a href="http://hugepic.io/">hugepic.io</a></h4>
+  <p>This app combined <a href="http://leafletjs.com/">Leaflet</a> with <a href="https://www.filepicker.io/">Filepicker.io</a>
+  with <a href="http://aws.amazon.com/s3/">Amazon S3</a> to let you upload massive pictures and draw annotations on them
+  to be able to zoom in, pan and share specific regions without having to download the whole image.
+  And it works great on mobile too!</p>
+  <p>All the code is open source and <a href="https://github.com/peterbe/tiler">available here</a> and it's a Tornado
+  app that relies very heavily on <a href="http://python-rq.org/">RQ</a>.</p>
+</div>
+
 <div class="project" id="aroundtheworld">
   <p class="floatleft"><a href="http://aroundtheworldgame.com/"><img src="{{ static('images/aroundtheworld-scr.png') }}" alt="Around The World screenshot"></a></p>
   <h3>Around The World</h3>
@@ -185,8 +197,8 @@ Also, most of these projects I'm <strong>not actively working on</strong> but th
 {% endblock %}
 
 {% block extrajs %}
-{% compress js %}
 <script src="{{ static("libs/zepto.min.js") }}"></script>
+{% compress js %}
 <script src="{{ static("js/about.js") }}"></script>
 {% endcompress %}
 {% endblock %}
