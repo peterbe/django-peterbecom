@@ -289,7 +289,8 @@ def search(request):
     data['count_documents_shown'] = count_documents_shown
     data['better'] = None
     if not data['count_documents']:
-        if ' or ' not in data['q'] and len(data['q'].split()) > 1:
+        _qterms = len(data['q'].split())
+        if ' or ' not in data['q'] and _qterms > 1 and _qterms < 5:
             data['better'] = data['q'].replace(' ', ' or ')
     if data['better']:
        data['better_url'] = (reverse('search') + '?'
