@@ -48,7 +48,7 @@
   {% endif %}
 {% else %}
 <div id="comments-outer">
-{{ show_comments(post, user)|safe }}
+{{ show_comments(post, user.is_staff, all_comments)|safe }}
 </div>
 {% endif %}
 

@@ -13,21 +13,19 @@ from sorl.thumbnail import get_thumbnail
 #from bootstrapform import
 
 @register.function
-def show_comments(parent, user):
+def show_comments(parent, is_staff, all_comments):
     if parent.__class__ == BlogItem:
-        filter_ = {'blogitem': parent, 'parent': None}
+        parent = None
     else:
-        filter_ = {'parent': parent}
-    if not user.is_staff:
-        filter_['approved'] = True
+        parent = parent.pk
     html = []
-    for comment in (BlogComment.objects
-                    .filter(**filter_)
-                    .order_by('add_date')):
+    comments = all_comments[parent]
+    for comment in comments:
         html.append(render_to_string('plog/comment.html', {
           'comment': comment,
           'preview': False,
-          'user': user,
+          'is_staff': is_staff,
+          'all_comments': all_comments,
         }))
     return '\n'.join(html)
 

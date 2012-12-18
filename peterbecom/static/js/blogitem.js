@@ -104,6 +104,17 @@ var F = (function() {
                 .fadeIn(700);
           $('textarea', form).val('');
           F.reset();
+          $('small.comment-count').fadeOut(600, function() {
+            var text;
+            if (response.comment_count == 1) {
+              text = '1 comment';
+            } else {
+              text = response.comment_count + ' comments';
+            }
+            $(this)
+              .text(text)
+                .fadeIn(600);
+          });
         },
         error: function (jqXHR, textStatus, errorThrown) {
           form.css('opacity', 1);

@@ -39,6 +39,8 @@ from .forms import BlogForm, BlogFileUpload
 ONE_HOUR = 60 * 60
 ONE_DAY = ONE_HOUR * 24
 ONE_WEEK = ONE_DAY * 7
+ONE_MONTH = ONE_WEEK * 4
+ONE_YEAR = ONE_WEEK * 52
 
 def json_view(f):
     @functools.wraps(f)
@@ -64,17 +66,23 @@ def _blog_post_key_prefixer(request):
     latest_date = cache.get(cache_key)
     if latest_date is None:
         try:
-            blogitem = BlogItem.objects.get(oid=oid)
+            blogitem, = (
+                BlogItem.objects.filter(oid=oid)
+                .values('pk', 'modify_date')
+            )
         except BlogItem.DoesNotExist:
             # don't bother, something's really wrong
             return None
-        latest_date = blogitem.modify_date
+        latest_date = blogitem['modify_date']
+        blogitem_pk = blogitem['pk']
         for c in (BlogComment.objects
-                  .filter(blogitem=blogitem, add_date__gt=latest_date)
+                  .filter(blogitem=blogitem_pk,
+                          add_date__gt=latest_date)
+                  .values('add_date')
                   .order_by('-add_date')[:1]):
-            latest_date = c.add_date
+            latest_date = c['add_date']
         latest_date = latest_date.strftime('%f')
-        cache.set(cache_key, latest_date, ONE_WEEK)
+        cache.set(cache_key, latest_date, ONE_MONTH)
     prefix += str(latest_date)
 
     try:
@@ -122,6 +130,15 @@ def blog_post(request, oid):
         data['next_post'] = post.get_next_by_pub_date(pub_date__lt=utc_now())
     except BlogItem.DoesNotExist:
         data['next_post'] = None
+    comments = (
+        BlogComment.objects
+        .filter(blogitem=post)
+        .order_by('add_date')
+    )
+    all_comments = defaultdict(list)
+    for comment in comments:
+        all_comments[comment.parent_id].append(comment)
+    data['all_comments'] = all_comments
     data['related'] = get_related_posts(post)
     data['show_buttons'] = True
     data['home_url'] = request.build_absolute_uri('/')
@@ -266,7 +283,14 @@ def submit_json(request, oid):
       'comment': blog_comment,
       'preview': True,
     })
-    data = {'html': html, 'parent': parent and parent.oid or None}
+    _comments = BlogComment.objects.filter(approved=True, blogitem=post)
+    comment_count = _comments.count() + 1
+    data = {
+        'html': html,
+        'parent': parent and parent.oid or None,
+        'comment_count': comment_count,
+    }
+
     response = http.HttpResponse(json.dumps(data), mimetype="application/json")
     if name:
         if isinstance(name, unicode):

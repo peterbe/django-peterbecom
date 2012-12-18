@@ -236,7 +236,6 @@ def invalidate_blogitem_comment_count(sender, instance, **kwargs):
     cache.delete(cache_key)
 
 
-#@receiver(pre_delete, sender=BlogComment)
 @receiver(post_save, sender=BlogComment)
 @receiver(post_save, sender=BlogItem)
 def invalidate_latest_comment_add_dates(sender, instance, **kwargs):
@@ -246,13 +245,12 @@ def invalidate_latest_comment_add_dates(sender, instance, **kwargs):
     if sender is BlogItem:
         pk = instance.pk
     elif sender is BlogComment:
-        if instance.blogitem is None:
-            instance.correct_blogitem_parent()  # legacy
         pk = instance.blogitem_id
     else:
         raise NotImplementedError(sender)
     cache_key = 'latest_comment_add_date:%s' % pk
     cache.delete(cache_key)
+
 
 @receiver(post_save, sender=BlogItem)
 def invalidate_latest_post_modify_date(sender, instance, **kwargs):
