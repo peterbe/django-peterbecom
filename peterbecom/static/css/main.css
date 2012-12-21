@@ -240,7 +240,6 @@ img.floatleft {
   .navbar-search {
     display: none;
   }
-  // on the search page
   form .input-xlarge {
     width: 200px;
   }
@@ -286,7 +285,6 @@ img.floatleft {
   .navbar li.navbar-search-link {
     display: block;
   }
-  // on the search page
   form .input-xlarge {
     width: 200px;
   }
