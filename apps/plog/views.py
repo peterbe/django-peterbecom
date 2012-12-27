@@ -66,11 +66,11 @@ def _blog_post_key_prefixer(request):
     latest_date = cache.get(cache_key)
     if latest_date is None:
         try:
-            blogitem, = (
+            blogitem = (
                 BlogItem.objects.filter(oid=oid)
-                .values('pk', 'modify_date')
+                .values('pk', 'modify_date')[0]
             )
-        except BlogItem.DoesNotExist:
+        except IndexError:
             # don't bother, something's really wrong
             return None
         latest_date = blogitem['modify_date']
