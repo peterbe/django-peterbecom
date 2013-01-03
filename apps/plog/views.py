@@ -60,7 +60,10 @@ def _blog_post_key_prefixer(request):
     if request.user.is_authenticated():
         return None
     prefix = urllib.urlencode(request.GET)
-    oid = request.path.split('/')[-1]
+    if request.path.endswith('/'):
+        oid = request.path.split('/')[-2]
+    else:
+        oid = request.path.split('/')[-1]
 
     cache_key = 'latest_comment_add_date:%s' % oid
     latest_date = cache.get(cache_key)
