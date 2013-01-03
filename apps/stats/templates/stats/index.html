@@ -73,9 +73,15 @@ function drawChart() {
     </tr>
   </thead>
   <tbody>
-    {% for url, hits, misses, ratio in urls %}
+    {% for abs_url, url, hits, misses, ratio in urls %}
     <tr>
-      <td><a href="{{ url }}">{{ url }}</a></td>
+      <td>
+        {% if abs_url %}
+        <a href="{{ abs_url }}">{{ url }}</a>
+	{% else %}
+	{{ url }}
+	{% endif %}
+      </td>
       <td>{{ hits }}</td>
       <td>{{ misses }}</td>
       <td>{{ ratio }}</td>

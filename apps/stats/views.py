@@ -40,7 +40,11 @@ def stats_index(request):
             v['ratio'] = '%.1f%%' % (100.0 * v['misses'] / v['hits'])
         else:
             v['ratio'] = '--'
-    urls = [(x, y['hits'], y['misses'], y['ratio'])
+    def make_abs_url(url):
+        if url.startswith('GET '):
+            return url[4:]
+        return None
+    urls = [(make_abs_url(x), x, y['hits'], y['misses'], y['ratio'])
             for x, y in urls.items()]
     urls.sort(lambda x, y: cmp(y[1], x[1]))
     data['urls'] = urls
