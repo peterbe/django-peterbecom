@@ -324,10 +324,12 @@ def search(request):
 
 
 _img_regex = re.compile('(<img.*?src=(["\'])([^"\']+)(["\']).*?>)', re.DOTALL | re.M)
+import logging
 import base64
 import urlparse
 import urllib
 from django.contrib.sites.models import RequestSite
+from django.conf import settings
 
 def post_process_response(response, request):
     #print repr(response.content)
@@ -344,12 +346,28 @@ def post_process_response(response, request):
     def image_replacer(match):
         bail = match.group()
         whole, deli, src, deli = match.groups()
-        abs_src = urlparse.urljoin(current_url, src)
+        if src.startswith('//'):
+            if request.is_secure():
+                abs_src = 'https:' + src
+            else:
+                abs_src = 'http:' + src
+        else:
+            abs_src = urlparse.urljoin(current_url, src)
         if urlparse.urlparse(abs_src).netloc != this_domain:
-            return bail
+            if settings.STATIC_URL and settings.STATIC_URL in abs_src:
+                pass
+            else:
+                return bail
 
         img_response = urllib.urlopen(abs_src)
         ct = img_response.headers['content-type']
+        if img_response.getcode() >= 300:
+            logging.warning(
+               "Unable to download %s (code: %s)",
+               abs_src, img_response.getcode()
+            )
+            return bail
+
         img_content = img_response.read()
         #print len(img_content)
         new_src = (
