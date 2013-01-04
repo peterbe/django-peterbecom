@@ -391,7 +391,7 @@ def post_process_response(response, request):
 def _aboutprefixer(request):
     return '1'
 #@cache_page(60 * 60 * 1)
-@cache_page_with_prefix(3, _aboutprefixer, post_process_response=post_process_response)
+@cache_page_with_prefix(60, _aboutprefixer, post_process_response=post_process_response)
 def about2(request):
     return render(request, 'homepage/about.html')
 
