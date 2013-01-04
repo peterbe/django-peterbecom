@@ -47,14 +47,14 @@ from .middleware import CacheMiddleware
 ''' decorator for advanced view caching '''
 from django.utils.decorators import decorator_from_middleware_with_args
 def cache_page_with_prefix(*args, **kwargs):
-    return decorator_from_middleware_with_args(CacheMiddleware)(*args)
+    return decorator_from_middleware_with_args(CacheMiddleware)(*args, **kwargs)
 
 
 
 def expire_page(path, key_prefix=None):
-    '''
+    """
     Delete page from cache based on it's url
-    '''
+    """
     request = HttpRequest()
     request.path = path
     key = get_cache_key(request, key_prefix)
@@ -63,8 +63,8 @@ def expire_page(path, key_prefix=None):
         return key
 
 def expire_pages(path, key_prefixes):
-    '''
+    """
     Delete pages from cache based on their url and list of possible key_prefixes
-    '''
+    """
     for prefix in key_prefixes:
         expire_page(path, prefix)

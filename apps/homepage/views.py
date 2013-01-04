@@ -323,10 +323,63 @@ def search(request):
     return render(request, 'homepage/search.html', data)
 
 
+_img_regex = re.compile('(<img.*?src=(["\'])([^"\']+)(["\']).*?>)', re.DOTALL | re.M)
+import base64
+import urlparse
+import urllib
+from django.contrib.sites.models import RequestSite
+
+def post_process_response(response, request):
+    #print repr(response.content)
+    #for img in _img_regex.findall(response.content):
+    #    print repr(img)
+    current_url = request.build_absolute_uri().split('?')[0]
+    base_url = 'https://' if request.is_secure() else 'http://'
+    base_url += RequestSite(request).domain
+    current_url = urlparse.urljoin(base_url, request.path)
+    #print request.path
+    this_domain = urlparse.urlparse(current_url).netloc
+    print this_domain
+    #print request.is_secure()
+    def image_replacer(match):
+        bail = match.group()
+        whole, deli, src, deli = match.groups()
+        abs_src = urlparse.urljoin(current_url, src)
+        if urlparse.urlparse(abs_src).netloc != this_domain:
+            return bail
+
+        img_response = urllib.urlopen(abs_src)
+        ct = img_response.headers['content-type']
+        img_content = img_response.read()
+        #print len(img_content)
+        new_src = (
+            'data:%s;base64,%s' %
+            (ct, base64.encodestring(img_content).replace('\n', ''))
+        )
+#        print ('src%s%s%s' % (deli, src, deli), bail)
+        #print new_src
+        old_src = 'src=%s%s%s' % (deli, src, deli)
+        new_src = 'src=%s%s%s' % (deli, new_src, deli)
+        new_src += ' data-orig-src=%s%s%s' % (deli, src, deli)
+        return bail.replace(old_src, new_src)
+        #print match.group()
+        #print match.groups()
+        return bail
+
+    response.content = _img_regex.sub(image_replacer, response.content)
+#    print response.content
+    return response
+
+def _aboutprefixer(request):
+    return '1'
+#@cache_page(60 * 60 * 1)
+@cache_page_with_prefix(3, _aboutprefixer, post_process_response=post_process_response)
+def about2(request):
+    return render(request, 'homepage/about.html')
+
 @cache_page(60 * 60 * 1)
 def about(request):
     return render(request, 'homepage/about.html')
-
 
 @cache_page(60 * 60 * 24)
 def contact(request):

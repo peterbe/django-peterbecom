@@ -11,11 +11,6 @@ class UpdateCacheMiddleware(object):
     UpdateCacheMiddleware must be the first piece of middleware in
     MIDDLEWARE_CLASSES so that it'll get called last during the response phase.
     """
-    def __init__(self, patch_headers=False):
-        self.patch_headers = patch_headers
-        self.cache_timeout = settings.CACHE_MIDDLEWARE_SECONDS
-        self.key_prefix = settings.CACHE_MIDDLEWARE_KEY_PREFIX
-        self.cache_anonymous_only = getattr(settings, 'CACHE_MIDDLEWARE_ANONYMOUS_ONLY', False)
 
     def process_response(self, request, response):
         """Sets the cache, if needed."""
@@ -48,7 +43,13 @@ class UpdateCacheMiddleware(object):
                 key_prefix = self.key_prefix(request)
             else:
                 key_prefix = self.key_prefix
-
+            #print repr(response)
+            #print "CACHE", type(response)
+            #print dir(response)
+            #print repr(response.content)
+            #print type(response.content)
+            if self.post_process_response:
+                response = self.post_process_response(response, request=request)
             cache_key = learn_cache_key(request, response, timeout, key_prefix)
             cache.set(cache_key, response, timeout)
         return response
@@ -61,11 +62,6 @@ class FetchFromCacheMiddleware(object):
     FetchFromCacheMiddleware must be the last piece of middleware in
     MIDDLEWARE_CLASSES so that it'll get called last during the request phase.
     """
-    def __init__(self):
-        self.cache_timeout = settings.CACHE_MIDDLEWARE_SECONDS
-        self.key_prefix = settings.CACHE_MIDDLEWARE_KEY_PREFIX
-        self.cache_anonymous_only = getattr(settings, 'CACHE_MIDDLEWARE_ANONYMOUS_ONLY', False)
-
     def process_request(self, request):
         """
         Checks whether the page is already cached and returns the cached
@@ -116,18 +112,14 @@ class CacheMiddleware(UpdateCacheMiddleware, FetchFromCacheMiddleware):
     Also used as the hook point for the cache decorator, which is generated
     using the decorator-from-middleware utility.
     """
-    def __init__(self, cache_timeout=None, key_prefix=None, cache_anonymous_only=None,
-                 patch_headers=False):
-
-        # peter: not calling super on the inherited classes is stupid. Will fix one day
+    def __init__(self,
+                 cache_timeout=settings.CACHE_MIDDLEWARE_SECONDS,
+                 key_prefix=settings.CACHE_MIDDLEWARE_KEY_PREFIX,
+                 cache_anonymous_only=getattr(settings, 'CACHE_MIDDLEWARE_ANONYMOUS_ONLY', False),
+                 patch_headers=False,
+                 post_process_response=None,):
         self.patch_headers = patch_headers
         self.cache_timeout = cache_timeout
-        if cache_timeout is None:
-            self.cache_timeout = settings.CACHE_MIDDLEWARE_SECONDS
         self.key_prefix = key_prefix
-        if key_prefix is None:
-            self.key_prefix = settings.CACHE_MIDDLEWARE_KEY_PREFIX
-        if cache_anonymous_only is None:
-            self.cache_anonymous_only = getattr(settings, 'CACHE_MIDDLEWARE_ANONYMOUS_ONLY', False)
-        else:
-            self.cache_anonymous_only = cache_anonymous_only
+        self.cache_anonymous_only = cache_anonymous_only
+        self.post_process_response = post_process_response
