@@ -252,7 +252,6 @@ def search(request):
                   field
                 ))
 
-        #print 'Searchin for %r:\n%s' % (search, '\n'.join(times))
         logging.info('Searchin for %r:\n%s' % (search, '\n'.join(times)))
     elif keyword_search and any(keyword_search.values()):
         if keyword_search.get('keyword') or keyword_search.get('keywords'):
@@ -332,17 +331,11 @@ from django.contrib.sites.models import RequestSite
 from django.conf import settings
 
 def post_process_response(response, request):
-    #print repr(response.content)
-    #for img in _img_regex.findall(response.content):
-    #    print repr(img)
     current_url = request.build_absolute_uri().split('?')[0]
     base_url = 'https://' if request.is_secure() else 'http://'
     base_url += RequestSite(request).domain
     current_url = urlparse.urljoin(base_url, request.path)
-    #print request.path
     this_domain = urlparse.urlparse(current_url).netloc
-    print this_domain
-    #print request.is_secure()
     def image_replacer(match):
         bail = match.group()
         whole, deli, src, deli = match.groups()
@@ -369,23 +362,16 @@ def post_process_response(response, request):
             return bail
 
         img_content = img_response.read()
-        #print len(img_content)
         new_src = (
             'data:%s;base64,%s' %
             (ct, base64.encodestring(img_content).replace('\n', ''))
         )
-#        print ('src%s%s%s' % (deli, src, deli), bail)
-        #print new_src
         old_src = 'src=%s%s%s' % (deli, src, deli)
         new_src = 'src=%s%s%s' % (deli, new_src, deli)
         new_src += ' data-orig-src=%s%s%s' % (deli, src, deli)
         return bail.replace(old_src, new_src)
-        #print match.group()
-        #print match.groups()
-        return bail
 
     response.content = _img_regex.sub(image_replacer, response.content)
-#    print response.content
     return response
 
 def _aboutprefixer(request):
