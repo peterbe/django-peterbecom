@@ -402,6 +402,7 @@ _link_regex = re.compile('<link.*?>', re.M | re.DOTALL)
 
 def _mincss_response(response, request):
     if Processor is None or cssmin is None:
+        logging.info("No _mincss_response() possible")
         return response
 
     html = response.content
