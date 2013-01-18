@@ -377,12 +377,86 @@ def post_process_response(response, request):
 def _aboutprefixer(request):
     return '1'
 #@cache_page(60 * 60 * 1)
-@cache_page_with_prefix(60, _aboutprefixer, post_process_response=post_process_response)
+@cache_page_with_prefix(60 * 60, _aboutprefixer, post_process_response=post_process_response)
 def about2(request):
     return render(request, 'homepage/about.html')
 
 @cache_page(60 * 60 * 1)
 def about(request):
+    return render(request, 'homepage/about.html')
+
+from mincss.processor import Processor
+import cssmin
+
+
+_style_regex = re.compile('<style.*?</style>', re.M | re.DOTALL)
+_link_regex = re.compile('<link.*?>', re.M | re.DOTALL)
+
+def _mincss_response(response, request):
+    html = response.content
+    p = Processor()
+    p.process_html(html, request.build_absolute_uri())
+    p.process()
+    combined_css = []
+    _total_before = 0
+    _requests_before = 0
+    for link in p.links:
+        _total_before += len(link.before)
+        _requests_before += 1
+        #combined_css.append('/* %s */' % link.href)
+        combined_css.append(link.after)
+
+    for inline in p.inlines:
+        _total_before += len(inline.before)
+        combined_css.append(inline.after)
+
+    if p.inlines:
+        html = _style_regex.sub('', html)
+    found_link_hrefs = [x.href for x in p.links]
+    def link_remover(m):
+        bail = m.group()
+        for each in found_link_hrefs:
+            if each in bail:
+                return ''
+        return bail
+    html = _link_regex.sub(link_remover, html)
+
+    _total_after = sum(len(x) for x in combined_css)
+    combined_css = [cssmin.cssmin(x) for x in combined_css]
+    _total_after_min = sum(len(x) for x in combined_css)
+
+    stats_css = (
+"""
+/*
+Stats about using mincss
+------------------------
+Requests:         %s (now: 0)
+Before:           %.fKb
+After:            %.fKb
+After (minified): %.fKb
+Saving:           %.fKb
+*/"""
+        % (_requests_before,
+           _total_before / 1024.,
+           _total_after / 1024.,
+           _total_after_min / 1024.,
+           (_total_before - _total_after) / 1024.)
+
+    )
+    combined_css.insert(0, stats_css)
+    new_style = (
+        '<style type="text/css">\n%s\n</style>' %
+        ('\n'.join(combined_css)).strip()
+    )
+    html = html.replace(
+        '</head>',
+        new_style + '\n</head>'
+    )
+    response.content = html
+    return response
+
+@cache_page_with_prefix(60, _aboutprefixer, post_process_response=_mincss_response)
+def about3(request):
     return render(request, 'homepage/about.html')
 
 @cache_page(60 * 60 * 24)
