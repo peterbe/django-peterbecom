@@ -385,14 +385,25 @@ def about2(request):
 def about(request):
     return render(request, 'homepage/about.html')
 
-from mincss.processor import Processor
-import cssmin
+try:
+    from mincss.processor import Processor
+    try:
+        import cssmin
+    except ImportError:
+        logging.warning("Unable to import cssmin", exc_info=True)
+        cssmin = None
+except ImportError:
+    logging.warning("Unable to import mincss", exc_info=True)
+    Processor = None
 
 
 _style_regex = re.compile('<style.*?</style>', re.M | re.DOTALL)
 _link_regex = re.compile('<link.*?>', re.M | re.DOTALL)
 
 def _mincss_response(response, request):
+    if Processor is None or cssmin is None:
+        return response
+
     html = response.content
     p = Processor()
     p.process_html(html, request.build_absolute_uri())
