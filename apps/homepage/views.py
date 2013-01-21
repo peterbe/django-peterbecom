@@ -467,7 +467,7 @@ Saving:           %.fKb
     response.content = html
     return response
 
-@cache_page_with_prefix(60, _aboutprefixer, post_process_response=_mincss_response)
+@cache_page_with_prefix(60 * 60, _aboutprefixer, post_process_response=_mincss_response)
 def about3(request):
     return render(request, 'homepage/about.html')
 
