@@ -133,11 +133,14 @@ def blog_post(request, oid):
         data['next_post'] = post.get_next_by_pub_date(pub_date__lt=utc_now())
     except BlogItem.DoesNotExist:
         data['next_post'] = None
+
     comments = (
         BlogComment.objects
         .filter(blogitem=post)
         .order_by('add_date')
     )
+    if not request.user.is_staff:
+        comments = comments.filter(approved=True)
     all_comments = defaultdict(list)
     for comment in comments:
         all_comments[comment.parent_id].append(comment)
