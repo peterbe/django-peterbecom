@@ -2,9 +2,9 @@ from jingo import register
 
 
 @register.function
-def thousands(v):
+def thousands(n):
     # if only this was python 2.7!! :(
-    #return format(v, ',')
+    #return format(n, ',')
     r = []
     for i, c in enumerate(reversed(str(n))):
         if i and (not (i % 3)):
