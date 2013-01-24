@@ -35,7 +35,10 @@ def stats_index(request):
     data['plog'] = get_totals('plog')
     data['homepage'] = get_totals('homepage')
 
+    total_hits = total_misses = 0
     for v in urls.values():
+        total_hits += v['hits']
+        total_misses += v['misses']
         if v['hits']:
             v['ratio'] = '%.1f%%' % (100.0 * v['misses'] / v['hits'])
         else:
@@ -50,5 +53,7 @@ def stats_index(request):
     data['urls'] = urls
 
     data['start_date'] = redis.get('counters-start')
+    data['total_hits'] = total_hits
+    data['total_misses'] = total_misses
 
     return render(request, 'stats/index.html', data)

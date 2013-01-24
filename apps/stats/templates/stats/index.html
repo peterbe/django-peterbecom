@@ -72,6 +72,14 @@ function drawChart() {
       <th>Ratio</th>
     </tr>
   </thead>
+  <tfoot>
+    <tr>
+      <th style="text-align:left">TOTAL</th>
+      <th style="text-align:left">{{ thousands(total_hits) }}</th>
+      <th style="text-align:left">{{ thousands(total_misses) }}</th>
+      <th>&nbsp;</th>
+    </tr>
+  </tfoot>
   <tbody>
     {% for abs_url, url, hits, misses, ratio in urls %}
     <tr>
@@ -82,8 +90,8 @@ function drawChart() {
 	{{ url }}
 	{% endif %}
       </td>
-      <td>{{ hits }}</td>
-      <td>{{ misses }}</td>
+      <td>{{ thousands(hits) }}</td>
+      <td>{{ thousands(misses) }}</td>
       <td>{{ ratio }}</td>
     </tr>
     {% endfor %}
