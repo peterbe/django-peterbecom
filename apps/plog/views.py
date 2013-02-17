@@ -30,7 +30,8 @@ from .models import BlogItem, BlogComment, Category, BlogFile
 from .utils import render_comment_text, valid_email, utc_now
 from apps.redisutils import get_redis_connection
 from apps.rediscounter import redis_increment
-from apps.view_cache_utils import cache_page_with_prefix
+from fancy_cache import cache_page
+from apps.mincss_response import mincss_response
 from . import tasks
 from . import utils
 from .forms import BlogForm, BlogFileUpload
@@ -96,7 +97,11 @@ def _blog_post_key_prefixer(request):
     return prefix
 
 
-@cache_page_with_prefix(ONE_WEEK, _blog_post_key_prefixer)
+@cache_page(
+    ONE_WEEK,
+    _blog_post_key_prefixer,
+    post_process_response=mincss_response
+)
 def blog_post(request, oid):
     if oid.endswith('/'):
         oid = oid[:-1]
@@ -402,12 +407,12 @@ def _plog_index_key_prefixer(request):
     prefix += str(latest_date)
     return prefix
 
-@cache_page_with_prefix(ONE_DAY, _plog_index_key_prefixer)
+@cache_page(
+    ONE_DAY,
+    _plog_index_key_prefixer,
+    post_process_response=mincss_response
+)
 def plog_index(request):
-
-    # this is temporarily here to see how often this is actually rendered
-    logging.info("PSEUDO-DEBUGGING cache miss on plog_index")
-
     groups = defaultdict(list)
     now = utc_now()
     group_dates = []
@@ -455,7 +460,7 @@ def _new_comment_key_prefixer(request):
     return prefix
 
 
-@cache_page_with_prefix(ONE_HOUR, _new_comment_key_prefixer)
+@cache_page(ONE_HOUR, _new_comment_key_prefixer)
 def new_comments(request):
     data = {}
     comments = BlogComment.objects.all()
@@ -471,7 +476,7 @@ def new_comments(request):
 
     data['comments'] = (comments
                         .order_by('-add_date')
-                        .select_related('blogitem')[:100])
+                        .select_related('blogitem')[:50])
     return render(request, 'plog/new-comments.html', data)
 
 
@@ -688,6 +693,7 @@ def delete_post_thumbnail(request):
     )
 
 
+@cache_page(ONE_DAY)
 def calendar(request):
     data = {'page_title': 'Archive calendar'}
     return render(request, 'plog/calendar.html', data)

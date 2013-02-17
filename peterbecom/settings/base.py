@@ -101,9 +101,10 @@ TEMPLATE_LOADERS = (
 
 
 JINGO_EXCLUDE_APPS = (
-  'debug_toolbar',
-  'admin',
-  'bootstrapform',
+    'debug_toolbar',
+    'admin',
+    'bootstrapform',
+    'fancy_cache',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -157,6 +158,7 @@ INSTALLED_APPS = (
     'apps.homepage',
     'apps.legacy',
     'apps.stats',
+    'fancy_cache',
 )
 
 # A sample logging configuration. The only tangible logging
@@ -236,3 +238,6 @@ UPLOAD_FILE_DIR = path('..', 'peterbecom-static-content')
 LOGIN_URL = '/admin/'
 
 INBOUND_EMAIL_ADDRESS = 'setup@yourown.com'
+
+FANCY_REMEMBER_ALL_URLS = True
+FANCY_REMEMBER_STATS_ALL_URLS = True

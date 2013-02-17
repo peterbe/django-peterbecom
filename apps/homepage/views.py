@@ -20,7 +20,8 @@ from apps.plog.utils import render_comment_text, utc_now
 from apps.redisutils import get_redis_connection
 from apps.rediscounter import redis_increment
 from .utils import (parse_ocs_to_categories, make_categories_q, split_search)
-from apps.view_cache_utils import cache_page_with_prefix
+from fancy_cache import cache_page
+from apps.mincss_response import mincss_response
 
 
 def _home_key_prefixer(request):
@@ -45,7 +46,7 @@ def _home_key_prefixer(request):
     return prefix
 
 
-@cache_page_with_prefix(60 * 60, _home_key_prefixer)
+@cache_page(60 * 60, key_prefix=_home_key_prefixer)
 def home(request, oc=None):
     data = {}
     qs = BlogItem.objects.filter(pub_date__lt=utc_now())
@@ -322,156 +323,24 @@ def search(request):
     return render(request, 'homepage/search.html', data)
 
 
-_img_regex = re.compile('(<img.*?src=(["\'])([^"\']+)(["\']).*?>)', re.DOTALL | re.M)
-import logging
-import base64
-import urlparse
-import urllib
-from django.contrib.sites.models import RequestSite
-from django.conf import settings
+from .base64allimages import post_process_response as b64_post_process_response
 
-def post_process_response(response, request):
-    current_url = request.build_absolute_uri().split('?')[0]
-    base_url = 'https://' if request.is_secure() else 'http://'
-    base_url += RequestSite(request).domain
-    current_url = urlparse.urljoin(base_url, request.path)
-    this_domain = urlparse.urlparse(current_url).netloc
-    def image_replacer(match):
-        bail = match.group()
-        whole, deli, src, deli = match.groups()
-        if src.startswith('//'):
-            if request.is_secure():
-                abs_src = 'https:' + src
-            else:
-                abs_src = 'http:' + src
-        else:
-            abs_src = urlparse.urljoin(current_url, src)
-        if urlparse.urlparse(abs_src).netloc != this_domain:
-            if settings.STATIC_URL and settings.STATIC_URL in abs_src:
-                pass
-            else:
-                return bail
-
-        img_response = urllib.urlopen(abs_src)
-        ct = img_response.headers['content-type']
-        if img_response.getcode() >= 300:
-            logging.warning(
-               "Unable to download %s (code: %s)",
-               abs_src, img_response.getcode()
-            )
-            return bail
-
-        img_content = img_response.read()
-        new_src = (
-            'data:%s;base64,%s' %
-            (ct, base64.encodestring(img_content).replace('\n', ''))
-        )
-        old_src = 'src=%s%s%s' % (deli, src, deli)
-        new_src = 'src=%s%s%s' % (deli, new_src, deli)
-        new_src += ' data-orig-src=%s%s%s' % (deli, src, deli)
-        return bail.replace(old_src, new_src)
-
-    response.content = _img_regex.sub(image_replacer, response.content)
-    return response
-
-def _aboutprefixer(request):
-    return '1'
-#@cache_page(60 * 60 * 1)
-@cache_page_with_prefix(60 * 60, _aboutprefixer, post_process_response=post_process_response)
+@cache_page(60 * 60, post_process_response=b64_post_process_response)
 def about2(request):
     return render(request, 'homepage/about.html')
 
-@cache_page(60 * 60 * 1)
+
+@cache_page(60 * 60, post_process_response=mincss_response)
 def about(request):
     return render(request, 'homepage/about.html')
 
-try:
-    from mincss.processor import Processor
-    try:
-        import cssmin
-    except ImportError:
-        logging.warning("Unable to import cssmin", exc_info=True)
-        cssmin = None
-except ImportError:
-    logging.warning("Unable to import mincss", exc_info=True)
-    Processor = None
 
-
-_style_regex = re.compile('<style.*?</style>', re.M | re.DOTALL)
-_link_regex = re.compile('<link.*?>', re.M | re.DOTALL)
-
-def _mincss_response(response, request):
-    if Processor is None or cssmin is None:
-        logging.info("No _mincss_response() possible")
-        return response
-
-    html = response.content
-    p = Processor()
-    p.process_html(html, request.build_absolute_uri())
-    p.process()
-    combined_css = []
-    _total_before = 0
-    _requests_before = 0
-    for link in p.links:
-        _total_before += len(link.before)
-        _requests_before += 1
-        #combined_css.append('/* %s */' % link.href)
-        combined_css.append(link.after)
-
-    for inline in p.inlines:
-        _total_before += len(inline.before)
-        combined_css.append(inline.after)
-
-    if p.inlines:
-        html = _style_regex.sub('', html)
-    found_link_hrefs = [x.href for x in p.links]
-    def link_remover(m):
-        bail = m.group()
-        for each in found_link_hrefs:
-            if each in bail:
-                return ''
-        return bail
-    html = _link_regex.sub(link_remover, html)
-
-    _total_after = sum(len(x) for x in combined_css)
-    combined_css = [cssmin.cssmin(x) for x in combined_css]
-    _total_after_min = sum(len(x) for x in combined_css)
-
-    stats_css = (
-"""
-/*
-Stats about using mincss
-------------------------
-Requests:         %s (now: 0)
-Before:           %.fKb
-After:            %.fKb
-After (minified): %.fKb
-Saving:           %.fKb
-*/"""
-        % (_requests_before,
-           _total_before / 1024.,
-           _total_after / 1024.,
-           _total_after_min / 1024.,
-           (_total_before - _total_after) / 1024.)
-
-    )
-    combined_css.insert(0, stats_css)
-    new_style = (
-        '<style type="text/css">\n%s\n</style>' %
-        ('\n'.join(combined_css)).strip()
-    )
-    html = html.replace(
-        '</head>',
-        new_style + '\n</head>'
-    )
-    response.content = html
-    return response
-
-@cache_page_with_prefix(60 * 60, _aboutprefixer, post_process_response=_mincss_response)
+@cache_page(60 * 60, post_process_response=mincss_response)
 def about3(request):
     return render(request, 'homepage/about.html')
 
-@cache_page(60 * 60 * 24)
+
+@cache_page(60 * 60 * 24, post_process_response=mincss_response)
 def contact(request):
     return render(request, 'homepage/contact.html')
 
