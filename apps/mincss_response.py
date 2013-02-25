@@ -1,3 +1,5 @@
+from django.conf import settings
+
 import re
 from mincss.processor import Processor
 try:
@@ -16,7 +18,9 @@ def mincss_response(response, request):
         return response
 
     html = unicode(response.content, 'utf-8')
-    p = Processor()
+    p = Processor(
+        preserve_remote_urls=True,
+    )
     p.process_html(html, request.build_absolute_uri())
     p.process()
     combined_css = []
