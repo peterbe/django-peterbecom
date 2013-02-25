@@ -29,13 +29,23 @@ def _home_key_prefixer(request):
         return None
     prefix = urllib.urlencode(request.GET)
     cache_key = 'latest_comment_add_date'
+    if request.path_info.startswith('/oc-'):
+        categories = parse_ocs_to_categories(request.path_info[len('/oc-'):])
+        cache_key += ''.join(str(x.pk) for x in categories)
+    else:
+        categories = None
+
     latest_date = cache.get(cache_key)
     if latest_date is None:
-        latest, = (BlogItem.objects
+        qs = BlogItem.objects.all()
+        if categories:
+            cat_q = make_categories_q(categories)
+            qs = qs.filter(cat_q)
+        latest, = (qs
                    .order_by('-modify_date')
                    .values('modify_date')[:1])
         latest_date = latest['modify_date'].strftime('%f')
-        cache.set(cache_key, latest_date, 60 * 60)
+        cache.set(cache_key, latest_date, 60 * 60  * 5)
     prefix += str(latest_date)
 
     try:
@@ -46,7 +56,8 @@ def _home_key_prefixer(request):
     return prefix
 
 
-@cache_page(60 * 60, key_prefix=_home_key_prefixer,
+@cache_page(60 * 60 * 5,  # five hours
+            key_prefix=_home_key_prefixer,
             post_process_response=mincss_response)
 def home(request, oc=None):
     data = {}
