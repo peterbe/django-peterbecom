@@ -58,7 +58,8 @@ def _home_key_prefixer(request):
 
 @cache_page(60 * 60 * 5,  # five hours
             key_prefix=_home_key_prefixer,
-            post_process_response=mincss_response)
+            post_process_response=mincss_response
+            )
 def home(request, oc=None):
     data = {}
     qs = BlogItem.objects.filter(pub_date__lt=utc_now())

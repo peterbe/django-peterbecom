@@ -146,9 +146,17 @@ def blog_post(request, oid):
     )
     if not request.user.is_staff:
         comments = comments.filter(approved=True)
+
+    comments_truncated = False
+    if request.GET.get('comments') != 'all':
+        comments = comments[:100]
+        if post.count_comments() > 100:
+            comments_truncated = 100
+
     all_comments = defaultdict(list)
     for comment in comments:
         all_comments[comment.parent_id].append(comment)
+    data['comments_truncated'] = comments_truncated
     data['all_comments'] = all_comments
     data['related'] = get_related_posts(post)
     data['show_buttons'] = True

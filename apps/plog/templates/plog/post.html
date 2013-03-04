@@ -47,9 +47,16 @@
   <p><em>Comments hidden. Sorry.</em></p>
   {% endif %}
 {% else %}
-<div id="comments-outer">
-{{ show_comments(post, user.is_staff, all_comments)|safe }}
-</div>
+  <div id="comments-outer">
+  {{ show_comments(post, user.is_staff, all_comments)|safe }}
+  </div>
+  {% if comments_truncated %}
+  <p class="comments-truncated">
+    Only showing the first {{ comments_truncated }} comments ({{ thousands(post.count_comments()) }} in total).
+    <br>
+    <a href="?comments=all" rel="nofollow">Load them all!</a>
+  </p>
+  {% endif %}
 {% endif %}
 
 {% if post.disallow_comments %}
