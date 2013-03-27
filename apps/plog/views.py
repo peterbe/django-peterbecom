@@ -291,12 +291,12 @@ def submit_json(request, oid):
         if request.user.is_authenticated():
             _approve_comment(blog_comment)
             assert blog_comment.approved
-
-        tos = [x[1] for x in settings.ADMINS]
-        from_ = ['%s <%s>' % x for x in settings.ADMINS][0]
-        body = _get_comment_body(post, blog_comment)
-        send_mail("Peterbe.com: New comment on '%s'" % post.title,
-                  body, from_, tos)
+        else:
+            tos = [x[1] for x in settings.ADMINS]
+            from_ = ['%s <%s>' % x for x in settings.ADMINS][0]
+            body = _get_comment_body(post, blog_comment)
+            send_mail("Peterbe.com: New comment on '%s'" % post.title,
+                      body, from_, tos)
 
     html = render_to_string('plog/comment.html', {
       'comment': blog_comment,
