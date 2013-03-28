@@ -22,12 +22,13 @@ from apps.rediscounter import redis_increment
 from .utils import (parse_ocs_to_categories, make_categories_q, split_search)
 from fancy_cache import cache_page
 from apps.mincss_response import mincss_response
+from apps.plog.utils import make_prefix
 
 
 def _home_key_prefixer(request):
     if request.method != 'GET':
         return None
-    prefix = urllib.urlencode(request.GET)
+    prefix = make_prefix(request.GET)
     cache_key = 'latest_comment_add_date'
     if request.path_info.startswith('/oc-'):
         categories = parse_ocs_to_categories(request.path_info[len('/oc-'):])
@@ -115,7 +116,7 @@ STOPWORDS = "a able about across after all almost also am among an and "\
 def search(request):
     data = {}
     search = request.GET.get('q', '')
-    if len(search) > 100:
+    if len(search) > 90:
         return http.HttpResponse("Search too long")
     documents = []
     data['base_url'] = 'http://%s' % RequestSite(request).domain

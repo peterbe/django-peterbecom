@@ -60,7 +60,7 @@ def _blog_post_key_prefixer(request):
         return None
     if request.user.is_authenticated():
         return None
-    prefix = urllib.urlencode(request.GET)
+    prefix = utils.make_prefix(request.GET)
     if request.path.endswith('/'):
         oid = request.path.split('/')[-2]
     else:
@@ -403,7 +403,7 @@ def _plog_index_key_prefixer(request):
         return None
     if request.user.is_authenticated():
         return None
-    prefix = urllib.urlencode(request.GET)
+    prefix = utils.make_prefix(request.GET)
     cache_key = 'latest_post_modify_date'
     latest_date = cache.get(cache_key)
     if latest_date is None:
@@ -455,7 +455,7 @@ def _new_comment_key_prefixer(request):
         return None
     if request.user.is_authenticated():
         return None
-    prefix = urllib.urlencode(request.GET)
+    prefix = utils.make_prefix(request.GET)
     cache_key = 'latest_comment_add_date'
     latest_date = cache.get(cache_key)
     if latest_date is None:

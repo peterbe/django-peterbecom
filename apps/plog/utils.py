@@ -1,3 +1,4 @@
+import urllib
 import markdown
 import time
 import datetime
@@ -12,6 +13,14 @@ from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from isodate import UTC
 from gfm import gfm
+
+
+def make_prefix(request_dict):
+    _get = dict(request_dict)
+    for key, value in _get.items():
+        _get[key] = [isinstance(x, unicode) and x.encode('utf-8') or x
+                     for x in value]
+    return urllib.urlencode(_get, True)
 
 
 def utcify(dateinstance):
