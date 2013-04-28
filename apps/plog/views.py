@@ -658,31 +658,47 @@ def post_thumbnails(request, oid):
     html = ''
     # XXX very rough and hacky code
     for blogfile in blogfiles:
-        im = get_thumbnail(blogfile.file, '100x100', #crop='center',
-                           quality=81)
-
-        full_im = get_thumbnail(blogfile.file, '1000x1000', #crop='center',
-                                upscale=False, quality=100)
-
-        url_ = settings.STATIC_URL + im.url
+        full_im = get_thumbnail(
+            blogfile.file,
+            '1000x1000',
+            #crop='center',
+            upscale=False,
+            quality=100
+        )
         full_url = settings.STATIC_URL + full_im.url
-        tag = ('<img src="%s" alt="%s" width="%s" height="%s">' %
-                 (url_,
-                  getattr(blogfile, 'title', blogitem.title),
-                  im.width,
-                  im.height))
-        html += tag
-        delete_url = reverse('delete_post_thumbnail') + '?id=%s' % blogfile.pk
-        whole_tag = ('<a href="%s" title="%s">%s</a>' %
-                     (full_url,
-                      getattr(blogfile, 'title', blogitem.title),
-                      tag.replace('src="', 'class="floatright" src="')))
-        html += ' (%s, %s)' % (im.width, im.height)
-        html += ' <a href="%s">delete</a>' % delete_url
-        html += '<br><input value="%s" title="Full size 1200x1200">' % full_url
-        html += '<br><input value="%s">' % cgi.escape(tag).replace('"', '&quot;')
-        html += '<br><input value="%s">' % cgi.escape(whole_tag).replace('"', '&quot;')
-        html += '<br>'
+
+        for geometry in ('120x120', '230x230'):
+            im = get_thumbnail(
+                blogfile.file,
+                geometry,
+                #crop='center',
+                quality=81
+            )
+
+            url_ = settings.STATIC_URL + im.url
+            tag = (
+                '<img src="%s" alt="%s" width="%s" height="%s">'
+                % (url_,
+                   getattr(blogfile, 'title', blogitem.title),
+                   im.width,
+                   im.height
+                )
+            )
+            html += tag
+            delete_url = reverse('delete_post_thumbnail') + '?id=%s' % blogfile.pk
+            whole_tag = (
+                '<a href="%s" title="%s">%s</a>'
+                % (full_url,
+                   getattr(blogfile, 'title', blogitem.title),
+                   tag.replace('src="', 'class="floatright" src="')
+                )
+            )
+            html += ' (%s, %s)' % (im.width, im.height)
+            html += ' <a href="%s">delete</a>' % delete_url
+            html += '<br><input value="%s" title="Full size 1000x1000">' % full_url
+            html += '<br><input value="%s">' % cgi.escape(tag).replace('"', '&quot;')
+            html += '<br><input value="%s">' % cgi.escape(whole_tag).replace('"', '&quot;')
+            html += '<br>'
 
     return http.HttpResponse(html)
 
