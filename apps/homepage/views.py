@@ -423,3 +423,12 @@ def blog_post_by_alias(request, alias):
     blogitem = get_object_or_404(BlogItem, alias=alias)
     url = reverse('blog_post', args=[blogitem.oid])
     return http.HttpResponsePermanentRedirect(url)
+
+
+@cache_page(60 * 60 * 24)
+def humans_txt(request):
+    return render(
+        request,
+        'homepage/humans.txt',
+        content_type='text/plain'
+    )

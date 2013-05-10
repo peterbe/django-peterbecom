@@ -1,0 +1,11 @@
+/* TEAM */
+
+    Owner: Peter Bengtsson
+    Contact: mail@peterbe.com
+    Twitter: @peterbe
+
+
+/* SITE */
+
+    Language: English
+    Software: Django, PostgreSQL, Redis

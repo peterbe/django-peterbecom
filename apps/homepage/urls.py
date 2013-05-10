@@ -16,5 +16,6 @@ urlpatterns = patterns('',
     url('^contact$', views.contact, name='contact'),
     url('^oc-(.*)', views.home, name='only_category'),
     url('^zitemap.xml$', views.sitemap, name='sitemap'),
+    url('^humans.txt$', views.humans_txt, name='humans_txt'),
     url('^(.*)', views.blog_post_by_alias, name='blog_post_by_alias'),
 )
