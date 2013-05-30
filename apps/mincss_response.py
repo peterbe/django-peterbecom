@@ -17,11 +17,15 @@ def mincss_response(response, request):
         logging.info("No mincss_response() possible")
         return response
 
+    abs_uri = request.build_absolute_uri()
+    if abs_uri.startswith('http://testserver'):
+        return response
+
     html = unicode(response.content, 'utf-8')
     p = Processor(
         preserve_remote_urls=True,
     )
-    p.process_html(html, request.build_absolute_uri())
+    p.process_html(html, abs_uri)
     p.process()
     combined_css = []
     _total_before = 0

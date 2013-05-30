@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import datetime
@@ -5,7 +6,7 @@ from urlparse import urlparse
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.conf import settings
-from django.test import TestCase
+from django.test import TestCase, Client
 from apps.plog.models import BlogItem, BlogComment, Category, BlogFile
 from apps.plog.utils import utc_now
 from apps.redisutils import get_redis_connection
@@ -68,6 +69,43 @@ class PlogTestCase(TestCase):
                         [('/plog/some-longish-test-post', 5.0)])
         self.assertTrue(self.redis.zrange('plog:misses', 0, -1, withscores=True),
                         [('/plog/some-longish-test-post', 1.0)])
+
+    def test_blog_post_with_comment_approval(self):
+        blog = BlogItem.objects.create(
+            oid='some-longish-test-post',
+            title='TITLEX',
+            text='BLABLABLA',
+            display_format='structuredtext',
+            pub_date=utc_now() - datetime.timedelta(seconds=10),
+        )
+        url = reverse('blog_post', args=[blog.oid])
+
+        self._login()
+        loggedin = self.client
+        anonymous = Client()
+        assert len(loggedin.cookies)
+        assert not len(anonymous.cookies)
+
+        comment = BlogComment.objects.create(
+            oid='a1000',
+            blogitem=blog,
+            comment='COMMENTX',
+            name='Mr Anonymous',
+        )
+        # but it hasn't been approved yet
+        response = anonymous.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue('COMMENTX' not in response.content)
+
+        # let's approve it!
+        approve_url = reverse('approve_comment', args=[blog.oid, comment.oid])
+        response = loggedin.post(approve_url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, 'OK')
+
+        response = anonymous.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue('COMMENTX' in response.content)
 
     def test_text_rendering_with_images(self):
         blog = BlogItem.objects.create(

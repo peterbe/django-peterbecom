@@ -243,12 +243,12 @@ def invalidate_latest_comment_add_dates(sender, instance, **kwargs):
     cache.delete(cache_key)
 
     if sender is BlogItem:
-        pk = instance.pk
+        oid = instance.oid
     elif sender is BlogComment:
-        pk = instance.blogitem_id
+        oid = instance.blogitem.oid
     else:
         raise NotImplementedError(sender)
-    cache_key = 'latest_comment_add_date:%s' % pk
+    cache_key = 'latest_comment_add_date:%s' % oid
     cache.delete(cache_key)
 
 
@@ -273,8 +273,8 @@ def invalidate_latest_comment_add_date_by_oid(sender, instance, **kwargs):
 
 
 @receiver(pre_save, sender=BlogFile)
-@receiver(pre_save, sender=BlogComment)
 @receiver(pre_save, sender=BlogItem)
+@receiver(pre_save, sender=BlogComment)
 def update_modify_date(sender, instance, **kwargs):
     if getattr(instance, '_modify_date_set', False):
         return
@@ -283,5 +283,6 @@ def update_modify_date(sender, instance, **kwargs):
     elif sender is BlogComment:
         if instance.blogitem:
             instance.blogitem.modify_date = utils.utc_now()
+            instance.blogitem.save()
     else:
         raise NotImplementedError(sender)

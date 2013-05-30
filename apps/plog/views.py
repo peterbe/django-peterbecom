@@ -93,7 +93,6 @@ def _blog_post_key_prefixer(request):
         redis_increment('plog:hits', request)
     except Exception:
         logging.error('Unable to redis.zincrby', exc_info=True)
-
     return prefix
 
 
