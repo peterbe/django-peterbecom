@@ -14,7 +14,7 @@ django_compressor
 django-bootstrap-form
 markdown
 sorl-thumbnail
-PIL
+pillow
 mincss
 django-fancy-cache
 cssmin
