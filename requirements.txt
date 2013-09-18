@@ -18,3 +18,5 @@ PIL
 mincss
 django-fancy-cache
 cssmin
+cssselect
+BeautifulSoup
