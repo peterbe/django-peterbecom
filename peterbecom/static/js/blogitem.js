@@ -1,15 +1,14 @@
-function L() {
-  if (window.console && window.console.log)
-    console.log.apply(console, arguments);
-}
-
 var F = (function() {
   var form = $('form#comment');
   var preview = $('#preview-comment-outer');
   var _submitting = false;
   var _preparing = false;
+  var _reattempted = false;
 
   function commentData() {
+    if (!$('input[name="csrfmiddlewaretoken"]', form).val()) {
+      F.prepare();
+    }
     return {
        name: $('input[name="name"]', form).val(),
        email: $('input[name="email"]', form).val(),
@@ -20,17 +19,21 @@ var F = (function() {
   }
 
   return {
-     prepare: function() {
-       if (_preparing) return;  // to avoid excessive calls
+     prepare: function(callback) {
+       if (_preparing) {
+         return;  // to avoid excessive calls
+       }
        _preparing = true;
        $.getJSON('/plog/prepare.json', function(response) {
          $('input[name="csrfmiddlewaretoken"]', form).val(response.csrf_token);
-         if (response.name) {
+         if (response.name && !$('input[name="name"]', form).val()) {
            $('input[name="name"]', form).val(response.name);
          }
-         if (response.email) {
+         if (response.email && !$('input[name="email"]', form).val()) {
            $('input[name="email"]', form).val(response.email);
          }
+         _preparing = false;
+         if (callback) callback();
        });
      },
     setup_reply: function(parent) {
@@ -56,6 +59,11 @@ var F = (function() {
     preview: function(callback) {
       preview.hide();
       var data = commentData();
+      if (!data.csrfmiddlewaretoken && !_reattempted) {
+        _reattempted = true;
+        F.prepare(F.preview);
+        return false;
+      }
 
       $.ajax({
          url: '/plog/preview.json',
@@ -76,6 +84,11 @@ var F = (function() {
     },
     submit: function() {
       var data = commentData();
+      if (!data.csrfmiddlewaretoken && !_reattempted) {
+        _reattempted = true;
+        F.prepare(F.submit);
+        return false;
+      }
       if (!$.trim(data.comment).length) {
         alert("Please first write something");
         return false;
