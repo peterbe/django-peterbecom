@@ -3,6 +3,10 @@
 {% block title_prefix %}{{ post.title }}{% endblock %}
 
 {% block extrahead %}
+{% if post.keywords %}
+<meta name="keywords" content="{{ ','.join(post.keywords) }}">
+{% endif %}
+<meta property="og:title" content="{{ post.title }}">
 <link rel="prefetch" href="{{ home_url }}"> <!-- Firefox -->
 <link rel="prerender" href="{{ home_url }}"> <!-- Chrome -->
 {% endblock %}
