@@ -54,7 +54,9 @@
 
 {% block extrajs %}
 {% if rest %}
-<script>{% include "homepage/microajax.minified.js" %}
+<script>
+// https://code.google.com/p/microajax/
+{% include "homepage/microajax.minified.js" %}
 ;onload = function() {
   microAjax("/rest/{{ rest.from_index }}/{{ rest.to_index }}/", function (res) {
     document.getElementById('rest').innerHTML = res;
