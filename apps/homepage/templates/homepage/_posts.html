@@ -1,0 +1,33 @@
+{% for post in blogitems %}
+		<div class="row">
+			<div class="span12">
+				<div class="page-header">
+					<h1>
+					<a href="{{ url('blog_post', post.oid) }}">{{ post.title }}</a><br>
+                                        <small style="float:right">{{ post.pub_date.strftime('%d %B %Y') }}</small>
+                                        {% set count = post.count_comments() %}
+                                        <small>{{ count }} comment{% if count != 1 %}s{% endif %}</small>
+
+                                        {% for category in post.categories.all() %}
+                                          {% if loop.first %}&nbsp; <small>{% endif %}
+                                          <a rel="nofollow" href="{{ url('only_category', category.name.replace(' ','+')) }}"
+                                             title="Filter by the '{{ category.name }}' category"
+                                          >{{ category.name }}</a>{% if not loop.last %}, {% endif %}
+                                          {% if loop.last %}</small>{% endif %}
+                                        {% endfor %}
+					</h1>
+
+					{% if post.url %}
+					    <h4><a href="{{ post.url }}">{{ post.url }}</a></h4>
+					{% endif %}
+				</div>
+
+                                {% if post.has_carousel_tag %}
+                                {{ expand_carousel_thumbnails(post.rendered, post)|safe }}
+                                {% else %}
+                                {{ post.rendered|safe }}
+                                {% endif %}
+
+			</div>
+		</div>
+{% endfor %}
