@@ -3,8 +3,8 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from apps.legacy.models import LegacyBlogitem, LegacyBlogcomment
-from apps.plog.models import BlogItem, BlogComment
+from peterbecom.apps.legacy.models import LegacyBlogitem, LegacyBlogcomment
+from peterbecom.apps.plog.models import BlogItem, BlogComment
 
 class Command(BaseCommand):
 

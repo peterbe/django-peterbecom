@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from apps.redisutils import get_redis_connection
+from peterbecom.apps.redisutils import get_redis_connection
 
 
 def stats_index(request):

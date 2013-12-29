@@ -15,14 +15,14 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.core.urlresolvers import reverse
 from django.contrib.sites.models import RequestSite
 from django.utils.encoding import iri_to_uri
-from apps.plog.models import Category, BlogItem, BlogComment
-from apps.plog.utils import render_comment_text, utc_now
-from apps.redisutils import get_redis_connection
-from apps.rediscounter import redis_increment
+from peterbecom.apps.plog.models import Category, BlogItem, BlogComment
+from peterbecom.apps.plog.utils import render_comment_text, utc_now
+from peterbecom.apps.redisutils import get_redis_connection
+from peterbecom.apps.rediscounter import redis_increment
 from .utils import (parse_ocs_to_categories, make_categories_q, split_search)
 from fancy_cache import cache_page
-from apps.mincss_response import mincss_response
-from apps.plog.utils import make_prefix
+from peterbecom.apps.mincss_response import mincss_response
+from peterbecom.apps.plog.utils import make_prefix
 
 
 def _home_key_prefixer(request):

@@ -2,7 +2,7 @@ import datetime
 import re
 from django import http
 from django.db.models import Q
-from apps.plog.models import Category
+from peterbecom.apps.plog.models import Category
 
 
 def split_search(q, keywords):

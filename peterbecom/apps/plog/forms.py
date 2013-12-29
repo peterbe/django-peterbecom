@@ -1,7 +1,7 @@
 from django import forms
 from django.forms.fields import ChoiceField
 from django.forms.widgets import Textarea
-from apps.plog.models import BlogItem, BlogFile
+from peterbecom.apps.plog.models import BlogItem, BlogFile
 
 
 class MultilineTextarea(Textarea):

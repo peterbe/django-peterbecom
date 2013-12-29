@@ -7,9 +7,9 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.test import TestCase, Client
-from apps.plog.models import BlogItem, BlogComment, Category, BlogFile
-from apps.plog.utils import utc_now
-from apps.redisutils import get_redis_connection
+from peterbecom.apps.plog.models import BlogItem, BlogComment, Category, BlogFile
+from peterbecom.apps.plog.utils import utc_now
+from peterbecom.apps.redisutils import get_redis_connection
 
 
 class PlogTestCase(TestCase):

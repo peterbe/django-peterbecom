@@ -1,9 +1,9 @@
 import datetime
 import re
 from django.contrib.syndication.views import Feed
-from apps.plog.models import BlogItem
+from peterbecom.apps.plog.models import BlogItem
 from .utils import parse_ocs_to_categories, make_categories_q
-from apps.plog.utils import utc_now
+from peterbecom.apps.plog.utils import utc_now
 
 
 smart_static_urls = re.compile('src="//')

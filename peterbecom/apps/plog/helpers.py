@@ -8,7 +8,7 @@ from .utils import utc_now
 from django.conf import settings
 from django.template import Context
 from django.template.loader import get_template
-from apps.plog.models import BlogFile
+from peterbecom.apps.plog.models import BlogFile
 from sorl.thumbnail import get_thumbnail
 #from bootstrapform import
 

@@ -28,10 +28,10 @@ from django.core.files import File
 from postmark.inbound import PostmarkInbound
 from .models import BlogItem, BlogComment, Category, BlogFile
 from .utils import render_comment_text, valid_email, utc_now
-from apps.redisutils import get_redis_connection
-from apps.rediscounter import redis_increment
+from peterbecom.apps.redisutils import get_redis_connection
+from peterbecom.apps.rediscounter import redis_increment
 from fancy_cache import cache_page
-from apps.mincss_response import mincss_response
+from peterbecom.apps.mincss_response import mincss_response
 from . import tasks
 from . import utils
 from .forms import BlogForm, BlogFileUpload

@@ -106,7 +106,7 @@ div.ci {
 span.cr {
   font-size:90%;
 }
-span.not-approved {
+span.not-approved { /* no mincss */
   float:right;
   font-size:90%;
   color:red;

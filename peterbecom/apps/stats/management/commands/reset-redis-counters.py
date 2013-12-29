@@ -1,7 +1,7 @@
 import datetime
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from apps.redisutils import get_redis_connection
+from peterbecom.apps.redisutils import get_redis_connection
 
 
 class Command(BaseCommand):

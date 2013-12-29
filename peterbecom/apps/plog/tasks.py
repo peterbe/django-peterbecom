@@ -2,7 +2,7 @@ import time
 import logging
 from akismet import Akismet
 from django.conf import settings
-from apps.plog.models import BlogComment
+from peterbecom.apps.plog.models import BlogComment
 from django.contrib.sites.models import Site
 from celery.task import task
 

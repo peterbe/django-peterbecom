@@ -134,7 +134,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
  'django.core.context_processors.static',
  'django.core.context_processors.tz',
  'django.contrib.messages.context_processors.messages',
- 'apps.homepage.context_processors.context',
+ 'peterbecom.apps.homepage.context_processors.context',
 )
 
 
@@ -154,10 +154,10 @@ INSTALLED_APPS = (
     'compressor',
     'bootstrapform',
     'sorl.thumbnail',
-    'apps.plog',
-    'apps.homepage',
-    'apps.legacy',
-    'apps.stats',
+    'peterbecom.apps.plog',
+    'peterbecom.apps.homepage',
+    'peterbecom.apps.legacy',
+    'peterbecom.apps.stats',
     'fancy_cache',
 )
 
@@ -208,7 +208,7 @@ REDIS_BACKENDS = {
 }
 
 BROKER_URL = "redis://localhost:6379/0"
-CELERY_IMPORTS = ("apps.plog.tasks", )
+CELERY_IMPORTS = ("peterbecom.apps.plog.tasks", )
 CELERYD_CONCURRENCY = 3
 #CELERY_RESULT_BACKEND = "redis"
 #CELERY_REDIS_HOST = "localhost"
