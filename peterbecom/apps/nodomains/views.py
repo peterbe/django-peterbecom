@@ -71,5 +71,7 @@ def run(request):
                 result=r,
                 domain=domain
             )
+    else:
+        return {'error': "Unable to download that URL. It's not you, it's me!"}
 
     return {'domain': domains, 'count': len(domains)}
