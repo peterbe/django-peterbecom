@@ -12,6 +12,7 @@ urlpatterns = patterns('',
     # Examples:
     # url(r'^$', 'peterbecom.views.home', name='home'),
     # url(r'^peterbecom/', include('peterbecom.foo.urls')),
+    url(r'^nodomains$', lambda x: http.HttpResponseRedirect('/nodomains/')),
     url(r'^nodomains/', include('peterbecom.apps.nodomains.urls')),
     url(r'^stats/', include('peterbecom.apps.stats.urls')),
     url(r'^plog/', include('peterbecom.apps.plog.urls')),
