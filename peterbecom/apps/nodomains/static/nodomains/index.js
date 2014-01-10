@@ -1,5 +1,6 @@
 var timer = null;
 function startLoadingTimer() {
+  $('#seconds').text('0');
   timer = setInterval(function() {
     var s = parseInt($('#seconds').text(), 10);
     s++;
