@@ -6,6 +6,7 @@ from urlparse import urlparse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST
 from django.conf import settings
+from django.db.models import Count
 
 from peterbecom.apps.plog.views import json_view
 
@@ -21,6 +22,7 @@ def index(request):
     context = {}
     context['page_title'] = "Number of Domains"
     return render(request, 'nodomains/index.html', context)
+
 
 
 @require_POST
@@ -76,3 +78,38 @@ def run(request):
         return {'error': "Unable to download that URL. It's not you, it's me!"}
 
     return {'domain': domains, 'count': len(domains)}
+
+
+@json_view
+def most_common(request):
+    domains = []
+    qs = (
+        models.ResultDomain.objects
+        .values('domain')
+        .annotate(count=Count('domain'))
+        .order_by('-count')
+        .filter(count__gt=1)
+    )
+    for each in qs[:10]:
+        domains.append([each['domain'], each['count']])
+
+    return domains
+
+
+@json_view
+def recently(request):
+    recent = []
+    qs = models.Result.objects.all().order_by('-add_date')
+    for result in qs.values('url', 'count')[:100]:
+        recent.append([result['url'], result['count']])
+    count = models.Result.objects.all().count()
+    return {'recent': recent, 'count': count}
+
+
+@json_view
+def hall_of_fame(request):
+    rows = []
+    qs = models.Result.objects.all().values('url', 'count')
+    for result in qs.order_by('-count')[:20]:
+        rows.append([result['url'], result['count']])
+    return rows

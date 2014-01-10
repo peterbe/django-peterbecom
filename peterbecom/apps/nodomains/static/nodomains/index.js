@@ -62,4 +62,52 @@ $(function() {
     }
     return false;
   });
+
+  // pull down the most common
+  $.get('most-common')
+    .then(function(result) {
+      $('#most_common').show();
+      var container = $('#most_common tbody');
+      $.each(result, function(i, row) {
+        //console.log(row[0], row[1]);
+        $('<tr>')
+          .append($('<td>').text(row[0]))
+          .append($('<td>').text(row[1]))
+          .appendTo(container);
+      });
+    });
+
+  // pull down recent ones
+  $.get('recently')
+    .then(function(result) {
+      $('#recently').show();
+      console.log("Total count", result.count);
+      var container = $('#recently tbody');
+      $.each(result.recent, function(i, row) {
+        //console.log(row[0], row[1]);
+        $('<tr>')
+          .append($('<td>').append($('<a target="_blank">')
+                                   .attr('href', row[0])
+                                   .text(row[0])))
+          .append($('<td>').text(row[1]))
+          .appendTo(container);
+      });
+    });
+
+  // pull down the hall of fame
+  $.get('hall-of-fame')
+    .then(function(result) {
+      $('#hall_of_fame').show();
+      var container = $('#hall_of_fame tbody');
+      $.each(result, function(i, row) {
+        //console.log(row[0], row[1]);
+        $('<tr>')
+          .append($('<td>').append($('<a target="_blank">')
+                                   .attr('href', row[0])
+                                   .text(row[0])))
+          .append($('<td>').text(row[1]))
+          .appendTo(container);
+      });
+    });
+
 });
