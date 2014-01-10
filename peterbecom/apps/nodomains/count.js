@@ -15,7 +15,7 @@ var domains = {};
 
 page.viewportSize = { width: 1280, height : 1024 };
 
-page.settings.resourceTimeout = 500;
+page.settings.resourceTimeout = 3000;
 
 console.log('URL', url);
 function doRender() {

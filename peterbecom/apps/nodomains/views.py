@@ -37,6 +37,7 @@ def run(request):
     t0 = time.time()
     command = [
         settings.PHANTOMJS_PATH,
+        '--ignore-ssl-errors=true',
         COUNT_JS_PATH,
         '"%s"' % url
     ]
