@@ -158,6 +158,7 @@ INSTALLED_APPS = (
     'peterbecom.apps.homepage',
     'peterbecom.apps.legacy',
     'peterbecom.apps.stats',
+    'peterbecom.apps.nodomains',
     'fancy_cache',
 )
 

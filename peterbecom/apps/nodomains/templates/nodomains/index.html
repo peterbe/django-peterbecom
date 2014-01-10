@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+<style>
+#error_output {
+    padding: 20px 40px;
+    color: red;
+    border: 1px solid red;
+}
+
+.blinking {
+    -webkit-animation-name: blinker;
+    -webkit-animation-duration: 1s;
+    -webkit-animation-timing-function: linear;
+    -webkit-animation-iteration-count: infinite;
+
+    -moz-animation-name: blinker;
+    -moz-animation-duration: 1s;
+    -moz-animation-timing-function: linear;
+    -moz-animation-iteration-count: infinite;
+
+    animation-name: blinker;
+    animation-duration: 1s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
+
+@-moz-keyframes blinker {
+    0% { opacity: 1.0; }
+    50% { opacity: 0.0; }
+    100% { opacity: 1.0; }
+}
+
+@-webkit-keyframes blinker {
+    0% { opacity: 1.0; }
+    50% { opacity: 0.0; }
+    100% { opacity: 1.0; }
+}
+
+@keyframes blinker {
+    0% { opacity: 1.0; }
+    50% { opacity: 0.0; }
+    100% { opacity: 1.0; }
+}
+
+</style>
+{% endblock %}
+
+
+{% block title_prefix %}{{ page_title }}{% endblock %}
+
+{% block content %}
+
+<h2>{{ page_title }}</h2>
+
+<p class="lead">Are you curious how many different domains a give web page depends on?</p>
+
+<p>
+<b>Yes?</b> Then enter a URL in the field below and hope it works.<br>
+<b>No?</b> That's cool. Here's a <a href="http://www.kulturpop.com/wp-content/uploads/2012/12/41633-cats-cute-cat.jpg">cute cat</a>.
+</p>
+
+<div class="row">
+  <div class="span12">
+  <form class="form-submit" method="post">
+    {{ csrf() }}
+    <input type="text" name="url" class="input-xxlarge search-query" placeholder="http://www.somethingsomething.com/...">
+    <button type="submit" class="btn">Go!</button>
+  </form>
+  </div>
+</div>
+
+<div class="row" id="loading" style="display:none">
+  <p><b class="blinking">Loading loading loading...</b></p>
+  <p>It can take up to 30 seconds.</p>
+  <p>Seconds elapsed <b id="seconds">0</b></p>
+</div>
+
+<div class="row" id="error_output" style="display:none">
+  <p>Crap! Something went wrong :(</p>
+  <pre></pre>
+</div>
+
+<div class="row" id="result_output" style="display:none">
+  <h3>Count: <em class="count"></em></h3>
+  <p>Domains:</p>
+  <ul></ul>
+</div>
+
+
+{% endblock %}
+
+
+{% block extrajs %}
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+  <script src="{{ static("nodomains/index.js") }}"></script>
+{% endblock %}
