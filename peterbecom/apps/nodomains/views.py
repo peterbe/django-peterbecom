@@ -5,6 +5,7 @@ from urlparse import urlparse
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST
+from django.conf import settings
 
 from peterbecom.apps.plog.views import json_view
 
@@ -34,7 +35,11 @@ def run(request):
         return {'error': str(msg)}
 
     t0 = time.time()
-    command = ['phantomjs', COUNT_JS_PATH, '"%s"' % url]
+    command = [
+        settings.PHANTOMJS_PATH,
+        COUNT_JS_PATH,
+        '"%s"' % url
+    ]
     process = subprocess.Popen(
         ' '.join(command),
         shell=True,
