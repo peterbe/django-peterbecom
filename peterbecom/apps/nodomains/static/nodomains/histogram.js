@@ -5,16 +5,14 @@ google.setOnLoadCallback(draw_histogram);
 function draw_histogram() {
   $.get('histogram')
     .then(function(results) {
-      console.dir(results);
       var data = google.visualization.arrayToDataTable(results);
       var options = {
-         title: 'Histogram',
+         title: 'Histogram of number of domains per URL',
         legend: { position: 'none' },
       };
 
-      var chart = new google.visualization.Histogram(document.getElementById('histogram_chart'));
+      var chart = new google.visualization.Histogram(document.getElementById('histogram'));
       chart.draw(data, options);
-      $('#histogram').show();
 
     });
 }
