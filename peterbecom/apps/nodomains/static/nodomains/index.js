@@ -32,11 +32,12 @@ $(function() {
       startLoadingTimer();
       $.post('run', params)
         .then(function(result) {
-          console.log('RESULT', result);
+          //console.log('RESULT', result);
           if (result.error) {
             $('#error_output pre').text(result.error);
             $('#error_output').show();
           } else {
+            $('input[name="url"]').val('');
             $('#result_output .count').text(result.count);
             $('#result_output li').remove();
             $.each(result.domain, function(i, d) {
@@ -44,6 +45,14 @@ $(function() {
                 .append($('<li>').append($('<code>').text(d)));
             });
             $('#result_output').show();
+            var container = $('#recently tbody');
+            $('<tr>')
+              .append($('<td>').append($('<a target="_blank">')
+                               .attr('href', url)
+                               .text(url)))
+              .append($('<td>').text(result.count))
+              .prependTo(container);
+
           }
         }).fail(function(jqXHR, textStatus, errorThrown) {
           console.warn('Error!');
@@ -69,7 +78,6 @@ $(function() {
       $('#most_common').show();
       var container = $('#most_common tbody');
       $.each(result, function(i, row) {
-        //console.log(row[0], row[1]);
         $('<tr>')
           .append($('<td>').text(row[0]))
           .append($('<td>').text(row[1]))
@@ -77,19 +85,24 @@ $(function() {
       });
     });
 
+  function _addToRecently(url, count, container) {
+    container = container || $('#recently tbody');
+
+  }
+
   // pull down recent ones
   $.get('recently')
     .then(function(result) {
       $('#recently').show();
-      console.log("Total count", result.count);
       var container = $('#recently tbody');
       $.each(result.recent, function(i, row) {
-        //console.log(row[0], row[1]);
+        var url = row[0];
+        var count = row[1];
         $('<tr>')
           .append($('<td>').append($('<a target="_blank">')
-                                   .attr('href', row[0])
-                                   .text(row[0])))
-          .append($('<td>').text(row[1]))
+                               .attr('href', url)
+                               .text(url)))
+          .append($('<td>').text(count))
           .appendTo(container);
       });
     });
@@ -100,7 +113,6 @@ $(function() {
       $('#hall_of_fame').show();
       var container = $('#hall_of_fame tbody');
       $.each(result, function(i, row) {
-        //console.log(row[0], row[1]);
         $('<tr>')
           .append($('<td>').append($('<a target="_blank">')
                                    .attr('href', row[0])
