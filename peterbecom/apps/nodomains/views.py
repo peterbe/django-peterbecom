@@ -115,3 +115,11 @@ def hall_of_fame(request):
     for result in qs.order_by('-count')[:20]:
         rows.append([result['url'], result['count']])
     return rows
+
+
+@json_view
+def histogram(request):
+    rows = [['URL', 'Count']]
+    for x in models.Result.objects.all().values('url', 'count'):
+        rows.append([x['url'], x['count']])
+    return rows
