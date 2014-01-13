@@ -7,7 +7,6 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST
 from django.conf import settings
 from django.db.models import Count
-from fancy_cache import cache_page
 
 from peterbecom.apps.plog.views import json_view
 
@@ -19,7 +18,6 @@ COUNT_JS_PATH = os.path.join(
     'count.js'
 )
 
-@cache_page(60 * 60)
 def index(request):
     context = {}
     context['page_title'] = "Number of Domains"
