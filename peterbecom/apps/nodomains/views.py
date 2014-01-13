@@ -102,7 +102,7 @@ def most_common(request):
 def recently(request):
     recent = []
     qs = models.Result.objects.all().order_by('-add_date')
-    for result in qs.values('url', 'count')[:100]:
+    for result in qs.values('url', 'count')[:20]:
         recent.append([result['url'], result['count']])
     count = models.Result.objects.all().count()
     return {'recent': recent, 'count': count}
