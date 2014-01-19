@@ -1,3 +1,4 @@
+import re
 import os
 import time
 import subprocess
@@ -7,6 +8,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST
 from django.conf import settings
 from django.db.models import Count
+from django.views.decorators.csrf import csrf_exempt
 
 from peterbecom.apps.plog.views import json_view
 
@@ -24,18 +26,14 @@ def index(request):
     return render(request, 'nodomains/index.html', context)
 
 
+def run_queued(queued):
+    url = queued.url
+    result = run_url(url)
+    queued.delete()
+    return result
 
-@require_POST
-@json_view
-def run(request):
-    url = request.POST['url']
-    try:
-        assert urlparse(url).scheme in ('https', 'http'), 'not a httpish thing'
-        assert urlparse(url).netloc, 'no path'
-        assert '"' not in url, 'quotes :('
-    except AssertionError as msg:
-        return {'error': str(msg)}
 
+def run_url(url):
     t0 = time.time()
     command = [
         settings.PHANTOMJS_PATH,
@@ -43,6 +41,8 @@ def run(request):
         COUNT_JS_PATH,
         '"%s"' % url
     ]
+    print "Running"
+    print command
     process = subprocess.Popen(
         ' '.join(command),
         shell=True,
@@ -77,7 +77,44 @@ def run(request):
     else:
         return {'error': "Unable to download that URL. It's not you, it's me!"}
 
-    return {'domain': domains, 'count': len(domains)}
+    return {'domains': domains, 'count': len(domains)}
+
+
+@csrf_exempt
+@require_POST
+@json_view
+def run(request):
+    url = request.POST['url']
+    if url.isdigit():
+        raise NotImplementedError(url)
+    try:
+        parsed = urlparse(url)
+        assert parsed.scheme in ('https', 'http'), 'not a httpish thing'
+        assert parsed.netloc, 'no path'
+        assert '"' not in url, 'quotes :('
+    except AssertionError as msg:
+        return {'error': str(msg)}
+
+    url = re.sub('((utm_campaign|utm_source|utm_medium)=(.*)&?)', '', url)
+    if url.endswith('?'):
+        url = url[:-1]
+
+    try:
+        result = models.Result.objects.get(url=url)
+        domains = [
+            x['domain'] for x in
+            models.ResultDomain.objects.filter(result=result).values('domain')
+        ]
+        return {'count': result.count, 'domains': domains}
+    except models.Result.DoesNotExist:
+        pass
+    queued, __ = models.Queued.objects.get_or_create(url=url)
+    if 0 and models.Queued.objects.all().count() <= 1:
+        print "Run Queued"
+        return run_queued(queued)
+    else:
+        behind = models.Queued.objects.filter(add_date__lt=queued.add_date).count()
+        return {'queued': queued.pk, 'behind': behind}
 
 
 @json_view

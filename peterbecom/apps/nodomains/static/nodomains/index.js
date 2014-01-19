@@ -14,14 +14,19 @@ function stopLoadingTimer() {
 
 $(function() {
 
+  var resubmit_interval, countdown_interval;
+
   $('input[name="url"]').change(function() {
     $('#error_output').hide();
     $('#result_output').hide();
   });
 
   $('form.form-submit').submit(function() {
+    if (resubmit_interval) clearInterval(resubmit_interval);
+    if (countdown_interval) clearInterval(countdown_interval);
     $('#error_output').hide();
     $('#result_output').hide();
+    $('#queued_output').hide();
     var url = $('input[name="url"]').val().trim();
     if (url) {
       var params = {
@@ -36,11 +41,25 @@ $(function() {
           if (result.error) {
             $('#error_output pre').text(result.error);
             $('#error_output').show();
+          } else if (result.queued) {
+            $('#queued_output .behind').text(result.behind);
+            $('#queued_output').show();
+            resubmit_interval = setInterval(function() {
+              $('form.form-submit').submit();
+            }, 10 * 1000);
+            $('.countdown').text('10');
+            countdown_interval = setInterval(function() {
+              $('.countdown').each(function(i, e) {
+                var $e = $(e);
+                var prev = parseInt($e.text());
+                $e.text('' + (prev - 1));
+              });
+            }, 1000);
           } else {
             $('input[name="url"]').val('');
             $('#result_output .count').text(result.count);
             $('#result_output li').remove();
-            $.each(result.domain, function(i, d) {
+            $.each(result.domains, function(i, d) {
               $('#result_output ul')
                 .append($('<li>').append($('<code>').text(d)));
             });
