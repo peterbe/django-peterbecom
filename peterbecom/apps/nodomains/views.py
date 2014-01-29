@@ -108,13 +108,13 @@ def run(request):
         return {'count': result.count, 'domains': domains}
     except models.Result.DoesNotExist:
         pass
-    queued, __ = models.Queued.objects.get_or_create(url=url)
+    queued, created = models.Queued.objects.get_or_create(url=url)
     if 0 and models.Queued.objects.all().count() <= 1:
         print "Run Queued"
         return run_queued(queued)
     else:
         behind = models.Queued.objects.filter(add_date__lt=queued.add_date).count()
-        return {'queued': queued.pk, 'behind': behind}
+        return {'behind': behind}
 
 
 @json_view

@@ -41,7 +41,7 @@ $(function() {
           if (result.error) {
             $('#error_output pre').text(result.error);
             $('#error_output').show();
-          } else if (result.queued) {
+          } else if (result.behind) {
             $('#queued_output .behind').text(result.behind);
             $('#queued_output').show();
             resubmit_interval = setInterval(function() {
