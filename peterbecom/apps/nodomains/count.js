@@ -15,7 +15,7 @@ var domains = {};
 
 page.viewportSize = { width: 1280, height : 1024 };
 
-page.settings.resourceTimeout = 3000;
+page.settings.resourceTimeout = 5000;
 
 console.log('URL', url);
 function doRender() {
@@ -28,6 +28,13 @@ function doRender() {
 function getDomain(url) {
   return url.split('//')[1].split('/')[0];
 }
+
+page.onResourceTimeout = function(e) {
+  console.log(e.errorCode);   // it'll probably be 408
+  console.log(e.errorString); // it'll probably be 'Network timeout on resource'
+  console.log(e.url);         // the url whose request timed out
+  phantom.exit(1);
+};
 
 page.onResourceRequested = function (req) {
   count += 1;
