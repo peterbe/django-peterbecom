@@ -1,6 +1,7 @@
 var timer = null;
 function startLoadingTimer() {
   $('#seconds').text('0');
+  if (timer) clearInterval(timer);
   timer = setInterval(function() {
     var s = parseInt($('#seconds').text(), 10);
     s++;
@@ -42,7 +43,7 @@ $(function() {
           if (result.error) {
             $('#error_output pre').text(result.error);
             $('#error_output').show();
-          } else if (result.behind) {
+          } else if (!result.count) {
             $('#queued_output .behind').text(result.behind);
             $('#queued_output').show();
             resubmit_interval = setInterval(function() {
@@ -67,6 +68,12 @@ $(function() {
             $('#result_output').show();
             var container = $('#recently tbody');
             $('<tr>')
+              .append($('<td>')
+                      .append($('<a href="#">+</a>')
+                              .addClass('expander')
+                              .addClass('btn').addClass('btn-mini')
+                              .data('url', url)
+                              .click(expandURL)))
               .append($('<td>').append($('<a target="_blank">')
                                .attr('href', url)
                                .text(url)))
