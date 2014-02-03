@@ -92,10 +92,20 @@ $(function() {
     return false;
   });
 
+  // pull down the numbers
+  $.get('numbers')
+    .then(function(result) {
+      var container = $('#numbers');
+      $('.numbers-average', container).text(result.average);
+      $('.numbers-median', container).text(result.median);
+      $('.numbers-stddev', container).text(result.stddev);
+      $('.numbers-total', container).text(result.total);
+      $('#numbers').show();
+    });
+
   // pull down the most common
   $.get('most-common')
     .then(function(result) {
-      $('#most_common').show();
       var container = $('#most_common tbody');
       $.each(result, function(i, row) {
         $('<tr>')
@@ -103,6 +113,7 @@ $(function() {
           .append($('<td>').text(row[1]))
           .appendTo(container);
       });
+      $('#most_common').show();
     });
 
   function _addToRecently(url, count, container) {

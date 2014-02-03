@@ -43,6 +43,19 @@
     100% { opacity: 1.0; }
 }
 
+#numbers th {
+    text-align: left;
+    font-size: 1.1em;
+    padding: 10px;
+}
+#numbers td {
+    font-size: 1.6em;
+    font-weight: bold;
+}
+#numbers table {
+    border: 1px solid #ccc; width: 60%;
+    margin: 0 auto;
+}
 </style>
 {% endblock %}
 
@@ -92,6 +105,29 @@
   <p>Re-attempting in <b class="countdown">10</b> seconds.</p>
 </div>
 
+
+<div class="row" id="numbers" style="display:none;margin-top:25px">
+  <table class="table">
+    <tbody>
+      <tr>
+        <th>Average number of domains:</th>
+        <td class="numbers-average">30</td>
+      </tr>
+      <tr>
+        <th>Median number of domains:</th>
+        <td class="numbers-median"></td>
+      </tr>
+      <tr>
+        <th>Standard deviation on number of domains:</th>
+        <td class="numbers-stddev"></td>
+      </tr>
+      <tr>
+        <th>Number sampled sites:</th>
+        <td class="numbers-total"></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
 <div class="row" id="recently" style="display:none;margin-top:25px">
   <h4>Recently Sampled URLs</h4>

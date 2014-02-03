@@ -9,6 +9,7 @@ from django.views.decorators.http import require_POST
 from django.conf import settings
 from django.db.models import Count
 from django.views.decorators.csrf import csrf_exempt
+from django.db.models import Avg
 
 from peterbecom.apps.plog.views import json_view
 
@@ -128,6 +129,32 @@ def domains(request):
         models.ResultDomain.objects.filter(result__url=url).values('domain')
     ]
     return {'domains': domains_}
+
+
+def _stats(r):
+    #returns the median, average and standard deviation of a sequence
+    tot = sum(r)
+    avg = tot/len(r)
+    sdsq = sum([(i-avg)**2 for i in r])
+    s = list(r)
+    s.sort()
+    return s[len(s)//2], avg, (sdsq/(len(r)-1 or 1))**.5
+
+
+@json_view
+def numbers(request):
+    context = {}
+
+    counts = (
+        models.Result.objects.all()
+        .values_list('count', flat=True)
+    )
+    median, average, stddev = _stats(counts)
+    context['average'] = '%.1f' % average
+    context['median'] = '%.1f' % median
+    context['stddev'] = '%.1f' % stddev
+    context['total'] = len(counts)
+    return context
 
 
 @json_view
