@@ -12,6 +12,7 @@ function stopLoadingTimer() {
   if (timer) clearInterval(timer);
 }
 
+
 $(function() {
 
   var resubmit_interval, countdown_interval;
@@ -109,6 +110,36 @@ $(function() {
 
   }
 
+  function expandURL() {
+    var e = $(this);
+    var tr = e.parents('tr');
+
+    if (e.text() == '+') {
+      if ($('.domains', tr).length) {
+        $('.domains', tr).show();
+      } else {
+        var td = $('td', tr).eq(1);
+        var url = e.data('url');
+        $.get('domains', {url: url})
+          .then(function(result) {
+            var c = $('<ul>')
+                     .addClass('domains');
+            $.each(result.domains, function(i, domain) {
+              c.append($('<li>').text(domain));
+            });
+            c.appendTo(td);
+          }).fail(function() {
+            alert("Sorry. Something went terribly wrong.");
+          });
+      }
+      e.text('-');
+    } else {
+      $('.domains', tr).hide();
+      e.text('+');
+    }
+    return false;
+  }
+
   // pull down recent ones
   $.get('recently')
     .then(function(result) {
@@ -118,6 +149,12 @@ $(function() {
         var url = row[0];
         var count = row[1];
         $('<tr>')
+          .append($('<td>')
+                  .append($('<a href="#">+</a>')
+                          .addClass('expander')
+                          .addClass('btn').addClass('btn-mini')
+                          .data('url', url)
+                          .click(expandURL)))
           .append($('<td>').append($('<a target="_blank">')
                                .attr('href', url)
                                .text(url)))
@@ -133,6 +170,12 @@ $(function() {
       var container = $('#hall_of_fame tbody');
       $.each(result, function(i, row) {
         $('<tr>')
+          .append($('<td>')
+                  .append($('<a href="#">+</a>')
+                          .addClass('expander')
+                          .addClass('btn').addClass('btn-mini')
+                          .data('url', row[0])
+                          .click(expandURL)))
           .append($('<td>').append($('<a target="_blank">')
                                    .attr('href', row[0])
                                    .text(row[0])))

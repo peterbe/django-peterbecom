@@ -118,6 +118,19 @@ def run(request):
 
 
 @json_view
+def domains(request):
+    url = request.GET.get('url', '')
+    if not url:
+        return http.HttpResponseBadRequest("No 'url'")
+
+    domains_ = [
+        x['domain'] for x in
+        models.ResultDomain.objects.filter(result__url=url).values('domain')
+    ]
+    return {'domains': domains_}
+
+
+@json_view
 def most_common(request):
     domains = []
     qs = (
