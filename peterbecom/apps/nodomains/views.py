@@ -6,14 +6,24 @@ from urlparse import urlparse
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST
+from django.core.cache import cache
 from django.conf import settings
 from django.db.models import Count
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Avg
 
+from fancy_cache import cache_page
+
 from peterbecom.apps.plog.views import json_view
 
 from . import models
+
+
+ONE_HOUR = 60 * 60
+ONE_DAY = ONE_HOUR * 24
+ONE_WEEK = ONE_DAY * 7
+ONE_MONTH = ONE_WEEK * 4
+ONE_YEAR = ONE_WEEK * 52
 
 
 COUNT_JS_PATH = os.path.join(
@@ -141,10 +151,23 @@ def _stats(r):
     return s[len(s)//2], avg, (sdsq/(len(r)-1 or 1))**.5
 
 
+def _stats_prefixer(request):
+    cache_key = '_stats_latest_add_date'
+    value = cache.get(cache_key)
+    if value is None:
+        latest_result, = (
+            models.Result.objects.all()
+            .order_by('-add_date')[:1]
+        )
+        value = str(latest_result.add_date)
+        cache.set(cache_key, value, ONE_DAY)
+    return value
+
+
+@cache_page(ONE_DAY, _stats_prefixer)
 @json_view
 def numbers(request):
     context = {}
-
     counts = (
         models.Result.objects.all()
         .values_list('count', flat=True)
@@ -157,6 +180,7 @@ def numbers(request):
     return context
 
 
+@cache_page(ONE_DAY, _stats_prefixer)
 @json_view
 def most_common(request):
     domains = []
@@ -172,7 +196,7 @@ def most_common(request):
 
     return domains
 
-
+@cache_page(ONE_DAY, _stats_prefixer)
 @json_view
 def recently(request):
     recent = []
@@ -183,6 +207,7 @@ def recently(request):
     return {'recent': recent, 'count': count}
 
 
+@cache_page(ONE_DAY, _stats_prefixer)
 @json_view
 def hall_of_fame(request):
     rows = []
@@ -192,6 +217,7 @@ def hall_of_fame(request):
     return rows
 
 
+@cache_page(ONE_DAY, _stats_prefixer)
 @json_view
 def histogram(request):
     rows = [['URL', 'Count']]

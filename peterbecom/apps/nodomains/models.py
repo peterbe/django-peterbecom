@@ -1,4 +1,8 @@
 from django.db import models
+from django.db.models.signals import post_save, pre_save, pre_delete
+from django.core.cache import cache
+from django.dispatch import receiver
+
 from peterbecom.apps.plog import utils
 
 
@@ -19,3 +23,8 @@ class ResultDomain(models.Model):
 class Queued(models.Model):
     url = models.URLField(max_length=400)
     add_date = models.DateTimeField(default=utils.utc_now)
+
+
+@receiver(post_save, sender=Result)
+def invalidate_stats_prefix(sender, instance, **kwargs):
+    cache.delete('_stats_latest_add_date')
