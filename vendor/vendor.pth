@@ -1,4 +1,2 @@
-src/django
 src/django_compressor
 src/postmark-inbound-python
-
