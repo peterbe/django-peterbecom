@@ -380,18 +380,9 @@ def search(request):
 
 from .base64allimages import post_process_response as b64_post_process_response
 
-@cache_page(60 * 60, post_process_response=b64_post_process_response)
-def about2(request):
-    return render(request, 'homepage/about.html')
-
 
 @cache_page(60 * 60, post_process_response=mincss_response)
 def about(request):
-    return render(request, 'homepage/about.html')
-
-
-@cache_page(60 * 60, post_process_response=mincss_response)
-def about3(request):
     return render(request, 'homepage/about.html')
 
 

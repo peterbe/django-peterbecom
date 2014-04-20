@@ -10,7 +10,15 @@
     border-top: 1px solid rgb(238, 238, 238);
     padding: 50px 20px 20px 20px;
 }
-.floatleft { float: left; margin-right: 10px; margin-bottom: 15px; }
+.floatleft {
+    float: left;
+/*    margin-right: 10px;*/
+    margin-bottom: 15px;
+    width: 140px;
+}
+.rest {
+    margin-left: 140px;
+}
 .project a.perm { /* no mincss */
     font-size: 0.7em;
     padding-left: 8px;
@@ -44,181 +52,210 @@ help the development of Firefox and my other Mozilla projects.</p>
 <h2>Side projects</h2>
 
 <div class="project" id="github-pr-triage">
-  <p class="floatleft"><a href="https://prs.paas.allizom.org/"><img src="{{ static('images/github-pr-triage-scr.png') }}" alt="Screenshot"></a></p>
-  <h3>GitHub Pull Request Triage</h3>
-  <h4><a href="https://prs.paas.allizom.org/">prs.paas.allizom.org</a></h4>
-  <p>This is a mashup using the
-      <a href="https://developer.github.com/v3/">GitHub API</a> to make a
-      dashboard over all open Pull Requests on a GitHub project.
-      It's a Flask backend for doing proxy caching of requests and an AngularJS
-      front end. I <a href="/plog/github-pr-triage">blogged about it</a> in more
-      detail and the code
-      is <a href="https://github.com/peterbe/github-pr-triage">available on Github</a>.
-</p>
+  <div class="floatleft"><a href="https://prs.paas.allizom.org/"><img src="{{ static('images/github-pr-triage-scr.png') }}" alt="Screenshot"></a></div>
+  <div class="rest">
+    <h3>GitHub Pull Request Triage</h3>
+    <h4><a href="https://prs.paas.allizom.org/">prs.paas.allizom.org</a></h4>
+    <p>This is a mashup using the
+        <a href="https://developer.github.com/v3/">GitHub API</a> to make a
+        dashboard over all open Pull Requests on a GitHub project.
+        It's a Flask backend for doing proxy caching of requests and an AngularJS
+        front end. I <a href="/plog/github-pr-triage">blogged about it</a> in more
+        detail and the code
+        is <a href="https://github.com/peterbe/github-pr-triage">available on Github</a>.
+    </p>
+  </div>
 </div>
 
 <div class="project" id="buggy">
-  <p class="floatleft"><a href="http://buggy.peterbe.com/"><img src="{{ static('images/buggy-scr.png') }}" alt="Buggy screenshot"></a></p>
-  <h3>Buggy</h3>
-  <h4><a href="http://buggy.peterbe.com/">buggy.peterbe.com</a></h4>
-  <p>Buggy is a singe-page webapp that relies entirely on the <a href="https://bugzilla.mozilla.org">Bugzilla</a>
-      native REST API.
-  The app is entirely client side and written in AngularJS and is entirely served from a CDN.
-  I have <a href="/plog/buggy">blogged about it</a> in more detail on my blog and the code
-  is <a href="https://github.com/peterbe/buggy">available on Github</a>.
-</p>
+  <div class="floatleft"><a href="http://buggy.peterbe.com/"><img src="{{ static('images/buggy-scr.png') }}" alt="Buggy screenshot"></a></div>
+  <div class="rest">
+    <h3>Buggy</h3>
+    <h4><a href="http://buggy.peterbe.com/">buggy.peterbe.com</a></h4>
+    <p>Buggy is a singe-page webapp that relies entirely on the <a href="https://bugzilla.mozilla.org">Bugzilla</a>
+        native REST API.
+    The app is entirely client side and written in AngularJS and is entirely served from a CDN.
+    I have <a href="/plog/buggy">blogged about it</a> in more detail on my blog and the code
+    is <a href="https://github.com/peterbe/buggy">available on Github</a>.
+    </p>
+  </div>
 </div>
 
 <div class="project" id="wishlistgranted">
-  <p class="floatleft"><a href="https://wishlistgranted.com/"><img src="{{ static('images/wishlistgranted-scr.png') }}" alt="Wish List Granted screenshot"></a></p>
-  <h3>Wish List Granted</h3>
-  <h4><a href="https://wishlistgranted.com/">wishlistgranted.com</a></h4>
-  <p>Makes it possible for you to &quot;crowdfund&quot; your presents. Integrates with Amazon.com&trade;'s
-  <a href="http://www.amazon.com/gp/registry/wishlist/">Wish List</a> functionality mashed
-  with <a href="https://www.balancedpayments.com/">Balanced Payments</a>.
-  My first side-project with a full and real payment solution. Code written in Django with PostgreSQL. </p>
+  <div class="floatleft"><a href="https://wishlistgranted.com/"><img src="{{ static('images/wishlistgranted-scr.png') }}" alt="Wish List Granted screenshot"></a></div>
+  <div class="rest">
+    <h3>Wish List Granted</h3>
+    <h4><a href="https://wishlistgranted.com/">wishlistgranted.com</a></h4>
+    <p>Makes it possible for you to &quot;crowdfund&quot; your presents. Integrates with Amazon.com&trade;'s
+    <a href="http://www.amazon.com/gp/registry/wishlist/">Wish List</a> functionality mashed
+    with <a href="https://www.balancedpayments.com/">Balanced Payments</a>.
+    My first side-project with a full and real payment solution. Code written in Django with PostgreSQL.
+    </p>
+  </div>
 </div>
 
 <div class="project" id="hugepic">
-  <p class="floatleft"><a href="http://hugepic.io/"><img src="{{ static('images/hugepic-scr.png') }}" alt="HUGEpic screenshot"></a></p>
-  <h3>HUGEpic</h3>
-  <h4><a href="http://hugepic.io/">hugepic.io</a></h4>
-  <p>This app combined <a href="http://leafletjs.com/">Leaflet</a> with <a href="https://www.filepicker.io/">Filepicker.io</a>
-  with <a href="http://aws.amazon.com/s3/">Amazon S3</a> to let you upload massive pictures and draw annotations on them
-  to be able to zoom in, pan and share specific regions without having to download the whole image.
-  And it works great on mobile too!</p>
-  <p>All the code is open source and <a href="https://github.com/peterbe/tiler">available here</a> and it's a Tornado
-  app that relies very heavily on <a href="http://python-rq.org/">RQ</a>.</p>
+  <div class="floatleft"><a href="http://hugepic.io/"><img src="{{ static('images/hugepic-scr.png') }}" alt="HUGEpic screenshot"></a></div>
+  <div class="rest">
+    <h3>HUGEpic</h3>
+    <h4><a href="http://hugepic.io/">hugepic.io</a></h4>
+    <p>This app combined <a href="http://leafletjs.com/">Leaflet</a> with <a href="https://www.filepicker.io/">Filepicker.io</a>
+    with <a href="http://aws.amazon.com/s3/">Amazon S3</a> to let you upload massive pictures and draw annotations on them
+    to be able to zoom in, pan and share specific regions without having to download the whole image.
+    And it works great on mobile too!</p>
+    <p>All the code is open source and <a href="https://github.com/peterbe/tiler">available here</a> and it's a Tornado
+    app that relies very heavily on <a href="http://python-rq.org/">RQ</a>.</p>
+  </div>
 </div>
 
 <div class="project" id="aroundtheworld">
-  <p class="floatleft"><a href="http://aroundtheworldgame.com/"><img src="{{ static('images/aroundtheworld-scr.png') }}" alt="Around The World screenshot"></a></p>
-  <h3>Around The World</h3>
-  <h4><a href="http://aroundtheworldgame.com/">aroundtheworldgame.com</a></h4>
-  <p>
-  If you haven't already done so, check out my new game:
-  <a href="http://aroundtheworldgame.com/" class="bold">Around The World</a> which is my spare time project.
-  You can read more <a href="http://aroundtheworldgame.com/about">about it here</a> but the best thing
-  is to just start playing and see if you like it.
-  </p>
+  <div class="floatleft"><a href="http://aroundtheworldgame.com/"><img src="{{ static('images/aroundtheworld-scr.png') }}" alt="Around The World screenshot"></a></div>
+  <div class="rest">
+    <h3>Around The World</h3>
+    <h4><a href="http://aroundtheworldgame.com/">aroundtheworldgame.com</a></h4>
+    <p>
+    If you haven't already done so, check out my new game:
+    <a href="http://aroundtheworldgame.com/" class="bold">Around The World</a> which is my spare time project.
+    You can read more <a href="http://aroundtheworldgame.com/about">about it here</a> but the best thing
+    is to just start playing and see if you like it.
+    </p>
+  </div>
 </div>
 
 <div class="project" id="uslicensespotter">
-  <p class="floatleft"><a href="http://uslicensespotter.com/"><img src="{{ static('images/licensespotter-scr.png') }}" alt="US License Spotter screenshot"></a></p>
-  <h3>US License Plate spotter</h3>
-  <h4><a href="http://uslicensespotter.com/">uslicensespotter.com</a></h4>
-  <p>It's for spotting out-of-state license plates in the US and tick them off on your smartphone.<br>
-  This is a work in progress project. I have blogged out it
-  <a href="/plog/us-license-plate-spotter-part-1">first here</a> and
-  <a href="/plog/us-license-plate-spotter-part-2">then here</a> about the update. It's an ongoing project
-  to try to build real mobile native apps from HTML and Javascript. <br>
-  This is also my first ever project that actually uses Facebook's API to facilitate wall posts from the app.<br>
-  The <a href="https://github.com/peterbe/uslicenseplates/">source code is here</a> and it's a bit of a mess
-  because it's after all just an ongoing experiment.
+  <div class="floatleft"><a href="http://uslicensespotter.com/"><img src="{{ static('images/licensespotter-scr.png') }}" alt="US License Spotter screenshot"></a></div>
+  <div class="rest">
+    <h3>US License Plate spotter</h3>
+    <h4><a href="http://uslicensespotter.com/">uslicensespotter.com</a></h4>
+    <p>It's for spotting out-of-state license plates in the US and tick them off on your smartphone.<br>
+    This is a work in progress project. I have blogged out it
+    <a href="/plog/us-license-plate-spotter-part-1">first here</a> and
+    <a href="/plog/us-license-plate-spotter-part-2">then here</a> about the update. It's an ongoing project
+    to try to build real mobile native apps from HTML and Javascript. <br>
+    This is also my first ever project that actually uses Facebook's API to facilitate wall posts from the app.<br>
+    The <a href="https://github.com/peterbe/uslicenseplates/">source code is here</a> and it's a bit of a mess
+    because it's after all just an ongoing experiment.</p>
+  </div>
 </div>
 
 <div class="project" id="toocoolforme">
-  <p class="floatleft"><a href="http://toocoolfor.me"><img src="{{ static('images/toocoolforme-screenshot.png') }}" alt="TooCoolForMe screenshot"></a></p>
-  <h3>Too Cool For Me?</h3>
-  <h4><a href="http://toocoolfor.me">toocoolfor.me</a></h4>
-  <p>
-  It started as a Bookmarklet so that when you're visiting twitter.com it appends, for each user you follow, whether they also follow you.
-  Later, the most useful feature was the <a href="/plog/too-cool-for-me-everyone">/everybody</a> page where everyone you follow is split half between those
-  who follow you and those that are too cool for you. <br>
-  <a href="/plog/too-cool-for-me">blogged about it here</a> and <a href="https://github.com/peterbe/toocool">source code is here</a>.
-  </p>
+  <div class="floatleft"><a href="http://toocoolfor.me"><img src="{{ static('images/toocoolforme-screenshot.png') }}" alt="TooCoolForMe screenshot"></a></div>
+  <div class="rest">
+    <h3>Too Cool For Me?</h3>
+    <h4><a href="http://toocoolfor.me">toocoolfor.me</a></h4>
+    <p>
+    It started as a Bookmarklet so that when you're visiting twitter.com it appends, for each user you follow, whether they also follow you.
+    Later, the most useful feature was the <a href="/plog/too-cool-for-me-everyone">/everybody</a> page where everyone you follow is split half between those
+    who follow you and those that are too cool for you. <br>
+    <a href="/plog/too-cool-for-me">blogged about it here</a> and <a href="https://github.com/peterbe/toocool">source code is here</a>.
+    </p>
+  </div>
 </div>
 
 <div class="project" id="peterbecom">
-  <p class="floatleft"><a href="/"><img src="{{ static('images/peterbecom-screenshot.png') }}" alt="Peterbe.com screenshot"></a></p>
-  <h3>Peterbe.com</h3>
-  <h4><a href="/">peterbe.com</a></h4>
-  <p>In 2012 I re-wrote this site from scratch. Being very fast was important to me and I've blogged about
-  how I made the <a href="/plog/secs-sell-frickin-fast-server-side">server-side</a> and
-  <a href="/plog/secs-sell-frickin-fast-client-side">client-side</a> fast.<br>
-  The code to this site is open source and the <a href="https://github.com/peterbe/django-peterbecom">source code is here</a>.
+  <div class="floatleft"><a href="/"><img src="{{ static('images/peterbecom-screenshot.png') }}" alt="Peterbe.com screenshot"></a></div>
+  <div class="rest">
+    <h3>Peterbe.com</h3>
+    <h4><a href="/">peterbe.com</a></h4>
+    <p>In 2012 I re-wrote this site from scratch. Being very fast was important to me and I've blogged about
+    how I made the <a href="/plog/secs-sell-frickin-fast-server-side">server-side</a> and
+    <a href="/plog/secs-sell-frickin-fast-client-side">client-side</a> fast.<br>
+    The code to this site is open source and the <a href="https://github.com/peterbe/django-peterbecom">source code is here</a>.
+    </p>
+  </div>
 </div>
 
 <div class="project" id="donecal">
-  <p class="floatleft"><a href="http://donecal.com/"><img src="{{ static('images/donecal-screenshot.png') }}" alt="DoneCal screenshot"></a></p>
-  <h3>DoneCal</h3>
-  <h4><a href="http://donecal.com/">donecal.com</a></h4>
-  <p>
-  This is a full HTML5 calendar. It's fast and simple and has a practical <a href="http://donecal.com/help/API">API</a>.<br>
-  I've <a href="/plog/donecal.com">blogged about it here</a> and <a href="https://github.com/peterbe/worklog">source code is here</a>.
-  </p>
+  <div class="floatleft"><a href="http://donecal.com/"><img src="{{ static('images/donecal-screenshot.png') }}" alt="DoneCal screenshot"></a></div>
+  <div class="rest">
+    <h3>DoneCal</h3>
+    <h4><a href="http://donecal.com/">donecal.com</a></h4>
+    <p>
+    This is a full HTML5 calendar. It's fast and simple and has a practical <a href="http://donecal.com/help/API">API</a>.<br>
+    I've <a href="/plog/donecal.com">blogged about it here</a> and <a href="https://github.com/peterbe/worklog">source code is here</a>.
+    </p>
+  </div>
 </div>
 
 <div class="project" id="tornadogists">
-  <p class="floatleft"><a href="http://tornadogists.org/"><img src="{{ static('images/tornadogists-scr.png') }}" alt="Tornado Gists"></a></p>
-  <h3>Tornado Gists</h3>
-  <h4><a href="http://tornadogists.org/">tornadogists.org</a></h4>
-  <p>This is a supporting site for the <a href="http://www.tornadoweb.org/">Tornado Web Server</a> project.
-  It uses the Github API for authentication and for pulling down
-  <a href="https://gist.github.com/" title="A Github service">gists</a> automatically.<br>
-  The hosting of this project is actually done by a fellow Tornado contributor called
-  <a href="http://feilong.me/">Felinx Lee</a>.<br>
-  <a href="/plog/tornadogists.org">Blogged about it here</a> and
-  <a href="https://github.com/peterbe/tornado_gists">source code is here</a>.
+  <div class="floatleft"><a href="http://tornadogists.org/"><img src="{{ static('images/tornadogists-scr.png') }}" alt="Tornado Gists"></a></div>
+  <div class="rest">
+    <h3>Tornado Gists</h3>
+    <h4><a href="http://tornadogists.org/">tornadogists.org</a></h4>
+    <p>This is a supporting site for the <a href="http://www.tornadoweb.org/">Tornado Web Server</a> project.
+    It uses the Github API for authentication and for pulling down
+    <a href="https://gist.github.com/" title="A Github service">gists</a> automatically.<br>
+    The hosting of this project is actually done by a fellow Tornado contributor called
+    <a href="http://feilong.me/">Felinx Lee</a>.<br>
+    <a href="/plog/tornadogists.org">Blogged about it here</a> and
+    <a href="https://github.com/peterbe/tornado_gists">source code is here</a>.
+    </p>
+  </div>
 </div>
 
 <div class="project" id="kwissle">
-  <p class="floatleft"><a href="http://kwissle.com/"><img src="{{ static('images/kwissle-screenshot.png') }}" alt="Kwissle"></a></p>
-  <h3>Kwissle</h3>
-  <h4><a href="http://kwissle.com/">kwissle.com</a></h4>
-  <p>My first real-time web game. The game is that you get paired up with another random player
-  and you have to answer quiz questions as fast and accurate as possible. My first web app
-  that let's Facebook, Twitter, Google, Persona all take care of the authentication.<br>
-  I first <a href="/plog/launching-kwissle">blogged about it here</a> when it was launched
-  and here are <a href="/plog/slides-about-kwissle-lpdojo/slides.html">the slides</a>
-  which I later <a href="/plog/slides-about-kwissle-lpdojo">presented at PyCon UK 2011</a>.
-  </p>
+  <div class="floatleft"><a href="http://kwissle.com/"><img src="{{ static('images/kwissle-screenshot.png') }}" alt="Kwissle"></a></div>
+  <div class="rest">
+    <h3>Kwissle</h3>
+    <h4><a href="http://kwissle.com/">kwissle.com</a></h4>
+    <p>My first real-time web game. The game is that you get paired up with another random player
+    and you have to answer quiz questions as fast and accurate as possible. My first web app
+    that let's Facebook, Twitter, Google, Persona all take care of the authentication.<br>
+    I first <a href="/plog/launching-kwissle">blogged about it here</a> when it was launched
+    and here are <a href="/plog/slides-about-kwissle-lpdojo/slides.html">the slides</a>
+    which I later <a href="/plog/slides-about-kwissle-lpdojo">presented at PyCon UK 2011</a>.
+    </p>
+  </div>
 </div>
 
 <div class="project" id="crosstips">
-  <p class="floatleft"><a href="http://crosstips.org/"><img src="{{ static('images/crosstips-screenshot.png') }}" alt="Crosstips"></a></p>
-  <h3>Crosstips</h3>
-  <h4><a href="http://crosstips.org/">crosstips.org</a></h4>
-  <p>Crosstips first started as an experiment to do localization in Django. Namely, Swedish.
-  So the first deployment was <a href="http://krysstips.se">Krysstips.se</a>
-  (<a href="/plog/krysstips.se">blogged about it here</a>).
-  This was also my first ever non-English project.<br>
-  Not long after, I prepared the English (American and British) version and a friend helped
-  me translate the French version too.<br>
-  <a href="https://github.com/peterbe/kl">Source code available here</a> and I've
-  <a href="/search?q=keywords%3Acrosstips">blogged about various aspects of it here</a>.
-  </p>
+  <div class="floatleft"><a href="http://crosstips.org/"><img src="{{ static('images/crosstips-screenshot.png') }}" alt="Crosstips"></a></div>
+  <div class="rest">
+    <h3>Crosstips</h3>
+    <h4><a href="http://crosstips.org/">crosstips.org</a></h4>
+    <p>Crosstips first started as an experiment to do localization in Django. Namely, Swedish.
+    So the first deployment was <a href="http://krysstips.se">Krysstips.se</a>
+    (<a href="/plog/krysstips.se">blogged about it here</a>).
+    This was also my first ever non-English project.<br>
+    Not long after, I prepared the English (American and British) version and a friend helped
+    me translate the French version too.<br>
+    <a href="https://github.com/peterbe/kl">Source code available here</a> and I've
+    <a href="/search?q=keywords%3Acrosstips">blogged about various aspects of it here</a>.
+    </p>
+  </div>
 </div>
 
 <div class="project" id="tflcameras">
-  <p class="floatleft"><a href="http://tflcameras.peterbe.com/"><img src="{{ static('images/tflcameras-screenshot.png') }}" alt="TFL Cameras"></a></p>
-  <h3>TFL Cameras</h3>
-  <h4><a href="http://tflcameras.peterbe.com/">tflcameras.peterbe.com</a></h4>
-  <p>Using the recently published <a href="http://data.london.gov.uk/datastore/package/tfl-live-traffic-cameras">API from Transport from London</a>
-  I put together a Google Maps mashup that plots all the central London traffic cameras
-  so you can easily see if your particular road is congested. This was my first project
-  using client-side Geolocation.<br>
-  <a href="/plog/tflcameras">Blogged about it here</a> and the
-  <a href="https://github.com/peterbe/tflcameras">source code is here</a>.
-  </p>
-
+  <div class="floatleft"><a href="http://tflcameras.peterbe.com/"><img src="{{ static('images/tflcameras-screenshot.png') }}" alt="TFL Cameras"></a></div>
+  <div class="rest">
+    <h3>TFL Cameras</h3>
+    <h4><a href="http://tflcameras.peterbe.com/">tflcameras.peterbe.com</a></h4>
+    <p>Using the recently published <a href="http://data.london.gov.uk/datastore/package/tfl-live-traffic-cameras">API from Transport from London</a>
+    I put together a Google Maps mashup that plots all the central London traffic cameras
+    so you can easily see if your particular road is congested. This was my first project
+    using client-side Geolocation.<br>
+    <a href="/plog/tflcameras">Blogged about it here</a> and the
+    <a href="https://github.com/peterbe/tflcameras">source code is here</a>.
+    </p>
+  </div>
 </div>
 
 
 <div class="project" id="mfwc">
-  <p class="floatleft"><a href="http://m.fwckungfu.com/"><img src="{{ static('images/mfwc-screenshot.png') }}" alt="FWC Kungfu Mobile"></a></p>
-  <h3>FWC Kungfu Mobile</h3>
-  <h4><a href="http://m.fwckungfu.com/">m.fwckungfu.com</a></h4>
-  <p>This was my first pure mobile web site. It's for my
-  <a href="http://www.fwckungfu.com/">Fujian White Crane Kung Fu Club</a> that I trained
-  with when I lived in London. This site uses a remote database connection and is heavily cached.
-  It's built taylor made for mobile as it goes straight to the basic details you need.<br>
-  I originally built it because I kept forgetting when various classes started and looking
-  it up on a slow 3G connection was a pain.<br>
-  The <a href="https://github.com/peterbe/fwc_mobile">code is here</a> and I blogged
-  about when this was my first site to get <a href="/plog/first-yslow-grade-a">100 points on YSlow!</a>.
-  </p>
-
+  <div class="floatleft"><a href="http://m.fwckungfu.com/"><img src="{{ static('images/mfwc-screenshot.png') }}" alt="FWC Kungfu Mobile"></a></div>
+  <div class="rest">
+    <h3>FWC Kungfu Mobile</h3>
+    <h4><a href="http://m.fwckungfu.com/">m.fwckungfu.com</a></h4>
+    <p>This was my first pure mobile web site. It's for my
+    <a href="http://www.fwckungfu.com/">Fujian White Crane Kung Fu Club</a> that I trained
+    with when I lived in London. This site uses a remote database connection and is heavily cached.
+    It's built taylor made for mobile as it goes straight to the basic details you need.<br>
+    I originally built it because I kept forgetting when various classes started and looking
+    it up on a slow 3G connection was a pain.<br>
+    The <a href="https://github.com/peterbe/fwc_mobile">code is here</a> and I blogged
+    about when this was my first site to get <a href="/plog/first-yslow-grade-a">100 points on YSlow!</a>.
+    </p>
+  </div>
 </div>
 
 
