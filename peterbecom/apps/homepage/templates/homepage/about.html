@@ -12,9 +12,12 @@
 }
 .floatleft {
     float: left;
-/*    margin-right: 10px;*/
     margin-bottom: 15px;
     width: 140px;
+}
+.floatleft img {
+    border: 1px solid rgb(230,230,230);
+    border-radius: 2px;
 }
 .rest {
     margin-left: 140px;
@@ -50,6 +53,20 @@ help the development of Firefox and my other Mozilla projects.</p>
 <div class="projects">
 
 <h2>Side projects</h2>
+
+<div class="project" id="htmltree">
+  <div class="floatleft"><a href="http://htmltree.peterbe.com/"><img src="{{ static('images/htmltree-scr.png') }}" alt="Screenshot"></a></div>
+  <div class="rest">
+    <h3>HTML Tree</h3>
+    <h4><a href="http://htmltree.peterbe.com/">htmltree.peterbe.com</a></h4>
+    <p>It started when I was optimizing a website whose HTML files were massive.
+      Clearly the HTML contained too many DOM nodes. But where are these big clusters of nodes?!
+      HTML Tree takes a URL, converts it to a tree in JSON which when combined
+      with a <a href="http://d3js.org/">D3</a> collapsible tree becomes easier to navigate.
+      <a href="https://github.com/peterbe/htmltree">Code on Github</a>.
+    </p>
+  </div>
+</div>
 
 <div class="project" id="github-pr-triage">
   <div class="floatleft"><a href="https://prs.paas.allizom.org/"><img src="{{ static('images/github-pr-triage-scr.png') }}" alt="Screenshot"></a></div>
