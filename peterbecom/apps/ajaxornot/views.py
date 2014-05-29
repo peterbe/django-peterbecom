@@ -12,7 +12,7 @@ def index(request):
     return render(request, 'ajaxornot/index.html')
 
 
-def get_data(max_length=100, pub_date_format=None):
+def get_data(max_length=1000, pub_date_format=None):
     items = []
     qs = BlogItem.objects.filter(pub_date__lt=utc_now()).order_by('-pub_date')
     for item in qs[:max_length]:
