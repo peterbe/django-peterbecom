@@ -1,0 +1,18 @@
+{% extends "ajaxornot/base.html" %}
+{% block title_prefix %}View 2{% endblock %}
+{% block content %}
+<div id="table"></div>
+{% endblock %}
+
+{% block footer %}
+<script src="{{ static('ajaxornot/jquery-2.1.1.min.js') }}"></script>
+<script>
+$(function() {
+  $('#table').load('/ajaxornot/view2-table', function() {
+    $('table').on('click', 'a.title', function() {
+      return confirm('Sure you want to go to:\n' + $(this).text());
+    });
+  });
+});
+</script>
+{% endblock %}

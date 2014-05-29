@@ -1,0 +1,50 @@
+{% extends "ajaxornot/base.html" %}
+{% block title_prefix %}View 3{% endblock %}
+{% block content %}
+<div ng-app>
+<table ng-controller="TableController">
+  <thead>
+    <tr>
+      <th>Title</th>
+      <th>Publish Date</th>
+      <th>Categories</th>
+      <th>Keywords</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% raw %}
+    <tr ng-repeat="item in items">
+      <td><a ng-click="confirmAndGo(item)" style="cursor:pointer">{{ item.title }}</a></td>
+      <td>{{ item.pub_date }}</td>
+      <td>
+        <a ng-repeat="category in item.categories"
+           href="/oc-{{ category.replace(' ', '+') }}"><span class="label">{{ category }}</span></a>
+      </td>
+      <td>
+        <span ng-repeat="keyword in item.keywords" class="label">{{ keyword }}</span>
+      </td>
+    </tr>
+    {% endraw %}
+  </tbody>
+</table>
+</div>
+{% endblock %}
+
+{% block footer %}
+<script src="{{ static('ajaxornot/angular.min.js') }}"></script>
+<script>
+function TableController($scope, $http) {
+  $scope.items = [];
+  $http.get('/ajaxornot/view3-data')
+  .success(function(response) {
+    $scope.items = response.items;
+  }).error(function() {
+    console.error(arguments);
+  });
+  $scope.confirmAndGo = function(item) {
+    if (confirm(item.title))
+      window.location.href = '/plog/' + item.slug;
+  };
+}
+</script>
+{% endblock %}

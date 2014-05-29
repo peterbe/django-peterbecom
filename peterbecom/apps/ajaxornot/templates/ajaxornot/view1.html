@@ -1,0 +1,44 @@
+{% extends "ajaxornot/base.html" %}
+{% block title_prefix %}View 1{% endblock %}
+{% block content %}
+<table>
+  <thead>
+    <tr>
+      <th>Title</th>
+      <th>Publish Date</th>
+      <th>Categories</th>
+      <th>Keywords</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in items %}
+    <tr>
+      <td><a class="title" href="/plog/{{ item.slug }}">{{ item.title }}</a></td>
+      <td>{{ item.pub_date.strftime('%B %Y') }}</td>
+      <td>
+        {% for category in item.categories %}
+        <a href="/oc-{{ category.replace(' ', '+') }}"><span class="label">{{ category }}</span></a>
+        {% endfor %}
+      </td>
+      <td>
+        {% for keyword in item.keywords %}
+        <span class="label">{{ keyword }}</span>
+        {% endfor %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
+
+
+{% block footer %}
+<script src="{{ static('ajaxornot/jquery-2.1.1.min.js') }}"></script>
+<script>
+$(function() {
+  $('table').on('click', 'a.title', function() {
+    return confirm('Sure you want to go to:\n' + $(this).text());
+  });
+});
+</script>
+{% endblock %}

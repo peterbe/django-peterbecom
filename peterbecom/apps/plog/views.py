@@ -43,6 +43,14 @@ ONE_WEEK = ONE_DAY * 7
 ONE_MONTH = ONE_WEEK * 4
 ONE_YEAR = ONE_WEEK * 52
 
+
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime.datetime):
+            return obj.isoformat()
+        return json.JSONEncoder.default(self, obj)
+
+
 def json_view(f):
     @functools.wraps(f)
     def wrapper(*args, **kw):
@@ -50,8 +58,10 @@ def json_view(f):
         if isinstance(response, http.HttpResponse):
             return response
         else:
-            return http.HttpResponse(json.dumps(response),
-                                     content_type='application/json')
+            return http.HttpResponse(
+                json.dumps(response, cls=DateTimeEncoder),
+                content_type='application/json'
+            )
     return wrapper
 
 

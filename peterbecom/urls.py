@@ -9,11 +9,9 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
-    # Examples:
-    # url(r'^$', 'peterbecom.views.home', name='home'),
-    # url(r'^peterbecom/', include('peterbecom.foo.urls')),
     url(r'^nodomains$', lambda x: http.HttpResponseRedirect('/nodomains/')),
     url(r'^nodomains/', include('peterbecom.apps.nodomains.urls', namespace='nodomains')),
+    url(r'^ajaxornot/', include('peterbecom.apps.ajaxornot.urls', namespace='ajaxornot')),
     url(r'^stats/', include('peterbecom.apps.stats.urls')),
     url(r'^plog/', include('peterbecom.apps.plog.urls')),
     url(r'^plog$', lambda x: http.HttpResponseRedirect('/plog/')),

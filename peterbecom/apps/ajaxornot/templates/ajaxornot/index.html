@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+
+{% block title_prefix %}AJAX or Not?{% endblock %}
+
+{% block content %}
+
+<h2>AJAX or Not?</h2>
+
+<p class="lead">Understanding the cost and disadvantages and benefits of loading the bulk data of a web page with AJAX.</p>
+
+        <ol>
+          <li><a href="{{ url('ajaxornot:view1') }}">Pure Django template</a></li>
+          <li><a href="{{ url('ajaxornot:view2') }}">AJAX load table with innerHTML</a></li>
+          <li><a href="{{ url('ajaxornot:view3') }}">AJAX load table with AngularJS</a></li>
+
+        </ol>
+
+<p>If you have a chunk of data that you want to display you have <b>two choices</b> in standard web development:</p>
+<h4>1. Load it all with the HTML template rendered on the server. Usually different for every user.</h4>
+<p style="margin-left:10px">    <b>Pros</b></p>
+    <ul>
+      <li>fast rendering</li>
+      <li>no need to serialize to and from JSON</li>
+      <li>less requests</li>
+      <li>no SEO concerns</li>
+    </ul>
+<p style="margin-left:10px">    <b>Cons</b></p>
+    <ul>
+      <li>potentially fat HTML documents take a long time to download before something appears on the screen</li>
+      <li>hard to put the HTML in a dumb and fast cache (e.g. CDN or Varnish)</li>
+      <li>you're going to need to do some business logic in templates and some in javascript</li>
+    </ul>
+<h4>2. Load a "skeleton" of HTML. Usually the same for every user. Then asynchronously load in the data with AJAX in some way.</h4>
+<p style="margin-left:10px">    <b>Pros</b></p>
+    <ul>
+      <li>html document is small and quick to render something on the screen</li>
+      <li>JSON weighs less than HTML</li>
+      <li>HTML document can be dumb and highly cached for every user</li>
+      <li>skeleton can start when clicks cause downloading new different bulk content</li>
+    </ul>
+<p style="margin-left:10px">    <b>Cons</b></p>
+    <ul>
+      <li>slow rendering</li>
+      <li>human eyes will notice the "flicker" between skeleton loading and the bulk of the data coming in</li>
+      <li>more requests</li>
+      <li>hard to get permalink right as you need to master html5 pushState</li>
+    </ul>
+
+{% endblock %}
