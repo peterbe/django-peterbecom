@@ -25,6 +25,7 @@ from django.template import Template
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files import File
+from django.contrib.sites.models import RequestSite
 from postmark.inbound import PostmarkInbound
 from .models import BlogItem, BlogComment, Category, BlogFile
 from .utils import render_comment_text, valid_email, utc_now
@@ -135,6 +136,11 @@ def blog_post(request, oid):
         redis_increment('plog:misses', request)
     except Exception:
         logging.error('Unable to redis.zincrby', exc_info=True)
+
+    # attach a field called `_absolute_url` which depends on the request
+    base_url = 'https://' if request.is_secure() else 'http://'
+    base_url += RequestSite(request).domain
+    post._absolute_url = base_url + reverse('blog_post', args=(post.oid,))
 
     data = {
       'post': post,
