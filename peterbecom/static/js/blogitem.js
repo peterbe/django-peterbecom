@@ -183,7 +183,7 @@ $(function() {
     return false;
   });
 
-  $('a.reply', '#comments-outer').on('click', function() {
+  $('#comments-outer').on('click', 'a.reply', function() {
     F.setup_reply($('#' + $(this).attr('data-oid')));
     return false;
   });
@@ -191,7 +191,7 @@ $(function() {
   form.on('submit', F.submit);
   $('.cancel a', form).on('click', F.reset);
 
-  $('#comments button[name="approve"]').click(function() {
+  $('#comments').on('click', 'button[name="approve"]', function() {
     var oid = $(this).data('oid');
     var url = location.href;
     url = url.split('#')[0];
