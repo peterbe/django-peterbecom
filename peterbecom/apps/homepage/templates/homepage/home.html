@@ -31,10 +31,7 @@
 </div>
 {% endif %}
 
-
 {% include "homepage/_posts.html" %}
-<div id="rest">
-</div>
 
 <ul class="pager">
   {% if previous_page %}
@@ -49,19 +46,4 @@
   {% endif %}
 </ul>
 
-{% endblock %}
-
-
-{% block extrajs %}
-{% if rest %}
-<script>
-// https://code.google.com/p/microajax/
-{% include "homepage/microajax.minified.js" %}
-;onload = function() {
-  microAjax("/rest/{{ rest.from_index }}/{{ rest.to_index }}/", function (res) {
-    document.getElementById('rest').innerHTML = res;
-  });
-};
-</script>
-{% endif %}
 {% endblock %}

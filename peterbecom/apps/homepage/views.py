@@ -94,14 +94,6 @@ def home(request, oc=None):
         data['next_page'] = page + 2
     data['previous_page'] = page
 
-    if n == 0 and not oc:
-        # On the first page and no category filtering.
-        # Then, load only the first two posts and tell the template
-        # to render the other remaining ones later
-        data['rest'] = {'from_index': 2, 'to_index': m}
-        m = 2
-    else:
-        data['rest'] = None
     data['blogitems'] =  (
       qs
       .prefetch_related('categories')
@@ -109,38 +101,6 @@ def home(request, oc=None):
     )[n:m]
 
     return render(request, 'homepage/home.html', data)
-
-
-def _home_rest_key_prefixer(request):
-    if request.method != 'GET':
-        return None
-    prefix = make_prefix(request.GET)
-    cache_key = 'latest_comment_add_date'
-
-    latest_date = cache.get(cache_key)
-    if latest_date is None:
-        qs = BlogItem.objects.all()
-        latest, = (qs
-                   .order_by('-modify_date')
-                   .values('modify_date')[:1])
-        latest_date = latest['modify_date'].strftime('%f')
-        cache.set(cache_key, latest_date, 60 * 60  * 5)
-    prefix += str(latest_date)
-    return prefix
-
-
-@cache_page(60 * 60 * 5,  # five hours (same as for `home()` above)
-            key_prefix=_home_rest_key_prefixer,
-            )
-def home_rest(request, from_index, to_index):
-    qs = (
-        BlogItem.objects.filter(pub_date__lt=utc_now())
-        .order_by('-pub_date')
-    )
-    context = {
-        'blogitems': qs[from_index : to_index]
-    }
-    return render(request, 'homepage/_posts.html', context)
 
 
 STOPWORDS = "a able about across after all almost also am among an and "\
