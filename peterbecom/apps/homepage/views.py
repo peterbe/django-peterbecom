@@ -19,10 +19,16 @@ from peterbecom.apps.plog.models import Category, BlogItem, BlogComment
 from peterbecom.apps.plog.utils import render_comment_text, utc_now
 from peterbecom.apps.redisutils import get_redis_connection
 from peterbecom.apps.rediscounter import redis_increment
-from .utils import (parse_ocs_to_categories, make_categories_q, split_search)
+from .utils import (
+    parse_ocs_to_categories,
+    make_categories_q,
+    split_search,
+    STOPWORDS
+)
 from fancy_cache import cache_page
 from peterbecom.apps.mincss_response import mincss_response
-from peterbecom.apps.plog.utils import make_prefix
+from peterbecom.apps.plog.utils import make_prefix, json_view
+from peterbecom.apps.redis_search_index import RedisSearchIndex
 
 
 def _home_key_prefixer(request):
@@ -102,17 +108,6 @@ def home(request, oc=None):
 
     return render(request, 'homepage/home.html', data)
 
-
-STOPWORDS = "a able about across after all almost also am among an and "\
-            "any are as at be because been but by can cannot could dear "\
-            "did do does either else ever every for from get got had has "\
-            "have he her hers him his how however i if in into is it its "\
-            "just least let like likely may me might most must my "\
-            "neither no nor not of off often on only or other our own "\
-            "rather said say says she should since so some than that the "\
-            "their them then there these they this tis to too twas us "\
-            "wants was we were what when where which while who whom why "\
-            "will with would yet you your"
 
 def search(request):
     data = {}
@@ -336,6 +331,15 @@ def search(request):
             return redirect(url)
 
     return render(request, 'homepage/search.html', data)
+
+
+@json_view
+def autocomplete(request):
+    q = request.GET.get('q')
+    conn = get_redis_connection('titles')
+    search_index = RedisSearchIndex(conn)
+    results = search_index.search(q, n=10)
+    return results
 
 
 from .base64allimages import post_process_response as b64_post_process_response

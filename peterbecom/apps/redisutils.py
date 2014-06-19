@@ -2,55 +2,74 @@ import logging
 import time
 from django.conf import settings
 from django.core.cache import parse_backend_uri
+from django.core.exceptions import ImproperlyConfigured
 
 try:
     import redis as redislib
 except:
     redislib = None
 
-connections = {}
 
-if not connections:  # don't set this repeatedly
-    for alias, backend in settings.REDIS_BACKENDS.items():
-        _, server, params = parse_backend_uri(backend)
+class RedisConnections(object):
+    def __init__(self):
+        self.connections = {}
+
+    def __getitem__(self, name):
         try:
-            socket_timeout = float(params.pop('socket_timeout'))
-        except (KeyError, ValueError):
-            socket_timeout = None
-        password = params.pop('password', None)
-        if ':' in server:
-            host, port = server.split(':')
-            try:
-                port = int(port)
-            except (ValueError, TypeError):
-                port = 6379
-        else:
-            host = 'localhost'
-            port = 6379
+            return self.connections[name]
+        except KeyError:
+            for alias, backend in settings.REDIS_BACKENDS.items():
+                if alias != name:
+                    continue
+                _, server, params = parse_backend_uri(backend)
+                try:
+                    socket_timeout = float(params.pop('socket_timeout'))
+                except (KeyError, ValueError):
+                    socket_timeout = None
+                try:
+                    db = int(params.pop('db'))
+                except (KeyError, ValueError):
+                    db = 0
+                password = params.pop('password', None)
+                if ':' in server:
+                    host, port = server.split(':')
+                    try:
+                        port = int(port)
+                    except (ValueError, TypeError):
+                        port = 6379
+                else:
+                    host = 'localhost'
+                    port = 6379
+                self.connections[alias] = redislib.Redis(
+                    host=host,
+                    port=port,
+                    db=db,
+                    password=password,
+                    socket_timeout=socket_timeout
+                )
+                break
+            else:
+                raise ImproperlyConfigured('No backend called %s' % name)
+        return self.connections[name]
 
-        connections[alias] = redislib.Redis(host=host, port=port, db=0,
-                                            password=password,
-                                            socket_timeout=socket_timeout)
+
+connections = RedisConnections()
 
 
 def wrapped_function(func):
     def wrapper(*args, **kwargs):
+        sleep = kwargs.pop('sleep', 1)
         try:
             return func(*args, **kwargs)
         except redislib.ConnectionError:
-            time.sleep(1)
-            logging.debug("redis ConnectionError, sleeping 1 second")
-            try:
-                return func(*args, **kwargs)
-            except redislib.ConnectionError:
-                time.sleep(2)
-                logging.debug("redis ConnectionError, sleeping 2 second")
-                try:
-                    return func(*args, **kwargs)
-                except redislib.ConnectionError:
-                    logging.debug("redis ConnectionError, still :(")
-                    raise
+            if sleep > 2:
+                raise
+            time.sleep(sleep)
+            logging.debug("redis ConnectionError, sleeping %d second" % sleep)
+            kwargs['sleep'] = sleep + 1
+            return wrapper(*args, **kwargs)
     return wrapper
+
 
 class ReConnectionConnectionWrapper(object):
     def __init__(self, connection):
@@ -59,10 +78,12 @@ class ReConnectionConnectionWrapper(object):
     def __getattr__(self, key):
         return wrapped_function(getattr(self.connection, key))
 
+
 def get_redis_connection(alias='master', reconnection_wrapped=False):
     if reconnection_wrapped:
         return ReConnectionConnectionWrapper(connections[alias])
     return connections[alias]
+
 
 def mock_redis():
     ret = dict(connections)

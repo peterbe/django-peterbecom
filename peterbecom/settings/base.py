@@ -207,7 +207,8 @@ CACHES = {
 }
 
 REDIS_BACKENDS = {
-    'master': 'redis://localhost:6379?socket_timeout=0.5'
+    'master': 'redis://localhost:6379?socket_timeout=0.5',
+    'titles': 'redis://localhost:6379?db=9',
 }
 
 BROKER_URL = "redis://localhost:6379/0"

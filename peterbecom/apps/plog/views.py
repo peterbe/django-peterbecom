@@ -35,6 +35,7 @@ from fancy_cache import cache_page
 from peterbecom.apps.mincss_response import mincss_response
 from . import tasks
 from . import utils
+from .utils import json_view
 from .forms import BlogForm, BlogFileUpload
 
 
@@ -43,27 +44,6 @@ ONE_DAY = ONE_HOUR * 24
 ONE_WEEK = ONE_DAY * 7
 ONE_MONTH = ONE_WEEK * 4
 ONE_YEAR = ONE_WEEK * 52
-
-
-class DateTimeEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, datetime.datetime):
-            return obj.isoformat()
-        return json.JSONEncoder.default(self, obj)
-
-
-def json_view(f):
-    @functools.wraps(f)
-    def wrapper(*args, **kw):
-        response = f(*args, **kw)
-        if isinstance(response, http.HttpResponse):
-            return response
-        else:
-            return http.HttpResponse(
-                json.dumps(response, cls=DateTimeEncoder),
-                content_type='application/json'
-            )
-    return wrapper
 
 
 def _blog_post_key_prefixer(request):

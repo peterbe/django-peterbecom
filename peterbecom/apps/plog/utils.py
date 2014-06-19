@@ -2,6 +2,8 @@ import urllib
 import markdown
 import time
 import datetime
+import json
+import functools
 import re
 import zope.structuredtext
 from pygments import highlight
@@ -9,6 +11,7 @@ from pygments.lexers import (PythonLexer, JavascriptLexer, TextLexer,
   HtmlLexer, CssLexer, SqlLexer)
 from pygments.formatters import HtmlFormatter
 from django.conf import settings
+from django import http
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from isodate import UTC
@@ -296,3 +299,27 @@ def cache_prefix_files(text):
         return '%s="%s"' % (attr, url)
 
     return _SRC_regex.sub(matcher, text)
+
+
+
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime.datetime):
+            return obj.isoformat()
+        return json.JSONEncoder.default(self, obj)
+
+
+def json_view(f):
+    @functools.wraps(f)
+    def wrapper(*args, **kw):
+        response = f(*args, **kw)
+        if isinstance(response, http.HttpResponse):
+            return response
+        else:
+            r = http.HttpResponse(
+                json.dumps(response, cls=DateTimeEncoder, indent=2),
+                content_type='application/json'
+            )
+            r.write('\n')
+            return r
+    return wrapper
