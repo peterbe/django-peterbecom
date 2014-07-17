@@ -143,6 +143,11 @@ class BlogItem(models.Model):
         return cls.objects.get(pk=value)
 
 
+class BlogItemHits(models.Model):
+    oid = models.CharField(max_length=100, db_index=True, unique=True)
+    hits = models.IntegerField(default=0)
+
+
 class BlogComment(models.Model):
     """
     Indexes executed for this:

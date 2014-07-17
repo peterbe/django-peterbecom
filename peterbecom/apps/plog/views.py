@@ -27,7 +27,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.files import File
 from django.contrib.sites.models import RequestSite
 from postmark.inbound import PostmarkInbound
-from .models import BlogItem, BlogComment, Category, BlogFile
+from .models import BlogItem, BlogItemHits, BlogComment, Category, BlogFile
 from .utils import render_comment_text, valid_email, utc_now
 from peterbecom.apps.redisutils import get_redis_connection
 from peterbecom.apps.rediscounter import redis_increment
@@ -84,6 +84,12 @@ def _blog_post_key_prefixer(request):
         redis_increment('plog:hits', request)
     except Exception:
         logging.error('Unable to redis.zincrby', exc_info=True)
+
+    # temporary solution because I can't get Google Analytics API to work
+    hits, __ = BlogItemHits.objects.get_or_create(oid=oid)
+    hits.hits += 1
+    hits.save()
+
     return prefix
 
 
@@ -788,3 +794,9 @@ def inbound_email(request):
                        save=True)
     blogfile.save()
     return http.HttpResponse("OK\n")
+
+
+def plog_hits(request):
+    context = {}
+    context['all_hits'] = BlogItemHits.objects.all().order_by('-hits')
+    return render(request, 'plog/plog_hits.html', context)
