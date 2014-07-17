@@ -86,9 +86,11 @@ def _blog_post_key_prefixer(request):
         logging.error('Unable to redis.zincrby', exc_info=True)
 
     # temporary solution because I can't get Google Analytics API to work
-    hits, __ = BlogItemHits.objects.get_or_create(oid=oid)
-    hits.hits += 1
-    hits.save()
+    ua = request.META.get('HTTP_USER_AGENT', '')
+    if 'bot' not in ua:
+        hits, __ = BlogItemHits.objects.get_or_create(oid=oid)
+        hits.hits += 1
+        hits.save()
 
     return prefix
 

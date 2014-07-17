@@ -23,4 +23,8 @@ class Command(BaseCommand):
         for plog in models.BlogItem.objects.filter(pub_date__lte=now).order_by('?'):
             print plog.title,
             # print search_index.add_item(plog.id, plog.title, 1)
-            print search_index.add_item(plog.oid, plog.title, 1)
+            try:
+                hits = models.BlogItemHits.objects.get(oid=plog.oid).hits
+            except models.BlogItemHits.DoesNotExist:
+                hits = 1
+            print search_index.add_item(plog.oid, plog.title, hits), hits
