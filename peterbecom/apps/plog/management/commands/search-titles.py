@@ -18,10 +18,11 @@ class Command(BaseCommand):
         search_index = RedisSearchIndex(connection)
 
         query = u' '.join(args)
-        print repr(query)
+        print "QUERY:", repr(query)
         t0 = time.time()
         results = search_index.search(query)
         t1 = time.time()
         print "In", t1 - t0, "seconds"
-        for id, score, title in results:
-            print id.ljust(4), score, repr(title)
+        print "TERMS:", results['terms']
+        for id, score, title in results['results']:
+            print "\t", id.ljust(4), score, repr(title)

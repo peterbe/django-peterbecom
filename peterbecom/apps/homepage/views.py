@@ -336,10 +336,16 @@ def search(request):
 @json_view
 def autocomplete(request):
     q = request.GET.get('q')
+    if not q:
+        return []
     conn = get_redis_connection('titles')
     search_index = RedisSearchIndex(conn)
     results = search_index.search(q, n=10)
     return results
+
+
+def autocomplete_tester(request):
+    return render(request, 'homepage/autocomplete_tester.html')
 
 
 from .base64allimages import post_process_response as b64_post_process_response

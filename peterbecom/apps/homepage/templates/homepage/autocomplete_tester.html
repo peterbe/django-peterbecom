@@ -1,0 +1,395 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+<style>
+.class-query {
+
+}
+.search-query-wrap {
+    position: relative;
+    display: inline-block;
+}
+.search-query-wrap .hint {
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-color: transparent;
+    box-shadow: none;
+    opacity: 1;
+    color: rgb(180, 180, 180);
+    padding-left: 14px;
+    background: none repeat scroll 0% 0% rgb(255, 255, 255);;
+}
+.search-query-wrap .search-query {
+    position: relative;
+    vertical-align: top;
+    background-color: transparent;
+}
+
+.search-query-wrap .results {
+    border: 1px solid rgb(210,210,210);
+    width: 500px;
+    display: none;
+    border-radius: 3px;
+    /*border-radius: 3px;*/
+    box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.25);
+}
+.search-query-wrap .results p {
+    padding: 5px;
+    margin: 0px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-bottom: 1px solid rgb(210,210,210);
+}
+.search-query-wrap .results p:last-child {
+    border-bottom: none;
+}
+.search-query-wrap .results p.selected {
+    background-color: #efefef;
+}
+</style>
+{% endblock %}
+
+{% block title_prefix %}Autocomplete Tester{% endblock %}
+
+{% block content %}
+
+<h2>Autocomplete Tester</h2>
+
+<form action="/search">
+  <!-- <input name="q" id="q" class="search-query" maxlength="90" placeholder="Search" type="text">
+  <div id="results">
+  </div> -->
+
+  <input class="search-query" placeholder="Search" name="q" type="text">
+
+  <!-- <span class="search-query-wrap">
+      <input tabindex="-1" spellcheck="false" autocomplete="off" readonly
+       style=""
+       class="hint" type="text" value="Peter Bengtsson">
+      <input spellcheck="false" autocomplete="off" class="search-query" placeholder="Peter" type="text">
+      <pre style="position: absolute; visibility: hidden; white-space: pre; font-family: Lucida Grande; font-size: 24px; font-style: normal; font-variant: normal; font-weight: 400; word-spacing: 0px; letter-spacing: 0px; text-indent: 0px; text-rendering: optimizelegibility; text-transform: none;" aria-hidden="true">a</pre>
+      <span style="position: absolute; top: 100%; left: 0px; z-index: 100; display: none; right: auto;" class="tt-dropdown-menu"> </span>
+      <div class="results"></div>
+  </span>
+   -->
+
+</form>
+
+{% endblock %}
+
+
+{% block extrajs %}
+<script>
+(function(window, document, undefined) {
+
+  function E(tag, options) {
+    var e = document.createElement(tag);
+    for (var key in options) {
+      e[key] = options[key];
+    }
+    return e;
+  }
+
+  function setUp(q) {
+
+    var results_ps = [];
+    var selected_pointer = 0;
+    q.spellcheck = false;
+    q.autocomplete = 'off';
+    var r;
+
+    // wrap the input
+    var wrapper = E('span', {className: 'search-query-wrap'});
+    var hint = E('input', {
+      tabindex: -1,
+      spellcheck: false,
+      autocomplete: 'off',
+      readonly: 'readonly',
+      type: 'text',
+      className: 'hint'
+    })
+    wrapper.appendChild(hint);
+    var clone = q.cloneNode(true);
+    wrapper.appendChild(clone);
+    // var r = document.createElement('div');
+    // r.className = 'results';
+    var r = E('div', {className: 'results'});
+    wrapper.appendChild(r);
+
+    q.parentElement.insertBefore(wrapper, q);
+    q.parentNode.removeChild(q);
+    q = clone;
+
+    function escapeRegExp(str) {
+      return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+    }
+    function highlightText(text) {
+      var search_terms = terms.map(escapeRegExp);
+      var re = new RegExp('\\b(' + search_terms.join('|') + ')', 'gi');
+      return text.replace(re, '<b>$1</b>');
+    }
+
+    var results;
+    var terms;
+    function displayResults() {
+      // terms = response.terms;
+      // var results = response.results;
+
+      if (results.length) {
+        r.style.display = 'block';
+        var ps = r.getElementsByTagName('p');
+        for (var i=ps.length - 1; i >= 0; i--) {
+          ps[i].remove();
+        }
+      } else {
+        r.style.display = 'none';
+      }
+      results_ps = [];
+      var p, a;
+      // console.log(results);
+      var hint_candidate = null;
+      var hint_candidates = [];
+      if (!results.length) {
+        hint.value = q.value;
+      }
+      // console.log(results.length, 'hits');
+      var search_terms = terms.map(escapeRegExp);
+      // console.log('Search_terms:', search_terms);
+      var re = new RegExp('\\b(' + search_terms.join('|') + ')(\\w+)\\b', 'gi');
+
+      for (var i=0, len=results.length; i < len; i++) {
+        // var re_already = new RegExp('\\b' + search_terms.join('|') + '\\b', 'gi');
+        // console.log('already', re_already.exec(q.value));
+        // console.log(results[i][2]);
+        var found;
+        var matched;
+
+        // console.log('terms', terms);
+        while ((found = re.exec(results[i][2])) !== null) {
+          // console.log('found', found);
+          // matched = found[0];
+          // console.log('matched', matched);
+          matched = new RegExp('\\b' + escapeRegExp(found[0]) + '\\b', 'gi');
+          // console.log('found[0]', found[0], matched.test(q.value));
+
+          hint_candidate = found[found.length - 1];
+          if (hint_candidate !== undefined && !matched.test(q.value))  {
+            if (hint_candidates.indexOf(hint_candidate) === -1) {
+              hint_candidates.push(hint_candidate);
+            }
+          }
+        }
+
+        p = E('p');
+        if (i === selected_pointer) {
+          p.className = 'selected';
+        }
+
+        a = E('a', {
+          innerHTML: highlightText(results[i][2]),
+          href: '/plog/' + results[i][0]
+        });
+        p.appendChild(a);
+        r.appendChild(p);
+        results_ps.push(p);
+      }
+      // console.log('hint_candidates', hint_candidates);
+      if (hint_candidates.length && q.value.charAt(q.value.length - 1) !== ' ') {
+        // console.log('LAST CHAR', , 'EOL');
+        hint_candidate = hint_candidates[0];
+        hint.value = q.value + hint_candidate;
+      } else {
+        // console.log('Nothing found!');
+        hint.value = q.value;
+      }
+
+    }
+
+    function _characterFromEvent(e) {
+      // for keypress events we should return the character as is
+      if (e.type == 'keypress') {
+          var character = String.fromCharCode(e.which);
+          // console.log('Character keypress:', character);
+          return character;
+      } else {
+        return String.fromCharCode(e.which).toLowerCase();
+      }
+    }
+
+    // var still_tab_completing = false;
+    function handleKeyboardEvent(name) {
+      // console.log('Keyboard event', name);
+      var i, len;
+      if (name === 'tab') {
+        // console.log(q.value, hint.value);
+        if (hint.value !== q.value) {
+          q.value = hint.value + ' ';
+        }
+        // console.log('q.value', q.value);
+        // console.log('hint.value', hint.value);
+        // console.log('hint_candidate', hint_candidate);
+        // console.log('hint_candidates', hint_candidates);
+        //
+        // if (hint_candidates.length > 1) {
+        //   still_tab_completing = true;
+        // }
+        handler();  // this starts a new ajax request
+      } else if (name === 'down' || name === 'up') {
+        if (name === 'down') {
+          selected_pointer = Math.min(results_ps.length - 1, ++selected_pointer);
+        } else if (name === 'up') {
+          selected_pointer = Math.max(0, --selected_pointer);
+        }
+        for (i=0, len=results_ps.length; i < len; i++) {
+          if (i === selected_pointer) {
+            results_ps[i].className = 'selected';
+          } else {
+            results_ps[i].className = '';
+          }
+        }
+        displayResults();
+      } else if (name === 'enter') {
+        if (results_ps.length) {
+          // console.log(results_ps.length, 'results, pointer=', selected_pointer);
+          var p = results_ps[selected_pointer];
+          var a = p.getElementsByTagName('a')[0];
+          q.value = hint.value = a.textContent;
+          r.style.display = 'none';
+          window.location = a.href;
+        } else {
+          document.forms[1].submit();
+        }
+      } else if (name === 'esc') {
+        r.style.display = 'none';
+      }
+
+    }
+
+    function _handleKeyEvent(e) {
+      /*
+      var _MAP = {
+              8: 'backspace',
+              9: 'tab',
+              13: 'enter',
+              16: 'shift',
+              17: 'ctrl',
+              18: 'alt',
+              20: 'capslock',
+              27: 'esc',
+              32: 'space',
+              33: 'pageup',
+              34: 'pagedown',
+              35: 'end',
+              36: 'home',
+              37: 'left',
+              38: 'up',
+              39: 'right',
+              40: 'down',
+              45: 'ins',
+              46: 'del',
+              91: 'meta',
+              93: 'meta',
+              224: 'meta'
+          },
+          */
+      var relevant_keycodes = {
+        13: 'enter',
+        9: 'tab',
+        38: 'up',
+        40: 'down',
+        27: 'esc'
+      };
+      if (!relevant_keycodes[e.keyCode]) return;
+      handleKeyboardEvent(relevant_keycodes[e.keyCode]);
+      e.preventDefault();
+    }
+
+    function handleAjaxError() {
+      r.style.display = 'none';
+    }
+
+    var cache = {};
+    function handler() {
+      if (!q.value) {
+        hint.value = '';
+        r.style.display = 'none';
+        return;
+      }
+      // new character, let's reset the selected_pointer
+      selected_pointer = 0;
+      if (cache[q.value]) {
+        var response = cache[q.value];
+        terms = response.terms;
+        results = response.results;
+        displayResults();
+      } else {
+        var req;
+        if (window.XMLHttpRequest) { // Mozilla, Safari, ...
+            req = new XMLHttpRequest();
+        } else if (window.ActiveXObject) { // IE 8 and older
+            req = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        req.onreadystatechange = function() {
+          if (req.readyState === 4) {
+            if (req.status === 200) {
+              var response = JSON.parse(req.responseText);
+              cache[q.value] = response;
+              terms = response.terms;
+              results = response.results;
+              displayResults();
+            } else {
+              console.warn(req.status, req.responseText);
+              handleAjaxError();
+            }
+          }
+        };
+        req.open('GET', '/autocomplete?q=' + encodeURIComponent(q.value), true);
+        req.send();
+      }
+      // console.log(q.value);
+    }
+
+    function handleBlur(event) {
+      console.log('blur');
+      hint.value = q.value;
+
+      // necessary so it becomes possible to click the links before they
+      // disappear too quickly
+      setTimeout(function() {
+        r.style.display = 'none';
+      }, 200);
+
+    }
+
+    function handleFocus(event) {
+      if (q.value.length) {
+        r.style.display = 'block';
+      }
+    }
+
+    if (q.addEventListener) {
+        q.addEventListener("input",  handler, false);
+        q.addEventListener('keypress', _handleKeyEvent, false);
+        q.addEventListener('blur', handleBlur, false);
+        q.addEventListener('focus', handleFocus, false);
+    } else { // is this a fair assumption: that attachEvent will exist ?
+        q.attachEvent('oninput', handler); // IE<9
+        q.attachEvent('keypress', _handleKeyEvent);
+        q.attachEvent('blur', handleBlur);
+        q.attachEvent('focus', handleFocus);
+    }
+
+    if (q.value.length) {
+      handler();
+    }
+
+  }  // end of setUp
+  setUp(document.getElementsByClassName('search-query')[1]);
+  //var q = document.getElementById('q');
+
+
+}) (window, document);
+</script>
+{% endblock %}
