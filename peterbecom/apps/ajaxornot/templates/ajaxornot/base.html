@@ -30,6 +30,8 @@
               {% if 'view2' in request.META['PATH_INFO'] %}class="active"{% endif %}>AJAX load table with innerHTML</a></li>
           <li><a href="{{ url('ajaxornot:view3') }}"
               {% if 'view3' in request.META['PATH_INFO'] %}class="active"{% endif %}>AJAX load table with AngularJS</a></li>
+          <li><a href="{{ url('ajaxornot:view4') }}"
+              {% if 'view4' in request.META['PATH_INFO'] %}class="active"{% endif %}>Content as inline javascript JSON</a></li>
 
         </ol>
         <p><a href=".">Go back to overview page</a></p>

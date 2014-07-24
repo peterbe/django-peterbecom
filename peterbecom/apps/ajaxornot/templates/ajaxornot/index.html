@@ -13,6 +13,7 @@
           <li><a href="{{ url('ajaxornot:view1') }}">Pure Django template</a></li>
           <li><a href="{{ url('ajaxornot:view2') }}">AJAX load table with innerHTML</a></li>
           <li><a href="{{ url('ajaxornot:view3') }}">AJAX load table with AngularJS</a></li>
+          <li><a href="{{ url('ajaxornot:view4') }}">Content as inline javascript JSON</a></li>
 
         </ol>
 
@@ -46,5 +47,38 @@
       <li>more requests</li>
       <li>hard to get permalink right as you need to master html5 pushState</li>
     </ul>
-
+<h3>Hybrid solutions</h3>
+<p>There are variations of the two above mentioned techniques. Both implemented
+  here as...</p>
+<h4>1. Load the bulk content as HTML (from the server) by AJAX</h4>
+<p style="margin-left:10px">    <b>Pros</b></p>
+    <ul>
+      <li>fast rendering</li>
+      <li>some initial rendering to screen fast</li>
+      <li>no need to serialize to and from JSON</li>
+    </ul>
+<p style="margin-left:10px">    <b>Cons</b></p>
+    <ul>
+      <li>some SEO concerns</li>
+      <li>more requests</li>
+      <li>bigger total payload in number of bytes</li>
+      <li>requires some sort of "loading animation" to indicate the page isn't fully loaded yet</li>
+    </ul>
+<h4>2. Include bulk content as inline javascript as a JSON blob</h4>
+<p style="margin-left:10px">    <b>Pros</b></p>
+    <ul>
+      <li>fast rendering</li>
+      <li>minimal payload in number of bytes since JSON is more space efficient than HTML</li>
+      <li>less requests</li>
+    </ul>
+<p style="margin-left:10px">    <b>Cons</b></p>
+    <ul>
+      <li>some SEO concerns</li>
+      <li>JSON blob needs to be escaped to prevent XSS</li>
+      <li>requires a javascript templating library</li>
+      <li>requires JSON serialization</li>
+    </ul>
+<p>Note: Compare <a href="{{ url('ajaxornot:view1') }}">view1</a>
+  and <a href="{{ url('ajaxornot:view4') }}">view4</a>. It's the same "human"
+  content but instead of weighing 405Kb it's 110Kb.</p>
 {% endblock %}

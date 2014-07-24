@@ -55,3 +55,10 @@ def view3(request):
 @json_view
 def view3_data(request):
     return {'items': get_data(pub_date_format=lambda x: x.strftime('%B %Y'))}
+
+
+@cache_page(60 * 60)
+def view4(request):
+    data = get_data(pub_date_format=lambda x: x.strftime('%B %Y'))
+    context = {'items': data}
+    return render(request, 'ajaxornot/view4.html', context)
