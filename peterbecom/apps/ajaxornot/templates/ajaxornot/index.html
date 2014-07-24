@@ -56,6 +56,7 @@
       <li>fast rendering</li>
       <li>some initial rendering to screen fast</li>
       <li>no need to serialize to and from JSON</li>
+      <li>less javascript CPU usage</li>
     </ul>
 <p style="margin-left:10px">    <b>Cons</b></p>
     <ul>
@@ -77,6 +78,7 @@
       <li>JSON blob needs to be escaped to prevent XSS</li>
       <li>requires a javascript templating library</li>
       <li>requires JSON serialization</li>
+      <li>more javascript CPU usage</li>
     </ul>
 <p>Note: Compare <a href="{{ url('ajaxornot:view1') }}">view1</a>
   and <a href="{{ url('ajaxornot:view4') }}">view4</a>. It's the same "human"
