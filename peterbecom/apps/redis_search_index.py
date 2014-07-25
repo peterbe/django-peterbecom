@@ -3,6 +3,7 @@
 # taken and adopted from
 # http://engineering.getglue.com/post/36667374830/autocomplete-search-with-redis
 
+import re
 from functools import partial
 from itertools import imap, izip, product
 
@@ -28,14 +29,15 @@ class RedisSearchIndex(object):
 
     def _clean_words(self, title, filter_stopwords=False):
         """Generate normalized alphanumeric words for a given title."""
-        chars = '"[]():;?!,'
-        translation = dict((ord(c), u'') for c in chars)
+        chars = '"[]():;?!,\'-'
+        translation = dict((ord(c), u' ') for c in chars)
         def translate(text):
             if isinstance(text, unicode):
-                return text.translate(translation)
+                translated = text.translate(translation)
             else:
-                return text.translate(None, chars)
-        strips = '.\''
+                translated = text.translate(None, chars)
+            return translated
+        strips = '.'
         words = [
             x.strip(strips)
             for x in translate(title).split()

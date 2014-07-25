@@ -25,7 +25,6 @@
     vertical-align: top;
     background-color: transparent;
 }
-
 .search-query-wrap .results {
     border: 1px solid rgb(210,210,210);
     width: 500px;
@@ -82,7 +81,10 @@
 <hr>
 <p>Bugs to work out:</p>
 <ul>
-  <li>Typing "Tr" should find and highlight and hint complete "Trädgubbar"</li>
+  <!-- <li>Typing "Tr" should find and highlight and hint complete "Trädgubbar"</li> -->
+  <!-- <li>type `difference d` and when you add `a` the hint disappears</li> -->
+  <!-- <li>type `django[TAB]` and `mongok[TAB]` and the results disappears</li> -->
+  <!-- <li>Start typing `gr` and it will hint `ok` because of "Grok" but if I arrown down perhaps the hint should change</li> -->
 </ul>
 {% endblock %}
 
@@ -173,7 +175,6 @@
         var found;
         var matched;
 
-        // console.log('terms', terms);
         while ((found = re.exec(results[i][2])) !== null) {
           // console.log('found', found);
           // matched = found[0];
@@ -183,9 +184,9 @@
 
           hint_candidate = found[found.length - 1];
           if (hint_candidate !== undefined && !matched.test(q.value))  {
-            if (hint_candidates.indexOf(hint_candidate) === -1) {
+            //if (hint_candidates.indexOf(hint_candidate) === -1) {
               hint_candidates.push(hint_candidate);
-            }
+            //}
           }
         }
 
@@ -203,9 +204,10 @@
         results_ps.push(p);
       }
       // console.log('hint_candidates', hint_candidates);
+      // console.log('selected_pointer', selected_pointer);
       if (hint_candidates.length && q.value.charAt(q.value.length - 1) !== ' ') {
         // console.log('LAST CHAR', , 'EOL');
-        hint_candidate = hint_candidates[0];
+        hint_candidate = hint_candidates[selected_pointer % hint_candidates.length];
         hint.value = q.value + hint_candidate;
       } else {
         // console.log('Nothing found!');
@@ -359,7 +361,7 @@
     }
 
     function handleBlur(event) {
-      console.log('blur');
+      // console.log('blur');
       hint.value = q.value;
 
       // necessary so it becomes possible to click the links before they
@@ -371,7 +373,7 @@
     }
 
     function handleFocus(event) {
-      if (q.value.length) {
+      if (q.value.length && results_ps.length) {
         r.style.display = 'block';
       }
     }
