@@ -31,6 +31,7 @@
       <li>potentially fat HTML documents take a long time to download before something appears on the screen</li>
       <li>hard to put the HTML in a dumb and fast cache (e.g. CDN or Varnish)</li>
       <li>you're going to need to do some business logic in templates and some in javascript</li>
+      <li>hard to cache globally</li>
     </ul>
 <h4>2. Load a "skeleton" of HTML. Usually the same for every user. Then asynchronously load in the data with AJAX in some way.</h4>
 <p style="margin-left:10px">    <b>Pros</b></p>
@@ -39,6 +40,7 @@
       <li>JSON weighs less than HTML</li>
       <li>HTML document can be dumb and highly cached for every user</li>
       <li>skeleton can start when clicks cause downloading new different bulk content</li>
+      <li>possibly to cache skeleton globally and have bulk data vary per user</li>
     </ul>
 <p style="margin-left:10px">    <b>Cons</b></p>
     <ul>
@@ -78,9 +80,13 @@
       <li>JSON blob needs to be escaped to prevent XSS</li>
       <li>requires a javascript templating library</li>
       <li>requires JSON serialization</li>
-      <li>more javascript CPU usage</li>
+      <li>CPU intensive</li>
     </ul>
 <p>Note: Compare <a href="{{ url('ajaxornot:view1') }}">view1</a>
   and <a href="{{ url('ajaxornot:view4') }}">view4</a>. It's the same "human"
   content but instead of weighing 405Kb it's 110Kb.</p>
+<p>
+<p>A visual rendering filmstrip showing
+<a href="http://www.webpagetest.org/video/compare.php?tests=140724_BV_YQW,140724_EP_YQX,140724_G5_YQY,140724_4V_YQZ">all four views on Webpagetest.org</a>.
+</p>
 {% endblock %}
