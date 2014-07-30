@@ -23,7 +23,7 @@ class Command(BaseCommand):
 
         for plog in models.BlogItem.objects.filter(pub_date__lte=now).order_by('?'):
             if verbose:
-                print plog.title,
+                print repr(plog.title),
             # print search_index.add_item(plog.id, plog.title, 1)
             try:
                 hits = models.BlogItemHits.objects.get(oid=plog.oid).hits
