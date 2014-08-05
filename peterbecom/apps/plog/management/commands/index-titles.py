@@ -29,5 +29,6 @@ class Command(BaseCommand):
                 hits = models.BlogItemHits.objects.get(oid=plog.oid).hits
             except models.BlogItemHits.DoesNotExist:
                 hits = 1
+            result = search_index.add_item(plog.oid, plog.title, hits), hits
             if verbose:
-                print search_index.add_item(plog.oid, plog.title, hits), hits
+                print result
