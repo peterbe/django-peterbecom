@@ -233,7 +233,6 @@
       // console.log('Keyboard event', name);
       var i, len;
       if (name === 'tab') {
-        // console.log(q.value, hint.value);
         if (hint.value !== q.value) {
           q.value = hint.value + ' ';
         }
@@ -245,7 +244,9 @@
         // if (hint_candidates.length > 1) {
         //   still_tab_completing = true;
         // }
-        handler();  // this starts a new ajax request
+        if (q.value !== hint.value) {
+          handler();  // this starts a new ajax request
+        }
       } else if (name === 'down' || name === 'up') {
         if (name === 'down') {
           selected_pointer = Math.min(results_ps.length - 1, ++selected_pointer);
@@ -312,8 +313,9 @@
         27: 'esc'
       };
       if (!relevant_keycodes[e.keyCode]) return;
-      handleKeyboardEvent(relevant_keycodes[e.keyCode]);
       e.preventDefault();
+      handleKeyboardEvent(relevant_keycodes[e.keyCode]);
+
     }
 
     function handleAjaxError() {
@@ -381,7 +383,7 @@
 
     if (q.addEventListener) {
         q.addEventListener("input",  handler, false);
-        q.addEventListener('keypress', _handleKeyEvent, false);
+        q.addEventListener('keydown', _handleKeyEvent, false);
         q.addEventListener('blur', handleBlur, false);
         q.addEventListener('focus', handleFocus, false);
     } else { // is this a fair assumption: that attachEvent will exist ?
