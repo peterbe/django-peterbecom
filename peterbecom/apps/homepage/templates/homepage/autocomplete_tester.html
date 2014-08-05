@@ -184,9 +184,10 @@
 
           hint_candidate = found[found.length - 1];
           if (hint_candidate !== undefined && !matched.test(q.value))  {
-            //if (hint_candidates.indexOf(hint_candidate) === -1) {
+
+            if (selected_pointer === i) {
               hint_candidates.push(hint_candidate);
-            //}
+            }
           }
         }
 
