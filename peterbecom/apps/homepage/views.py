@@ -343,7 +343,8 @@ def autocomplete(request):
         return []
     conn = get_redis_connection('titles')
     search_index = RedisSearchIndex(conn)
-    results = search_index.search(q, n=10)
+    n = int(request.GET.get('n', 10))
+    results = search_index.search(q, n=n)
     return results
 
 

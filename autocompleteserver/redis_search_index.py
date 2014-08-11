@@ -8,10 +8,10 @@ from functools import partial
 from itertools import imap, izip, product
 
 from unidecode import unidecode
-from redis import Redis
+#from redis import Redis
 
-from peterbecom.apps.homepage.utils import STOPWORDS_TUPLE as STOPWORDS
-
+#from peterbecom.apps.homepage.utils import STOPWORDS_TUPLE as STOPWORDS
+from tornado import gen
 
 class RedisSearchIndex(object):
     """Autocomplete search index.
@@ -74,6 +74,7 @@ class RedisSearchIndex(object):
             pipe.execute()
         return True
 
+    @gen.coroutine
     def search(self, query, n=500, filter_stopwords=False):
         """Return the top N objects from the autocomplete index."""
 
@@ -98,20 +99,24 @@ class RedisSearchIndex(object):
             'results': []
         }
         if not terms:
-            return final
+            raise gen.Return(final)
         with self._r.pipeline() as pipe:
             pipe.zinterstore('$tmp', terms, aggregate='max')
-            pipe.zrevrange('$tmp', 0, n, withscores=True)
-            response = pipe.execute()
+            pipe.zrevrange('$tmp', 0, n, True)
+            # response = pipe.execute()
+            response = yield gen.Task(pipe.execute)
             scored_ids = response[1]
         if not scored_ids:
-            return final
-        titles = self._r.hmget('$titles', *[i[0] for i in scored_ids])
-        titles = [unicode(t, 'utf-8') for t in titles]
-        results = imap(lambda x: x[0] + (x[1],), izip(scored_ids, titles))
+            raise gen.Return(final)
+        titles = yield gen.Task(self._r.hmget, '$titles', [i[0] for i in scored_ids])
+        results = imap(
+            lambda x: x[0] + (titles[x[1]],),
+            izip(scored_ids, titles)
+        )
+
         final['results'] = sorted(
             results,
             key=lambda r: query_score(terms, r[2]) * r[1],
             reverse=True
         )[:n]
-        return final
+        raise gen.Return(final)
