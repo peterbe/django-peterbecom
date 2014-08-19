@@ -15,6 +15,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.core.urlresolvers import reverse
 from django.contrib.sites.models import RequestSite
 from django.utils.encoding import iri_to_uri
+from django.views.decorators.cache import cache_control
+
 from peterbecom.apps.plog.models import Category, BlogItem, BlogComment
 from peterbecom.apps.plog.utils import render_comment_text, utc_now
 from peterbecom.apps.redisutils import get_redis_connection
@@ -63,6 +65,7 @@ def _home_key_prefixer(request):
     return prefix
 
 
+@cache_control(public=True, max_age=60 * 60)
 @cache_page(60 * 60 * 5,  # five hours
             key_prefix=_home_key_prefixer,
             post_process_response=mincss_response
@@ -351,11 +354,13 @@ def autocomplete_tester(request):
 from .base64allimages import post_process_response as b64_post_process_response
 
 
+@cache_control(public=True, max_age=60 * 60)
 @cache_page(60 * 60, post_process_response=mincss_response)
 def about(request):
     return render(request, 'homepage/about.html')
 
 
+@cache_control(public=True, max_age=60 * 60)
 @cache_page(60 * 60 * 24, post_process_response=mincss_response)
 def contact(request):
     return render(request, 'homepage/contact.html')

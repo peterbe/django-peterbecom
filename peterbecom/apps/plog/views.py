@@ -26,6 +26,8 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files import File
 from django.contrib.sites.models import RequestSite
+from django.views.decorators.cache import cache_control
+
 from postmark.inbound import PostmarkInbound
 from .models import BlogItem, BlogItemHits, BlogComment, Category, BlogFile
 from .utils import render_comment_text, valid_email, utc_now
@@ -95,6 +97,7 @@ def _blog_post_key_prefixer(request):
     return prefix
 
 
+@cache_control(public=True, max_age=60 * 60)
 @cache_page(
     ONE_WEEK,
     _blog_post_key_prefixer,
@@ -418,6 +421,8 @@ def _plog_index_key_prefixer(request):
     prefix += str(latest_date)
     return prefix
 
+
+@cache_control(public=True, max_age=60 * 60)
 @cache_page(
     ONE_DAY,
     _plog_index_key_prefixer,
