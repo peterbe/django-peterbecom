@@ -90,9 +90,14 @@ def _blog_post_key_prefixer(request):
     # temporary solution because I can't get Google Analytics API to work
     ua = request.META.get('HTTP_USER_AGENT', '')
     if 'bot' not in ua:
-        hits, __ = BlogItemHits.objects.get_or_create(oid=oid)
-        hits.hits += 1
-        hits.save()
+        # because not so important exactly how many hits each post gets,
+        # just that some posts are more popular than other, therefore
+        # we don't need to record this every week.
+        if datetime.datetime.utcnow().strftime('%A') == 'Tuesday':
+            # so we only do this once a week
+            hits, __ = BlogItemHits.objects.get_or_create(oid=oid)
+            hits.hits += 1
+            hits.save()
 
     return prefix
 
@@ -174,20 +179,16 @@ def get_related_posts(post):
     cache_key = 'related_ids:%s' % post.pk
     related_pks = cache.get(cache_key)
     if related_pks is None:
-        related_pks = _get_related_pks(post, 10)
+        related_pks = _get_related_pks(post)
         cache.set(cache_key, related_pks, ONE_DAY)
 
-    _posts = {}  # cache of posts
-    for post in BlogItem.objects.filter(pk__in=related_pks):
-        # so we only need 1 query to fetch 10 items in the particular order
-        _posts[post.pk] = post
-    related = []
-    for pk in related_pks:
-        related.append(_posts[pk])
-    return related
+    return (
+        BlogItem.objects.filter(pk__in=related_pks)
+        .exclude(plogrank__isnull=True)
+        .order_by('-plogrank')[:12]
+    )
 
-
-def _get_related_pks(post, max_):
+def _get_related_pks(post):
     redis = get_redis_connection(reconnection_wrapped=True)
     count_keywords = redis.get('kwcount')
     if not count_keywords:
@@ -206,7 +207,7 @@ def _get_related_pks(post, max_):
             if pk != post.pk:
                 _related[pk] += (len(_keywords) - i)
     items = sorted(((v, k) for (k, v) in _related.items()), reverse=True)
-    return [y for (x, y) in items][:max_]
+    return [y for (x, y) in items]
 
 
 def _render_comment(comment):

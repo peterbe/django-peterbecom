@@ -117,7 +117,7 @@
       <dl>
         <dt>Related by keywords:</dt>
         {% for each in related %}
-        <dd><a href="{{ each.get_absolute_url() }}">{{ each.title }}</a>
+        <dd><a href="{{ each.get_absolute_url() }}" data-plogrank="{{ each.plogrank }}">{{ each.title }}</a>
         <small>{{ each.pub_date.strftime('%d %B %Y') }}</small>
         </dd>
         {% endfor %}
