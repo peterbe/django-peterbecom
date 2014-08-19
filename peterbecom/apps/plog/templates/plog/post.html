@@ -6,10 +6,6 @@
 {% if post.keywords %}
 <meta name="keywords" content="{{ ','.join(post.keywords) }}">
 {% endif %}
-<meta property="og:title" content="{{ post.title }}">
-<meta property="og:url" content="{{ post._absolute_url }}">
-<link rel="prefetch" href="{{ home_url }}"> <!-- Firefox -->
-<link rel="prerender" href="{{ home_url }}"> <!-- Chrome -->
 {% endblock %}
 
 
@@ -22,6 +18,7 @@
 
   {% compress js %}
   <script src="{{ static("js/blogitem.js") }}"></script>
+  <script src="{{ static("js/prefetcher.js") }}"></script>
   {% endcompress %}
 
   {% if show_buttons %}
