@@ -1,4 +1,4 @@
-django==1.4.13
+django==1.5.8
 Jinja2
 jingo
 pygments
