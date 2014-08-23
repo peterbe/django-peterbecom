@@ -8,7 +8,6 @@ akismet
 django-celery-email
 isodate
 django-redis-cache
-django_compressor
 django-bootstrap-form
 markdown
 sorl-thumbnail

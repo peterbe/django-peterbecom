@@ -28,7 +28,7 @@ from django.core.files import File
 from django.contrib.sites.models import RequestSite
 from django.views.decorators.cache import cache_control
 
-from postmark.inbound import PostmarkInbound
+from postmark_inbound import PostmarkInbound
 from .models import BlogItem, BlogItemHits, BlogComment, Category, BlogFile
 from .utils import render_comment_text, valid_email, utc_now
 from peterbecom.apps.redisutils import get_redis_connection
