@@ -100,6 +100,14 @@ TEMPLATE_LOADERS = (
 )
 
 
+def COMPRESS_JINJA2_GET_ENVIRONMENT():
+    from jingo import env
+    from compressor.contrib.jinja2ext import CompressorExtension
+    env.add_extension(CompressorExtension)
+
+    return env
+
+
 JINGO_EXCLUDE_APPS = (
     'debug_toolbar',
     'admin',
