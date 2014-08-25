@@ -26,6 +26,9 @@
     background-color: transparent;
 }
 .search-query-wrap .results {
+    z-index: 10;
+    position: absolute;
+    background-color: white;
     border: 1px solid rgb(210,210,210);
     width: 500px;
     display: none;
@@ -40,7 +43,12 @@
     overflow: hidden;
     text-overflow: ellipsis;
     border-bottom: 1px solid rgb(210,210,210);
+    cursor: pointer;
 }
+.search-query-wrap .results p a {
+    display: block;
+}
+
 .search-query-wrap .results p:last-child {
     border-bottom: none;
 }
@@ -85,20 +93,32 @@
   <!-- <li>type `difference d` and when you add `a` the hint disappears</li> -->
   <!-- <li>type `django[TAB]` and `mongok[TAB]` and the results disappears</li> -->
   <!-- <li>Start typing `gr` and it will hint `ok` because of "Grok" but if I arrown down perhaps the hint should change</li> -->
+  <!-- <li>Clicking the li element on #results should be like clicking the link</li> -->
 </ul>
 {% endblock %}
 
 
 {% block extrajs %}
 <script>
+var T;
 (function(window, document, undefined) {
 
+  /* utility function to create DOM elements */
   function E(tag, options) {
     var e = document.createElement(tag);
     for (var key in options) {
       e[key] = options[key];
     }
     return e;
+  }
+
+  /* utility function to attach event handlers to elements */
+  function V(target, type, handler) {
+    if (target.addEventListener) {
+      target.addEventListener(type, handler, false);
+    } else {
+      target.attachEvent(type, handler);
+    }
   }
 
   function setUp(q) {
@@ -125,6 +145,7 @@
     // var r = document.createElement('div');
     // r.className = 'results';
     var r = E('div', {className: 'results'});
+    V(r, 'mouseover', mouseoverResults);
     wrapper.appendChild(r);
 
     q.parentElement.insertBefore(wrapper, q);
@@ -138,6 +159,13 @@
       var search_terms = terms.map(escapeRegExp);
       var re = new RegExp('\\b(' + search_terms.join('|') + ')', 'gi');
       return text.replace(re, '<b>$1</b>');
+    }
+
+    function mouseoverResults(e) {
+      if (e.target.tagName === 'P') {
+        selected_pointer = +e.target.dataset.i;
+        displayResults();
+      }
     }
 
     var results;
@@ -195,6 +223,7 @@
         if (i === selected_pointer) {
           p.className = 'selected';
         }
+        p.dataset.i = i;  // needed by the onmouseover event handler
 
         a = E('a', {
           innerHTML: highlightText(results[i][2]),
@@ -381,17 +410,10 @@
       }
     }
 
-    if (q.addEventListener) {
-        q.addEventListener("input",  handler, false);
-        q.addEventListener('keydown', _handleKeyEvent, false);
-        q.addEventListener('blur', handleBlur, false);
-        q.addEventListener('focus', handleFocus, false);
-    } else { // is this a fair assumption: that attachEvent will exist ?
-        q.attachEvent('oninput', handler); // IE<9
-        q.attachEvent('keypress', _handleKeyEvent);
-        q.attachEvent('blur', handleBlur);
-        q.attachEvent('focus', handleFocus);
-    }
+    V(q, 'input', handler);
+    V(q, 'keydown', _handleKeyEvent);
+    V(q, 'blur', handleBlur);
+    V(q, 'focus', handleFocus);
 
     if (q.value.length) {
       handler();
