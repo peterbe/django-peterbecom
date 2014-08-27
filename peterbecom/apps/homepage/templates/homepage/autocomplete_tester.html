@@ -100,7 +100,6 @@
 
 {% block extrajs %}
 <script>
-var T;
 (function(window, document, undefined) {
 
   /* utility function to create DOM elements */
@@ -221,7 +220,7 @@ var T;
 
         p = E('p');
         if (i === selected_pointer) {
-          p.className = 'selected';
+          p.classList.add('selected');
         }
         p.dataset.i = i;  // needed by the onmouseover event handler
 
@@ -284,9 +283,9 @@ var T;
         }
         for (i=0, len=results_ps.length; i < len; i++) {
           if (i === selected_pointer) {
-            results_ps[i].className = 'selected';
+            results_ps[i].classList.add('selected');
           } else {
-            results_ps[i].className = '';
+            results_ps[i].classList.remove('selected');
           }
         }
         displayResults();
