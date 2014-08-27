@@ -195,6 +195,10 @@
       // console.log('Search_terms:', search_terms);
       var re = new RegExp('\\b(' + search_terms.join('|') + ')(\\w+)\\b', 'gi');
 
+      // Because `r` is a DOM element that has already been inserted into
+      // the DOM we collect all the `<p>` tags into a Document Fragment
+      // and add the whole thing later into the `r` element.
+      var p_fragments = document.createDocumentFragment();
       for (var i=0, len=results.length; i < len; i++) {
         // var re_already = new RegExp('\\b' + search_terms.join('|') + '\\b', 'gi');
         // console.log('already', re_already.exec(q.value));
@@ -229,9 +233,11 @@
           href: '/plog/' + results[i][0]
         });
         p.appendChild(a);
-        r.appendChild(p);
+        p_fragments.appendChild(p);
         results_ps.push(p);
       }
+      r.appendChild(p_fragments);
+
       // console.log('hint_candidates', hint_candidates);
       // console.log('selected_pointer', selected_pointer);
       if (hint_candidates.length && q.value.charAt(q.value.length - 1) !== ' ') {
