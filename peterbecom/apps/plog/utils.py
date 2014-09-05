@@ -7,8 +7,9 @@ import functools
 import re
 import zope.structuredtext
 from pygments import highlight
-from pygments.lexers import (PythonLexer, JavascriptLexer, TextLexer,
-  HtmlLexer, CssLexer, SqlLexer)
+from pygments import lexers
+#from pygments.lexers import (PythonLexer, JavascriptLexer, TextLexer,
+#  HtmlLexer, CssLexer, SqlLexer)
 from pygments.formatters import HtmlFormatter
 from django.conf import settings
 from django import http
@@ -239,21 +240,23 @@ def stx_to_html(text, codesyntax):
 
 def _get_lexer(codesyntax):
     if codesyntax in ('cpp', 'javascript'):
-        return JavascriptLexer()
+        return lexers.JavascriptLexer()
     elif codesyntax == 'python':
-        return PythonLexer()
+        return lexers.PythonLexer()
     elif codesyntax == 'xml' or codesyntax == 'html':
-        return HtmlLexer()
+        return lexers.HtmlLexer()
     elif codesyntax == 'css':
-        return CssLexer()
+        return lexers.CssLexer()
     elif codesyntax == 'sql':
-        return SqlLexer()
+        return lexers.SqlLexer()
+    elif codesyntax == 'bash':
+        return lexers.BashLexer()
     elif codesyntax:
         raise NotImplementedError(codesyntax)
     else:
         return TextLexer()
 
-_codesyntax_regex = re.compile('```(python|cpp|javascript|xml|html|css|sql)')
+_codesyntax_regex = re.compile('```(python|cpp|javascript|xml|html|css|sql|bash)')
 _markdown_pre_regex = re.compile('```([^`]+)```')
 
 def markdown_to_html(text, codesyntax):
