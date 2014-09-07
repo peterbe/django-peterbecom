@@ -2,6 +2,7 @@ $(function() {
   var prefetched = [];
   var prefetch_timer = null;
   $('div.navbar, div.content').on('mouseover', 'a', function(e) {
+    if (!e.target.attributes.href) return;
     var value = e.target.attributes.href.value;
     if (value.indexOf('/') === 0) {
       if (prefetched.indexOf(value) === -1) {
