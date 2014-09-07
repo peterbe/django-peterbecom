@@ -254,7 +254,7 @@ def _get_lexer(codesyntax):
     elif codesyntax:
         raise NotImplementedError(codesyntax)
     else:
-        return TextLexer()
+        return lexers.TextLexer()
 
 _codesyntax_regex = re.compile('```(python|cpp|javascript|xml|html|css|sql|bash)')
 _markdown_pre_regex = re.compile('```([^`]+)```')
