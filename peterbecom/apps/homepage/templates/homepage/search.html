@@ -6,13 +6,16 @@ a.better { font-weight: bold; }
 .row .page-header { padding-bottom:5px; margin: 25px 0 5px 0;}
 .page-header a.url { color:green; }
 </style>
+{% endblock %}
 
-{% if first_document_url %}
-<link rel="prefetch" href="{{ first_document_url }}"> <!-- Firefox -->
-<link rel="prerender" href="{{ first_document_url }}"> <!-- Chrome -->
-{% endif %}
+{% block extrajs %}
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+  {% compress js %}
+  <script src="{{ static("js/prefetcher.js") }}"></script>
+  {% endcompress %}
 
 {% endblock %}
+
 
 {% block title_prefix %}Search: {{ page_title }}{% endblock %}
 
@@ -38,19 +41,18 @@ a.better { font-weight: bold; }
 {% endif %}
 
 {% for document in documents %}
-		<div class="row">
-			<div class="span12">
-				<div class="page-header">
-					<h3>
-						<a href="{{ document.url }}">{{ document.title|safe }}</a>
-                                                <small>{{ document.date.strftime('%d %b %Y') }}</small>
-					</h3>
-                                        <a class="url" href="{{ document.url }}">{{ base_url }}{{ document.url }}</a>
-				</div>
-                                {{ document.summary|safe }}
-			</div>
-		</div>
-
+  <div class="row">
+    <div class="span12">
+      <div class="page-header">
+        <h3>
+          <a href="{{ document.url }}">{{ document.title|safe }}</a>
+          <small>{{ document.date.strftime('%d %b %Y') }}</small>
+        </h3>
+        <a class="url" href="{{ document.url }}">{{ base_url }}{{ document.url }}</a>
+      </div>
+      {{ document.summary|safe }}
+    </div>
+  </div>
 {% endfor %}
 
 {% endblock %}

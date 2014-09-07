@@ -322,11 +322,6 @@ def search(request):
             page_title += ' (but only %s things shown)' % count_documents_shown
     data['page_title'] = page_title
 
-    if data['documents']:
-        data['first_document_url'] = data['documents'][0]['url']
-    else:
-        data['first_document_url'] = None
-
     if not data['count_documents'] and len(search.split()) == 1 and not keyword_search:
         if redis.smembers('kw:%s' % search):
             url = reverse('search')
