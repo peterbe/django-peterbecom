@@ -340,7 +340,7 @@ def search(request):
 def autocomplete(request):
     q = request.GET.get('q')
     if not q:
-        return []
+        return
     conn = get_redis_connection('titles')
     search_index = RedisSearchIndex(conn)
     n = int(request.GET.get('n', 10))

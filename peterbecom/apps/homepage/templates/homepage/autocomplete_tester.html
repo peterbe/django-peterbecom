@@ -94,6 +94,7 @@
   <!-- <li>type `django[TAB]` and `mongok[TAB]` and the results disappears</li> -->
   <!-- <li>Start typing `gr` and it will hint `ok` because of "Grok" but if I arrown down perhaps the hint should change</li> -->
   <!-- <li>Clicking the li element on #results should be like clicking the link</li> -->
+  <!-- <li>pressing space 10 times does 10 ajax requests</li> -->
 </ul>
 {% endblock %}
 
@@ -141,8 +142,7 @@
     wrapper.appendChild(hint);
     var clone = q.cloneNode(true);
     wrapper.appendChild(clone);
-    // var r = document.createElement('div');
-    // r.className = 'results';
+
     var r = E('div', {className: 'results'});
     V(r, 'mouseover', mouseoverResults);
     wrapper.appendChild(r);
@@ -162,17 +162,20 @@
 
     function mouseoverResults(e) {
       if (e.target.tagName === 'P') {
-        selected_pointer = +e.target.dataset.i;
-        displayResults();
+        if (selected_pointer !== +e.target.dataset.i) {
+          selected_pointer = +e.target.dataset.i;
+          displayResults();
+        }
       }
     }
 
-    var results;
+    var results = null;
     var terms;
     function displayResults() {
       // terms = response.terms;
       // var results = response.results;
-
+      if (results === null) return;
+      console.log('results', results)
       if (results.length) {
         r.style.display = 'block';
         var ps = r.getElementsByTagName('p');
@@ -245,7 +248,6 @@
         hint_candidate = hint_candidates[selected_pointer % hint_candidates.length];
         hint.value = q.value + hint_candidate;
       } else {
-        // console.log('Nothing found!');
         hint.value = q.value;
       }
 
@@ -358,15 +360,15 @@
 
     var cache = {};
     function handler() {
-      if (!q.value) {
+      if (!q.value.trim()) {
         hint.value = '';
         r.style.display = 'none';
         return;
       }
       // new character, let's reset the selected_pointer
       selected_pointer = 0;
-      if (cache[q.value]) {
-        var response = cache[q.value];
+      if (cache[q.value.trim()]) {
+        var response = cache[q.value.trim()];
         terms = response.terms;
         results = response.results;
         displayResults();
@@ -381,7 +383,7 @@
           if (req.readyState === 4) {
             if (req.status === 200) {
               var response = JSON.parse(req.responseText);
-              cache[q.value] = response;
+              cache[q.value.trim()] = response;
               terms = response.terms;
               results = response.results;
               displayResults();
@@ -391,14 +393,13 @@
             }
           }
         };
-        req.open('GET', '/autocomplete?q=' + encodeURIComponent(q.value), true);
+        req.open('GET', '/autocomplete?q=' + encodeURIComponent(q.value.trim()), true);
         req.send();
       }
       // console.log(q.value);
     }
 
     function handleBlur(event) {
-      // console.log('blur');
       hint.value = q.value;
 
       // necessary so it becomes possible to click the links before they
@@ -406,7 +407,7 @@
       setTimeout(function() {
         r.style.display = 'none';
       }, 200);
-
+      event.preventDefault();
     }
 
     function handleFocus(event) {
