@@ -175,7 +175,7 @@
       // terms = response.terms;
       // var results = response.results;
       if (results === null) return;
-      console.log('results', results)
+      // console.log('results', results)
       if (results.length) {
         r.style.display = 'block';
         var ps = r.getElementsByTagName('p');
@@ -396,7 +396,6 @@
         req.open('GET', '/autocomplete?q=' + encodeURIComponent(q.value.trim()), true);
         req.send();
       }
-      // console.log(q.value);
     }
 
     function handleBlur(event) {
@@ -426,8 +425,9 @@
     }
 
   }  // end of setUp
-  setUp(document.getElementsByClassName('search-query')[1]);
-  //var q = document.getElementById('q');
+
+  //setUp(document.querySelectorAll('[name="q"]')[0]);
+  setUp(document.querySelectorAll('[name="q"]')[1]);
 
 
 }) (window, document);
