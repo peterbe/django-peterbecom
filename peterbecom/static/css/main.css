@@ -2,24 +2,28 @@ html, body {
     background-color: #fff;
 }
 body {
-    padding-top: 40px;
+    /*padding-top: 40px;*/
 }
-.container > footer p {
+/*.container > footer p {
     text-align: center;
-}
+}*/
 .content {
-    padding: 20px;
-    margin: 0 -20px;
+    /*padding: 20px;*/
+    /*margin: 0 -20px;*/
+    padding-bottom: 40px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #EEE;
 }
+
 .footer-style {
     width: 100%;
-    background-color: #333;
+    /*background-color: #333;*/
     height: 30px;
     text-align: center;
-    padding-top: 10px;
+    padding-top: 40px;
 }
 .footer-text {
-    color: white;
+    color: #666;
     font-weight: normal;
 }
 a.bold {
@@ -124,10 +128,10 @@ span.not-approved { /* no mincss */
 textarea, input { color:rgb(70,70,70); }
 
 /* commenting form */
-form#comment .meta { float:right; width:35%; }
-form#comment .meta input { margin-bottom: 8px; }
+/*form#comment .meta { float:right; width:35%; }*/
+form#comment .meta input { margin-bottom: 8px; width: 100%; }
 form#comment .meta .note { font-size:0.9em; }
-form#comment textarea { width:60%; height:150px; }
+form#comment textarea { width:100%; height:150px; }
 form#comment .cancel a { font-size:0.9em; margin:5px; }
 
 .comments-truncated {
@@ -223,14 +227,15 @@ img.floatleft {
 }
 
 
-  .navbar li.navbar-search-link {
-    display: none;
-  }
+.navbar li.navbar-search-link {
+  display: none;
+}
 
 
 .navbar {
-  opacity: 0.95;
-  box-shadow: 0px 10px 17px rgba(46, 46, 46, 0.7);
+  /*opacity: 0.95;*/
+  border-radius: 0;
+  box-shadow: 0px 5px 8px rgba(46, 46, 46, 0.7);
 }
 
 /* Landscape phones and down */
@@ -317,19 +322,17 @@ img.floatleft {
 }
 
 /* Landscape phone to portrait tablet */
-@media (max-width: 767px) {
+/*@media (max-width: 767px) {
   .container,
   .navbar-fixed-top .container,
   .navbar-fixed-bottom .container,
   .span12 {
     width: 760px;
   }
-
-
-}
+}*/
 
 /* Portrait tablet to landscape and desktop */
-@media (min-width: 768px) and (max-width: 979px) {
+/*@media (min-width: 768px) and (max-width: 979px) {
   .container,
   .navbar-fixed-top .container,
   .navbar-fixed-bottom .container,
@@ -337,7 +340,11 @@ img.floatleft {
     width: 760px;
   }
 
-}
+}*/
 
 /* Large desktop */
-@media (min-width: 1200px) {  }
+@media (min-width: 1200px) {
+  .container {
+    width: 970px;
+  }
+}

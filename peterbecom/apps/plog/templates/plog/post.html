@@ -67,23 +67,27 @@
 <p><em>Comments closed</em></p>
 {% else %}
 <div id="preview-comment-outer" class="preview" style="display:none"></div>
-<form action="{{ url('submit', post.oid) }}" method="post" id="comment">
-<div class="meta">
-  <input type="hidden" name="csrfmiddlewaretoken" value="">
-  <input type="hidden" name="parent" value="">
-  <input name="name" placeholder="Your full name" title="Your full name" tabindex="2"><br>
-  <input name="email" placeholder="Your email" title="Your email" tabindex="3"><br>
-  <span class="note">Your email will never ever be published</span>
-  <br>
-  <br>
-    <button type="submit" class="btn preview primary" tabindex="4">Preview first</button>
-    <button type="submit" class="btn post" tabindex="5">Post comment</button><br>
-  <br>
-  <p class="cancel" style="display:none"><a href="./" title="Abandon ship!">Cancel</a></p>
+
+<form action="{{ url('submit', post.oid) }}" method="post" id="comment" class="row">
+  <div class="col-md-8">
+    <textarea name="comment" tabindex="1"></textarea>
+  </div>
+
+  <div class="meta col-md-4">
+    <input type="hidden" name="csrfmiddlewaretoken" value="">
+    <input type="hidden" name="parent" value="">
+    <input name="name" placeholder="Your full name" title="Your full name" tabindex="2"><br>
+    <input name="email" placeholder="Your email" title="Your email" tabindex="3"><br>
+    <span class="note">Your email will never ever be published</span>
+    <br>
+    <br>
+      <button type="submit" class="btn btn-primary preview primary" tabindex="4">Preview first</button>
+      <button type="submit" class="btn btn-default post" tabindex="5">Post comment</button><br>
+    <br>
+    <p class="cancel" style="display:none"><a href="./" title="Abandon ship!">Cancel</a></p>
 
 
-</div>
-<textarea name="comment" tabindex="1"></textarea>
+  </div>
 </form>
 {% endif %}
 
@@ -96,7 +100,7 @@
   </div>
 
   <div class="row">
-    <div class="span6">
+    <div class="col-md-6">
       <dl>
         {% if previous_post %}
         <dt>Previous:</dt>
@@ -115,7 +119,7 @@
     </div>
 
     {% if related %}
-    <div class="span6">
+    <div class="col-md-6">
       <dl>
         <dt>Related by keywords:</dt>
         {% for each in related %}

@@ -65,11 +65,11 @@ def _home_key_prefixer(request):
     return prefix
 
 
-@cache_control(public=True, max_age=60 * 60)
-@cache_page(60 * 60 * 5,  # five hours
-            key_prefix=_home_key_prefixer,
-            post_process_response=mincss_response
-            )
+# @cache_control(public=True, max_age=60 * 60)
+# @cache_page(60 * 60 * 5,  # five hours
+#             key_prefix=_home_key_prefixer,
+#             post_process_response=mincss_response
+#             )
 def home(request, oc=None):
     data = {}
     qs = BlogItem.objects.filter(pub_date__lt=utc_now())
@@ -359,8 +359,8 @@ def about(request):
     return render(request, 'homepage/about.html')
 
 
-@cache_control(public=True, max_age=60 * 60)
-@cache_page(60 * 60 * 24, post_process_response=mincss_response)
+# @cache_control(public=True, max_age=60 * 60)
+# @cache_page(60 * 60 * 24, post_process_response=mincss_response)
 def contact(request):
     return render(request, 'homepage/contact.html')
 
