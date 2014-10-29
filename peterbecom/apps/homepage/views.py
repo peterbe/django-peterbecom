@@ -207,6 +207,8 @@ def search(request):
             not_ids[model_name].add(item.pk)
         return count
 
+    now = utc_now()
+
     if len(search) > 1:
         search_escaped, words = create_search(search)
         regex = re.compile(r'\b(%s)' % '|'.join(re.escape(word)
@@ -222,6 +224,7 @@ def search(request):
             qs = model.objects
             model_name = model._meta.object_name
             if model == BlogItem:
+                qs = qs.filter(pub_date__lte=now)
                 fields = ('title', 'text')
                 order_by = '-pub_date'
                 if keyword_search.get('keyword'):
