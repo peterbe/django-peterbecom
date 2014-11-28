@@ -43,35 +43,6 @@
     </div>
   </nav>
 
-    {#
-    <nav class="navbar navbar-inverse navbar-static-top" role="navigation">
-      <div class="container">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="/">Peterbe.com</a>
-          <form action="/search" class="navbar-search pull-right">
-            <input type="text" name="q" class="search-query" maxlength="90" placeholder="Search" {% if q %}value="{{ q }}"{% endif %}>
-          </form>
-        </div>
-        <div id="navbar" class="navbar-collapse collapse">
-          <!-- <ul class="nav navbar-nav">
-            <li><a href="/">Peterbe.com</a></li>
-          </ul> -->
-          <ul class="nav navbar-nav navbar-right">
-            <li><a href="{{ url('plog_index') }}">Archive</a></li>
-            <li><a href="{{ url('about') }}">About</a></li>
-            <li><a href="{{ url('contact') }}">Contact</a></li>
-          </ul>
-        </div><!--/.nav-collapse -->
-      </div>
-    </nav>
-    #}
-
 
 <div class="container">
   {% block pre_content %}
