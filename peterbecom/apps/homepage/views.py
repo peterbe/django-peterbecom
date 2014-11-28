@@ -196,6 +196,7 @@ def search(request):
 
     not_ids = defaultdict(set)
     times = []
+    search_times = []
     count_documents = []
     regex = regex_ext = None
 
@@ -268,9 +269,11 @@ def search(request):
                   model_name,
                   field
                 ))
+                search_times.append(t1-t0)
 
         logging.info('Searchin for %r:\n%s' % (search, '\n'.join(times)))
     elif keyword_search and any(keyword_search.values()):
+        t0 = time.time()
         if keyword_search.get('keyword') or keyword_search.get('keywords'):
             if keyword_search.get('keyword'):
                 ids = redis.smembers('kw:%s' % keyword_search['keyword'])
@@ -298,7 +301,11 @@ def search(request):
                 items = BlogItem.objects.filter(cat_q)
                 model_name = BlogItem._meta.object_name
                 append_queryset_search(items, '-pub_date', [], model_name)
+        t1 = time.time()
+        search_times.append(t1 - t0)
 
+    # print search_times
+    data['search_time'] = sum(search_times)
     count_documents_shown = len(documents)
     data['documents'] = documents
     data['count_documents'] = sum(count_documents)

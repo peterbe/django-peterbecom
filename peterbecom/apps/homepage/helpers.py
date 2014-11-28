@@ -1,5 +1,6 @@
 #import re
 from django.core.urlresolvers import reverse
+from django.template import defaultfilters
 from django.contrib.staticfiles.storage import staticfiles_storage
 import jinja2
 from jingo import register
@@ -22,6 +23,11 @@ def url(viewname, *args, **kwargs):
 @register.function
 def static(path):
     return staticfiles_storage.url(path)
+
+
+@register.function
+def floatformat(*args, **kwargs):
+    return defaultfilters.floatformat(*args, **kwargs)
 
 
 #@register.function
