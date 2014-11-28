@@ -52,7 +52,9 @@ var F = (function() {
       $('textarea', form).val('');
       $('input[name="parent"]', form).val('');
       $('#comments-outer').append(form.detach());
-      form.insertBefore(preview.detach());
+      preview.detach().insertBefore(form).hide();
+      $('button.preview').addClass('btn-primary').removeClass('btn-default');
+      $('button.post').addClass('btn-default').removeClass('btn-primary');
       _submitting = false;
       return false;
     },
@@ -176,8 +178,8 @@ $(function() {
   $('button.preview', form).click(function() {
     if ($('textarea', form).val()) {
       F.preview(function() {
-        $('button.preview', form).removeClass('primary');
-        $('button.post', form).addClass('primary');
+        $('button.preview', form).removeClass('btn-primary').addClass('btn-default');
+        $('button.post', form).removeClass('btn-default').addClass('btn-primary');
       });
     }
     return false;
@@ -189,6 +191,7 @@ $(function() {
   });
 
   form.on('submit', F.submit);
+
   $('.cancel a', form).on('click', F.reset);
 
   $('#comments').on('click', 'button[name="approve"]', function() {
