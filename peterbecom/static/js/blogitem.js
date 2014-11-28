@@ -28,10 +28,21 @@ var F = (function() {
          $('input[name="csrfmiddlewaretoken"]', form).val(response.csrf_token);
          if (response.name && !$('input[name="name"]', form).val()) {
            $('input[name="name"]', form).val(response.name);
+         } else {
+           var name = localStorage.getItem('name');
+           if (name) {
+             $('input[name="name"]', form).val(name);
+           }
          }
          if (response.email && !$('input[name="email"]', form).val()) {
            $('input[name="email"]', form).val(response.email);
+         } else {
+           var email = localStorage.getItem('email');
+           if (email) {
+             $('input[name="email"]', form).val(email);
+           }
          }
+
          _preparing = false;
          if (callback) callback();
        });
@@ -130,6 +141,13 @@ var F = (function() {
               .text(text)
                 .fadeIn(600);
           });
+          // save the name and email if possible
+          if (data.name) {
+            localStorage.setItem('name', data.name);
+          }
+          if (data.email) {
+            localStorage.setItem('email', data.email);
+          }
         },
         error: function (jqXHR, textStatus, errorThrown) {
           form.css('opacity', 1);
