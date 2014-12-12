@@ -31,7 +31,7 @@
       <div id="navbar" class="navbar-collapse collapse">
         <form action="{{ url('search') }}" class="navbar-form navbar-right" role="search">
           <div class="form-group">
-            <input type="text" name="q" class="search-query" maxlength="90" placeholder="Search" {% if q %}value="{{ q }}"{% endif %}>
+            <input type="text" name="q" class="form-control search-query" maxlength="90" placeholder="Search" {% if q %}value="{{ q }}"{% endif %}>
           </div>
         </form>
         <ul class="nav navbar-nav navbar-right">
