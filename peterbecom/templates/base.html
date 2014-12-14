@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="{{ static("css/bootstrap-theme.min.css") }}">
   <link rel="stylesheet" href="{{ static("css/main.css") }}">
   {% endcompress %}
+  <link rel="stylesheet" href="{{ static("autocomplete/autocomplete.css") }}" data-no-mincss>
   <link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
   {% block extrahead %}
   {% endblock %}
@@ -60,7 +61,13 @@
     &copy; peterbe.com 2003 - {{ THIS_YEAR }}
   </p>
 </div>
+{% compress js %}
+<script src="{{ static('autocomplete/autocomplete.js') }}"></script>
 <script src="{{ static('libs/bootstrap-without-jquery.min.js') }}"></script>
+{% endcompress %}
+<script>
+Autocomplete(document.querySelectorAll('[name="q"]')[0]);
+</script>
 {% block extrajs %}{% endblock %}
 
 {% if use_google_analytics %}

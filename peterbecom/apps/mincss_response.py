@@ -32,9 +32,20 @@ def mincss_response(response, request):
     _requests_before = 0
     for link in p.links:
         _total_before += len(link.before)
+
         _requests_before += 1
-        #combined_css.append('/* %s */' % link.href)
-        combined_css.append(link.after)
+        # combined_css.append('/* %s */' % link.href)
+
+        # Here's an ugly exception handling.
+        # The autocomplete css is almost entirely based on javascript
+        # events that mincss can't be aware of.
+        # And since it's (going to be) a third-party tool, we can't
+        # pepper it with /*no mincss*/ in every selector.
+        if 'autocomplete' in link.href:
+            # leave as is
+            combined_css.append(link.before)
+        else:
+            combined_css.append(link.after)
 
     for inline in p.inlines:
         _total_before += len(inline.before)
