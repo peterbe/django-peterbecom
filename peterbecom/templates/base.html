@@ -62,11 +62,11 @@
   </p>
 </div>
 {% compress js %}
-<script src="{{ static('autocomplete/autocomplete.js') }}"></script>
+<script src="{{ static('autocomplete/autocomplete.min.js') }}"></script>
 <script src="{{ static('libs/bootstrap-without-jquery.min.js') }}"></script>
 {% endcompress %}
 <script>
-Autocomplete(document.querySelectorAll('[name="q"]')[0]);
+AutoComplete(document.querySelectorAll('[name="q"]')[0]);
 </script>
 {% block extrajs %}{% endblock %}
 

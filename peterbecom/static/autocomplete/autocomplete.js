@@ -33,7 +33,7 @@
  * More to come...
  */
 
-var Autocomplete = (function(window, document, undefined) { /* TODO: can 'undefined' be removed */
+;(function(window, document) {
   'use strict';
 
   /* utility function to create DOM elements */
@@ -68,7 +68,7 @@ var Autocomplete = (function(window, document, undefined) { /* TODO: can 'undefi
     return target;
   }
 
-  return function setUp(q, options) {
+  function setUp(q, options) {
     options = options || {};
     options = extend({
       url: '/autocomplete',
@@ -80,7 +80,6 @@ var Autocomplete = (function(window, document, undefined) { /* TODO: can 'undefi
     var selected_pointer = 0;
     q.spellcheck = false;
     q.autocomplete = 'off';
-    var r;
 
     // wrap the input
     var wrapper = createDomElement('span', {className: '_ac-wrap'});
@@ -100,7 +99,7 @@ var Autocomplete = (function(window, document, undefined) { /* TODO: can 'undefi
     var clone = q.cloneNode(true);
     wrapper.appendChild(clone);
 
-    r = createDomElement('div', {className: '_ac-results'});
+    var r = createDomElement('div', {className: '_ac-results'});
     attachHandler(r, 'mouseover', mouseoverResults);
     wrapper.appendChild(r);
 
@@ -130,10 +129,7 @@ var Autocomplete = (function(window, document, undefined) { /* TODO: can 'undefi
     var terms;
     function displayResults() {
       var i, len;
-      // terms = response.terms;
-      // var results = response.results;
       if (results === null) return;
-      // console.log('results', results)
       if (results.length) {
         r.style.display = 'block';
         var ps = r.getElementsByTagName('p');
@@ -145,15 +141,12 @@ var Autocomplete = (function(window, document, undefined) { /* TODO: can 'undefi
       }
       results_ps = [];
       var p, a;
-      // console.log(results);
       var hint_candidate = null;
       var hint_candidates = [];
       if (!results.length) {
         hint.value = q.value;
       }
-      // console.log(results.length, 'hits');
       var search_terms = terms.map(escapeRegExp);
-      // console.log('Search_terms:', search_terms);
       var re = new RegExp('\\b(' + search_terms.join('|') + ')(\\w+)\\b', 'gi');
 
       // Because `r` is a DOM element that has already been inserted into
@@ -161,18 +154,11 @@ var Autocomplete = (function(window, document, undefined) { /* TODO: can 'undefi
       // and add the whole thing later into the `r` element.
       var p_fragments = document.createDocumentFragment();
       for (i=0, len=results.length; i < len; i++) {
-        // var re_already = new RegExp('\\b' + search_terms.join('|') + '\\b', 'gi');
-        // console.log('already', re_already.exec(q.value));
-        // console.log(results[i][2]);
         var found;
         var matched;
 
         while ((found = re.exec(results[i][2])) !== null) {
-          // console.log('found', found);
-          // matched = found[0];
-          // console.log('matched', matched);
           matched = new RegExp('\\b' + escapeRegExp(found[0]) + '\\b', 'gi');
-          // console.log('found[0]', found[0], matched.test(q.value));
 
           hint_candidate = found[found.length - 1];
           if (hint_candidate !== undefined && !matched.test(q.value))  {
@@ -199,27 +185,13 @@ var Autocomplete = (function(window, document, undefined) { /* TODO: can 'undefi
       }
       r.appendChild(p_fragments);
 
-      // console.log('hint_candidates', hint_candidates);
-      // console.log('selected_pointer', selected_pointer);
       if (hint_candidates.length && q.value.charAt(q.value.length - 1) !== ' ') {
-        // console.log('LAST CHAR', , 'EOL');
         hint_candidate = hint_candidates[selected_pointer % hint_candidates.length];
         hint.value = q.value + hint_candidate;
       } else {
         hint.value = q.value;
       }
 
-    }
-
-    function _characterFromEvent(e) {
-      // for keypress events we should return the character as is
-      if (e.type == 'keypress') {
-          var character = String.fromCharCode(e.which);
-          // console.log('Character keypress:', character);
-          return character;
-      } else {
-        return String.fromCharCode(e.which).toLowerCase();
-      }
     }
 
     function findParentForm(element) {
@@ -258,7 +230,6 @@ var Autocomplete = (function(window, document, undefined) { /* TODO: can 'undefi
         displayResults();
       } else if (name === 'enter') {
         if (results_ps.length) {
-          // console.log(results_ps.length, 'results, pointer=', selected_pointer);
           var p = results_ps[selected_pointer];
           var a = p.getElementsByTagName('a')[0];
           q.value = hint.value = a.textContent;
@@ -345,7 +316,7 @@ var Autocomplete = (function(window, document, undefined) { /* TODO: can 'undefi
       event.preventDefault();
     }
 
-    function handleFocus(event) {
+    function handleFocus() {
       if (q.value.length && results_ps.length) {
         r.style.display = 'block';
       }
@@ -360,6 +331,8 @@ var Autocomplete = (function(window, document, undefined) { /* TODO: can 'undefi
       handler();
     }
 
-  };  // end of setUp
+  }  // end of setUp
+
+  window.AutoComplete = setUp;
 
 })(window, document);
