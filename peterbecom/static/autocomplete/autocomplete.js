@@ -37,7 +37,7 @@ var Autocomplete = (function(window, document, undefined) { /* TODO: can 'undefi
   'use strict';
 
   /* utility function to create DOM elements */
-  function E(tag, options) {
+  function createDomElement(tag, options) {
     var e = document.createElement(tag);
     for (var key in options) {
       e[key] = options[key];
@@ -46,7 +46,7 @@ var Autocomplete = (function(window, document, undefined) { /* TODO: can 'undefi
   }
 
   /* utility function to attach event handlers to elements */
-  function V(target, type, handler) {
+  function attachHandler(target, type, handler) {
     if (target.addEventListener) {
       target.addEventListener(type, handler, false);
     } else {
@@ -56,7 +56,8 @@ var Autocomplete = (function(window, document, undefined) { /* TODO: can 'undefi
 
   function extend() {
     var key, object, objects, target, val, i, len, slice = [].slice;
-    target = arguments[0], objects = 2 <= arguments.length ? slice.call(arguments, 1) : [];
+    target = arguments[0];
+    objects = 2 <= arguments.length ? slice.call(arguments, 1) : [];
     for (i = 0, len = objects.length; i < len; i++) {
       object = objects[i];
       for (key in object) {
@@ -82,8 +83,8 @@ var Autocomplete = (function(window, document, undefined) { /* TODO: can 'undefi
     var r;
 
     // wrap the input
-    var wrapper = E('span', {className: '_ac-wrap'});
-    var hint = E('input', {
+    var wrapper = createDomElement('span', {className: '_ac-wrap'});
+    var hint = createDomElement('input', {
       tabindex: -1,
       spellcheck: false,
       autocomplete: 'off',
@@ -99,8 +100,8 @@ var Autocomplete = (function(window, document, undefined) { /* TODO: can 'undefi
     var clone = q.cloneNode(true);
     wrapper.appendChild(clone);
 
-    var r = E('div', {className: '_ac-results'});
-    V(r, 'mouseover', mouseoverResults);
+    r = createDomElement('div', {className: '_ac-results'});
+    attachHandler(r, 'mouseover', mouseoverResults);
     wrapper.appendChild(r);
 
     q.parentElement.insertBefore(wrapper, q);
@@ -128,6 +129,7 @@ var Autocomplete = (function(window, document, undefined) { /* TODO: can 'undefi
     var results = null;
     var terms;
     function displayResults() {
+      var i, len;
       // terms = response.terms;
       // var results = response.results;
       if (results === null) return;
@@ -135,7 +137,7 @@ var Autocomplete = (function(window, document, undefined) { /* TODO: can 'undefi
       if (results.length) {
         r.style.display = 'block';
         var ps = r.getElementsByTagName('p');
-        for (var i=ps.length - 1; i >= 0; i--) {
+        for (i=ps.length - 1; i >= 0; i--) {
           ps[i].remove();
         }
       } else {
@@ -158,7 +160,7 @@ var Autocomplete = (function(window, document, undefined) { /* TODO: can 'undefi
       // the DOM we collect all the `<p>` tags into a Document Fragment
       // and add the whole thing later into the `r` element.
       var p_fragments = document.createDocumentFragment();
-      for (var i=0, len=results.length; i < len; i++) {
+      for (i=0, len=results.length; i < len; i++) {
         // var re_already = new RegExp('\\b' + search_terms.join('|') + '\\b', 'gi');
         // console.log('already', re_already.exec(q.value));
         // console.log(results[i][2]);
@@ -181,13 +183,13 @@ var Autocomplete = (function(window, document, undefined) { /* TODO: can 'undefi
           }
         }
 
-        p = E('p');
+        p = createDomElement('p');
         if (i === selected_pointer) {
           p.classList.add('selected');
         }
         p.dataset.i = i;  // needed by the onmouseover event handler
 
-        a = E('a', {
+        a = createDomElement('a', {
           innerHTML: highlightText(results[i][2]),
           href: '/plog/' + results[i][0]
         });
@@ -349,15 +351,15 @@ var Autocomplete = (function(window, document, undefined) { /* TODO: can 'undefi
       }
     }
 
-    V(q, 'input', handler);
-    V(q, 'keydown', handleKeyEvent);
-    V(q, 'blur', handleBlur);
-    V(q, 'focus', handleFocus);
+    attachHandler(q, 'input', handler);
+    attachHandler(q, 'keydown', handleKeyEvent);
+    attachHandler(q, 'blur', handleBlur);
+    attachHandler(q, 'focus', handleFocus);
 
     if (q.value.length) {
       handler();
     }
 
-  }  // end of setUp
+  };  // end of setUp
 
 })(window, document);
