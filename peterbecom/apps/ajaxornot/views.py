@@ -12,10 +12,10 @@ def index(request):
     return render(request, 'ajaxornot/index.html')
 
 
-def get_data(max_length=1000, pub_date_format=None):
+def get_data(max_length=1000, pub_date_format=None, offset=0):
     items = []
     qs = BlogItem.objects.filter(pub_date__lt=utc_now()).order_by('-pub_date')
-    for item in qs[:max_length]:
+    for item in qs[offset:max_length]:
         pub_date = item.pub_date
         if pub_date_format:
             pub_date = pub_date_format(pub_date)
@@ -62,3 +62,15 @@ def view4(request):
     data = get_data(pub_date_format=lambda x: x.strftime('%B %Y'))
     context = {'items': data}
     return render(request, 'ajaxornot/view4.html', context)
+
+
+@cache_page(60 * 60)
+def view5(request):
+    context = {'items': get_data(max_length=25)}
+    return render(request, 'ajaxornot/view5.html', context)
+
+
+@cache_page(60 * 60)
+def view5_table(request):
+    context = {'items': get_data(offset=25)}
+    return render(request, 'ajaxornot/view5_trs.html', context)

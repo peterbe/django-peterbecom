@@ -1,12 +1,12 @@
 {% extends "ajaxornot/base.html" %}
 {% block title_prefix %}View 3{% endblock %}
 {% block content %}
-<div ng-app>
-<table ng-controller="TableController">
+<div ng-app="app">
+<table ng-controller="TableController" class="table table-condensed">
   <thead>
     <tr>
       <th>Title</th>
-      <th>Publish Date</th>
+      <th class="pub-date">Publish Date</th>
       <th>Categories</th>
       <th>Keywords</th>
     </tr>
@@ -15,13 +15,14 @@
     {% raw %}
     <tr ng-repeat="item in items">
       <td><a ng-click="confirmAndGo(item)" style="cursor:pointer">{{ item.title }}</a></td>
-      <td>{{ item.pub_date }}</td>
+      <td class="pub-date">{{ item.pub_date }}</td>
       <td>
         <a ng-repeat="category in item.categories"
-           href="/oc-{{ category.replace(' ', '+') }}"><span class="label">{{ category }}</span></a>
+           href="/oc-{{ category.replace(' ', '+') }}"
+           class="label label-default">{{ category }}</a>
       </td>
       <td>
-        <span ng-repeat="keyword in item.keywords" class="label">{{ keyword }}</span>
+        <span ng-repeat="keyword in item.keywords" class="label label-default">{{ keyword }}</span>
       </td>
     </tr>
     {% endraw %}
@@ -33,6 +34,8 @@
 {% block footer %}
 <script src="{{ static('ajaxornot/angular.min.js') }}"></script>
 <script>
+angular.module('app', [])
+.controller('TableController',
 function TableController($scope, $http) {
   $scope.items = [];
   $http.get('/ajaxornot/view3-data')
@@ -45,6 +48,6 @@ function TableController($scope, $http) {
     if (confirm(item.title))
       window.location.href = '/plog/' + item.slug;
   };
-}
+});
 </script>
 {% endblock %}

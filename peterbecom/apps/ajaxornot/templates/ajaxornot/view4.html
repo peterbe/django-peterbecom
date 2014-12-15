@@ -1,11 +1,11 @@
 {% extends "ajaxornot/base.html" %}
 {% block title_prefix %}View 4{% endblock %}
 {% block content %}
-<table>
+<table class="table table-condensed">
   <thead>
     <tr>
       <th>Title</th>
-      <th>Publish Date</th>
+      <th class="pub-date">Publish Date</th>
       <th>Categories</th>
       <th>Keywords</th>
     </tr>
@@ -28,15 +28,15 @@ var ITEMS = {{ json_print(items) }};
 {{#items}}
 <tr>
   <td><a class="title" href="/plog/{{ slug }}">{{ title }}</a></td>
-  <td>{{ pub_date }}</td>
+  <td class="pub-date">{{ pub_date }}</td>
   <td>
     {{#categories}}
-    <a href="/oc-{{.}}"><span class="label">{{.}}</span></a>
+    <a href="/oc-{{.}}" class="label label-default">{{.}}</span></a>
     {{/categories}}
   </td>
   <td>
     {{#keywords}}
-    <span class="label">{{.}}</span>
+    <span class="label label-default">{{.}}</span>
     {{/keywords}}
   </td>
 </tr>
