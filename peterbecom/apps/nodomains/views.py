@@ -160,7 +160,9 @@ def _stats_prefixer(request):
             .order_by('-add_date')[:1]
         )
         value = str(latest_result.add_date)
+        value = re.sub('[^\d]', '', value)
         cache.set(cache_key, value, ONE_DAY)
+
     return value
 
 
