@@ -39,7 +39,8 @@ page.onResourceTimeout = function(e) {
 page.onResourceRequested = function (req) {
   count += 1;
   if (req.url.substring(0, 5) != 'data:') {
-    domains[getDomain(req.url)] = 1;
+    var domain = getDomain(req.url);
+    domains[domain] = (domains[domain] || 0) + 1;
   }
   console.log('> (' + count + ') ' + req.id + ' - ' + req.url.substring(0, 70));
   clearTimeout(renderTimeout);
@@ -69,10 +70,12 @@ page.open(url, function (status) {
       //doRender();
       var count_domains = 0;
       for (var domain in domains) {
-        console.log('DOMAIN:', domain);
+        console.log('DOMAIN:', domain, 'COUNT:', domains[domain]);
+        // console.log('DOMAIN:', domain);
         count_domains++;
       }
       console.log('COUNT:', count_domains);
+      // console.log(domains);
       phantom.exit();
     }, maxRenderWait);
   }
