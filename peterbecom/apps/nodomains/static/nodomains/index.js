@@ -18,6 +18,10 @@ $(function() {
 
   var resubmit_interval, countdown_interval;
 
+  function pluralize(number) {
+    return number === 1 ? '' : 's';
+  }
+
   $('input[name="url"]').change(function() {
     $('#error_output').hide();
     $('#result_output').hide();
@@ -39,7 +43,6 @@ $(function() {
       startLoadingTimer();
       $.post('run', params)
         .then(function(result) {
-          //console.log('RESULT', result);
           if (result.error) {
             $('#error_output pre').text(result.error);
             $('#error_output').show();
@@ -61,9 +64,15 @@ $(function() {
             $('input[name="url"]').val('');
             $('#result_output .count').text(result.count);
             $('#result_output li').remove();
-            $.each(result.domains, function(i, d) {
-              $('#result_output ul')
-                .append($('<li>').append($('<code>').text(d)));
+            var li;
+            $.each(result.domains, function(d, c) {
+              li = $('<li>')
+                .append($('<code>').text(d));
+              if (c !== null) {
+                li.append($('<span class="times">')
+                .text('(' + c + ' time' + pluralize(c) + ')'));
+              }
+              $('#result_output ul').append(li);
             });
             $('#result_output').show();
             var container = $('#recently tbody');
@@ -144,8 +153,16 @@ $(function() {
           .then(function(result) {
             var c = $('<ul>')
                      .addClass('domains');
-            $.each(result.domains, function(i, domain) {
-              c.append($('<li>').text(domain));
+            var li;
+            $.each(result.domains, function(domain, count) {
+              li = $('<li>')
+                .append($('<code>').text(domain));
+              if (count !== null) {
+                li.append($('<span class="times">').text(
+                  '(' + count + ' time' + pluralize(count) + ')'
+                ));
+              }
+              c.append(li);
             });
             c.appendTo(td);
           }).fail(function() {

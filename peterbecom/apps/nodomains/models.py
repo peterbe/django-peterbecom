@@ -18,6 +18,7 @@ class Result(models.Model):
 class ResultDomain(models.Model):
     result = models.ForeignKey(Result)
     domain = models.CharField(max_length=100)
+    count = models.PositiveIntegerField(null=True, default=1)
 
 
 class Queued(models.Model):

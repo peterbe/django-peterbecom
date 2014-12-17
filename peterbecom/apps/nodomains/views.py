@@ -63,10 +63,16 @@ def run_url(url):
     out, err = process.communicate()
     t1 = time.time()
 
-    domains = []
+    regex = re.compile('DOMAIN: (.*) COUNT: (\d+)')
+    domains = {}
     for line in out.splitlines():
         if line.startswith('DOMAIN: '):
-            domains.append(line.replace('DOMAIN: ', '').strip())
+            try:
+                domain, count = regex.findall(line)[0]
+                count = int(count)
+                domains[domain] = count
+            except IndexError:
+                print "Rogue line", repr(line)
 
     print "OUT", '-' * 70
     print out
@@ -83,7 +89,8 @@ def run_url(url):
         for domain in domains:
             models.ResultDomain.objects.create(
                 result=r,
-                domain=domain
+                domain=domain,
+                count=domains[domain]
             )
     else:
         return {'error': "Unable to download that URL. It's not you, it's me!"}
@@ -112,10 +119,11 @@ def run(request):
 
     try:
         result = models.Result.objects.get(url=url)
-        domains = [
-            x['domain'] for x in
-            models.ResultDomain.objects.filter(result=result).values('domain')
-        ]
+        domains = dict(
+            (x['domain'], x['count']) for x in
+            models.ResultDomain.objects.filter(result=result)
+            .values('domain', 'count')
+        )
         return {'count': result.count, 'domains': domains}
     except models.Result.DoesNotExist:
         pass
@@ -134,10 +142,11 @@ def domains(request):
     if not url:
         return http.HttpResponseBadRequest("No 'url'")
 
-    domains_ = [
-        x['domain'] for x in
-        models.ResultDomain.objects.filter(result__url=url).values('domain')
-    ]
+    domains_ = dict(
+        (x['domain'], x['count']) for x in
+        models.ResultDomain.objects.filter(result__url=url)
+        .values('domain', 'count')
+    )
     return {'domains': domains_}
 
 
