@@ -16,8 +16,8 @@
   <p>{{ comment.rendered|safe }}</p>
   {% if not comment.approved %}
   <span class="label warning">Not approved</span>
-  <a style="margin-left:10px; font-size:0.9em" href="{{ comment.blogitem.get_absolute_url() }}/approve/{{ comment.oid }}">approve</a>
-  <a style="margin-left:10px; font-size:0.9em" href="{{ comment.blogitem.get_absolute_url() }}/delete/{{ comment.oid }}">delete</a>
+  <a class="btn btn-default btn-xs" href="{{ comment.blogitem.get_absolute_url() }}/approve/{{ comment.oid }}">approve</a>
+  <a class="btn btn-default btn-xs" href="{{ comment.blogitem.get_absolute_url() }}/delete/{{ comment.oid }}">delete</a>
   {% endif %}
   <small>{% if comment.name %}<b>{{ comment.name }}</b>{% else %}<em>Anonymous</em>{% endif %}
   on <a href="{{ comment.blogitem.get_absolute_url() }}{% if not comment.approved %}?admin=1{% endif %}#{{ comment.oid }}">{{ comment.blogitem.title }}</a>
