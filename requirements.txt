@@ -1,4 +1,4 @@
-psycopg2==2.5.3
+psycopg2==2.5.4
 Django==1.5.9
 Jinja2==2.7
 jingo==0.7
@@ -12,7 +12,7 @@ django-redis-cache==0.9.7
 django-bootstrap-form==2.0.6
 Markdown==2.3.1
 sorl-thumbnail==11.12
-Pillow==2.1.0
+Pillow==2.7.0
 mincss==0.8.1
 django-fancy-cache==0.6.0
 cssmin==0.1.4
