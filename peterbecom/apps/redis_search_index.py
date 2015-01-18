@@ -109,9 +109,12 @@ class RedisSearchIndex(object):
         titles = self._r.hmget('$titles', *[i[0] for i in scored_ids])
         titles = [unicode(t, 'utf-8') for t in titles]
         results = imap(lambda x: x[0] + (x[1],), izip(scored_ids, titles))
-        final['results'] = sorted(
-            results,
-            key=lambda r: query_score(terms, r[2]) * r[1],
-            reverse=True
-        )[:n]
+        final['results'] = [
+            [x[0], x[2]] for x in
+            sorted(
+                results,
+                key=lambda r: query_score(terms, r[2]) * r[1],
+                reverse=True
+            )
+        ][:n]
         return final

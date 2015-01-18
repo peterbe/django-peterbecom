@@ -157,7 +157,7 @@
         var found;
         var matched;
 
-        while ((found = re.exec(results[i][2])) !== null) {
+        while ((found = re.exec(results[i][1])) !== null) {
           matched = new RegExp('\\b' + escapeRegExp(found[0]) + '\\b', 'gi');
 
           hint_candidate = found[found.length - 1];
@@ -176,7 +176,7 @@
         p.dataset.i = i;  // needed by the onmouseover event handler
 
         a = createDomElement('a', {
-          innerHTML: highlightText(results[i][2]),
+          innerHTML: highlightText(results[i][1]),
           href: '/plog/' + results[i][0]
         });
         p.appendChild(a);
