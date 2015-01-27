@@ -251,12 +251,16 @@ def _get_lexer(codesyntax):
         return lexers.SqlLexer()
     elif codesyntax == 'bash':
         return lexers.BashLexer()
+    elif codesyntax == 'go':
+        return lexers.GoLexer()
     elif codesyntax:
         raise NotImplementedError(codesyntax)
     else:
         return lexers.TextLexer()
 
-_codesyntax_regex = re.compile('```(python|cpp|javascript|xml|html|css|sql|bash)')
+_codesyntax_regex = re.compile(
+    '```(python|cpp|javascript|xml|html|css|sql|bash|go)'
+)
 _markdown_pre_regex = re.compile('```([^`]+)```')
 
 def markdown_to_html(text, codesyntax):
