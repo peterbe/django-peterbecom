@@ -41,7 +41,7 @@ def mincss_response(response, request):
         # events that mincss can't be aware of.
         # And since it's (going to be) a third-party tool, we can't
         # pepper it with /*no mincss*/ in every selector.
-        if 'autocomplete' in link.href:
+        if 'autocompete' in link.href:
             # leave as is
             combined_css.append(link.before)
         else:

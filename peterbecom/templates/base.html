@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="{{ static("css/bootstrap-theme.min.css") }}">
   <link rel="stylesheet" href="{{ static("css/main.css") }}">
   {% endcompress %}
-  <link rel="stylesheet" href="{{ static("autocomplete/autocomplete.css") }}" data-no-mincss>
+  <link rel="stylesheet" href="//cdn.autocompeter.com/dist/autocompeter-v1.min.css">
   <link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
   {% block extrahead %}
   {% endblock %}
@@ -61,12 +61,12 @@
     &copy; peterbe.com 2003 - {{ THIS_YEAR }}
   </p>
 </div>
+<script src="//cdn.autocompeter.com/dist/autocompeter-v1.min.js"></script>
 {% compress js %}
-<script src="{{ static('autocomplete/autocomplete.min.js') }}"></script>
 <script src="{{ static('libs/bootstrap-without-jquery.min.js') }}"></script>
 {% endcompress %}
 <script>
-AutoComplete(document.querySelectorAll('[name="q"]')[0]);
+Autocompeter(document.querySelectorAll('[name="q"]')[0]);
 </script>
 {% block extrajs %}{% endblock %}
 

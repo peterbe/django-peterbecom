@@ -25,3 +25,4 @@ Unidecode==0.04.16
 django-appconf==0.6
 django-compressor==1.4
 python-postmark-inbound==1.0.0
+requests==2.5.1
