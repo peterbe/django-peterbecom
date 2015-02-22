@@ -1,5 +1,6 @@
 import re
 import tokenize
+import json
 from optparse import make_option
 from cStringIO import StringIO
 
@@ -48,6 +49,7 @@ class Command(BaseCommand):
         if not options['all']:
             qs = qs[:options['max']]
 
+        documents = []
         for plog in qs:
             if verbose:
                 print repr(plog.title),
@@ -61,11 +63,12 @@ class Command(BaseCommand):
                 'url': base_url + reverse('blog_post', args=(plog.oid,)),
                 'popularity': hits,
             }
-            response = requests.post(
-                'http://autocompeter.com/v1',
-                data=data,
-                headers={'Auth-Key': settings.AUTOCOMPETER_AUTH_KEY}
-            )
-            if verbose:
-                print data
-                print response
+            documents.append(data)
+        response = requests.post(
+            'https://autocompeter.com/v1/bulk',
+            data=json.dumps({'documents': documents}),
+            headers={'Auth-Key': settings.AUTOCOMPETER_AUTH_KEY}
+        )
+        if verbose:
+            print data
+            print response
