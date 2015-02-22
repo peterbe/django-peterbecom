@@ -3,6 +3,7 @@ import tokenize
 import json
 from optparse import make_option
 from cStringIO import StringIO
+from pprint import pprint
 
 from django.core.management.base import BaseCommand
 from django.core.urlresolvers import reverse
@@ -70,5 +71,5 @@ class Command(BaseCommand):
             headers={'Auth-Key': settings.AUTOCOMPETER_AUTH_KEY}
         )
         if verbose:
-            print data
+            pprint(documents)
             print response
