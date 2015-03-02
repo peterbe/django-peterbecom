@@ -169,6 +169,7 @@ INSTALLED_APPS = (
     'peterbecom.apps.stats',
     'peterbecom.apps.nodomains',
     'peterbecom.apps.ajaxornot',
+    'peterbecom.apps.localvsxhr',
     'fancy_cache',
 )
 
