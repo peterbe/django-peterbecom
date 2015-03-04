@@ -8,7 +8,6 @@ $(function() {
 
   $('.share button').on('click', function() {
     // this depends on the global `medians` dictionary
-    // console.log(medians);
     var driver = null;
     if (typeof localforage !== 'undefined') {
       driver = localforage.driver();
@@ -17,9 +16,9 @@ $(function() {
       csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val(),
       url: location.href,
       user_agent: navigator.userAgent,
-      local_median: medians.IndexedDB || medians.localStorage,
+      local_median: medians.IndexedDB || medians.localStorage || medians['localForage(localStorage driver)'],
       xhr_median: medians.AJAX,
-      plain_localstorage: medians.localStorage && 'true',
+      plain_localstorage: medians.localStorage && 'true' || '',
       iterations: start_times,
       driver: driver,
     };

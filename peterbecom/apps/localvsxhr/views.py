@@ -23,6 +23,13 @@ def localforage(request):
     return render(request, 'localvsxhr/localforage.html', context)
 
 
+def localforage_localstorage(request):
+    context = {
+        'page_title': 'localForage (localStorage driver) vs. XHR',
+    }
+    return render(request, 'localvsxhr/localforage_localstorage.html', context)
+
+
 def localstorage(request):
     context = {
         'page_title': 'localStorage vs. XHR',
