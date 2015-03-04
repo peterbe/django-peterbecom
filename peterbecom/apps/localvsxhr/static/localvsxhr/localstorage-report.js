@@ -79,4 +79,4 @@ var interval = setInterval(function() {
       summorize();
 
     }
-}, 4.5 * 1000);
+}, 4 * 1000);

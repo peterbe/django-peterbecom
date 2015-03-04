@@ -7,10 +7,7 @@ from peterbecom.apps.plog.views import json_view
 from peterbecom.apps.localvsxhr.models import Measurement
 from peterbecom.apps.localvsxhr.forms import MeasurementForm
 
-# from fancy_cache import cache_page
 
-
-# @cache_page(60 * 60)
 def index(request):
     context = {
         'page_title': 'Local vs. XHR',
@@ -21,7 +18,7 @@ def index(request):
 
 def localforage(request):
     context = {
-        'page_title': 'LocalForage vs. XHR',
+        'page_title': 'localForage vs. XHR',
     }
     return render(request, 'localvsxhr/localforage.html', context)
 
@@ -33,7 +30,6 @@ def localstorage(request):
     return render(request, 'localvsxhr/localstorage.html', context)
 
 
-@csrf_exempt
 @require_POST
 @json_view
 def store(request):

@@ -9,4 +9,9 @@ class MeasurementForm(forms.ModelForm):
         model = Measurement
         exclude = ('add_date',)
 
-        
+    def clean_driver(self):
+        value = self.cleaned_data['driver']
+        if not value:
+            # replace '' with None
+            value = None
+        return value

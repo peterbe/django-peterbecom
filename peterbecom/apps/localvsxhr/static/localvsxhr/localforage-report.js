@@ -67,7 +67,7 @@ function downloadByLocalForage() {
 setTimeout(downloadByXHR);
 setTimeout(downloadByLocalForage);
 
-console.log('CHANGE THIS LATER');var times = 3;//5;  // make it odd for the sake of median calculation
+var times = 5;  // make it odd for the sake of median calculation
 var start_times = times;
 $('#iterations').text(times);
 var interval = setInterval(function() {
@@ -83,4 +83,4 @@ var interval = setInterval(function() {
       summorize();
 
     }
-}, 4.5 * 1000);
+}, 4 * 1000);
