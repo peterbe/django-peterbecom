@@ -4,7 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from peterbecom.apps.plog.views import json_view
-from peterbecom.apps.localvsxhr.models import Measurement
+from peterbecom.apps.localvsxhr.models import Measurement, BootMeasurement
 from peterbecom.apps.localvsxhr import forms
 
 
@@ -12,6 +12,7 @@ def index(request):
     context = {
         'page_title': 'Local vs. XHR',
         'count_measurements': Measurement.objects.all().count(),
+        'count_boot_measurements': BootMeasurement.objects.all().count(),
     }
     return render(request, 'localvsxhr/index.html', context)
 

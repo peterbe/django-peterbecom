@@ -4,7 +4,9 @@
 
 {% block content %}
 
-<h2>This is under construction</h2>
+<h2>{{ page_title }}</h2>
+
+<h3>This is under construction</h3>
 
 <h4>The Experiments</h4>
 <ul>
@@ -13,8 +15,15 @@
   <li><a href="{{ url('localvsxhr:localstorage') }}">localStorage vs. XHR</a></li>
 </ul>
 <p>
-  At the time of writing <code>{{ count_measurements }}</code> measurements
+  At the time of writing
+  <code>{{ count_boot_measurements }}</code> boot-up measurements and
+  <code>{{ count_measurements }}</code> regular measurements
   have been recorded.
+</p>
+<p>
+  Ultimately, the purpose of these experiments is to try to get a basis
+  for understanding web performance related to using the browser local
+  storage as a cache to complement XHR (aka. AJAX).
 </p>
 
 
