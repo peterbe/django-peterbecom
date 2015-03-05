@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="{{ static("css/bootstrap-theme.min.css") }}">
   <link rel="stylesheet" href="{{ static("css/main.css") }}">
   {% endcompress %}
-  <link rel="stylesheet" href="//cdn.jsdelivr.net/autocompeter/1.0.3/autocompeter.min.css">
+  <link rel="stylesheet" href="{{ static("autocompeter/autocompeter.min.css") }}">
   <link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
   {% block extrahead %}
   {% endblock %}
@@ -65,12 +65,23 @@
     >Digital Ocean</a>
   </p>
 </div>
-<script src="//cdn.jsdelivr.net/autocompeter/1.0.3/autocompeter.min.js"></script>
+<script>
+// http://www.html5rocks.com/en/tutorials/speed/script-loading/
+[
+  '{{ static('autocompeter/autocompeter.min.js') }}',
+  '{{ static('js/autocompeter.js') }}'
+].forEach(function(src) {
+  var script = document.createElement('script');
+  script.src = src;
+  script.async = false;
+  document.head.appendChild(script);
+});
+</script>
 {% compress js %}
 <script src="{{ static('libs/bootstrap-without-jquery.min.js') }}"></script>
 {% endcompress %}
 <script>
-Autocompeter(document.querySelectorAll('[name="q"]')[0]);
+
 </script>
 {% block extrajs %}{% endblock %}
 
