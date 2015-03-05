@@ -5,7 +5,7 @@ from django.views.decorators.http import require_POST
 
 from peterbecom.apps.plog.views import json_view
 from peterbecom.apps.localvsxhr.models import Measurement
-from peterbecom.apps.localvsxhr.forms import MeasurementForm
+from peterbecom.apps.localvsxhr import forms
 
 
 def index(request):
@@ -40,7 +40,19 @@ def localstorage(request):
 @require_POST
 @json_view
 def store(request):
-    form = MeasurementForm(request.POST)
+    form = forms.MeasurementForm(request.POST)
+    if not form.is_valid():
+        return http.HttpResponseBadRequest(form.errors)
+
+    form.save()
+
+    return True
+
+
+@require_POST
+@json_view
+def store_boot(request):
+    form = forms.BootMeasurementForm(request.POST)
     if not form.is_valid():
         return http.HttpResponseBadRequest(form.errors)
 

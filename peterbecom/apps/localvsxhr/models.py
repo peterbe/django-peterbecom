@@ -11,3 +11,10 @@ class Measurement(models.Model):
     plain_localstorage = models.BooleanField(default=False)
     iterations = models.PositiveIntegerField()
     add_date = models.DateTimeField(default=timezone.now)
+
+
+class BootMeasurement(models.Model):
+    time_to_boot1 = models.FloatField()
+    time_to_boot2 = models.FloatField()
+    plain_localstorage = models.BooleanField(default=False)
+    add_date = models.DateTimeField(default=timezone.now)

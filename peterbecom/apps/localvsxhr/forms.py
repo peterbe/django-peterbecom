@@ -1,6 +1,6 @@
 from django import forms
 
-from peterbecom.apps.localvsxhr.models import Measurement
+from peterbecom.apps.localvsxhr.models import Measurement, BootMeasurement
 
 
 class MeasurementForm(forms.ModelForm):
@@ -15,3 +15,10 @@ class MeasurementForm(forms.ModelForm):
             # replace '' with None
             value = None
         return value
+
+
+class BootMeasurementForm(forms.ModelForm):
+
+    class Meta:
+        model = BootMeasurement
+        exclude = ('add_date',)
