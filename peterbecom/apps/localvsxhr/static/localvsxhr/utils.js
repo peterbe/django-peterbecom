@@ -33,17 +33,17 @@ $(function() {
       $('.share .error').show();
     });
 
-    console.log(TIME_TO_BOOT1, TIME_TO_BOOT1);
     if (typeof TIME_TO_BOOT1 !== 'undefined' && typeof TIME_TO_BOOT2 !== 'undefined') {
       data = {
         csrfmiddlewaretoken: data.csrfmiddlewaretoken,
         time_to_boot1: TIME_TO_BOOT1,
         time_to_boot2: TIME_TO_BOOT2,
         plain_localstorage: typeof localforage === 'undefined',
+        driver: driver,
       };
       $.post('/localvsxhr/store/boot', data)
       .done(function() {
-        console.log('Shard Time to boot', TIME_TO_BOOT1, TIME_TO_BOOT2);
+        console.log('Stored Time to boot', TIME_TO_BOOT1, TIME_TO_BOOT2);
       });
     }
 

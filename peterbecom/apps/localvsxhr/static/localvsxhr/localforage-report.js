@@ -1,37 +1,44 @@
+var TIME_TO_BOOT1, TIME_TO_BOOT2;
+var a = performance.now();
+localforage.getItem('anything',function() {
+  var b = performance.now();
+  localforage.getItem('anything2', function() {
+    var c = performance.now();
+    TIME_TO_BOOT1 = b - a;
+    TIME_TO_BOOT2 = c - b;
+  });
+});
 
 var medians = {};
 function summorize() {
-    $('.container .summary').append(
-	$('<h3>').text('Summary:')
-    );
-    $('tr').each(function() {
-        var sum = 0.0;
-	var iterations = 0;
-	var label = $('th', this).eq(0).text();
-	var times = [];
-	$('td', this).each(function() {
-	  sum += $(this).data('time');
-	  times.push($(this).data('time'));
-	  iterations++;
-	});
-	$('.container .summary').append(
-	    $('<h3>').text(label)
-	);
-
-	$('.container .summary').append(
-	    $('<h4>').text('Average: ' + (sum/iterations).toFixed(2) + 'ms')
-	);
-	times.sort();
-	var median = times[Math.floor(times.length / 2)];
-	medians[label] = median;
-	$('.container .summary').append(
-	    $('<h4>').text('Median: ' + median.toFixed(2) + 'ms')
-	);
-
-	//console.log(label, sum/iterations);
-
+  $('.container .summary').append(
+    $('<h3>').text('Summary:')
+  );
+  $('tr').each(function() {
+    var sum = 0.0;
+    var iterations = 0;
+    var label = $('th', this).eq(0).text();
+    var times = [];
+    $('td', this).each(function() {
+      sum += $(this).data('time');
+      times.push($(this).data('time'));
+      iterations++;
     });
-    $('.container .share').show();
+    $('.container .summary').append(
+      $('<h3>').text(label)
+    );
+
+    $('.container .summary').append(
+      $('<h4>').text('Average: ' + (sum/iterations).toFixed(2) + 'ms')
+    );
+    times.sort();
+    var median = times[Math.floor(times.length / 2)];
+    medians[label] = median;
+    $('.container .summary').append(
+      $('<h4>').text('Median: ' + median.toFixed(2) + 'ms')
+      );
+  });
+  $('.container .share').show();
 }
 
 function downloadByXHR(prime) {

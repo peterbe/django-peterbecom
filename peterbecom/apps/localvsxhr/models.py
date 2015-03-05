@@ -17,4 +17,5 @@ class BootMeasurement(models.Model):
     time_to_boot1 = models.FloatField()
     time_to_boot2 = models.FloatField()
     plain_localstorage = models.BooleanField(default=False)
+    driver = models.CharField(max_length=250, blank=True, null=True)
     add_date = models.DateTimeField(default=timezone.now)

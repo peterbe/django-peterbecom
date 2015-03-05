@@ -1,4 +1,14 @@
 localforage.setDriver(localforage.LOCALSTORAGE);
+var TIME_TO_BOOT1, TIME_TO_BOOT2;
+var a = performance.now();
+localforage.getItem('anything',function() {
+  var b = performance.now();
+  localforage.getItem('anything2', function() {
+    var c = performance.now();
+    TIME_TO_BOOT1 = b - a;
+    TIME_TO_BOOT2 = c - b;
+  });
+});
 
 var medians = {};
 function summorize() {

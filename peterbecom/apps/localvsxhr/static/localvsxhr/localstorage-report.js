@@ -1,3 +1,11 @@
+var a = performance.now();
+localStorage.getItem('anything');
+var b = performance.now();
+localStorage.getItem('anything2');
+var c = performance.now();
+var TIME_TO_BOOT1 = b - a;
+var TIME_TO_BOOT2 = c - b;
+
 
 var medians = {};
 function summorize() {

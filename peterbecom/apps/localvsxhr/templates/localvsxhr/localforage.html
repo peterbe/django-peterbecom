@@ -31,20 +31,6 @@
 {% block extrajs %}
 <script src="{{ static('localvsxhr/localforage.min.js') }}"></script>
 <script src="{{ static('localvsxhr/jquery-2.1.3.min.js') }}"></script>
-<script>
-var TIME_TO_BOOT1, TIME_TO_BOOT2;
-var a = performance.now();
-localforage.getItem('anything',function() {
-  var b = performance.now();
-  localStorage.getItem('anything2', function() {
-    var c = performance.now();
-    TIME_TO_BOOT1 = b - a;
-    TIME_TO_BOOT2 = c - b;
-    console.log("SET", TIME_TO_BOOT1, TIME_TO_BOOT2);
-  });
-});
-</script>
-
 <script src="{{ static('localvsxhr/utils.js') }}"></script>
 <script src="{{ static('localvsxhr/localforage-report.js') }}"></script>
 {% endblock %}
