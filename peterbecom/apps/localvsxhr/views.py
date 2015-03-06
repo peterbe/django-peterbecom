@@ -1,3 +1,4 @@
+import re
 from collections import defaultdict
 
 from django.shortcuts import render
@@ -17,6 +18,32 @@ def index(request):
         'count_boot_measurements': BootMeasurement.objects.all().count(),
     }
     return render(request, 'localvsxhr/index.html', context)
+
+
+simple_user_agent_regex = re.compile('''
+    Firefox/\d+ |
+    Chrome/\d+ |
+    Safari/\d+
+''', re.X)
+
+
+def parse_user_agent(ua):
+    browser = ''
+    version = None
+    if 'iPhone OS' in ua:
+        browser = 'iPhone '
+    elif 'AppleWebKit' in ua and 'Chrome' in ua:
+        browser = 'AppleWebKit '
+    elif 'Mobile;' in ua:
+        browser = 'Mobile '
+    elif 'SeaMonkey/' in ua:
+        browser = 'SeaMonkey '
+
+    for match in simple_user_agent_regex.findall(ua):
+        browser += match.split('/')[0]
+        version = match.split('/')[1]
+        break
+    return browser, version
 
 
 def stats(request):
@@ -72,10 +99,21 @@ def stats(request):
         return items
 
     drivers = defaultdict(list)
+    browsers = defaultdict(list)
+    # browserversions = defaultdict(list)
     for m in Measurement.objects.all():
         drivers[m.driver].append(m.local_median)
         drivers['XHR'].append(m.xhr_median)
+        browser, version = parse_user_agent(m.user_agent)
+        if browser:
+            browsers[browser].append(m.local_median)
+            # if version:
+            #     browserversions['%s %s' % (browser, version)].append(
+            #         m.xhr_median
+            #     )
     context['drivers'] = wrap_sequence(drivers)
+    context['browsers'] = wrap_sequence(browsers)
+    # context['browserversions'] = wrap_sequence(browserversions)
 
     boots = defaultdict(list)
     for m in BootMeasurement.objects.all():
