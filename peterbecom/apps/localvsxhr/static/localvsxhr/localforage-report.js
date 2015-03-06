@@ -63,6 +63,7 @@ function downloadByLocalForage() {
     if (response === null) {
       downloadByXHR(true);
       alert("First we have to prime the IndexedDB. Reload this page.");
+      // window.location.reload();
       return;
     }
     var b = performance.now();

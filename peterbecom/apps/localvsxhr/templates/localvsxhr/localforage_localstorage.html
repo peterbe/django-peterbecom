@@ -23,7 +23,11 @@
   <hr>
   <div class="summary"></div>
   {% include "localvsxhr/share.html" %}
-
+  <div class="next">
+    <p>
+      <a href="{{ url('localvsxhr:localstorage') }}">Next experiment &rarr;</a>
+    </p>
+  </div>
 </div><!-- /.container -->
 
 {% endblock %}

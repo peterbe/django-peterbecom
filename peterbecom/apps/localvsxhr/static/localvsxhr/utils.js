@@ -1,3 +1,12 @@
+// hacky shim for losers without performance
+if (typeof performance === 'undefined') {
+  window.performance = {};
+  window.performance.now = function() {
+    return new Date();
+  };
+}
+
+
 function reportTime(what, time) {
     $('#' + what).append(
         $('<td>').text(time.toFixed(2) + 'ms').data('time', time)
@@ -29,23 +38,26 @@ $(function() {
       $('.share button').hide();
       $('.share .error').hide();
       $('.share p').show();
+
+      if (typeof TIME_TO_BOOT1 !== 'undefined' && typeof TIME_TO_BOOT2 !== 'undefined') {
+        data = {
+          csrfmiddlewaretoken: data.csrfmiddlewaretoken,
+          time_to_boot1: TIME_TO_BOOT1,
+          time_to_boot2: TIME_TO_BOOT2,
+          plain_localstorage: typeof localforage === 'undefined',
+          user_agent: navigator.userAgent,
+          driver: driver,
+        };
+        $.post('/localvsxhr/store/boot', data)
+        .done(function() {
+          console.log('Stored Time to boot', TIME_TO_BOOT1, TIME_TO_BOOT2);
+          $('.container .next').show();
+        });
+      }
+
     }).error(function() {
       $('.share .error').show();
     });
-
-    if (typeof TIME_TO_BOOT1 !== 'undefined' && typeof TIME_TO_BOOT2 !== 'undefined') {
-      data = {
-        csrfmiddlewaretoken: data.csrfmiddlewaretoken,
-        time_to_boot1: TIME_TO_BOOT1,
-        time_to_boot2: TIME_TO_BOOT2,
-        plain_localstorage: typeof localforage === 'undefined',
-        driver: driver,
-      };
-      $.post('/localvsxhr/store/boot', data)
-      .done(function() {
-        console.log('Stored Time to boot', TIME_TO_BOOT1, TIME_TO_BOOT2);
-      });
-    }
 
   });
 

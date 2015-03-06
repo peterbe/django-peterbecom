@@ -1,4 +1,5 @@
 localforage.setDriver(localforage.LOCALSTORAGE);
+
 var TIME_TO_BOOT1, TIME_TO_BOOT2;
 var a = performance.now();
 localforage.getItem('anything',function() {
