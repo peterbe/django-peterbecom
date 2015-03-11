@@ -38,6 +38,9 @@ def parse_user_agent(ua):
         browser = 'Mobile '
     elif 'SeaMonkey/' in ua:
         browser = 'SeaMonkey '
+    elif 'Trident/' in ua:
+        browser = 'Internet Explorer'
+        version = re.findall('rv:(\d+)', ua)[0]
 
     for match in simple_user_agent_regex.findall(ua):
         browser += match.split('/')[0]
