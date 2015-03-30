@@ -238,13 +238,34 @@ img.floatleft {
   box-shadow: 0px 5px 8px rgba(46, 46, 46, 0.7);
 }
 
+/* iPad in portrait & landscape */
+@media only screen
+and (min-device-width : 768px)
+and (max-device-width : 1024px)  {
+  .container,
+  .navbar-fixed-top .container,
+  .navbar-fixed-bottom .container {
+    width: 710px;
+  }
+}
+
+/* Landscape phones (including iPhone 6) and down */
+@media (max-width: 640px) {
+  .container,
+  .navbar-fixed-top .container,
+  .navbar-fixed-bottom .container,
+  .span6, .span12 {
+    width: 610px;
+  }
+}
+
 /* Landscape phones and down */
 @media (max-width: 480px) {
   .container,
   .navbar-fixed-top .container,
   .navbar-fixed-bottom .container,
   .span6, .span12 {
-    width: 460px;
+    width: 450px;
   }
   #buttons { display: none; }
 
@@ -285,13 +306,13 @@ img.floatleft {
   }
 
 }
-/* Landscape phones and down */
-@media (max-width: 320px) {
+/* Portrait phones (including iPhone 6) and down */
+@media (max-width: 360px) {
   .container,
   .navbar-fixed-top .container,
   .navbar-fixed-bottom .container,
   .span6, .span12 {
-    width: 310px;
+    width: 330px;
   }
   .navbar .nav > li > a {
     padding: 5px;
@@ -318,6 +339,15 @@ img.floatleft {
   .jumbotron h1 {
     margin-bottom: 5px;
     font-size: 41px;
+  }
+}
+/* Portrait phones (excluding iPhone 6) and down */
+@media (max-width: 320px) {
+  .container,
+  .navbar-fixed-top .container,
+  .navbar-fixed-bottom .container,
+  .span6, .span12 {
+    width: 310px;
   }
 }
 
