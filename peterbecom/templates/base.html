@@ -13,6 +13,17 @@
   {% endcompress %}
   <link rel="stylesheet" href="{{ static("autocompeter/autocompeter.min.css") }}">
   <link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
+  {% if use_google_analytics %}
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-94373-1', 'peterbe.com');
+    ga('set', 'forceSSL', true);
+    ga('send', 'pageview');
+  </script>
+  {% endif %}
   {% block extrahead %}
   {% endblock %}
 </head>
@@ -65,18 +76,6 @@
     >Digital Ocean</a>
   </p>
 </div>
-<script>
-// http://www.html5rocks.com/en/tutorials/speed/script-loading/
-[
-  'https://cdn.jsdelivr.net/autocompeter/1/autocompeter.min.js',
-  '{{ static('js/autocompeter.js') }}'
-].forEach(function(src) {
-  var script = document.createElement('script');
-  script.src = src;
-  script.async = false;
-  document.head.appendChild(script);
-});
-</script>
 {% compress js %}
 <script src="{{ static('libs/bootstrap-without-jquery.min.js') }}"></script>
 {% endcompress %}
@@ -85,17 +84,38 @@
 </script>
 {% block extrajs %}{% endblock %}
 
-{% if use_google_analytics %}
 <script>
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-  ga('create', 'UA-94373-1', 'peterbe.com');
-  ga('set', 'forceSSL', true);
-  ga('send', 'pageview');
+(function() {
+  var i=0, urls = [
+    'https://cdn.jsdelivr.net/autocompeter/1/autocompeter.min.js',
+    '{{ static('js/autocompeter.js') }}'
+  ];
+  var load = function() {
+    if (i < urls.length) {
+      var script = document.createElement('script');
+      script.src = urls[i];
+      script.onload = load;
+      document.head.appendChild(script);
+      i++;
+    }
+  };load();
+})();
+
+// http://www.html5rocks.com/en/tutorials/speed/script-loading/
+// [
+//  'https://cdn.jsdelivr.net/autocompeter/1/autocompeter.min.js',
+//  '{{ static('js/autocompeter.js') }}'
+// ].forEach(function(src) {
+//   var script = document.createElement('script');
+//   script.src = src;
+//   // script.async = false;
+//   script.async = true;
+//   script.onload = function() {
+//     console.log(src, 'loaded', this.src);
+//   }
+//   document.head.appendChild(script);
+// });
 </script>
-{% endif %}
 
 </body>
 </html>

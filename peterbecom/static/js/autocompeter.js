@@ -1,1 +1,1 @@
-Autocompeter(document.querySelectorAll('[name="q"]')[0], {ping: true});
+Autocompeter(document.querySelectorAll('[name="q"]')[0], {domain:'www.peterbe.com'});
