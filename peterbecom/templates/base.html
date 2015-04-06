@@ -20,7 +20,6 @@
     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
     ga('create', 'UA-94373-1', 'peterbe.com');
-    ga('set', 'forceSSL', true);
     ga('send', 'pageview');
   </script>
   {% endif %}
@@ -87,7 +86,7 @@
 <script>
 (function() {
   var i=0, urls = [
-    'https://cdn.jsdelivr.net/autocompeter/1/autocompeter.min.js',
+    '//cdn.jsdelivr.net/autocompeter/1/autocompeter.min.js',
     '{{ static('js/autocompeter.js') }}'
   ];
   var load = function() {
