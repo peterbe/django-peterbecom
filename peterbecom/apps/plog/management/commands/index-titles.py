@@ -1,8 +1,5 @@
-import re
-import tokenize
 import json
 from optparse import make_option
-from cStringIO import StringIO
 from pprint import pprint
 
 from django.core.management.base import BaseCommand
@@ -14,9 +11,6 @@ import requests
 
 from peterbecom.apps.plog import models
 from peterbecom.apps.plog.utils import utc_now
-from peterbecom.apps.homepage.views import STOPWORDS
-from peterbecom.apps.redisutils import get_redis_connection
-from peterbecom.apps.redis_search_index import RedisSearchIndex
 
 
 class Command(BaseCommand):
@@ -41,10 +35,6 @@ class Command(BaseCommand):
         now = utc_now()
         verbose = int(options['verbosity']) > 1
 
-        connection = get_redis_connection('titles')
-        connection.flushdb()
-        search_index = RedisSearchIndex(connection)
-
         base_url = 'http://%s' % Site.objects.all()[0].domain
         qs = models.BlogItem.objects.filter(pub_date__lte=now).order_by('?')
         if not options['all']:
@@ -58,7 +48,6 @@ class Command(BaseCommand):
                 hits = models.BlogItemHits.objects.get(oid=plog.oid).hits
             except models.BlogItemHits.DoesNotExist:
                 hits = 1
-            # result = search_index.add_item(plog.oid, plog.title, hits), hits
             data = {
                 'title': plog.title,
                 'url': base_url + reverse('blog_post', args=(plog.oid,)),
