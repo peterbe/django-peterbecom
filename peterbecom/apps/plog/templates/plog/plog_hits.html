@@ -4,26 +4,26 @@
 
 {% block content %}
 
-<!-- <div id="gauges" style="float:right">
-
-</div> -->
-
 <h3>Hits</h3>
 
-<table class="condensed-table">
+<table class="table table-condensed">
   <thead>
     <tr>
-      <th style="text-align:left">OID</th>
+      <th style="text-align:left">Title</th>
+      <th>Score</th>
       <th>Hits</th>
+      <th>Age</th>
     </tr>
   </thead>
   <tbody>
     {% for hit in all_hits %}
     <tr>
       <td>
-        <a href="/plog/{{ hit.oid }}">{{ hit.oid }}</a>
+        <a href="/plog/{{ hit.oid }}">{{ hit.title }}</a>
       </td>
+      <td>{{ hit.score | round }}</td>
       <td>{{ thousands(hit.hits) }}</td>
+      <td>{{ hit.age }}</td>
     </tr>
     {% endfor %}
   </tbody>

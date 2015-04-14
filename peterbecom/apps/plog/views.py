@@ -807,5 +807,14 @@ def inbound_email(request):
 
 def plog_hits(request):
     context = {}
-    context['all_hits'] = BlogItemHits.objects.all().order_by('-hits')
+    query = BlogItem.objects.raw("""
+        select
+            b.id, b.oid, b.title, h.hits, b.pub_date,
+            extract(days from (now() - b.pub_date))::int AS age,
+            10000 * h.hits / extract(days from (now() - b.pub_date)) AS score
+        from plog_blogitem b
+        inner join plog_blogitemhits h using (oid)
+        order by score desc;
+    """)
+    context['all_hits'] = query
     return render(request, 'plog/plog_hits.html', context)
