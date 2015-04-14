@@ -807,6 +807,17 @@ def inbound_email(request):
 
 def plog_hits(request):
     context = {}
+    limit = int(request.GET.get('limit', 100))
+    _category_names = dict(
+        (x['id'], x['name'])
+        for x in Category.objects.all().values('id', 'name')
+    )
+    categories = defaultdict(list)
+    for each in BlogItem.categories.through.objects.all().values('blogitem_id', 'category_id'):
+        categories[each['blogitem_id']].append(
+            _category_names[each['category_id']]
+        )
+    context['categories'] = categories
     query = BlogItem.objects.raw("""
         select
             b.id, b.oid, b.title, h.hits, b.pub_date,
@@ -814,7 +825,30 @@ def plog_hits(request):
             h.hits / extract(days from (now() - b.pub_date)) AS score
         from plog_blogitem b
         inner join plog_blogitemhits h using (oid)
-        order by score desc;
-    """)
+        order by score desc
+        limit {limit};
+    """.format(limit=limit))
     context['all_hits'] = query
+
+    category_scores = defaultdict(list)
+    for item in query:
+        # print item.oid
+        for cat in categories[item.id]:
+            # print "\t", cat
+            category_scores[cat].append(item.score)
+
+    def median(seq):
+        seq.sort()
+        return seq[len(seq) / 2]
+
+    summed_category_scores = []
+    for name, scores in category_scores.items():
+        summed_category_scores.append({
+            'name': name,
+            'count': len(scores),
+            'sum': sum(scores),
+            'avg': sum(scores) / len(scores),
+            'med': median(scores),
+        })
+    context['summed_category_scores'] = summed_category_scores
     return render(request, 'plog/plog_hits.html', context)

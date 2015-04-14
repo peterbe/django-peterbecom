@@ -1,6 +1,18 @@
 {% extends "base.html" %}
 {% block title_prefix %}Hits{% endblock %}
 
+{% block extrahead %}
+<style>
+td > a {
+  margin-right: 10px;
+}
+td a.category {
+  color: #666;
+  font-size: 80%;
+  margin-right: 10px;
+}
+</style>
+{% endblock %}
 
 {% block content %}
 
@@ -20,10 +32,49 @@
     <tr>
       <td>
         <a href="/plog/{{ hit.oid }}">{{ hit.title }}</a>
+        {% for name in categories[hit.id] %}
+          <a class="category"
+             href="{{ url('only_category', name.replace(' ','+')) }}"
+             rel="nofollow"
+             title="Filter by the '{{ name }}' category">
+            {{ name }}
+          </a>
+        {% endfor %}
       </td>
       <td>{{ hit.score | round }}</td>
       <td>{{ thousands(hit.hits) }}</td>
       <td>{{ hit.age }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h3>Categories</h3>
+<table class="table table-condensed">
+  <thead>
+    <tr>
+      <th style="text-align:left">Name</th>
+      <th>Count</th>
+      <th>Sum</th>
+      <th>Average</th>
+      <th>Median</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for each in summed_category_scores %}
+    <tr>
+      <td>
+        <a xclass="category"
+           href="{{ url('only_category', each.name.replace(' ','+')) }}"
+           rel="nofollow"
+           title="Filter by the '{{ each.name }}' category">
+          {{ each.name }}
+        </a>
+      </td>
+      <td>{{ each.count }}</td>
+      <td>{{ each.sum }}</td>
+      <td>{{ each.avg }}</td>
+      <td>{{ each.med }}</td>
     </tr>
     {% endfor %}
   </tbody>
