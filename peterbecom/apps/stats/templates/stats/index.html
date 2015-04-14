@@ -38,32 +38,44 @@ function drawChart() {
 <p>{{ start_date }}</p>
 
 <div class="summary" id="plog">
-<h3>Plog</h3>
-<dl>
-  <dt>Hits:</dt>
-  <dd>{{ plog['total_hits'] }}</dd>
-  <dt>Misses:</dt>
-  <dd>{{ plog['total_misses'] }}</dd>
-  <dt>Ratio:</dt>
-  <dd>{{ plog['total_ratio'] }}%</dd>
-</dl>
+  <h3>Plog</h3>
+  <table class="table" style="width: 15%">
+    <tr>
+      <th>Hits:</th>
+      <td>{{ plog['total_hits'] }}</td>
+    </tr>
+    <tr>
+      <th>Misses:</th>
+      <td>{{ plog['total_misses'] }}</td>
+    </tr>
+    <tr>
+      <th>Ratio:</th>
+      <td>{{ plog['total_ratio'] }}%</td>
+    </tr>
+  </table>
 </div>
 
 <div class="summary" id="homepage">
-<h3>Homepage</h3>
-<dl>
-  <dt>Hits:</dt>
-  <dd>{{ homepage['total_hits'] }}</dd>
-  <dt>Misses:</dt>
-  <dd>{{ homepage['total_misses'] }}</dd>
-  <dt>Ratio:</dt>
-  <dd>{{ homepage['total_ratio'] }}%</dd>
-</dl>
+  <h3>Homepage</h3>
+  <table class="table" style="width: 15%">
+    <tr>
+      <th>Hits:</th>
+      <td>{{ homepage['total_hits'] }}</td>
+    </tr>
+    <tr>
+      <th>Misses:</th>
+      <td>{{ homepage['total_misses'] }}</td>
+    </tr>
+    <tr>
+      <th>Ratio:</th>
+      <td>{{ homepage['total_ratio'] }}%</td>
+    </tr>
+  </table>
 </div>
 
 
 <h3>All URLs</h3>
-<table class="condensed-table">
+<table class="table table-condensed">
   <thead>
     <tr>
       <th style="text-align:left">URL</th>
