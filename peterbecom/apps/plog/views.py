@@ -811,7 +811,7 @@ def plog_hits(request):
         select
             b.id, b.oid, b.title, h.hits, b.pub_date,
             extract(days from (now() - b.pub_date))::int AS age,
-            10000 * h.hits / extract(days from (now() - b.pub_date)) AS score
+            h.hits / extract(days from (now() - b.pub_date)) AS score
         from plog_blogitem b
         inner join plog_blogitemhits h using (oid)
         order by score desc;
