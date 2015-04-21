@@ -7,7 +7,7 @@ IP Address: {{ comment.ip_address }}
 User Agent: {{ comment.user_agent }}
 Akismet pass: {{ comment.akismet_pass }}
 Comment:
-{{ line_indent(comment.comment) }}
+{{ line_indent(comment.comment) | safe }}
 
 {% if comment.approved %}
 Comment already approved
