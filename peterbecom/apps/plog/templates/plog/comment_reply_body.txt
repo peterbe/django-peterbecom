@@ -1,7 +1,7 @@
 This is an automatic email notification from Peterbe.com
 On this page,
 {{ base_url }}{{ post.get_absolute_url() }}
-you wrote::
+you wrote:
 
 {{ line_indent(parent.comment)|safe }}
 
