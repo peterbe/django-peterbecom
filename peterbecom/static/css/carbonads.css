@@ -1,0 +1,31 @@
+#fusion_ad {
+    display: block;
+    overflow: hidden;
+    margin-left: 10px;
+    padding: 10px;
+    max-width: 180px;
+    width: auto;
+    border: solid 1px #5185ce;
+    background: #fbfcfe;
+    font: 12px/1.5 Verdana, "Helvetica Neue", Helvetica, sans-serif;
+}
+
+#fusion_ad br {
+    display: none;
+}
+
+.fusionimg {
+    display: block;
+    margin: 0 auto;
+}
+
+.fusiontext {
+    display: block;
+    margin: 5px 0;
+}
+
+.carbon-poweredby {
+    display: block;
+    text-align: right;
+    font-size: 11px;
+}

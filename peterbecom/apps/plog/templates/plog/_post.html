@@ -19,8 +19,8 @@
 
   <div class="page-header">
     <h1>{{ post.title }}<br>
-    <small style="float:right">{{ post.pub_date.strftime('%d %B %Y') }}</small>
-
+    <small>{{ post.pub_date.strftime('%d %B %Y') }}</small>
+    &nbsp;
     <small class="comment-count">{{ count }} comment{% if count != 1 %}s{% endif %}</small>
 
     {% for category in post.categories.all() %}
