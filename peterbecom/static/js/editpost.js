@@ -64,12 +64,12 @@ $(function() {
   }
 
   if (!$('#id_oid').val().length) {
-    $('#id_title').on('keydown', function() {
+    $('#id_title').on('input', function() {
       $('#id_oid').val(slugify($(this).val()));
     });
 
-    $('#id_oid').on('keydown', function() {
-      $('#id_title').off('keydown');
+    $('#id_oid').on('input', function() {
+      $('#id_title').off('input');
     });
   }
 

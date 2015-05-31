@@ -1,5 +1,5 @@
 from django.http import HttpResponsePermanentRedirect
-from django.conf.urls.defaults import patterns, include, url
+from django.conf.urls import patterns, include, url
 from django.views.decorators.cache import cache_page
 from .feed import PlogFeed
 import views
@@ -7,7 +7,7 @@ import views
 
 urlpatterns = patterns('',
     url('^$', views.home, name='home'),
-    url(r'(.*?)/?rss.xml$', cache_page(PlogFeed(), 60 * 60)),
+    url(r'(.*?)/?rss.xml$', cache_page(60 * 60)(PlogFeed())),
     url('^search$', views.search, name='search'),
     url('^autocomplete$', views.autocomplete, name='autocomplete'),
     url('^autocomplete/tester$', views.autocomplete_tester, name='autocomplete_tester'),
