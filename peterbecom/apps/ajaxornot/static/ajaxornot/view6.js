@@ -2,18 +2,25 @@
    and run `jsx view6.jsx > view6.js`
 */
 var Row = React.createClass({displayName: "Row",
+  handleTitleClick: function(e) {
+    e.preventDefault();
+    if (confirm(e.target.textContent)) {
+      window.location.href = e.target.href;
+    }
+  },
   render: function() {
     var item = this.props.item;
     return React.createElement("tr", null, 
       React.createElement("td", null, 
-        React.createElement("a", {href: '/plog/' + item.slug}, item.title)
+        React.createElement("a", {href: '/plog/' + item.slug, 
+            onClick: this.handleTitleClick.bind(item)}, item.title)
       ), 
       React.createElement("td", null, item.pub_date), 
       React.createElement("td", null, 
       
         item.categories.map(function(category) {
           return React.createElement("a", {href: '/oc-' + category.replace(' ', '+'), 
-            className: "label label-default"}, category)
+              className: "label label-default"}, category)
         })
       
       ), 

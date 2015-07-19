@@ -2,18 +2,25 @@
    and run `jsx view6.jsx > view6.js`
 */
 var Row = React.createClass({
+  handleTitleClick: function(e) {
+    e.preventDefault();
+    if (confirm(e.target.textContent)) {
+      window.location.href = e.target.href;
+    }
+  },
   render: function() {
     var item = this.props.item;
     return <tr>
       <td>
-        <a href={'/plog/' + item.slug}>{item.title}</a>
+        <a href={'/plog/' + item.slug}
+            onClick={this.handleTitleClick.bind(item)}>{item.title}</a>
       </td>
       <td>{item.pub_date}</td>
       <td>
       {
         item.categories.map(function(category) {
           return <a href={'/oc-' + category.replace(' ', '+')}
-            className="label label-default">{category}</a>
+              className="label label-default">{category}</a>
         })
       }
       </td>
