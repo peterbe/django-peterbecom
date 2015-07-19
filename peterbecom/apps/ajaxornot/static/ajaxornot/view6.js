@@ -1,3 +1,6 @@
+/* To generate `view6.js` got to the directory where `views6.jsx` is
+   and run `jsx view6.jsx > view6.js`
+*/
 var Row = React.createClass({displayName: "Row",
   render: function() {
     var item = this.props.item;

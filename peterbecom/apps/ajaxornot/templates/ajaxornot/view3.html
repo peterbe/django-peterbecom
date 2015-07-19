@@ -13,7 +13,7 @@
   </thead>
   <tbody>
     {% raw %}
-    <tr ng-repeat="item in items">
+    <tr ng-repeat="item in items | track by item.slug">
       <td><a ng-click="confirmAndGo(item)" style="cursor:pointer">{{ item.title }}</a></td>
       <td class="pub-date">{{ item.pub_date }}</td>
       <td>
@@ -22,7 +22,8 @@
            class="label label-default">{{ category }}</a>
       </td>
       <td>
-        <span ng-repeat="keyword in item.keywords" class="label label-default">{{ keyword }}</span>
+        <span ng-repeat="keyword in item.keywords"
+              class="label label-default">{{ keyword }}</span>
       </td>
     </tr>
     {% endraw %}
@@ -33,21 +34,5 @@
 
 {% block footer %}
 <script src="{{ static('ajaxornot/angular.min.js') }}"></script>
-<script>
-angular.module('app', [])
-.controller('TableController',
-function TableController($scope, $http) {
-  $scope.items = [];
-  $http.get('/ajaxornot/view3-data')
-  .success(function(response) {
-    $scope.items = response.items;
-  }).error(function() {
-    console.error(arguments);
-  });
-  $scope.confirmAndGo = function(item) {
-    if (confirm(item.title))
-      window.location.href = '/plog/' + item.slug;
-  };
-});
-</script>
+<script src="{{ static('ajaxornot/view3.js') }}"></script>
 {% endblock %}
