@@ -255,7 +255,7 @@ def preview_json(request):
 
 # Not using @json_view so I can use response.set_cookie first
 @require_POST
-@transaction.commit_on_success
+@transaction.atomic
 def submit_json(request, oid):
     post = get_object_or_404(BlogItem, oid=oid)
     if post.disallow_comments:
@@ -318,7 +318,7 @@ def submit_json(request, oid):
         'comment_count': comment_count,
     }
 
-    response = http.HttpResponse(json.dumps(data), mimetype="application/json")
+    response = http.JsonResponse(data)
     if name:
         if isinstance(name, unicode):
             name = name.encode('utf-8')
@@ -499,7 +499,7 @@ def new_comments(request):
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def add_post(request):
     data = {}
     user = request.user
@@ -546,7 +546,7 @@ def add_post(request):
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def edit_post(request, oid):
     blogitem = get_object_or_404(BlogItem, oid=oid)
     data = {}
@@ -637,7 +637,7 @@ def preview_post(request):
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def add_file(request):
     data = {}
     user = request.user
