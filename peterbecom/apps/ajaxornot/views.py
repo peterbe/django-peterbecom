@@ -51,6 +51,11 @@ def view3(request):
     return render(request, 'ajaxornot/view3.html')
 
 
+# @cache_page(60 * 60)
+def view3_react(request):
+    return render(request, 'ajaxornot/view3_react.html')
+
+
 @cache_page(60 * 60)
 @json_view
 def view3_data(request):
