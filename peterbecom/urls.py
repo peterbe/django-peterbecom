@@ -8,7 +8,7 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 #admin.autodiscover()
 
 urlpatterns = patterns('',
-    url(r'^admin/', include(admin.site.urls)),
+    # url(r'^admin/', include(admin.site.urls)),
     url(r'^nodomains$', lambda x: http.HttpResponseRedirect('/nodomains/')),
     url(r'^nodomains/', include('peterbecom.apps.nodomains.urls', namespace='nodomains')),
     url(r'^ajaxornot/', include('peterbecom.apps.ajaxornot.urls', namespace='ajaxornot')),
