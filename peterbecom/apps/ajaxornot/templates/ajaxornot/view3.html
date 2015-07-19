@@ -13,7 +13,7 @@
   </thead>
   <tbody>
     {% raw %}
-    <tr ng-repeat="item in items | track by item.slug">
+    <tr ng-repeat="item in items track by item.slug">
       <td><a ng-click="confirmAndGo(item)" style="cursor:pointer">{{ item.title }}</a></td>
       <td class="pub-date">{{ item.pub_date }}</td>
       <td>
