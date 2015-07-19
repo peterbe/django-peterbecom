@@ -51,11 +51,6 @@ def view3(request):
     return render(request, 'ajaxornot/view3.html')
 
 
-# @cache_page(60 * 60)
-def view3_react(request):
-    return render(request, 'ajaxornot/view3_react.html')
-
-
 @cache_page(60 * 60)
 @json_view
 def view3_data(request):
@@ -79,3 +74,14 @@ def view5(request):
 def view5_table(request):
     context = {'items': get_data(offset=25)}
     return render(request, 'ajaxornot/view5_trs.html', context)
+
+
+@cache_page(60 * 60)
+def view6(request):
+    return render(request, 'ajaxornot/view6.html')
+
+
+@cache_page(60 * 60)
+@json_view
+def view6_data(request):
+    return {'items': get_data(pub_date_format=lambda x: x.strftime('%B %Y'))}

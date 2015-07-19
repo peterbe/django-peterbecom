@@ -47,7 +47,8 @@
           {% if 'view4' in request.META['PATH_INFO'] %}class="active"{% endif %}>Content as inline javascript JSON</a></li>
       <li><a href="{{ url('ajaxornot:view5') }}"
           {% if 'view5' in request.META['PATH_INFO'] %}class="active"{% endif %}>Partial server-side, partial AJAX innerHTML</a></li>
-
+      <li><a href="{{ url('ajaxornot:view6') }}"
+          {% if 'view6' in request.META['PATH_INFO'] %}class="active"{% endif %}>AJAX load table with React</a></li>
     </ol>
     <p>
       <a href=".">Go back to overview page</a>
