@@ -4,11 +4,11 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 
 # Uncomment the next two lines to enable the admin:
-#from django.contrib import admin
-#admin.autodiscover()
+from django.contrib import admin
+admin.autodiscover()
 
 urlpatterns = patterns('',
-    # url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', include(admin.site.urls)),
     url(r'^nodomains$', lambda x: http.HttpResponseRedirect('/nodomains/')),
     url(r'^nodomains/', include('peterbecom.apps.nodomains.urls', namespace='nodomains')),
     url(r'^ajaxornot/', include('peterbecom.apps.ajaxornot.urls', namespace='ajaxornot')),
@@ -19,7 +19,7 @@ urlpatterns = patterns('',
     url(r'^plog$', lambda x: http.HttpResponseRedirect('/plog/')),
     url(r'', include('peterbecom.apps.homepage.urls')),
     # Uncomment the admin/doc line below to enable admin documentation:
-    # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
+    url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 )
 
 urlpatterns += staticfiles_urlpatterns()
