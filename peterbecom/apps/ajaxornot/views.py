@@ -1,7 +1,9 @@
+from collections import defaultdict
+
 from django.shortcuts import render, get_object_or_404, redirect
 
 from peterbecom.apps.plog.views import json_view
-from peterbecom.apps.plog.models import BlogItem
+from peterbecom.apps.plog.models import BlogItem, Category
 from peterbecom.apps.plog.utils import utc_now
 
 from fancy_cache import cache_page
@@ -14,6 +16,12 @@ def index(request):
 
 def get_data(max_length=1000, pub_date_format=None, offset=0):
     items = []
+    category_names = dict((x.id, x.name) for x in Category.objects.all())
+    categories = defaultdict(list)
+    for e in BlogItem.categories.through.objects.all():
+        categories[e.blogitem_id].append(
+            category_names[e.category_id]
+        )
     qs = BlogItem.objects.filter(pub_date__lt=utc_now()).order_by('-pub_date')
     for item in qs[offset:max_length]:
         pub_date = item.pub_date
@@ -24,7 +32,7 @@ def get_data(max_length=1000, pub_date_format=None, offset=0):
             'slug': item.oid,
             'pub_date': pub_date,
             'keywords': [x for x in item.keywords if x][:3],
-            'categories': [x.name for x in item.categories.all()[:3]]
+            'categories': categories[item.id][:3],
         })
     return items
 
@@ -81,7 +89,7 @@ def view6(request):
     return render(request, 'ajaxornot/view6.html')
 
 
-@cache_page(60 * 60)
+# @cache_page(60 * 60)
 @json_view
 def view6_data(request):
     return {'items': get_data(pub_date_format=lambda x: x.strftime('%B %Y'))}
