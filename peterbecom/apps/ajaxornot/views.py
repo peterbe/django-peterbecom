@@ -89,7 +89,7 @@ def view6(request):
     return render(request, 'ajaxornot/view6.html')
 
 
-# @cache_page(60 * 60)
+@cache_page(60 * 60)
 @json_view
 def view6_data(request):
     return {'items': get_data(pub_date_format=lambda x: x.strftime('%B %Y'))}
