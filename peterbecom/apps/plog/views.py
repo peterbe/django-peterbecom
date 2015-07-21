@@ -811,7 +811,11 @@ def plog_hits(request):
         for x in Category.objects.all().values('id', 'name')
     )
     categories = defaultdict(list)
-    for each in BlogItem.categories.through.objects.all().values('blogitem_id', 'category_id'):
+    qs = (
+        BlogItem.categories.through.objects.all()
+        .values('blogitem_id', 'category_id')
+    )
+    for each in qs:
         categories[each['blogitem_id']].append(
             _category_names[each['category_id']]
         )
@@ -823,6 +827,7 @@ def plog_hits(request):
             h.hits / extract(days from (now() - b.pub_date)) AS score
         from plog_blogitem b
         inner join plog_blogitemhits h using (oid)
+        where (now() - b.pub_date) > interval '1 day'
         order by score desc
         limit {limit};
     """.format(limit=limit))
@@ -830,9 +835,7 @@ def plog_hits(request):
 
     category_scores = defaultdict(list)
     for item in query:
-        # print item.oid
         for cat in categories[item.id]:
-            # print "\t", cat
             category_scores[cat].append(item.score)
 
     def median(seq):
@@ -842,8 +845,6 @@ def plog_hits(request):
     summed_category_scores = []
     for name, scores in category_scores.items():
         count = len(scores)
-        if not count:
-            continue
         summed_category_scores.append({
             'name': name,
             'count': count,
