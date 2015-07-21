@@ -429,7 +429,7 @@ def sitemap(request):
             )
 
     urls.append('</urlset>')
-    return http.HttpResponse('\n'.join(urls), mimetype="text/xml")
+    return http.HttpResponse('\n'.join(urls), content_type="text/xml")
 
 
 def blog_post_by_alias(request, alias):
