@@ -229,11 +229,6 @@ CELERYD_CONCURRENCY = 3
 #CELERY_REDIS_DB = 0
 
 
-
-AKISMET_USERAGENT = "Peterbe.com/2.0"
-AKISMET_KEY = None  # override in settings/local.py
-
-
 SESSION_COOKIE_HTTPONLY = True
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 365  # 1 year

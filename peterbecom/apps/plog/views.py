@@ -293,8 +293,6 @@ def submit_json(request, oid):
           ip_address=request.META.get('REMOTE_ADDR'),
           user_agent=request.META.get('HTTP_USER_AGENT')
         )
-        if not settings.DEBUG:
-            tasks.akismet_rate.delay(blog_comment.pk)
 
         if request.user.is_authenticated():
             _approve_comment(blog_comment)

@@ -5,7 +5,6 @@ Name: {{ comment.name }}
 Email: {{ comment.email }}
 IP Address: {{ comment.ip_address }}
 User Agent: {{ comment.user_agent }}
-Akismet pass: {{ comment.akismet_pass }}
 Comment:
 {{ line_indent(comment.comment) | safe }}
 
