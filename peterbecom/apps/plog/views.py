@@ -841,11 +841,14 @@ def plog_hits(request):
 
     summed_category_scores = []
     for name, scores in category_scores.items():
+        count = len(scores)
+        if not count:
+            continue
         summed_category_scores.append({
             'name': name,
-            'count': len(scores),
+            'count': count,
             'sum': sum(scores),
-            'avg': sum(scores) / len(scores),
+            'avg': sum(scores) / count,
             'med': median(scores),
         })
     context['summed_category_scores'] = summed_category_scores
