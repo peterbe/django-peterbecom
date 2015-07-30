@@ -3,7 +3,6 @@
 var url = phantom.args[0];
 var original_domain = getDomain(url);
 
-var resourceWait  = 300;
 var maxRenderWait = 10 * 1000;
 
 var page = require('webpage').create()
@@ -50,11 +49,6 @@ page.onResourceReceived = function (res) {
   if (!res.stage || res.stage === 'end') {
     count -= 1;
     console.log('< (' + count + ') ' + res.id + ' ' + res.status + ' - ' + res.url.substring(0, 70));
-    /*
-    if (count === 0) {
-      console.log('Count back to 0');
-      renderTimeout = setTimeout(doRender, resourceWait);
-    }*/
   }
 };
 
