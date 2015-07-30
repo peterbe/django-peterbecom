@@ -13,7 +13,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if cache.get('nodomains-queued'):
             return
-        for queued in models.Queued.objects.all().order_by('add_date'):
+        queued = models.Queued.objects.filter(failed_attempts__lt=5)
+        for queued in queued.order_by('add_date'):
             cache.set('nodomains-queued', True, 100)
             try:
                 then = utc_now() - datetime.timedelta(days=1)
@@ -24,6 +25,11 @@ class Command(BaseCommand):
                 print "Skipping", queued.url
             except models.Result.DoesNotExist:
                 print queued.url
-                run_url(queued.url)
+                try:
+                    run_url(queued.url)
+                except Exception:
+                    queued.failed_attempts += 1
+                    queued.save()
+                    continue
             queued.delete()
         cache.delete('nodomains-queued')

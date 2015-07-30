@@ -23,6 +23,7 @@ class ResultDomain(models.Model):
 
 class Queued(models.Model):
     url = models.URLField(max_length=400)
+    failed_attempts = models.PositiveIntegerField(default=0)
     add_date = models.DateTimeField(default=utils.utc_now)
 
 

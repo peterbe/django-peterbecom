@@ -4,6 +4,8 @@ import time
 import subprocess
 from urlparse import urlparse
 
+import subprocess32
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST
 from django.core.cache import cache
@@ -54,13 +56,13 @@ def run_url(url):
     ]
     print "Running"
     print command
-    process = subprocess.Popen(
+    process = subprocess32.Popen(
         ' '.join(command),
         shell=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
     )
-    out, err = process.communicate()
+    out, err = process.communicate(timeout=60)
     t1 = time.time()
 
     regex = re.compile('DOMAIN: (.*) COUNT: (\d+)')
