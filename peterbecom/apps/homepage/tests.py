@@ -16,21 +16,23 @@ class HomepageTestCase(TestCase):
         url = reverse('home')
 
         blog1 = BlogItem.objects.create(
-          title='TITLE1',
-          text='BLABLABLA',
-          display_format='structuredtext',
-          pub_date=utc_now() - datetime.timedelta(seconds=10),
+            title='TITLE1',
+            text='BLABLABLA',
+            display_format='structuredtext',
+            pub_date=utc_now() - datetime.timedelta(seconds=10),
         )
         comment1 = BlogComment.objects.create(
-          comment="textext",
-          blogitem=blog1,
-          approved=True,
+            oid='c1',
+            comment="textext",
+            blogitem=blog1,
+            approved=True,
         )
 
         comment2 = BlogComment.objects.create(
-          comment="tuxtuxt",
-          blogitem=blog1,
-          approved=True,
+            oid='c2',
+            comment="tuxtuxt",
+            blogitem=blog1,
+            approved=True,
         )
 
         response = self.client.get(url)
@@ -43,10 +45,11 @@ class HomepageTestCase(TestCase):
         self.assertTrue('TUTLE1' in response.content)
 
         blog2 = BlogItem.objects.create(
-          title='TATLE2',
-          text='BLEBLE',
-          display_format='structuredtext',
-          pub_date=utc_now() - datetime.timedelta(seconds=1),
+            oid='t2',
+            title='TATLE2',
+            text='BLEBLE',
+            display_format='structuredtext',
+            pub_date=utc_now() - datetime.timedelta(seconds=1),
         )
 
         response = self.client.get(url)
@@ -57,10 +60,10 @@ class HomepageTestCase(TestCase):
 
         # by categories only
         cat1 = Category.objects.create(
-          name='CATEGORY1',
+            name='CATEGORY1',
         )
         cat2 = Category.objects.create(
-          name='CATEGORY2',
+            name='CATEGORY2',
         )
         blog1.categories.add(cat1)
         blog1.save()
@@ -83,10 +86,11 @@ class HomepageTestCase(TestCase):
 
         for i in range(2, 21):
             BlogItem.objects.create(
-              title='TITLE-%s' % i,
-              text='BLEBLE',
-              display_format='structuredtext',
-              pub_date=utc_now() - datetime.timedelta(seconds=20 + i),
+                oid='t-%s' % i,
+                title='TITLE-%s' % i,
+                text='BLEBLE',
+                display_format='structuredtext',
+                pub_date=utc_now() - datetime.timedelta(seconds=20 + i),
             )
 
         url = reverse('home')

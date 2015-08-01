@@ -362,7 +362,7 @@ def _approve_comment(blogcomment):
 
 
 def _get_comment_body(blogitem, blogcomment):
-    base_url = 'http://%s' % Site.objects.get(pk=settings.SITE_ID).domain
+    base_url = 'http://%s' % Site.objects.get_current().domain
     approve_url = reverse('approve_comment', args=[blogitem.oid, blogcomment.oid])
     delete_url = reverse('delete_comment', args=[blogitem.oid, blogcomment.oid])
     message = template = loader.get_template('plog/comment_body.txt')
@@ -377,7 +377,7 @@ def _get_comment_body(blogitem, blogcomment):
 
 
 def _get_comment_reply_body(blogitem, blogcomment, parent):
-    base_url = 'http://%s' % Site.objects.get(pk=settings.SITE_ID).domain
+    base_url = 'http://%s' % Site.objects.get_current().domain
     approve_url = reverse('approve_comment', args=[blogitem.oid, blogcomment.oid])
     delete_url = reverse('delete_comment', args=[blogitem.oid, blogcomment.oid])
     message = template = loader.get_template('plog/comment_reply_body.txt')
@@ -763,10 +763,7 @@ def calendar_data(request):
 @require_POST
 @csrf_exempt
 def inbound_email(request):
-    raw_data = request.raw_post_data
-    #filename = '/tmp/raw_data.%s.json' % (time.time(),)
-    #with open(filename, 'w') as f:
-    #    f.write(raw_data)
+    raw_data = request.read()
 
     data = json.loads(raw_data)
     inbound = PostmarkInbound(json=raw_data)

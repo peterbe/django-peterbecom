@@ -4,7 +4,7 @@ from django.contrib.sites.models import Site
 from celery.task import task
 
 
-site = Site.objects.get(pk=settings.SITE_ID)
+site = Site.objects.get_current()
 base_url = 'http://%s' % site.domain
 
 
