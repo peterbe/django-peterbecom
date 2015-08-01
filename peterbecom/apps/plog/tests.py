@@ -37,14 +37,15 @@ class PlogTestCase(TestCase):
         )
         url = reverse('blog_post', args=[blog.oid])
 
-        import apps.plog.views
-        old_render = apps.plog.views.render
+        #import apps.plog.views
+        import peterbecom.apps.plog.views
+        old_render = peterbecom.apps.plog.views.render
         from django.shortcuts import render as django_render
         render_counts = []
         def mocked_render(*a, **k):
             render_counts.append(1)
             return django_render(*a, **k)
-        apps.plog.views.render = mocked_render
+        peterbecom.apps.plog.views.render = mocked_render
         try:
             response = self.client.get(url)
             self.assertTrue(blog.title in response.content)
@@ -53,15 +54,15 @@ class PlogTestCase(TestCase):
             assert '0 comments' in response.content
 
             comment1 = BlogComment.objects.create(
-              comment="textext",
-              blogitem=blog,
-              approved=True,
-              add_date=utc_now() + datetime.timedelta(seconds=1),
+                comment="textext",
+                blogitem=blog,
+                approved=True,
+                add_date=utc_now() + datetime.timedelta(seconds=1),
             )
             response = self.client.get(url)
             assert '1 comment' in response.content
         finally:
-            apps.plog.views.render = old_render
+            peterbecom.apps.plog.views.render = old_render
 
         assert len(render_counts) == 2
 
@@ -183,11 +184,11 @@ code"""
                         in response.content.lower())
 
         post = BlogItem.objects.create(
-          oid='some-longish-test-post',
-          title='TITLEX',
-          text='BLABLABLA',
-          display_format='structuredtext',
-          pub_date=utc_now() - datetime.timedelta(seconds=10),
+            oid='some-longish-test-post',
+            title='TITLEX',
+            text='BLABLABLA',
+            display_format='structuredtext',
+            pub_date=utc_now() - datetime.timedelta(seconds=10),
         )
         hashkey = post.get_or_create_inbound_hashkey()
         json_content = json_content.replace('Test subject',

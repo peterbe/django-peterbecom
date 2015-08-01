@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import os
-HERE = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-path = lambda *x: os.path.join(HERE, *x)
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+path = lambda *x: os.path.join(BASE_DIR, *x)
 
 DEBUG = TEMPLATE_DEBUG = False
 
@@ -11,6 +12,10 @@ ADMINS = (
 )
 
 MANAGERS = ADMINS
+
+TEST_RUNNER = 'django.test.runner.DiscoverRunner'
+
+SITE_ID = 1
 
 DATABASES = {
     'default': {
@@ -35,8 +40,6 @@ TIME_ZONE = 'America/Chicago'
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'en-us'
-
-SITE_ID = 1
 
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
@@ -89,14 +92,13 @@ STATICFILES_FINDERS = (
 )
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = 'no4t5w7gjnt_*q4&amp;zkazjs5qbdo_jlgr!+=^xkep@e0yx)jqg6'
+SECRET_KEY = ''  # set in local settings
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
     'jingo.Loader',
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
 )
 
 
@@ -120,9 +122,8 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    # Uncomment the next line for simple clickjacking protection:
-    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    #'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
 ROOT_URLCONF = 'peterbecom.urls'
@@ -135,15 +136,14 @@ TEMPLATE_DIRS = (
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
- 'django.contrib.auth.context_processors.auth',
- 'django.core.context_processors.debug',
- 'django.core.context_processors.i18n',
- 'django.core.context_processors.media',
- 'django.core.context_processors.static',
- 'django.core.context_processors.tz',
- 'django.core.context_processors.request',
- 'django.contrib.messages.context_processors.messages',
- 'peterbecom.apps.homepage.context_processors.context',
+   'django.contrib.auth.context_processors.auth',
+   'django.core.context_processors.debug',
+   'django.core.context_processors.media',
+   'django.core.context_processors.static',
+   'django.core.context_processors.tz',
+   'django.core.context_processors.request',
+   # 'django.contrib.messages.context_processors.messages',
+   'peterbecom.apps.homepage.context_processors.context',
 )
 
 
