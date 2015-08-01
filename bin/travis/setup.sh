@@ -3,7 +3,7 @@
 set -e
 
 echo "Making settings/local.py"
-cat > airmozilla/settings/local.py <<SETTINGS
+cat > peterbecom/settings/local.py <<SETTINGS
 from . import base
 DATABASES = {
     'default': {
