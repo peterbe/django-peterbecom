@@ -24,3 +24,6 @@ CACHES = {
     }
 }
 SETTINGS
+
+./manage.py collectstatic --noinput
+./manage.py compress --engine=jinja2 --force
