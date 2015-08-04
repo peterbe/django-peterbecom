@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand
 from django.core.cache import cache
 
 from peterbecom.apps.nodomains import models
-from peterbecom.apps.nodomains.views import run_url
+from peterbecom.apps.nodomains.tasks import run_url
 from peterbecom.apps.plog.utils import utc_now
 
 

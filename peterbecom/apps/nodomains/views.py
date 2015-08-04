@@ -1,24 +1,19 @@
 import re
-import os
-import time
-import subprocess
 from urlparse import urlparse
 
-import subprocess32
-
-from django.shortcuts import render, get_object_or_404, redirect
+from django import http
+from django.shortcuts import render
 from django.views.decorators.http import require_POST
 from django.core.cache import cache
-from django.conf import settings
 from django.db.models import Count
 from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Avg
 
 from fancy_cache import cache_page
 
 from peterbecom.apps.plog.views import json_view
 
 from . import models
+from .tasks import run_queued
 
 
 ONE_HOUR = 60 * 60
@@ -28,76 +23,10 @@ ONE_MONTH = ONE_WEEK * 4
 ONE_YEAR = ONE_WEEK * 52
 
 
-COUNT_JS_PATH = os.path.join(
-    os.path.dirname(__file__),
-    'count.js'
-)
-
 def index(request):
     context = {}
     context['page_title'] = "Number of Domains"
     return render(request, 'nodomains/index.html', context)
-
-
-def run_queued(queued):
-    url = queued.url
-    result = run_url(url)
-    queued.delete()
-    return result
-
-
-def run_url(url):
-    t0 = time.time()
-    command = [
-        settings.PHANTOMJS_PATH,
-        '--ignore-ssl-errors=true',
-        COUNT_JS_PATH,
-        '"%s"' % url
-    ]
-    print "Running"
-    print command
-    process = subprocess32.Popen(
-        ' '.join(command),
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    )
-    out, err = process.communicate(timeout=60)
-    t1 = time.time()
-
-    regex = re.compile('DOMAIN: (.*) COUNT: (\d+)')
-    domains = {}
-    for line in out.splitlines():
-        if line.startswith('DOMAIN: '):
-            try:
-                domain, count = regex.findall(line)[0]
-                count = int(count)
-                domains[domain] = count
-            except IndexError:
-                print "Rogue line", repr(line)
-
-    print "OUT", '-' * 70
-    print out
-    #print repr(out)
-    print "ERR", '-' * 70
-    print err
-    #print repr(err)
-    print "\n"
-    if domains:
-        r = models.Result.objects.create(
-            url=url,
-            count=len(domains)
-        )
-        for domain in domains:
-            models.ResultDomain.objects.create(
-                result=r,
-                domain=domain,
-                count=domains[domain]
-            )
-    else:
-        return {'error': "Unable to download that URL. It's not you, it's me!"}
-
-    return {'domains': domains, 'count': len(domains)}
 
 
 @csrf_exempt
@@ -130,12 +59,10 @@ def run(request):
     except models.Result.DoesNotExist:
         pass
     queued, created = models.Queued.objects.get_or_create(url=url)
-    if 0 and models.Queued.objects.all().count() <= 1:
-        print "Run Queued"
-        return run_queued(queued)
-    else:
-        behind = models.Queued.objects.filter(add_date__lt=queued.add_date).count()
-        return {'behind': behind}
+    if created:
+        run_queued.delay(queued)
+    behind = models.Queued.objects.filter(add_date__lt=queued.add_date).count()
+    return {'behind': behind}
 
 
 @json_view
@@ -153,7 +80,7 @@ def domains(request):
 
 
 def _stats(r):
-    #returns the median, average and standard deviation of a sequence
+    # returns the median, average and standard deviation of a sequence
     tot = sum(r)
     avg = tot/len(r)
     sdsq = sum([(i-avg)**2 for i in r])
@@ -208,6 +135,7 @@ def most_common(request):
         domains.append([each['domain'], each['count']])
 
     return domains
+
 
 @cache_page(ONE_DAY, _stats_prefixer)
 @json_view

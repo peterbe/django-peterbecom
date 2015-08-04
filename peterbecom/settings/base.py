@@ -225,6 +225,7 @@ BROKER_TRANSPORT = 'redis'
 CELERY_IMPORTS = (
     "peterbecom.apps.plog.tasks",
     "peterbecom.apps.homepage.tasks",
+    "peterbecom.apps.nodomains.tasks",
 )
 CELERYD_CONCURRENCY = 2
 CELERY_IGNORE_RESULT = True
