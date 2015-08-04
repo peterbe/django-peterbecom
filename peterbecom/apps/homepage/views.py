@@ -360,17 +360,14 @@ def autocomplete_tester(request):
     return render(request, 'homepage/autocomplete_tester.html')
 
 
-from .base64allimages import post_process_response as b64_post_process_response
-
-
-@cache_control(public=True, max_age=60 * 60)
-@cache_page(60 * 60, post_process_response=mincss_response)
+# @cache_control(public=True, max_age=60 * 60)
+# @cache_page(60 * 60, post_process_response=mincss_response)
 def about(request):
     return render(request, 'homepage/about.html')
 
 
-@cache_control(public=True, max_age=60 * 60)
-@cache_page(60 * 60 * 24, post_process_response=mincss_response)
+# @cache_control(public=True, max_age=60 * 60)
+# @cache_page(60 * 60 * 24, post_process_response=mincss_response)
 def contact(request):
     return render(request, 'homepage/contact.html')
 

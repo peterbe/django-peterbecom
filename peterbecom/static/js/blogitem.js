@@ -175,20 +175,20 @@ $(function() {
 
   var form = $('form#comment');
 
-  $(window).on('scroll', function() {
-    $(window).off('scroll');
-    $('form#comment').off('mouseover');
-    F.prepare();
-  });
-
+  // $(window).on('scroll', function() {
+  //   $(window).off('scroll');
+  //   $('form#comment').off('mouseover');
+  //   F.prepare();
+  // });
+  //
   form.on('mouseover', function() {
-    $(window).off('scroll');
+    // $(window).off('scroll');
     $(this).off('mouseover');
     F.prepare();
   });
 
   form.on('mouseover', function() {
-    $(window).off('scroll');
+    // $(window).off('scroll');
     $(this).off('mouseover');
     F.prepare();
   });

@@ -3,23 +3,45 @@
 {% block title_prefix %}{{ post.title }}{% endblock %}
 
 {% block extrahead %}
-{% if post.keywords %}
-<meta name="keywords" content="{{ ','.join(post.keywords) }}">
-{% endif %}
+  {% if post.keywords %}
+    <meta name="keywords" content="{{ ','.join(post.keywords) }}">
+  {% endif %}
+{% endblock %}
+
+
+{% block page_title %}{{ post.title }}{% endblock %}
+
+
+{% block page_header_extra %}
+  {% set count = post.count_comments() %}
+
+  <p>
+    {{ post.pub_date.strftime('%d %B %Y') }}
+    &nbsp;
+    <span class="comment-count">
+      {{ count }} comment{% if count != 1 %}s{% endif %}
+    </span>
+
+    &nbsp;
+    {% for category in post.categories.all() %}
+      <a href="{{ url('only_category', category.name.replace(' ','+')) }}"
+         rel="nofollow"
+         title="Filter by the '{{ category.name }}' category"
+         >{{ category.name }}</a>{% if not loop.last %}, {% endif %}
+    {% endfor %}
+  </p>
+
+  {% if post.url %}
+  <h4><a href="{{ post.url }}">{{ post.url }}</a></h4>
+  {% endif %}
 
 {% endblock %}
 
 
 {% block extrajs %}
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-
-  {% if post.has_carousel_tag() %}
-  <script src="{{ static("libs/bootstrap/bootstrap-carousel.min.js") }}"></script>
-  {% endif %}
-
   {% compress js %}
-  <script src="{{ static("js/blogitem.js") }}"></script>
-  <script src="{{ static("js/prefetcher.js") }}"></script>
+  <script src="{{ static('js/blogitem.js') }}"></script>
+  <script src="{{ static('js/prefetcher.js') }}"></script>
   {% endcompress %}
 
   {% if show_buttons %}
@@ -34,104 +56,95 @@
 {% include "plog/_post.html" %}
 
 {% if show_buttons %}
-<section id="buttons" style="display:none">
-<a href="https://twitter.com/peterbe" class="twitter-follow-button" data-show-count="false">Follow @peterbe</a>
-</section>
+  <section id="buttons" style="display:none">
+    <a href="https://twitter.com/peterbe" class="twitter-follow-button" data-show-count="false">Follow @peterbe</a>
+  </section>
 {% endif %}
 
 {% if post.hide_comments and post.disallow_comments %}
-<p><em>Comments closed for this page</em></p>
+  <p><em>Comments closed for this page</em></p>
 {% else %}
-<section id="comments">
-  <div class="page-header">
-    <h2>Comments</h2>
-  </div>
+  <h2 class="ui dividing header">Comments</h2>
 
-{% if post.hide_comments %}
-  {% if count %}
-  <p><em>Comments hidden. Sorry.</em></p>
-  {% endif %}
-{% else %}
-  <div id="comments-outer">
-  {{ show_comments(post, user.is_staff, all_comments)|safe }}
-  </div>
-  {% if comments_truncated %}
-  <p class="comments-truncated">
-    Only showing the first {{ comments_truncated }} comments ({{ thousands(post.count_comments()) }} in total).
-    <br>
-    <a href="?comments=all" rel="nofollow">Load them all!</a>
-  </p>
-  {% endif %}
-{% endif %}
-
-{% if post.disallow_comments %}
-<p><em>Comments closed</em></p>
-{% else %}
-<div id="preview-comment-outer" class="preview" style="display:none"></div>
-
-<form action="{{ url('submit', post.oid) }}" method="post" id="comment" class="row">
-  <div class="col-md-8">
-    <textarea name="comment" tabindex="1"></textarea>
-  </div>
-
-  <div class="meta col-md-4">
-    <input type="hidden" name="csrfmiddlewaretoken" value="">
-    <input type="hidden" name="parent" value="">
-    <input name="name" placeholder="Your full name" title="Your full name" tabindex="2"><br>
-    <input name="email" placeholder="Your email" title="Your email" tabindex="3"><br>
-    <span class="note">Your email will never ever be published</span>
-    <br>
-    <br>
-      <button type="submit" class="btn btn-primary preview" tabindex="4">Preview first</button>
-      <button type="submit" class="btn btn-default post" tabindex="5">Post comment</button><br>
-    <br>
-    <p class="cancel" style="display:none"><a href="./" title="Abandon ship!">Cancel</a></p>
-
-
-  </div>
-</form>
-{% endif %}
-
-</section>
-{% endif %}
-
-<section id="related">
-  <div class="page-header">
-    <h2>Related posts</h2>
-  </div>
-
-  <div class="row">
-    <div class="col-md-6">
-      <dl>
-        {% if previous_post %}
-        <dt>Previous:</dt>
-        <dd><a href="{{ previous_post.get_absolute_url() }}">{{ previous_post.title }}</a>
-        <small>{{ previous_post.pub_date.strftime('%d %B %Y') }}</small>
-        </dd>
-        {% endif %}
-
-        {% if next_post %}
-        <dt>Next:</dt>
-        <dd><a href="{{ next_post.get_absolute_url() }}">{{ next_post.title }}</a>
-        <small>{{ next_post.pub_date.strftime('%d %B %Y') }}</small>
-        </dd>
-        {% endif %}
-      </dl>
+  {% if post.hide_comments %}
+    {% if count %}
+    <p><em>Comments hidden. Sorry.</em></p>
+    {% endif %}
+  {% else %}
+    <div id="comments-outer" class="ui comments">
+    {{ show_comments(post, user.is_staff, all_comments)|safe }}
     </div>
-
-    {% if related %}
-    <div class="col-md-6">
-      <dl>
-        <dt>Related by keywords:</dt>
-        {% for each in related %}
-        <dd><a href="{{ each.get_absolute_url() }}" data-plogrank="{{ each.plogrank }}">{{ each.title }}</a>
-        <small>{{ each.pub_date.strftime('%d %B %Y') }}</small>
-        </dd>
-        {% endfor %}
-      </dl>
-    </div>
+    {% if comments_truncated %}
+    <p class="comments-truncated">
+      Only showing the first {{ comments_truncated }} comments ({{ thousands(post.count_comments()) }} in total).
+      <br>
+      <a href="?comments=all" rel="nofollow">Load them all!</a>
+    </p>
     {% endif %}
 
-  </div>
-</section>
+  {% endif %}
+
+  {% if post.disallow_comments %}
+    <p><em>Comments closed</em></p>
+  {% else %}
+    <div id="preview-comment-outer" class="preview" style="display:none"></div>
+
+    <form action="{{ url('submit', post.oid) }}" method="post" id="comment" class="ui form">
+      <div class="field">
+        <label>What do you think?<label>
+        <textarea name="comment" tabindex="1" rows="5"></textarea>
+      </div>
+
+      <div class="field">
+        <input type="hidden" name="csrfmiddlewaretoken" value="">
+        <input type="hidden" name="parent" value="">
+        <div class="two fields">
+          <div class="field">
+            <input name="name" placeholder="Your full name" title="Your full name" tabindex="2">
+          </div>
+          <div class="field">
+            <input name="email" placeholder="Your email" title="Your email" tabindex="3">
+          </div>
+        </div>
+
+        <p class="note">Your email will never ever be published</p>
+      </div>
+      <button type="submit" class="ui button primary preview" tabindex="4">Preview first</button>
+      <button type="submit" class="ui button post" tabindex="5">Post comment</button><br>
+      <p class="cancel" style="display:none"><a href="./" title="Abandon ship!">Cancel</a></p>
+
+    </form>
+  {% endif %}
+
+{% endif %}
+
+<h2 class="ui dividing header">Related posts</h2>
+
+<dl>
+  {% if previous_post %}
+  <dt>Previous:</dt>
+  <dd><a href="{{ previous_post.get_absolute_url() }}">{{ previous_post.title }}</a>
+  <small>{{ previous_post.pub_date.strftime('%d %B %Y') }}</small>
+  </dd>
+  {% endif %}
+
+  {% if next_post %}
+  <dt>Next:</dt>
+  <dd><a href="{{ next_post.get_absolute_url() }}">{{ next_post.title }}</a>
+  <small>{{ next_post.pub_date.strftime('%d %B %Y') }}</small>
+  </dd>
+  {% endif %}
+</dl>
+
+{% if related %}
+<dl>
+  <dt>Related by keywords:</dt>
+  {% for each in related %}
+  <dd><a href="{{ each.get_absolute_url() }}" data-plogrank="{{ each.plogrank }}">{{ each.title }}</a>
+  <small>{{ each.pub_date.strftime('%d %B %Y') }}</small>
+  </dd>
+  {% endfor %}
+</dl>
+{% endif %}
+
 {% endblock %}
