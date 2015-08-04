@@ -1,4 +1,6 @@
 import re
+import os
+import tempfile
 import time
 from collections import defaultdict
 from pprint import pprint
@@ -16,6 +18,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.sites.models import RequestSite
 from django.utils.encoding import iri_to_uri
 from django.views.decorators.cache import cache_control
+from django.contrib.auth.decorators import login_required
 
 from peterbecom.apps.plog.models import Category, BlogItem, BlogComment
 from peterbecom.apps.plog.utils import render_comment_text, utc_now
@@ -31,7 +34,7 @@ from fancy_cache import cache_page
 from peterbecom.apps.mincss_response import mincss_response
 from peterbecom.apps.plog.utils import make_prefix, json_view
 from peterbecom.apps.redis_search_index import RedisSearchIndex
-
+from .tasks import sample_task
 
 def _home_key_prefixer(request):
     if request.method != 'GET':
@@ -445,3 +448,20 @@ def humans_txt(request):
         'homepage/humans.txt',
         content_type='text/plain'
     )
+
+
+@login_required
+def celerytester(request):
+    if request.method == 'POST':
+        filepath = os.path.join(tempfile.gettempdir(), 'celerytester.log')
+        if os.path.isfile(filepath):
+            os.remove(filepath)
+        assert sample_task.delay(filepath)
+        for i in range(3):
+            if os.path.isfile(filepath):
+                result = open(filepath).read()
+                os.remove(filepath)
+                return http.HttpResponse(result)
+            time.sleep(i)
+        return http.HttpResponse('Did not work :(')
+    return render(request, 'homepage/celerytester.html')
