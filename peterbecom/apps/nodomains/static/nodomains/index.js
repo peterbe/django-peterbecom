@@ -65,6 +65,7 @@ $(function() {
             $('#result_output .count').text(result.count);
             $('#result_output li').remove();
             var li;
+            var total = 0;
             $.each(result.domains, function(d, c) {
               li = $('<li>')
                 .append($('<code>').text(d));
@@ -73,7 +74,9 @@ $(function() {
                 .text('(' + c + ' time' + pluralize(c) + ')'));
               }
               $('#result_output ul').append(li);
+              total += c;
             });
+            $('#result_output .total').text(total);
             $('#result_output').show();
             var container = $('#recently tbody');
             $('<tr>')
@@ -146,6 +149,7 @@ $(function() {
     if (e.text() == '+') {
       if ($('.domains', tr).length) {
         $('.domains', tr).show();
+        $('.total', tr).show();
       } else {
         var td = $('td', tr).eq(1);
         var url = e.data('url');
@@ -154,6 +158,7 @@ $(function() {
             var c = $('<ul>')
                      .addClass('domains');
             var li;
+            var total = 0;
             $.each(result.domains, function(domain, count) {
               li = $('<li>')
                 .append($('<code>').text(domain));
@@ -163,7 +168,12 @@ $(function() {
                 ));
               }
               c.append(li);
+              total += count;
             });
+            $('<p>')
+              .addClass('total')
+              .html("That's a total of <b>" + total + "</b> external requests")
+              .appendTo(td);
             c.appendTo(td);
           }).fail(function() {
             alert("Sorry. Something went terribly wrong.");
@@ -172,6 +182,7 @@ $(function() {
       e.text('-');
     } else {
       $('.domains', tr).hide();
+      $('.total', tr).hide();
       e.text('+');
     }
     return false;
