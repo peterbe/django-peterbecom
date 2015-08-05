@@ -286,7 +286,7 @@ def markdown_to_html(text, codesyntax):
         gfm(text),
         extensions=['markdown.extensions.tables']
     )
-    html = html.replace('<table>', '<table class="table">')
+    html = html.replace('<table>', '<table class="ui celled table">')
     return html
 
 
