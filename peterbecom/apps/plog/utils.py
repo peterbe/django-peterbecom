@@ -282,7 +282,11 @@ def markdown_to_html(text, codesyntax):
         return found
 
     text = _markdown_pre_regex.sub(matcher, text)
-    html = markdown.markdown(gfm(text))
+    html = markdown.markdown(
+        gfm(text),
+        extensions=['markdown.extensions.tables']
+    )
+    html = html.replace('<table>', '<table class="table">')
     return html
 
 
