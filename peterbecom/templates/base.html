@@ -128,6 +128,10 @@
     /* override so the color comes from the pre tag within instead */
     background: transparent;
   }
+  a.page-title-repeated {
+    color: black;
+    cursor: pointer;
+  }
 
   /* CSS for pre copied from bootstrap */
   pre {
@@ -188,7 +192,7 @@
         <a href="/"><img class="logo" src="{{ static('images/favicon-32.png') }}"></a>
         <a href="/">Peterbe.com</a>
         {% if page_title %}
-        <span class="page-title-repeated">{{ page_title }}</span>
+        <a class="page-title-repeated">{{ page_title }}</a>
         {% endif %}
       </div>
 
@@ -314,6 +318,7 @@
   <script src="{{ static('js/transition.js') }}"></script>
   <script src="{{ static('js/dropdown.js') }}"></script>
   <script src="{{ static('js/visibility.js') }}"></script>
+  <script src="{{ static('js/prefetcher.js') }}"></script>
   <script>
   $(document).ready(function() {
 
@@ -330,8 +335,13 @@
       $('.main.menu  .ui.dropdown').dropdown({
         on: 'hover'
       });
-    })
-  ;
+
+      $('a.page-title-repeated').on('click', function() {
+        window.scrollTo(0, 0);
+        return false;
+      });
+
+    });
   </script>
 
 

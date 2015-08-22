@@ -363,13 +363,19 @@ def autocomplete_tester(request):
 # @cache_control(public=True, max_age=60 * 60)
 # @cache_page(60 * 60, post_process_response=mincss_response)
 def about(request):
-    return render(request, 'homepage/about.html')
+    context = {
+        'page_title': 'About this site',
+    }
+    return render(request, 'homepage/about.html', context)
 
 
 # @cache_control(public=True, max_age=60 * 60)
 # @cache_page(60 * 60 * 24, post_process_response=mincss_response)
 def contact(request):
-    return render(request, 'homepage/contact.html')
+    context = {
+        'page_title': 'Contact me',
+    }
+    return render(request, 'homepage/contact.html', context)
 
 
 @cache_page(60 * 60 * 24)
