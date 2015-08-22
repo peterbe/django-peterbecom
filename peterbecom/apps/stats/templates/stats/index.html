@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% block title_prefix %}Stats{% endblock %}
 
 {% block extrajs %}
 <script type='text/javascript' src='https://www.google.com/jsapi'></script>
@@ -39,17 +38,17 @@ function drawChart() {
 
 <div class="summary" id="plog">
   <h3>Plog</h3>
-  <table class="table" style="width: 15%">
+  <table class="ui very basic table" style="width: 25%">
     <tr>
-      <th>Hits:</th>
+      <td><b>Hits:</b></td>
       <td>{{ plog['total_hits'] }}</td>
     </tr>
     <tr>
-      <th>Misses:</th>
+      <td><b>Misses:</b></td>
       <td>{{ plog['total_misses'] }}</td>
     </tr>
     <tr>
-      <th>Ratio:</th>
+      <td><b>Ratio:</b></td>
       <td>{{ plog['total_ratio'] }}%</td>
     </tr>
   </table>
@@ -57,17 +56,17 @@ function drawChart() {
 
 <div class="summary" id="homepage">
   <h3>Homepage</h3>
-  <table class="table" style="width: 15%">
+  <table class="ui very basic table" style="width: 25%">
     <tr>
-      <th>Hits:</th>
+      <td><b>Hits:</b></td>
       <td>{{ homepage['total_hits'] }}</td>
     </tr>
     <tr>
-      <th>Misses:</th>
+      <td><b>Misses:</b></td>
       <td>{{ homepage['total_misses'] }}</td>
     </tr>
     <tr>
-      <th>Ratio:</th>
+      <td><b>Ratio:</b></td>
       <td>{{ homepage['total_ratio'] }}%</td>
     </tr>
   </table>
@@ -75,7 +74,7 @@ function drawChart() {
 
 
 <h3>All URLs</h3>
-<table class="table table-condensed">
+<table class="ui celled table selectable">
   <thead>
     <tr>
       <th style="text-align:left">URL</th>
@@ -98,9 +97,9 @@ function drawChart() {
       <td>
         {% if abs_url %}
         <a href="{{ abs_url }}">{{ url }}</a>
-	{% else %}
-	{{ url }}
-	{% endif %}
+        {% else %}
+        {{ url }}
+        {% endif %}
       </td>
       <td>{{ thousands(hits) }}</td>
       <td>{{ thousands(misses) }}</td>

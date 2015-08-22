@@ -1,11 +1,16 @@
 {% extends "base.html" %}
 
-{% block title_prefix %}{{ post.title }}{% endblock %}
-
 {% block extrahead %}
   {% if post.keywords %}
     <meta name="keywords" content="{{ ','.join(post.keywords) }}">
   {% endif %}
+  <style>
+  span.not-approved { /* no mincss */
+    float:right;
+    font-size:90%;
+    color:red;
+  }
+  </style>
 {% endblock %}
 
 
@@ -87,11 +92,11 @@
   {% if post.disallow_comments %}
     <p><em>Comments closed</em></p>
   {% else %}
-    <div id="preview-comment-outer" class="preview" style="display:none"></div>
+    <div id="preview-comment-outer" class="ui comments preview" style="display:none"></div>
 
     <form action="{{ url('submit', post.oid) }}" method="post" id="comment" class="ui form">
       <div class="field">
-        <label>What do you think?<label>
+        <label>What do you think?</label>
         <textarea name="comment" tabindex="1" rows="5"></textarea>
       </div>
 

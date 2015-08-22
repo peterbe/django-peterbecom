@@ -2,15 +2,22 @@
 
 {% block title %}Peterbe.com - Stuff in Peter's head{% endblock %}
 
-{% block pre_content %}
-<header class="jumbotron masthead">
-  <div class="inner">
-    <h1>Peterbe.com</h1>
-    <p>A blog and website by Peter Bengtsson</p>
-  </div>
-</header>
+{% block extrahead %}
+<style>
+h2 {
+  margin-top: 50px;
+  padding-top: 40px;
+  border-top: 1px solid #E8E9E9;
+}
+</style>
 {% endblock %}
 
+
+{% block page_title %}Peterbe.com{% endblock %}
+
+{% block page_header_extra %}
+<p>A blog and website by Peter Bengtsson</p>
+{% endblock %}
 
 {% block content %}
 

@@ -170,9 +170,11 @@ def blog_post(request, oid):
     data['comments_truncated'] = comments_truncated
     data['all_comments'] = all_comments
     data['related'] = get_related_posts(post)
+    data['related'] = get_related_posts(post)
     data['show_buttons'] = not settings.DEBUG
     data['show_fusion_ad'] = not settings.DEBUG
     data['home_url'] = request.build_absolute_uri('/')
+    data['page_title'] = post.title
     return render(request, 'plog/post.html', data)
 
 
@@ -452,8 +454,9 @@ def plog_index(request):
             group_dates.append(tup)
 
     data = {
-      'groups': groups,
-      'group_dates': group_dates,
+        'groups': groups,
+        'group_dates': group_dates,
+        'page_title': 'Blog archive',
     }
     return render(request, 'plog/index.html', data)
 
@@ -850,4 +853,5 @@ def plog_hits(request):
             'med': median(scores),
         })
     context['summed_category_scores'] = summed_category_scores
+    context['page_title'] = 'Hits'
     return render(request, 'plog/plog_hits.html', context)

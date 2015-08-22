@@ -1,6 +1,5 @@
 
 
-<section id="post">
 {% if not post.has_carousel_tag() %}
   {% if show_fusion_ad %}
   <div id="fusion_ad">
@@ -17,14 +16,9 @@
   {% endif %}
 {% endif %}
 
-{#  <div class="page-header">
-</div>#}
-
 
 {% if post.has_carousel_tag %}
 {{ expand_carousel(post.rendered, post)|safe }}
 {% else %}
 {{ post.rendered|safe }}
 {% endif %}
-
-</section>

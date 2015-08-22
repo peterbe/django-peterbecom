@@ -27,10 +27,11 @@ def stats_index(request):
             total_ratio = round(100.0 * total_misses / total_hits, 1)
         else:
             total_ratio = ''
-        return {#'urls': urls,
-                'total_hits': total_hits,
-                'total_misses': total_misses,
-                'total_ratio': total_ratio}
+        return {
+            'total_hits': total_hits,
+            'total_misses': total_misses,
+            'total_ratio': total_ratio
+        }
 
     data['plog'] = get_totals('plog')
     data['homepage'] = get_totals('homepage')
@@ -55,5 +56,5 @@ def stats_index(request):
     data['start_date'] = redis.get('counters-start')
     data['total_hits'] = total_hits
     data['total_misses'] = total_misses
-
+    data['page_title'] = 'Stats'
     return render(request, 'stats/index.html', data)
