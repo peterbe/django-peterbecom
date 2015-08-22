@@ -314,36 +314,14 @@
     </div>
   </div>
 
+  {% compress js %}
   <script src="{{ static('js/jquery.min.js') }}"></script>
   <script src="{{ static('js/transition.js') }}"></script>
   <script src="{{ static('js/dropdown.js') }}"></script>
   <script src="{{ static('js/visibility.js') }}"></script>
   <script src="{{ static('js/prefetcher.js') }}"></script>
-  <script>
-  $(document).ready(function() {
-
-      // fix main menu to page on passing
-      $('.main.menu').visibility({
-        type: 'fixed'
-      });
-      // $('.overlay').visibility({
-      //   type: 'fixed',
-      //   offset: 80
-      // });
-
-      // show dropdown on hover
-      $('.main.menu  .ui.dropdown').dropdown({
-        on: 'hover'
-      });
-
-      $('a.page-title-repeated').on('click', function() {
-        window.scrollTo(0, 0);
-        return false;
-      });
-
-    });
-  </script>
-
+  <script src="{{ static('js/site.js') }}"></script>
+  {% endcompress %}
 
   {% block extrajs %}{% endblock %}
   <script>
