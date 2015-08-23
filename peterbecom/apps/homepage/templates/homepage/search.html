@@ -4,25 +4,23 @@
 <style>
 a.better { font-weight: bold; }
 .row .page-header { padding-bottom:5px; margin: 25px 0 5px 0;}
-.page-header a.url { color:green; }
+.result {
+  margin-bottom: 35px;
+}
+.result h3 {
+  margin-bottom: 2px;
+}
+.result a.url { color:green; }
 </style>
 {% endblock %}
-
-{% block extrajs %}
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-  {% compress js %}
-  <script src="{{ static("js/prefetcher.js") }}"></script>
-  {% endcompress %}
-
-{% endblock %}
-
 
 {% block title_prefix %}Search: {{ page_title }}{% endblock %}
 
 {% block content %}
 
-<h2>{{ page_title }}</h2>
-<small>in {{ floatformat(search_time * 1000, 1) }} milliseconds</small>
+{% if q %}
+  <p><small>in {{ floatformat(search_time * 1000, 1) }} milliseconds</small></p>
+{% endif %}
 
 {% if not q %}
   <form class="form-search">
@@ -38,14 +36,16 @@ a.better { font-weight: bold; }
 {% endif %}
 
 {% for document in documents %}
-  <div class="page-header">
+  <div class="result">
     <h3>
       <a href="{{ document.url }}">{{ document.title|safe }}</a>
-      <small>{{ document.date.strftime('%d %b %Y') }}</small>
+      &nbsp;
+      <small style="float: right">{{ document.date.strftime('%d %b %Y') }}</small>
     </h3>
     <a class="url" href="{{ document.url }}">{{ base_url }}{{ document.url }}</a>
+    <br>
+    {{ document.summary|safe }}
   </div>
-  {{ document.summary|safe }}
 {% endfor %}
 
 {% endblock %}

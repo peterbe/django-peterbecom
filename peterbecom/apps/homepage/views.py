@@ -323,7 +323,7 @@ def search(request):
                      + urllib.urlencode({'q': data['better'].encode('utf-8')}))
 
     if not data['q']:
-        page_title = ''
+        page_title = 'Search'
     elif data['count_documents'] == 1:
         page_title = '1 thing found'
     else:

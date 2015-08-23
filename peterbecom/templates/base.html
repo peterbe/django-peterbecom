@@ -306,10 +306,17 @@
       </div>
       <div class="ui inverted section divider"></div> -->
       <div class="ui horizontal inverted small divided link list">
-        <a class="item" href="#">Site Map</a>
-        <a class="item" href="#">Contact Us</a>
-        <a class="item" href="#">Terms and Conditions</a>
-        <a class="item" href="#">Privacy Policy</a>
+        <p>
+          &copy; peterbe.com 2003 - {{ THIS_YEAR }}
+          &sdot;
+          Hosted on <a href="https://www.digitalocean.com/?refcode=9c9126b69f33"
+          title="Yes, following this link and signing up will give me a small referal bonus :)"
+          >Digital Ocean</a>
+        </p>
+        <a class="item" href="{{ url('plog_index') }}">Archive</a>
+        <a class="item" href="{{ url('about') }}">About</a>
+        <a class="item" href="{{ url('contact') }}">Contact</a>
+        <a class="item" href="{{ url('search') }}">Search</a>
       </div>
     </div>
   </div>
