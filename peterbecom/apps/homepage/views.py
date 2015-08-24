@@ -307,7 +307,6 @@ def search(request):
         t1 = time.time()
         search_times.append(t1 - t0)
 
-    # print search_times
     data['search_time'] = sum(search_times)
     count_documents_shown = len(documents)
     data['documents'] = documents
