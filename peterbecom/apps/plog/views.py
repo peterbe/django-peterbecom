@@ -38,7 +38,7 @@ from peterbecom.apps.mincss_response import mincss_response
 from . import tasks
 from . import utils
 from .utils import json_view
-from .forms import BlogForm, BlogFileUpload
+from .forms import BlogForm, BlogFileUpload, CalendarDataForm
 
 
 ONE_HOUR = 60 * 60
@@ -728,7 +728,7 @@ def delete_post_thumbnail(request):
     )
 
 
-# @cache_page(ONE_DAY)
+@cache_page(ONE_DAY)
 def calendar(request):
     context = {'page_title': 'Archive calendar'}
     return render(request, 'plog/calendar.html', context)
@@ -736,27 +736,24 @@ def calendar(request):
 
 @json_view
 def calendar_data(request):
-    start = request.GET['start']
-    end = request.GET['end']
-    start = datetime.datetime.fromtimestamp(float(start))
-    end = datetime.datetime.fromtimestamp(float(end))
+    form = CalendarDataForm(request.GET)
+    if not form.is_valid():
+        return http.HttpResponseBadRequest(form.errors)
+    start = form.cleaned_data['start']
+    end = form.cleaned_data['end']
     if not request.user.is_authenticated():
-        end = min(end, datetime.datetime.utcnow())
+        end = min(end, timezone.now())
         if end < start:
             return []
-    assert start < end
-    assert (end - start).days < 50
-    start = utils.utcify(start)
-    end = utils.utcify(end)
 
     qs = BlogItem.objects.filter(pub_date__gte=start, pub_date__lt=end)
     items = []
     for each in qs:
         item = {
-          'title': each.title,
-          'start': time.mktime(each.pub_date.timetuple()),
-          'url': reverse('blog_post', args=[each.oid]),
-          'className': 'post',
+            'title': each.title,
+            'start': each.pub_date,
+            'url': reverse('blog_post', args=[each.oid]),
+            'className': 'post',
         }
         items.append(item)
 

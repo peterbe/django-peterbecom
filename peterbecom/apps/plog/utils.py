@@ -25,10 +25,6 @@ def make_prefix(request_dict):
     return urllib.urlencode(_get, True)
 
 
-def utcify(dateinstance):
-    return dateinstance.replace(tzinfo=timezone.UTC)
-
-
 def utc_now():
     return timezone.now()
 
