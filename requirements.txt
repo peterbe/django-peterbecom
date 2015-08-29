@@ -20,7 +20,7 @@ BeautifulSoup==3.2.1
 hiredis==0.2.0
 redis==2.10.3
 zope.structuredtext==4.0.0
-Unidecode==0.04.16
+Unidecode==0.04.18
 django-appconf==1.0.1
 django-compressor==1.5
 python-postmark-inbound==1.0.0
