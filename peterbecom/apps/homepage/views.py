@@ -36,6 +36,10 @@ from peterbecom.apps.plog.utils import make_prefix, json_view
 from peterbecom.apps.redis_search_index import RedisSearchIndex
 from .tasks import sample_task
 
+
+logger = logging.getLogger('homepage')
+
+
 def _home_key_prefixer(request):
     if request.method != 'GET':
         return None
@@ -63,7 +67,7 @@ def _home_key_prefixer(request):
     try:
         redis_increment('homepage:hits', request)
     except Exception:
-        logging.error('Unable to redis.zincrby', exc_info=True)
+        logger.error('Unable to redis.zincrby', exc_info=True)
 
     return prefix
 
@@ -74,13 +78,13 @@ def _home_key_prefixer(request):
 #             post_process_response=mincss_response
 #             )
 def home(request, oc=None):
-    data = {}
+    context = {}
     qs = BlogItem.objects.filter(pub_date__lt=utc_now())
     if oc:
         categories = parse_ocs_to_categories(oc)
         cat_q = make_categories_q(categories)
         qs = qs.filter(cat_q)
-        data['categories'] = categories
+        context['categories'] = categories
 
     ## Reasons for not being here
     if request.method == 'HEAD':
@@ -89,7 +93,7 @@ def home(request, oc=None):
     try:
         redis_increment('homepage:misses', request)
     except Exception:
-        logging.error('Unable to redis.zincrby', exc_info=True)
+        logger.error('Unable to redis.zincrby', exc_info=True)
 
     BATCH_SIZE = 10
     try:
@@ -99,20 +103,23 @@ def home(request, oc=None):
     n, m = page * BATCH_SIZE, (page + 1) * BATCH_SIZE
     max_count = qs.count()
     first_post, = qs.order_by('-pub_date')[:1]
-    data['first_post_url'] = request.build_absolute_uri(
+    context['first_post_url'] = request.build_absolute_uri(
         reverse('blog_post', args=[first_post.oid])
     )
     if (page + 1) * BATCH_SIZE < max_count:
-        data['next_page'] = page + 2
-    data['previous_page'] = page
+        context['next_page'] = page + 2
+    context['previous_page'] = page
 
-    data['blogitems'] =  (
+    context['blogitems'] =  (
       qs
       .prefetch_related('categories')
       .order_by('-pub_date')
     )[n:m]
 
-    return render(request, 'homepage/home.html', data)
+    if page > 0:  # page starts on 0
+        context['page_title'] = 'Page {}'.format(page + 1)
+
+    return render(request, 'homepage/home.html', context)
 
 
 def search(request):
@@ -274,7 +281,7 @@ def search(request):
                 ))
                 search_times.append(t1-t0)
 
-        logging.info('Searchin for %r:\n%s' % (search, '\n'.join(times)))
+        logger.info('Searchin for %r:\n%s' % (search, '\n'.join(times)))
     elif keyword_search and any(keyword_search.values()):
         t0 = time.time()
         if keyword_search.get('keyword') or keyword_search.get('keywords'):
