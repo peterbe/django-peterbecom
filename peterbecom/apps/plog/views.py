@@ -1,44 +1,47 @@
-import time
-import urllib
+# import time
+# import urllib
 import logging
 import datetime
-import re
-import functools
-import json
+# import re
+# import functools
+# import json
 import cgi
-from cStringIO import StringIO
+# from cStringIO import StringIO
 from collections import defaultdict
-from pprint import pprint
+
 from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse
 from django.template import Context, loader
 from django import http
 from django.core.cache import cache
-from django.views.decorators.cache import cache_page
+# from django.views.decorators.cache import cache_page
 from django.db import transaction
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
-from django.template import Template
+# from django.template import Template
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
-from django.core.files import File
+# from django.core.files import File
 from django.contrib.sites.models import RequestSite
 from django.views.decorators.cache import cache_control
+from django.utils import timezone
 
-from postmark_inbound import PostmarkInbound
+# from postmark_inbound import PostmarkInbound
 from .models import BlogItem, BlogItemHits, BlogComment, Category, BlogFile
 from .utils import render_comment_text, valid_email, utc_now
 from peterbecom.apps.redisutils import get_redis_connection
 from peterbecom.apps.rediscounter import redis_increment
 from fancy_cache import cache_page
 from peterbecom.apps.mincss_response import mincss_response
-from . import tasks
 from . import utils
 from .utils import json_view
 from .forms import BlogForm, BlogFileUpload, CalendarDataForm
+
+
+logger = logging.getLogger('plog.views')
 
 
 ONE_HOUR = 60 * 60
@@ -121,11 +124,13 @@ def blog_post(request, oid):
                 return redirect(reverse('add_post'))
             raise http.Http404(oid)
 
-    ## Reasons for not being here
+    # Reasons for not being here
     if request.method == 'HEAD':
         return http.HttpResponse('')
-    elif (request.method == 'GET' and
-        (request.GET.get('replypath') or request.GET.get('show-comments'))):
+    elif (
+        request.method == 'GET' and
+        (request.GET.get('replypath') or request.GET.get('show-comments'))
+    ):
         return http.HttpResponsePermanentRedirect(request.path)
 
     try:
@@ -139,7 +144,7 @@ def blog_post(request, oid):
     post._absolute_url = base_url + reverse('blog_post', args=(post.oid,))
 
     data = {
-      'post': post,
+        'post': post,
     }
     try:
         data['previous_post'] = post.get_previous_by_pub_date()
@@ -191,6 +196,7 @@ def get_related_posts(post):
         .order_by('-plogrank')[:12]
     )
 
+
 def _get_related_pks(post):
     redis = get_redis_connection(reconnection_wrapped=True)
     count_keywords = redis.get('kwcount')
@@ -220,11 +226,15 @@ def _render_comment(comment):
 @json_view
 def prepare_json(request):
     data = {
-      'csrf_token': request.META["CSRF_COOKIE"],
-      'name': request.COOKIES.get('name',
-        request.COOKIES.get('__blogcomment_name')),
-      'email': request.COOKIES.get('email',
-        request.COOKIES.get('__blogcomment_email')),
+        'csrf_token': request.META["CSRF_COOKIE"],
+        'name': request.COOKIES.get(
+            'name',
+            request.COOKIES.get('__blogcomment_name')
+        ),
+        'email': request.COOKIES.get(
+            'email',
+            request.COOKIES.get('__blogcomment_email')
+        ),
     }
     # http://stackoverflow.com/a/7503362/205832
     request.META['CSRF_COOKIE_USED'] = True
@@ -242,15 +252,15 @@ def preview_json(request):
 
     html = render_comment_text(comment.strip())
     comment = {
-      'oid': 'preview-oid',
-      'name': name,
-      'email': email,
-      'rendered': html,
-      'add_date': utc_now(),
-      }
+        'oid': 'preview-oid',
+        'name': name,
+        'email': email,
+        'rendered': html,
+        'add_date': utc_now(),
+    }
     html = render_to_string('plog/comment.html', {
-      'comment': comment,
-      'preview': True,
+        'comment': comment,
+        'preview': True,
     })
     return {'html': html}
 
@@ -285,15 +295,15 @@ def submit_json(request, oid):
         break
     else:
         blog_comment = BlogComment.objects.create(
-          oid=BlogComment.next_oid(),
-          blogitem=post,
-          parent=parent,
-          approved=False,
-          comment=comment,
-          name=name,
-          email=email,
-          ip_address=request.META.get('REMOTE_ADDR'),
-          user_agent=request.META.get('HTTP_USER_AGENT')
+            oid=BlogComment.next_oid(),
+            blogitem=post,
+            parent=parent,
+            approved=False,
+            comment=comment,
+            name=name,
+            email=email,
+            ip_address=request.META.get('REMOTE_ADDR'),
+            user_agent=request.META.get('HTTP_USER_AGENT')
         )
 
         if request.user.is_authenticated():
@@ -307,8 +317,8 @@ def submit_json(request, oid):
                       body, from_, tos)
 
     html = render_to_string('plog/comment.html', {
-      'comment': blog_comment,
-      'preview': True,
+        'comment': blog_comment,
+        'preview': True,
     })
     _comments = BlogComment.objects.filter(approved=True, blogitem=post)
     comment_count = _comments.count() + 1
@@ -348,46 +358,55 @@ def approve_comment(request, oid, comment_oid):
         </html>
         ''' % (url, blogitem.title))
 
+
 def _approve_comment(blogcomment):
     blogcomment.approved = True
     blogcomment.save()
 
-    if (blogcomment.parent and blogcomment.parent.email
+    if (
+        blogcomment.parent and blogcomment.parent.email
         and valid_email(blogcomment.parent.email)
-        and blogcomment.email != blogcomment.parent.email):
+        and blogcomment.email != blogcomment.parent.email
+    ):
         parent = blogcomment.parent
         tos = [parent.email]
         from_ = 'Peterbe.com <noreply+%s@peterbe.com>' % blogcomment.oid
-        body = _get_comment_reply_body(blogcomment.blogitem, blogcomment, parent)
+        body = _get_comment_reply_body(
+            blogcomment.blogitem,
+            blogcomment,
+            parent
+        )
         subject = 'Peterbe.com: Reply to your comment'
         send_mail(subject, body, from_, tos)
 
 
 def _get_comment_body(blogitem, blogcomment):
     base_url = 'http://%s' % Site.objects.get_current().domain
-    approve_url = reverse('approve_comment', args=[blogitem.oid, blogcomment.oid])
-    delete_url = reverse('delete_comment', args=[blogitem.oid, blogcomment.oid])
-    message = template = loader.get_template('plog/comment_body.txt')
+    approve_url = reverse(
+        'approve_comment', args=[blogitem.oid, blogcomment.oid]
+    )
+    delete_url = reverse(
+        'delete_comment', args=[blogitem.oid, blogcomment.oid]
+    )
+    template = loader.get_template('plog/comment_body.txt')
     context = {
-      'post': blogitem,
-      'comment': blogcomment,
-      'approve_url': approve_url,
-      'delete_url': delete_url,
-      'base_url': base_url,
+        'post': blogitem,
+        'comment': blogcomment,
+        'approve_url': approve_url,
+        'delete_url': delete_url,
+        'base_url': base_url,
     }
     return template.render(Context(context)).strip()
 
 
 def _get_comment_reply_body(blogitem, blogcomment, parent):
     base_url = 'http://%s' % Site.objects.get_current().domain
-    approve_url = reverse('approve_comment', args=[blogitem.oid, blogcomment.oid])
-    delete_url = reverse('delete_comment', args=[blogitem.oid, blogcomment.oid])
-    message = template = loader.get_template('plog/comment_reply_body.txt')
+    template = loader.get_template('plog/comment_reply_body.txt')
     context = {
-      'post': blogitem,
-      'comment': blogcomment,
-      'parent': parent,
-      'base_url': base_url,
+        'post': blogitem,
+        'comment': blogcomment,
+        'parent': parent,
+        'base_url': base_url,
     }
     return template.render(Context(context)).strip()
 
@@ -435,12 +454,14 @@ def plog_index(request):
     now = utc_now()
     group_dates = []
 
-    _categories = dict((x.pk, x.name) for x in
-                        Category.objects.all())
+    _categories = dict(
+        (x.pk, x.name) for x in
+        Category.objects.all()
+    )
     blogitem_categories = defaultdict(list)
     for cat_item in BlogItem.categories.through.objects.all():
         blogitem_categories[cat_item.blogitem_id].append(
-          _categories[cat_item.category_id]
+            _categories[cat_item.category_id]
         )
     for item in (BlogItem.objects
                  .filter(pub_date__lt=now)
@@ -508,19 +529,21 @@ def add_post(request):
     if request.method == 'POST':
         form = BlogForm(data=request.POST)
         if form.is_valid():
-            keywords = [x.strip() for x
-                        in form.cleaned_data['keywords'].splitlines()
-                        if x.strip()]
+            keywords = [
+                x.strip() for x
+                in form.cleaned_data['keywords'].splitlines()
+                if x.strip()
+            ]
             blogitem = BlogItem.objects.create(
-              oid=form.cleaned_data['oid'],
-              title=form.cleaned_data['title'],
-              text=form.cleaned_data['text'],
-              summary=form.cleaned_data['summary'],
-              display_format=form.cleaned_data['display_format'],
-              codesyntax=form.cleaned_data['codesyntax'],
-              url=form.cleaned_data['url'],
-              pub_date=form.cleaned_data['pub_date'],
-              keywords=keywords,
+                oid=form.cleaned_data['oid'],
+                title=form.cleaned_data['title'],
+                text=form.cleaned_data['text'],
+                summary=form.cleaned_data['summary'],
+                display_format=form.cleaned_data['display_format'],
+                codesyntax=form.cleaned_data['codesyntax'],
+                url=form.cleaned_data['url'],
+                pub_date=form.cleaned_data['pub_date'],
+                keywords=keywords,
             )
             for category in form.cleaned_data['categories']:
                 blogitem.categories.add(category)
@@ -536,8 +559,8 @@ def add_post(request):
             return redirect(url)
     else:
         initial = {
-          'pub_date': utc_now() + datetime.timedelta(seconds=60 * 60),
-          'display_format': 'markdown',
+            'pub_date': utc_now() + datetime.timedelta(seconds=60 * 60),
+            'display_format': 'markdown',
         }
         form = BlogForm(initial=initial)
     data['form'] = form
@@ -631,7 +654,9 @@ def preview_post(request):
     post.codesyntax = form.cleaned_data['codesyntax']
     post.url = form.cleaned_data['url']
     post.pub_date = form.cleaned_data['pub_date']
-    post.categories = Category.objects.filter(pk__in=form.cleaned_data['categories'])
+    post.categories = Category.objects.filter(
+        pk__in=form.cleaned_data['categories']
+    )
     template = get_template("plog/_post.html")
     context = Context({'post': post})
     return http.HttpResponse(template.render(context))
@@ -652,7 +677,10 @@ def add_file(request):
     else:
         initial = {}
         if request.REQUEST.get('oid'):
-            blogitem = get_object_or_404(BlogItem, oid=request.REQUEST.get('oid'))
+            blogitem = get_object_or_404(
+                BlogItem,
+                oid=request.REQUEST.get('oid')
+            )
             initial['blogitem'] = blogitem
         form = BlogFileUpload(initial=initial)
     data['form'] = form
@@ -662,9 +690,11 @@ def add_file(request):
 @login_required
 def post_thumbnails(request, oid):
     blogitem = get_object_or_404(BlogItem, oid=oid)
-    blogfiles = (BlogFile.objects
-                         .filter(blogitem=blogitem)
-                         .order_by('-add_date'))
+    blogfiles = (
+        BlogFile.objects
+        .filter(blogitem=blogitem)
+        .order_by('-add_date')
+    )
     from sorl.thumbnail import get_thumbnail
     html = ''
     # XXX very rough and hacky code
@@ -672,7 +702,6 @@ def post_thumbnails(request, oid):
         full_im = get_thumbnail(
             blogfile.file,
             '1000x1000',
-            #crop='center',
             upscale=False,
             quality=100
         )
@@ -682,33 +711,40 @@ def post_thumbnails(request, oid):
             im = get_thumbnail(
                 blogfile.file,
                 geometry,
-                #crop='center',
                 quality=81
             )
 
             url_ = settings.STATIC_URL + im.url
             tag = (
-                '<img src="%s" alt="%s" width="%s" height="%s">'
-                % (url_,
-                   getattr(blogfile, 'title', blogitem.title),
-                   im.width,
-                   im.height
+                '<img src="%s" alt="%s" width="%s" height="%s">' % (
+                    url_,
+                    getattr(blogfile, 'title', blogitem.title),
+                    im.width,
+                    im.height
                 )
             )
             html += tag
-            delete_url = reverse('delete_post_thumbnail') + '?id=%s' % blogfile.pk
+            delete_url = (
+                reverse('delete_post_thumbnail') + '?id=%s' % blogfile.pk
+            )
             whole_tag = (
-                '<a href="%s" title="%s">%s</a>'
-                % (full_url,
-                   getattr(blogfile, 'title', blogitem.title),
-                   tag.replace('src="', 'class="floatright" src="')
+                '<a href="%s" title="%s">%s</a>' % (
+                    full_url,
+                    getattr(blogfile, 'title', blogitem.title),
+                    tag.replace('src="', 'class="floatright" src="'),
                 )
             )
             html += ' (%s, %s)' % (im.width, im.height)
             html += ' <a href="%s">delete</a>' % delete_url
-            html += '<br><input value="%s" title="Full size 1000x1000">' % full_url
-            html += '<br><input value="%s">' % cgi.escape(tag).replace('"', '&quot;')
-            html += '<br><input value="%s">' % cgi.escape(whole_tag).replace('"', '&quot;')
+            html += '<br><input value="%s" title="Full size 1000x1000">' % (
+                full_url,
+            )
+            html += '<br><input value="%s">' % (
+                cgi.escape(tag).replace('"', '&quot;'),
+            )
+            html += '<br><input value="%s">' % (
+                cgi.escape(whole_tag).replace('"', '&quot;'),
+            )
             html += '<br>'
 
     return http.HttpResponse(html)
@@ -723,8 +759,10 @@ def delete_post_thumbnail(request):
     edit_post_url = reverse('edit_post', args=[blogitem.oid])
     blogfile.delete()
     return http.HttpResponse(
-       'Blogfile deleted.<br><a href="%s">Edit \'%s\'</a>' %
-       (edit_post_url, blogitem.title)
+        'Blogfile deleted.<br><a href="%s">Edit \'%s\'</a>' % (
+            edit_post_url,
+            blogitem.title
+        )
     )
 
 
@@ -760,44 +798,44 @@ def calendar_data(request):
     return items
 
 
-@require_POST
-@csrf_exempt
-def inbound_email(request):
-    raw_data = request.read()
-
-    data = json.loads(raw_data)
-    inbound = PostmarkInbound(json=raw_data)
-    if not inbound.has_attachments():
-        m = "ERROR! No attachments"
-        logging.debug(m)
-        return http.HttpResponse(m)
-    try:
-        hashkey, subject = inbound.subject().split(':', 1)
-    except ValueError:
-        m = "ERROR! No hashkey defined in subject line"
-        logging.debug(m)
-        return http.HttpResponse(m)
-    try:
-        post = BlogItem.get_by_inbound_hashkey(hashkey)
-    except BlogItem.DoesNotExist:
-        m = "ERROR! Unrecognized hashkey"
-        logging.debug(m)
-        return http.HttpResponse(m)
-
-    attachments = inbound.attachments()
-    attachment = attachments[0]
-    blogfile = BlogFile(
-      blogitem=post,
-      title=subject.strip(),
-    )
-    content = StringIO(attachment.read())
-    f = File(content, name=attachment.name())
-    f.size = attachment.content_length()
-    blogfile.file.save(attachment.name(),
-                       f,
-                       save=True)
-    blogfile.save()
-    return http.HttpResponse("OK\n")
+# @require_POST
+# @csrf_exempt
+# def inbound_email(request):
+#     raw_data = request.read()
+#
+#     data = json.loads(raw_data)
+#     inbound = PostmarkInbound(json=raw_data)
+#     if not inbound.has_attachments():
+#         m = "ERROR! No attachments"
+#         logging.debug(m)
+#         return http.HttpResponse(m)
+#     try:
+#         hashkey, subject = inbound.subject().split(':', 1)
+#     except ValueError:
+#         m = "ERROR! No hashkey defined in subject line"
+#         logging.debug(m)
+#         return http.HttpResponse(m)
+#     try:
+#         post = BlogItem.get_by_inbound_hashkey(hashkey)
+#     except BlogItem.DoesNotExist:
+#         m = "ERROR! Unrecognized hashkey"
+#         logging.debug(m)
+#         return http.HttpResponse(m)
+#
+#     attachments = inbound.attachments()
+#     attachment = attachments[0]
+#     blogfile = BlogFile(
+#         blogitem=post,
+#         title=subject.strip(),
+#     )
+#     content = StringIO(attachment.read())
+#     f = File(content, name=attachment.name())
+#     f.size = attachment.content_length()
+#     blogfile.file.save(attachment.name(),
+#                        f,
+#                        save=True)
+#     blogfile.save()
+#     return http.HttpResponse("OK\n")
 
 
 def plog_hits(request):
