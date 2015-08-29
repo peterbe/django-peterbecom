@@ -5,3 +5,7 @@
 * Re-enable all fancy caching
 
 * Test posting the first comment as anonymous (it disappears)
+
+* The "Older ->" link from home page.
+
+* Move inline style in base.html to .css file
