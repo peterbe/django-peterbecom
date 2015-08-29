@@ -1,5 +1,5 @@
 psycopg2==2.6.1
-Django==1.7.9
+Django==1.7.10
 Jinja2==2.7
 jingo==0.7.1
 Pygments==1.6
