@@ -12,8 +12,6 @@
 
 {% block content %}
 
-<h2>{{ page_title }}</h2>
-
 <h3>The Experiments</h3>
 
 <ul>
@@ -48,7 +46,6 @@
 {% endblock %}
 
 {% block extrajs %}
-<script src="{{ static('localvsxhr/jquery-2.1.3.min.js') }}"></script>
 <script>
 $('#stats').load('/localvsxhr/stats');
 </script>

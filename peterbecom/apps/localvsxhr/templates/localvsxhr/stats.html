@@ -7,7 +7,7 @@
 
 <h4>Drivers</h4>
 
-<table class="table table-hover">
+<table class="ui celled table">
   <thead>
     <tr>
       <th>Driver</th>
@@ -23,12 +23,12 @@
     {% for data in drivers %}
     <tr>
       <td>{{ data.name }}</td>
-      <td class="median">{{ floatformat(data.median, 2) }}</td>
-      <td>{{ floatformat(data.average, 2) }}</td>
-      <td>{{ floatformat(data.stddev, 2) }}</td>
-      <td>{{ floatformat(data.max, 2) }}</td>
-      <td>{{ floatformat(data.min, 2) }}</td>
-      <td>{{ data.count }}</td>
+      <td class="median right aligned">{{ floatformat(data.median, 2) }}</td>
+      <td class="right aligned">{{ floatformat(data.average, 2) }}</td>
+      <td class="right aligned">{{ floatformat(data.stddev, 2) }}</td>
+      <td class="right aligned">{{ floatformat(data.max, 2) }}</td>
+      <td class="right aligned">{{ floatformat(data.min, 2) }}</td>
+      <td class="right aligned">{{ data.count }}</td>
     </tr>
     {% endfor %}
   </tbody>
@@ -37,7 +37,7 @@
 
 <h4>Time to Boot</h4>
 
-<table class="table table-hover">
+<table class="ui celled table">
   <thead>
     <tr>
       <th rowspan="2">Driver</th>
@@ -65,17 +65,17 @@
     {% for data in boots %}
     <tr>
       <td>{{ data.name }}</td>
-      <td class="median">{{ floatformat(data.median1, 2) }}</td>
-      <td class="median">{{ floatformat(data.median2, 2) }}</td>
-      <td>{{ floatformat(data.average1, 2) }}</td>
-      <td>{{ floatformat(data.average2, 2) }}</td>
-      <td>{{ floatformat(data.stddev1, 2) }}</td>
-      <td>{{ floatformat(data.stddev2, 2) }}</td>
-      <td>{{ floatformat(data.max1, 2) }}</td>
-      <td>{{ floatformat(data.max2, 2) }}</td>
-      <td>{{ floatformat(data.min1, 2) }}</td>
-      <td>{{ floatformat(data.min2, 2) }}</td>
-      <td>{{ data.count }}</td>
+      <td class="median right aligned">{{ floatformat(data.median1, 2) }}</td>
+      <td class="median right aligned">{{ floatformat(data.median2, 2) }}</td>
+      <td class="right aligned">{{ floatformat(data.average1, 2) }}</td>
+      <td class="right aligned">{{ floatformat(data.average2, 2) }}</td>
+      <td class="right aligned">{{ floatformat(data.stddev1, 2) }}</td>
+      <td class="right aligned">{{ floatformat(data.stddev2, 2) }}</td>
+      <td class="right aligned">{{ floatformat(data.max1, 2) }}</td>
+      <td class="right aligned">{{ floatformat(data.max2, 2) }}</td>
+      <td class="right aligned">{{ floatformat(data.min1, 2) }}</td>
+      <td class="right aligned">{{ floatformat(data.min2, 2) }}</td>
+      <td class="right aligned">{{ data.count }}</td>
     </tr>
     {% endfor %}
   </tbody>
@@ -86,7 +86,7 @@
 <h4>By Browser</h4>
 <h5>Take these with a fistfull of salt</h5>
 
-<table class="table table-hover">
+<table class="ui celled table">
   <thead>
     <tr>
       <th>Browser</th>
@@ -102,12 +102,12 @@
     {% for data in browsers %}
     <tr>
       <td>{{ data.name }}</td>
-      <td class="median">{{ floatformat(data.median, 2) }}</td>
-      <td>{{ floatformat(data.average, 2) }}</td>
-      <td>{{ floatformat(data.stddev, 2) }}</td>
-      <td>{{ floatformat(data.max, 2) }}</td>
-      <td>{{ floatformat(data.min, 2) }}</td>
-      <td>{{ data.count }}</td>
+      <td class="median right aligned">{{ floatformat(data.median, 2) }}</td>
+      <td class="right aligned">{{ floatformat(data.average, 2) }}</td>
+      <td class="right aligned">{{ floatformat(data.stddev, 2) }}</td>
+      <td class="right aligned">{{ floatformat(data.max, 2) }}</td>
+      <td class="right aligned">{{ floatformat(data.min, 2) }}</td>
+      <td class="right aligned">{{ data.count }}</td>
     </tr>
     {% endfor %}
   </tbody>

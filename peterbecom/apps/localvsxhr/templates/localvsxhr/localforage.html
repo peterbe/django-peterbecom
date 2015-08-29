@@ -1,9 +1,16 @@
 {% extends "localvsxhr/base.html" %}
 
+{% block title_prefix %}{{ page_title }}{% endblock %}
+
+{% block page_header_extra %}
+  <p>
+    <a href="{{ url('localvsxhr:index') }}">Experiment index page</a>
+  </p>
+{% endblock %}
+
 {% block content %}
 
 <div class="container">
-  <h1>{{ page_title }}</h1>
   <h3>Comparing the speed it takes to download a big chunk
   of JSON via AJAX compared to retrieving it from IndexedDB locally
   in the browser.</h3>
@@ -34,7 +41,6 @@
 
 {% block extrajs %}
 <script src="{{ static('localvsxhr/localforage.min.js') }}"></script>
-<script src="{{ static('localvsxhr/jquery-2.1.3.min.js') }}"></script>
 <script src="{{ static('localvsxhr/utils.js') }}"></script>
 <script src="{{ static('localvsxhr/localforage-report.js') }}"></script>
 {% endblock %}
