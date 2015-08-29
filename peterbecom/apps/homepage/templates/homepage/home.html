@@ -40,17 +40,28 @@ h2 {
 
 {% include "homepage/_posts.html" %}
 
-<ul class="pager">
-  {% if previous_page %}
-    <li class="previous">
-    <a href="?page={{ previous_page }}">&larr; Newer</a>
-    </li>
-  {% endif %}
-  {% if next_page %}
-    <li class="next">
-    <a href="?page={{ next_page }}">Older &rarr;</a>
-    </li>
-  {% endif %}
-</ul>
+<div class="ui two column centered grid" style="margin-top: 100px">
+  <div class="ui pagination menu">
+    {% if previous_page %}
+      <a class="item" href="?page={{ previous_page }}">
+        &larr; Newer
+      </a>
+    {% else %}
+      <a class="item disabled">
+        Newer
+      </a>
+    {% endif %}
+    {% if next_page %}
+      <a class="item" href="?page={{ next_page }}">
+        Older &rarr;
+      </a>
+    {% else %}
+      <a class="item disabled">
+        Older
+      </a>
+    {% endif %}
+  </div>
+</div>
+
 
 {% endblock %}
