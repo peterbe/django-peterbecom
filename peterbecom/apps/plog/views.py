@@ -728,10 +728,10 @@ def delete_post_thumbnail(request):
     )
 
 
-@cache_page(ONE_DAY)
+# @cache_page(ONE_DAY)
 def calendar(request):
-    data = {'page_title': 'Archive calendar'}
-    return render(request, 'plog/calendar.html', data)
+    context = {'page_title': 'Archive calendar'}
+    return render(request, 'plog/calendar.html', context)
 
 
 @json_view

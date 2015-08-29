@@ -8,14 +8,12 @@ import re
 import zope.structuredtext
 from pygments import highlight
 from pygments import lexers
-#from pygments.lexers import (PythonLexer, JavascriptLexer, TextLexer,
-#  HtmlLexer, CssLexer, SqlLexer)
 from pygments.formatters import HtmlFormatter
 from django.conf import settings
 from django import http
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
-from isodate import UTC
+from django.utils import timezone
 from gfm import gfm
 
 
@@ -28,28 +26,11 @@ def make_prefix(request_dict):
 
 
 def utcify(dateinstance):
-    return dateinstance.replace(tzinfo=UTC)
+    return dateinstance.replace(tzinfo=timezone.UTC)
+
 
 def utc_now():
-    """Return a timezone aware datetime instance in UTC timezone
-
-    This funciton is mainly for convenience. Compare:
-
-        >>> from datetimeutil import utc_now
-        >>> utc_now()
-        datetime.datetime(2012, 1, 5, 16, 42, 13, 639834,
-          tzinfo=<isodate.tzinfo.Utc object at 0x101475210>)
-
-    Versus:
-
-        >>> import datetime
-        >>> from datetimeutil import UTC
-        >>> datetime.datetime.now(UTC)
-        datetime.datetime(2012, 1, 5, 16, 42, 13, 639834,
-          tzinfo=<isodate.tzinfo.Utc object at 0x101475210>)
-
-    """
-    return datetime.datetime.now(UTC)
+    return timezone.now()
 
 
 def valid_email(value):
@@ -74,6 +55,7 @@ def to_basestring(value):
         return value
     assert isinstance(value, bytes)
     return value.decode("utf-8")
+
 
 _TO_UNICODE_TYPES = (unicode, type(None))
 def to_unicode(value):
