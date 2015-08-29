@@ -38,6 +38,8 @@ def valid_email(value):
 
 
 _BASESTRING_TYPES = (basestring, type(None))
+
+
 def to_basestring(value):
     """Converts a string argument to a subclass of basestring.
 
@@ -54,6 +56,8 @@ def to_basestring(value):
 
 
 _TO_UNICODE_TYPES = (unicode, type(None))
+
+
 def to_unicode(value):
     """Converts a string argument to a unicode string.
 
@@ -72,16 +76,13 @@ _unicode = to_unicode
 
 _XHTML_ESCAPE_RE = re.compile('[&<>"]')
 _XHTML_ESCAPE_DICT = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}
+
+
 def xhtml_escape(value):
     """Escapes a string so it is valid within XML or XHTML."""
-    return _XHTML_ESCAPE_RE.sub(lambda match: _XHTML_ESCAPE_DICT[match.group(0)],
-                                to_basestring(value))
-
-
-def xhtml_unescape(value):
-    """Un-escapes an XML-escaped string."""
-    return re.sub(r"&(#?)(\w+?);", _convert_entity, _unicode(value))
-
+    return _XHTML_ESCAPE_RE.sub(
+        lambda match: _XHTML_ESCAPE_DICT[match.group(0)], to_basestring(value)
+    )
 
 
 # I originally used the regex from
@@ -146,8 +147,10 @@ def linkify(text, shorten=False, extra_params="",
                 # The path is usually not that interesting once shortened
                 # (no more slug, etc), so it really just provides a little
                 # extra indication of shortening.
-                url = url[:proto_len] + parts[0] + "/" + \
-                        parts[1][:8].split('?')[0].split('.')[0]
+                url = (
+                    url[:proto_len] + parts[0] + "/" +
+                    parts[1][:8].split('?')[0].split('.')[0]
+                )
 
             if len(url) > max_len * 1.5:  # still too long
                 url = url[:max_len]
@@ -172,11 +175,11 @@ def linkify(text, shorten=False, extra_params="",
     # The regex is modified to avoid character entites other than &amp; so
     # that we won't pick up &quot;, etc.
     text = _unicode(xhtml_escape(text))
-    #text = xhtml_escape(text)
     return _URL_RE.sub(make_link, text)
 
 
 whitespace_start_regex = re.compile(r'^\n*(\s+)', re.M)
+
 
 def render_comment_text(text):
     html = linkify(text, extra_params=' rel="nofollow"')
@@ -192,8 +195,8 @@ def render_comment_text(text):
 
 def stx_to_html(text, codesyntax):
     rendered = zope.structuredtext.stx2html(
-      text,
-      header=0
+        text,
+        header=0
     )
 
     _regex = re.compile(r'(<pre>(.*?)</pre>)', re.DOTALL)
@@ -215,6 +218,7 @@ def stx_to_html(text, codesyntax):
         return new_inner
 
     return _regex.sub(match, rendered)
+
 
 def _get_lexer(codesyntax):
     if codesyntax in ('cpp', 'javascript'):
@@ -240,6 +244,7 @@ _codesyntax_regex = re.compile(
     '```(python|cpp|javascript|xml|html|css|sql|bash|go)'
 )
 _markdown_pre_regex = re.compile('```([^`]+)```')
+
 
 def markdown_to_html(text, codesyntax):
     def matcher(match):
@@ -271,6 +276,7 @@ def markdown_to_html(text, codesyntax):
 _SRC_regex = re.compile('(src|href)="([^"]+)"')
 _image_extension_regex = re.compile('\.(png|jpg|jpeg|gif)$', re.I)
 
+
 # Note: this is quite experimental still
 def cache_prefix_files(text):
     hash_ = str(int(time.time()))
@@ -280,15 +286,16 @@ def cache_prefix_files(text):
 
     def matcher(match):
         attr, url = match.groups()
-        if (url.startswith('/') and
+        if (
+            url.startswith('/') and
             not url.startswith('//') and
-            not '://' in url and
-            _image_extension_regex.findall(url)):
+            '://' not in url and
+            _image_extension_regex.findall(url)
+        ):
             url = '%s%s' % (prefix, url)
         return '%s="%s"' % (attr, url)
 
     return _SRC_regex.sub(matcher, text)
-
 
 
 class DateTimeEncoder(json.JSONEncoder):
