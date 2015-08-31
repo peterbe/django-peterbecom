@@ -12,7 +12,7 @@ Markdown==2.6.2
 sorl-thumbnail==12.3
 Pillow==2.9.0
 mincss==0.8.6
-django-fancy-cache==0.6.0
+django-fancy-cache==0.7.2
 cssmin==0.2.0
 cssselect==0.9.1
 BeautifulSoup==3.2.1
