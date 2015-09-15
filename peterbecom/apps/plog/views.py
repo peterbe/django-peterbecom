@@ -370,7 +370,7 @@ def _approve_comment(blogcomment):
     ):
         parent = blogcomment.parent
         tos = [parent.email]
-        from_ = 'Peterbe.com <noreply+%s@peterbe.com>' % blogcomment.oid
+        from_ = 'Peterbe.com <comments@peterbe.com>'
         body = _get_comment_reply_body(
             blogcomment.blogitem,
             blogcomment,
