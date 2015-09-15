@@ -523,7 +523,7 @@ def new_comments(request):
 @login_required
 @transaction.atomic
 def add_post(request):
-    data = {}
+    context = {}
     user = request.user
     assert user.is_staff or user.is_superuser
     if request.method == 'POST':
@@ -563,10 +563,10 @@ def add_post(request):
             'display_format': 'markdown',
         }
         form = BlogForm(initial=initial)
-    data['form'] = form
-    data['page_title'] = 'Add post'
-    data['blogitem'] = None
-    return render(request, 'plog/edit.html', data)
+    context['form'] = form
+    context['page_title'] = 'Add post'
+    context['blogitem'] = None
+    return render(request, 'plog/edit.html', context)
 
 
 @login_required

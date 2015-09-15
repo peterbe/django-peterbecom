@@ -10,7 +10,7 @@ from django.template import Context
 from django.template.loader import get_template
 from peterbecom.apps.plog.models import BlogFile
 from sorl.thumbnail import get_thumbnail
-#from bootstrapform import
+
 
 @register.function
 def show_comments(parent, is_staff, all_comments):
@@ -45,8 +45,8 @@ def timesince(date):
 
 
 @register.function
-def bootstrapform(form):
-    template = get_template("bootstrapform/form.html")
+def semanticuiform(form):
+    template = get_template("semanticui/form.html")
     context = Context({'form': form})
     return template.render(context)
 

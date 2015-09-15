@@ -12,3 +12,7 @@ DONE
 * About page on mobile
 
 * Test localvsxhr and ajaxornot etc.
+
+* Add/Edit blog post page
+** Might need to fork https://github.com/tzangms/django-bootstrap-form
+   and re-write it for semantic-ui
