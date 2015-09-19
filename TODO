@@ -2,7 +2,6 @@
 
 * Test posting the first comment as anonymous (it disappears)
 
-* Move inline style in base.html to .css file
 
 
 DONE
@@ -16,3 +15,5 @@ DONE
 * Add/Edit blog post page
 ** Might need to fork https://github.com/tzangms/django-bootstrap-form
    and re-write it for semantic-ui
+
+* Move inline style in base.html to .css file
