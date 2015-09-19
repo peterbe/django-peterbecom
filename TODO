@@ -1,8 +1,5 @@
 * Re-enable all fancy caching
 
-* Test posting the first comment as anonymous (it disappears)
-
-
 
 DONE
 
@@ -17,3 +14,5 @@ DONE
    and re-write it for semantic-ui
 
 * Move inline style in base.html to .css file
+
+* Test posting the first comment as anonymous (it disappears)

@@ -128,11 +128,11 @@ var F = (function() {
         success: function(response) {
           var parent;
           if (response.parent) {
-            parent = $('#' + response.parent);
+            parent = $('.comments', '#' + response.parent).eq(1);
           } else {
             parent = $('#comments-outer');
           }
-          $('.comments', parent).eq(1)
+          parent
             .hide()
               .append(response.html)
                 .fadeIn(700);
