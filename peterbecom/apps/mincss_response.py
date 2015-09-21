@@ -1,11 +1,15 @@
+import time
 import re
+import logging
+
 from mincss.processor import Processor
 try:
     import cssmin
 except ImportError:
-    import logging
     logging.warning("Unable to import cssmin", exc_info=True)
     cssmin = None
+
+logger = logging.getLogger('mincss-response')
 
 _style_regex = re.compile('<style.*?</style>', re.M | re.DOTALL)
 _link_regex = re.compile('<link.*?>', re.M | re.DOTALL)
@@ -21,23 +25,20 @@ def mincss_response(response, request):
         return response
 
     html = unicode(response.content, 'utf-8')
+    t0 = time.time()
     p = Processor(
         preserve_remote_urls=True,
     )
     p.process_html(html, abs_uri)
     p.process()
+    t1 = time.time()
     combined_css = []
     _total_before = 0
     _requests_before = 0
 
     for link in p.links:
         _total_before += len(link.before)
-
         _requests_before += 1
-        # if link.no_mincss:
-        #     # leave as is
-        #     combined_css.append(link.before)
-        # else:
         combined_css.append(link.after)
 
     for inline in p.inlines:
@@ -60,7 +61,7 @@ def mincss_response(response, request):
     _total_after = sum(len(x) for x in combined_css)
     combined_css = [cssmin.cssmin(x) for x in combined_css]
     _total_after_min = sum(len(x) for x in combined_css)
-
+    t2 = time.time()
     template = """
 /*
 Stats about using github.com/peterbe/mincss
@@ -87,5 +88,11 @@ Saving:           %.fKb
         '</head>',
         new_style + '\n</head>'
     )
+    logger.info('Took %.2fms to process with mincss' % (
+        (t1 - t0) * 1000,
+    ))
+    logger.info('Took %.2fms to post-process remaining CSS' % (
+        (t2 - t1) * 1000,
+    ))
     response.content = html.encode('utf-8')
     return response
