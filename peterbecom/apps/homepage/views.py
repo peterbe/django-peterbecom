@@ -35,6 +35,11 @@ from .tasks import sample_task
 logger = logging.getLogger('homepage')
 
 
+ONE_HOUR = 60 * 60
+ONE_DAY = ONE_HOUR * 24
+ONE_WEEK = ONE_DAY * 7
+
+
 def _home_key_prefixer(request):
     if request.method != 'GET':
         return None
@@ -65,11 +70,12 @@ def _home_key_prefixer(request):
     return prefix
 
 
-# @cache_control(public=True, max_age=60 * 60)
-# @cache_page(60 * 60,
-#             key_prefix=_home_key_prefixer,
-#             post_process_response=mincss_response
-#             )
+@cache_control(public=True, max_age=60 * 60)
+@cache_page(
+    60 * 60,
+    key_prefix=_home_key_prefixer,
+    post_process_response=mincss_response
+)
 def home(request, oc=None):
     context = {}
     qs = BlogItem.objects.filter(pub_date__lt=utc_now())
@@ -378,8 +384,8 @@ def autocomplete_tester(request):
     return render(request, 'homepage/autocomplete_tester.html')
 
 
-# @cache_control(public=True, max_age=60 * 60)
-# @cache_page(60 * 60, post_process_response=mincss_response)
+@cache_control(public=True, max_age=60 * 60)
+@cache_page(ONE_DAY, post_process_response=mincss_response)
 def about(request):
     context = {
         'page_title': 'About this site',
@@ -387,8 +393,8 @@ def about(request):
     return render(request, 'homepage/about.html', context)
 
 
-# @cache_control(public=True, max_age=60 * 60)
-# @cache_page(60 * 60 * 24, post_process_response=mincss_response)
+@cache_control(public=True, max_age=60 * 60)
+@cache_page(ONE_DAY, post_process_response=mincss_response)
 def contact(request):
     context = {
         'page_title': 'Contact me',

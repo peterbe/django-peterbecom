@@ -1,0 +1,67 @@
+/* This is CSS that we want mincss to ignore */
+
+
+/* This one comes from menu.css. The `.fixed` class only gets set upon scrolling */
+/*--------------
+     Fixed
+---------------*/
+
+.ui.menu.fixed {
+  position: fixed;
+  z-index: 101;
+  margin: 0em;
+  width: 100%;
+}
+.ui.menu.fixed,
+.ui.menu.fixed .item:first-child,
+.ui.menu.fixed .item:last-child {
+  border-radius: 0px !important;
+}
+.ui.fixed.menu,
+.ui[class*="top fixed"].menu {
+  top: 0px;
+  left: 0px;
+  right: auto;
+  bottom: auto;
+}
+.ui[class*="top fixed"].menu {
+  border-top: none;
+  border-left: none;
+  border-right: none;
+}
+.ui[class*="right fixed"].menu {
+  border-top: none;
+  border-bottom: none;
+  border-right: none;
+  top: 0px;
+  right: 0px;
+  left: auto;
+  bottom: auto;
+  width: auto;
+  height: 100%;
+}
+.ui[class*="bottom fixed"].menu {
+  border-bottom: none;
+  border-left: none;
+  border-right: none;
+  bottom: 0px;
+  left: 0px;
+  top: auto;
+  right: auto;
+}
+.ui[class*="left fixed"].menu {
+  border-top: none;
+  border-bottom: none;
+  border-left: none;
+  top: 0px;
+  left: 0px;
+  right: auto;
+  bottom: auto;
+  width: auto;
+  height: 100%;
+}
+
+/* Coupling with Grid */
+.ui.fixed.menu + .ui.grid {
+  padding-top: 2.75rem;
+}

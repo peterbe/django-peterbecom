@@ -24,7 +24,7 @@
              Page
 *******************************/
 
-@import url('https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic&subset=latin');
+/*@import url('https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic&subset=latin');*/
 html,
 body {
   height: 100%;
@@ -168,4 +168,3 @@ input::selection {
 /*******************************
          Site Overrides
 *******************************/
-

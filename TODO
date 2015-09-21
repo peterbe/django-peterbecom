@@ -1,7 +1,10 @@
-* Re-enable all fancy caching
-
+* Investigate if we need transition.css (it's huge!)
 
 DONE
+
+* Upgrade mincss
+
+* Re-enable all fancy caching
 
 * The "Older ->" link from home page.
 

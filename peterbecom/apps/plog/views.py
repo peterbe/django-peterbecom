@@ -105,12 +105,12 @@ def _blog_post_key_prefixer(request):
     return prefix
 
 
-# @cache_control(public=True, max_age=60 * 60)
-# @cache_page(
-#     ONE_WEEK,
-#     _blog_post_key_prefixer,
-#     post_process_response=mincss_response
-# )
+@cache_control(public=True, max_age=60 * 60)
+@cache_page(
+    ONE_DAY,  # change this to ONE_WEEK when you know SemanticUI works
+    _blog_post_key_prefixer,
+    post_process_response=mincss_response
+)
 def blog_post(request, oid):
     if oid.endswith('/'):
         oid = oid[:-1]
@@ -443,12 +443,12 @@ def _plog_index_key_prefixer(request):
     return prefix
 
 
-# @cache_control(public=True, max_age=60 * 60)
-# @cache_page(
-#     ONE_DAY,
-#     _plog_index_key_prefixer,
-#     post_process_response=mincss_response
-# )
+@cache_control(public=True, max_age=60 * 60)
+@cache_page(
+    ONE_DAY,
+    _plog_index_key_prefixer,
+    post_process_response=mincss_response
+)
 def plog_index(request):
     groups = defaultdict(list)
     now = utc_now()

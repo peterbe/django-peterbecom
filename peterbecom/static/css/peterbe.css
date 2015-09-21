@@ -22,14 +22,14 @@ body {
 .main.menu .page-title-repeated {
     display: none;
 }
-.main.menu.fixed .page-title-repeated {
+.main.menu.fixed .page-title-repeated { /* no mincss */
     display: inline;
     padding-left: 10px;
     text-overflow: ellipsis;
 }
 @media (max-width: 768px) {
     /* ipads in portrait mode */
-    .main.menu.fixed .page-title-repeated {
+    .main.menu.fixed .page-title-repeated { /* no mincss */
         /*color: green;*/
         display: none;
     }
@@ -43,12 +43,12 @@ body {
     left: 0;
     transition: left 0.5s ease;
 }
-.main.menu.fixed {
+.main.menu.fixed { /* no mincss */
     background-color: #FFFFFF;
     border: 1px solid #DDD;
     box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.2);
 }
-.overlay.fixed .menu {
+.overlay.fixed .menu { /* no mincss */
     left: 800px;
 }
 .text.container .left.floated.image {
