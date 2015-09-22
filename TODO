@@ -1,5 +1,3 @@
-* Investigate if we need transition.css (it's huge!)
-
 DONE
 
 * Upgrade mincss
@@ -19,3 +17,5 @@ DONE
 * Move inline style in base.html to .css file
 
 * Test posting the first comment as anonymous (it disappears)
+
+* Investigate if we need transition.css (it's huge!)
