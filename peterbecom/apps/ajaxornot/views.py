@@ -9,7 +9,7 @@ from peterbecom.apps.plog.utils import utc_now
 from fancy_cache import cache_page
 
 
-# @cache_page(60 * 60)
+@cache_page(60 * 60)
 def index(request):
     return render(request, 'ajaxornot/index.html')
 
