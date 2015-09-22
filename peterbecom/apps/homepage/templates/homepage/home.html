@@ -2,48 +2,68 @@
 
 {% block title %}Peterbe.com - Stuff in Peter's head{% endblock %}
 
-{% block pre_content %}
-<header class="jumbotron masthead">
-  <div class="inner">
-    <h1>Peterbe.com</h1>
-    <p>A blog and website by Peter Bengtsson</p>
-  </div>
-</header>
+{% block extrahead %}
+<style>
+h2 {
+  margin-top: 50px;
+  padding-top: 40px;
+  border-top: 1px solid #E8E9E9;
+}
+</style>
 {% endblock %}
 
+
+{% block page_title %}Peterbe.com{% endblock %}
+
+{% block page_header_extra %}
+<p>A blog and website by Peter Bengtsson</p>
+{% endblock %}
 
 {% block content %}
 
 {% if categories %}
-<div class="alert alert-info">
-    <strong>Filtered home page!</strong>
-    Currently only showing blog entries under the
-    {% if categories.count() == 1 %}
-    category:
-    {% else %}
-    categories:
-    {% endif %}
-    {% for category in categories %}
-    <a href="{{ url('only_category', category.name.replace(' ','+')) }}" rel="nofollow"
-    ><strong>{{ category }}</strong></a>{% if loop.last %}.{% else %}, {% endif %}
-    {% endfor %}
-    <a href="/">Clear filter</a>
+<div class="ui warning message">
+  <div class="header">
+    Filtered home page!
+  </div>
+  Currently only showing blog entries under the
+  {% if categories.count() == 1 %}
+  category:
+  {% else %}
+  categories:
+  {% endif %}
+  {% for category in categories %}
+  <a href="{{ url('only_category', category.name.replace(' ','+')) }}" rel="nofollow"
+  ><strong>{{ category }}</strong></a>{% if loop.last %}.{% else %}, {% endif %}
+  {% endfor %}
+  <a href="/">Clear filter</a>
 </div>
 {% endif %}
 
 {% include "homepage/_posts.html" %}
 
-<ul class="pager">
-  {% if previous_page %}
-    <li class="previous">
-    <a href="?page={{ previous_page }}">&larr; Newer</a>
-    </li>
-  {% endif %}
-  {% if next_page %}
-    <li class="next">
-    <a href="?page={{ next_page }}">Older &rarr;</a>
-    </li>
-  {% endif %}
-</ul>
+<div class="ui two column centered grid" style="margin-top: 100px">
+  <div class="ui pagination menu">
+    {% if previous_page %}
+      <a class="item" href="?page={{ previous_page }}">
+        &larr; Newer
+      </a>
+    {% else %}
+      <a class="item disabled">
+        Newer
+      </a>
+    {% endif %}
+    {% if next_page %}
+      <a class="item" href="?page={{ next_page }}">
+        Older &rarr;
+      </a>
+    {% else %}
+      <a class="item disabled">
+        Older
+      </a>
+    {% endif %}
+  </div>
+</div>
+
 
 {% endblock %}

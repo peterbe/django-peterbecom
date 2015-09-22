@@ -1,15 +1,17 @@
 {% extends "base.html" %}
-{% block title_prefix %}{{ page_title }}{% endblock %}
 
 {% block extrahead %}
 <link rel="stylesheet" href="{{ static("libs/codemirror/codemirror.css") }}">
-<!--<link rel="stylesheet" href="{{ static("libs/codemirror/docs.css") }}">-->
 <style>
 #id_oid, #id_title { width:50%; }
 #id_text, #id_summary, #id_url { width:100%; }
-#thumbnails {height:180px;
-overflow-y:scroll;}
-#thumbnails input { font-size:80%; height:11px; }
+#thumbnails-side {
+    height: 180px;
+    overflow-y: scroll;
+    width: 250px;
+    float: right;
+}
+#thumbnails-side input { font-size:80%; height:11px; }
 
 /* override what bootstrap set */
 pre { line-height: 15px; }
@@ -22,7 +24,6 @@ pre { line-height: 15px; }
 {% endblock %}
 
 {% block extrajs %}
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="{{ static("libs/codemirror/codemirror.js") }}"></script>
 <script src="{{ static("libs/codemirror/modes/xml.js") }}"></script>
 <script src="{{ static("libs/codemirror/modes/markdown.js") }}"></script>
@@ -33,41 +34,30 @@ pre { line-height: 15px; }
 
 {% block content %}
 
-<div id="thumbnails" style="width:250px; float:right;">
-{% if blogitem %}
-<a style="float:right" href="{{ url('plog_add_file') }}?oid={{ blogitem.oid }}">add files</a>
-{% endif %}
+<div id="thumbnails-side">
+  {% if blogitem %}
+  <a style="float:right" href="{{ url('plog_add_file') }}?oid={{ blogitem.oid }}">add files</a>
+  {% endif %}
 
-<h4>Thumbnails</h4>
-{% if blogitem %}
-<div class="inner"></div>
-{% else %}
-<em>after you can add em</em>
-{% endif %}
+  <h4>Thumbnails</h4>
+  {% if blogitem %}
+    <div class="inner"></div>
+  {% else %}
+    <em>after you can add em</em>
+  {% endif %}
 </div>
 
-<h2>{{ page_title }}</h2>
-
-<form action="" method="post">{{ csrf() }}
-{{ bootstrapform(form)|safe }}
+<form action="" class="ui form" method="post">{{ csrf() }}
+{{ semanticuiform(form) }}
 
   <div class="form-actions">
-    <button type="submit" class="btn btn-primary">Save changes</button>
-    <button class="btn">Cancel</button>
+    <button type="submit" class="ui button primary">Save changes</button>
+    <button class="btn ui button">Cancel</button>
   </div>
 </form>
 
-{% if blogitem %}
-<div>
-<p>To email pictures send an email to:
-<code>{{ INBOUND_EMAIL_ADDRESS }}</code><br>
-with the subject line:
-<code>{{ blogitem.get_or_create_inbound_hashkey() }}: Your file title here</code>
-</p>
-</div>
-{% endif %}
 
-<p style="border-top:1px solid #ccc">
+<p style="border-top:1px solid #ccc; margin-top: 20px">
 preview &darr;
 &nbsp;
 {% if blogitem %}

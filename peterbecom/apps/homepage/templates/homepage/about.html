@@ -1,7 +1,5 @@
 {% extends "base.html" %}
 
-{% block title_prefix %}About this site{% endblock %}
-
 {% block extrahead %}
 <style>
 .projects { margin-top: 40px; }
@@ -10,18 +8,25 @@
     border-top: 1px solid rgb(238, 238, 238);
     padding: 50px 20px 20px 20px;
 }
-.floatleft {
-    float: left;
-    margin-bottom: 15px;
+.screenshot {
+    margin-bottom: 5px;
     width: 140px;
 }
-.floatleft img {
+.screenshot img {
     border: 1px solid rgb(230,230,230);
     border-radius: 2px;
 }
-.rest {
-    margin-left: 140px;
+
+@media (min-width: 768px) { /* something _bigger_ than an iPad in portrait mode */
+  .rest {
+      margin-left: 140px;
+  }
+  .screenshot {
+    float: left;
+    margin-bottom: 15px;
+  }
 }
+
 .project a.perm { /* no mincss */
     font-size: 0.7em;
     padding-left: 8px;
@@ -39,7 +44,6 @@
 {% endblock %}
 
 {% block content %}
-<h2>About this site</h2>
 
 <p>My name is <strong>Peter Bengtsson</strong> and I'm a web developer.<br>
 This site is my notice board for things that go on in my head.</p>
@@ -58,7 +62,7 @@ help the development of Firefox and my other Mozilla projects.</p>
 <h2>Side projects</h2>
 
 <div class="project" id="premailer.io">
-  <div class="floatleft"><a href="http://premailer.io/"><img src="{{ static('images/premailer-scr.png') }}" alt="Screenshot"></a></div>
+  <div class="screenshot"><a href="http://premailer.io/"><img src="{{ static('images/premailer-scr.png') }}" alt="Screenshot"></a></div>
   <div class="rest">
     <h3>Premailer.io</h3>
     <h4><a href="http://premailer.io/">premailer.io</a></h4>
@@ -74,7 +78,7 @@ help the development of Firefox and my other Mozilla projects.</p>
 </div>
 
 <div class="project" id="autocompeter">
-  <div class="floatleft"><a href="http://autocompeter.com/"><img src="{{ static('images/autocompeter-scr.png') }}" alt="Screenshot"></a></div>
+  <div class="screenshot"><a href="http://autocompeter.com/"><img src="{{ static('images/autocompeter-scr.png') }}" alt="Screenshot"></a></div>
   <div class="rest">
     <h3>Autocompeter</h3>
     <h4><a href="http://autocompeter.com/">autocompeter.com</a></h4>
@@ -89,7 +93,7 @@ help the development of Firefox and my other Mozilla projects.</p>
 </div>
 
 <div class="project" id="htmltree">
-  <div class="floatleft"><a href="http://htmltree.peterbe.com/"><img src="{{ static('images/htmltree-scr.png') }}" alt="Screenshot"></a></div>
+  <div class="screenshot"><a href="http://htmltree.peterbe.com/"><img src="{{ static('images/htmltree-scr.png') }}" alt="Screenshot"></a></div>
   <div class="rest">
     <h3>HTML Tree</h3>
     <h4><a href="http://htmltree.peterbe.com/">htmltree.peterbe.com</a></h4>
@@ -103,7 +107,7 @@ help the development of Firefox and my other Mozilla projects.</p>
 </div>
 
 <div class="project" id="nodomains">
-  <div class="floatleft"><a href="http://www.peterbe.com/nodomains/"><img src="{{ static('images/nodomains-scr.png') }}" alt="Screenshot"></a></div>
+  <div class="screenshot"><a href="http://www.peterbe.com/nodomains/"><img src="{{ static('images/nodomains-scr.png') }}" alt="Screenshot"></a></div>
   <div class="rest">
     <h3>Number of Domains</h3>
     <h4><a href="http://www.peterbe.com/nodomains/">www.peterbe.com/nodomains</a></h4>
@@ -118,7 +122,7 @@ help the development of Firefox and my other Mozilla projects.</p>
 </div>
 
 <div class="project" id="github-pr-triage">
-  <div class="floatleft"><a href="https://prs.paas.allizom.org/"><img src="{{ static('images/github-pr-triage-scr.png') }}" alt="Screenshot"></a></div>
+  <div class="screenshot"><a href="https://prs.paas.allizom.org/"><img src="{{ static('images/github-pr-triage-scr.png') }}" alt="Screenshot"></a></div>
   <div class="rest">
     <h3>GitHub Pull Request Triage</h3>
     <h4><a href="https://prs.paas.allizom.org/">prs.paas.allizom.org</a></h4>
@@ -134,7 +138,7 @@ help the development of Firefox and my other Mozilla projects.</p>
 </div>
 
 <div class="project" id="buggy">
-  <div class="floatleft"><a href="http://buggy.peterbe.com/"><img src="{{ static('images/buggy-scr.png') }}" alt="Buggy screenshot"></a></div>
+  <div class="screenshot"><a href="http://buggy.peterbe.com/"><img src="{{ static('images/buggy-scr.png') }}" alt="Buggy screenshot"></a></div>
   <div class="rest">
     <h3>Buggy</h3>
     <h4><a href="http://buggy.peterbe.com/">buggy.peterbe.com</a></h4>
@@ -148,7 +152,7 @@ help the development of Firefox and my other Mozilla projects.</p>
 </div>
 
 <div class="project" id="wishlistgranted">
-  <div class="floatleft"><a href="https://wishlistgranted.com/"><img src="{{ static('images/wishlistgranted-scr.png') }}" alt="Wish List Granted screenshot"></a></div>
+  <div class="screenshot"><a href="https://wishlistgranted.com/"><img src="{{ static('images/wishlistgranted-scr.png') }}" alt="Wish List Granted screenshot"></a></div>
   <div class="rest">
     <h3>Wish List Granted</h3>
     <h4><a href="https://wishlistgranted.com/">wishlistgranted.com</a></h4>
@@ -161,7 +165,7 @@ help the development of Firefox and my other Mozilla projects.</p>
 </div>
 
 <div class="project" id="hugepic">
-  <div class="floatleft"><a href="http://hugepic.io/"><img src="{{ static('images/hugepic-scr.png') }}" alt="HUGEpic screenshot"></a></div>
+  <div class="screenshot"><a href="http://hugepic.io/"><img src="{{ static('images/hugepic-scr.png') }}" alt="HUGEpic screenshot"></a></div>
   <div class="rest">
     <h3>HUGEpic</h3>
     <h4><a href="http://hugepic.io/">hugepic.io</a></h4>
@@ -175,7 +179,7 @@ help the development of Firefox and my other Mozilla projects.</p>
 </div>
 
 <div class="project" id="aroundtheworld">
-  <div class="floatleft"><a href="http://aroundtheworldgame.com/"><img src="{{ static('images/aroundtheworld-scr.png') }}" alt="Around The World screenshot"></a></div>
+  <div class="screenshot"><a href="http://aroundtheworldgame.com/"><img src="{{ static('images/aroundtheworld-scr.png') }}" alt="Around The World screenshot"></a></div>
   <div class="rest">
     <h3>Around The World</h3>
     <h4><a href="http://aroundtheworldgame.com/">aroundtheworldgame.com</a></h4>
@@ -189,7 +193,7 @@ help the development of Firefox and my other Mozilla projects.</p>
 </div>
 
 <div class="project" id="uslicensespotter">
-  <div class="floatleft"><a href="http://uslicensespotter.com/"><img src="{{ static('images/licensespotter-scr.png') }}" alt="US License Spotter screenshot"></a></div>
+  <div class="screenshot"><a href="http://uslicensespotter.com/"><img src="{{ static('images/licensespotter-scr.png') }}" alt="US License Spotter screenshot"></a></div>
   <div class="rest">
     <h3>US License Plate spotter</h3>
     <h4><a href="http://uslicensespotter.com/">uslicensespotter.com</a></h4>
@@ -205,7 +209,7 @@ help the development of Firefox and my other Mozilla projects.</p>
 </div>
 
 <div class="project" id="toocoolforme">
-  <div class="floatleft"><a href="http://toocoolfor.me"><img src="{{ static('images/toocoolforme-screenshot.png') }}" alt="TooCoolForMe screenshot"></a></div>
+  <div class="screenshot"><a href="http://toocoolfor.me"><img src="{{ static('images/toocoolforme-screenshot.png') }}" alt="TooCoolForMe screenshot"></a></div>
   <div class="rest">
     <h3>Too Cool For Me?</h3>
     <h4><a href="http://toocoolfor.me">toocoolfor.me</a></h4>
@@ -219,7 +223,7 @@ help the development of Firefox and my other Mozilla projects.</p>
 </div>
 
 <div class="project" id="peterbecom">
-  <div class="floatleft"><a href="/"><img src="{{ static('images/peterbecom-screenshot.png') }}" alt="Peterbe.com screenshot"></a></div>
+  <div class="screenshot"><a href="/"><img src="{{ static('images/peterbecom-screenshot.png') }}" alt="Peterbe.com screenshot"></a></div>
   <div class="rest">
     <h3>Peterbe.com</h3>
     <h4><a href="/">peterbe.com</a></h4>
@@ -232,7 +236,7 @@ help the development of Firefox and my other Mozilla projects.</p>
 </div>
 
 <div class="project" id="donecal">
-  <div class="floatleft"><a href="http://donecal.com/"><img src="{{ static('images/donecal-screenshot.png') }}" alt="DoneCal screenshot"></a></div>
+  <div class="screenshot"><a href="http://donecal.com/"><img src="{{ static('images/donecal-screenshot.png') }}" alt="DoneCal screenshot"></a></div>
   <div class="rest">
     <h3>DoneCal</h3>
     <h4><a href="http://donecal.com/">donecal.com</a></h4>
@@ -244,7 +248,7 @@ help the development of Firefox and my other Mozilla projects.</p>
 </div>
 
 <div class="project" id="tornadogists">
-  <div class="floatleft"><a href="http://tornadogists.org/"><img src="{{ static('images/tornadogists-scr.png') }}" alt="Tornado Gists"></a></div>
+  <div class="screenshot"><a href="http://tornadogists.org/"><img src="{{ static('images/tornadogists-scr.png') }}" alt="Tornado Gists"></a></div>
   <div class="rest">
     <h3>Tornado Gists</h3>
     <h4><a href="http://tornadogists.org/">tornadogists.org</a></h4>
@@ -260,7 +264,7 @@ help the development of Firefox and my other Mozilla projects.</p>
 </div>
 
 <div class="project" id="kwissle">
-  <div class="floatleft"><a href="http://kwissle.com/"><img src="{{ static('images/kwissle-screenshot.png') }}" alt="Kwissle"></a></div>
+  <div class="screenshot"><a href="http://kwissle.com/"><img src="{{ static('images/kwissle-screenshot.png') }}" alt="Kwissle"></a></div>
   <div class="rest">
     <h3>Kwissle</h3>
     <h4><a href="http://kwissle.com/">kwissle.com</a></h4>
@@ -275,7 +279,7 @@ help the development of Firefox and my other Mozilla projects.</p>
 </div>
 
 <div class="project" id="crosstips">
-  <div class="floatleft"><a href="http://crosstips.org/"><img src="{{ static('images/crosstips-screenshot.png') }}" alt="Crosstips"></a></div>
+  <div class="screenshot"><a href="http://crosstips.org/"><img src="{{ static('images/crosstips-screenshot.png') }}" alt="Crosstips"></a></div>
   <div class="rest">
     <h3>Crosstips</h3>
     <h4><a href="http://crosstips.org/">crosstips.org</a></h4>
@@ -292,7 +296,7 @@ help the development of Firefox and my other Mozilla projects.</p>
 </div>
 
 <div class="project" id="tflcameras">
-  <div class="floatleft"><a href="http://tflcameras.peterbe.com/"><img src="{{ static('images/tflcameras-screenshot.png') }}" alt="TFL Cameras"></a></div>
+  <div class="screenshot"><a href="http://tflcameras.peterbe.com/"><img src="{{ static('images/tflcameras-screenshot.png') }}" alt="TFL Cameras"></a></div>
   <div class="rest">
     <h3>TFL Cameras</h3>
     <h4><a href="http://tflcameras.peterbe.com/">tflcameras.peterbe.com</a></h4>
@@ -308,7 +312,7 @@ help the development of Firefox and my other Mozilla projects.</p>
 
 
 <div class="project" id="mfwc">
-  <div class="floatleft"><a href="http://m.fwckungfu.com/"><img src="{{ static('images/mfwc-screenshot.png') }}" alt="FWC Kungfu Mobile"></a></div>
+  <div class="screenshot"><a href="http://m.fwckungfu.com/"><img src="{{ static('images/mfwc-screenshot.png') }}" alt="FWC Kungfu Mobile"></a></div>
   <div class="rest">
     <h3>FWC Kungfu Mobile</h3>
     <h4><a href="http://m.fwckungfu.com/">m.fwckungfu.com</a></h4>
@@ -335,7 +339,6 @@ Also, most of these projects I'm <strong>not actively working on</strong> but th
 {% endblock %}
 
 {% block extrajs %}
-<script src="{{ static("libs/zepto.min.js") }}"></script>
 {% compress js %}
 <script src="{{ static("js/about.js") }}"></script>
 {% endcompress %}

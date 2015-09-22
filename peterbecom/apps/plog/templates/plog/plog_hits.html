@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% block title_prefix %}Hits{% endblock %}
 
 {% block extrahead %}
 <style>
@@ -16,9 +15,8 @@ td a.category {
 
 {% block content %}
 
-<h3>Hits</h3>
 
-<table class="table table-condensed">
+<table class="ui celled table selectable">
   <thead>
     <tr>
       <th style="text-align:left">Title</th>
@@ -52,7 +50,7 @@ td a.category {
 <!-- Consider adding http://www.listjs.com/ to this -->
 
 <h3>Categories</h3>
-<table class="table table-condensed">
+<table class="ui celled table">
   <thead>
     <tr>
       <th style="text-align:left">Name</th>

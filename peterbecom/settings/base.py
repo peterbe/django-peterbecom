@@ -113,7 +113,8 @@ def COMPRESS_JINJA2_GET_ENVIRONMENT():
 JINGO_EXCLUDE_APPS = (
     'debug_toolbar',
     'admin',
-    'bootstrapform',
+    'semanticuiform',
+    'semanticui',
     'fancy_cache',
 )
 
@@ -161,7 +162,7 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
     'djcelery',
     'compressor',
-    'bootstrapform',
+    'semanticuiform',
     'sorl.thumbnail',
     'peterbecom.apps.plog',
     'peterbecom.apps.homepage',

@@ -1,28 +1,33 @@
-<div id="{{ comment.oid }}" class="ci c">
-<span class="sn">{% if comment.name %}{{ comment.name }}{% else %}<em>Anonymous</em>{% endif %}</span> -
-<small>{{ comment.add_date.strftime('%d %B %Y') }}</small>
-
-{% if not comment.approved %}
-<span class="not-approved">
-  <strong>Note:</strong> This comment has not been approved yet
-</span>
-{% endif %}
-
-{% if not preview %}
-<span class="cr">[<a
-rel="nofollow" class="reply" data-oid="{{ comment.oid }}" href="#{{ comment.oid }}"
->&#171;&#171; Reply to this</a>]</span>
-{% if is_staff %}
-  {% if not comment.approved %}
-  <button data-oid="{{ comment.oid }}" name="approve">Approve</button>
+<div id="{{ comment.oid }}" class="comment">
+  <div class="content">
+    <a class="author">{% if comment.name %}{{ comment.name }}{% else %}<em>Anonymous</em>{% endif %}</a>
+    <div class="metadata">
+      <span class="date">{{ comment.add_date.strftime('%d %B %Y') }}</span>
+      {% if is_staff %}
+        {% if not comment.approved %}
+        <button data-oid="{{ comment.oid }}" name="approve">Approve</button>
+        {% endif %}
+        <button data-oid="{{ comment.oid }}" name="delete">Delete</button>
+      {% endif %}
+      {% if not comment.approved %}
+      <span class="not-approved">
+        <strong>Note:</strong> This comment has not been approved yet
+      </span>
+      {% endif %}
+    </div>
+    <div class="text">
+      {{ comment.rendered|safe }}
+    </div>
+    {% if not preview %}
+    <div class="actions">
+      <a class="reply" rel="nofollow" data-oid="{{ comment.oid }}"
+         href="#{{ comment.oid }}">Reply</a>
+    </div>
+    {% endif %}
+  </div>
+  {% if not preview %}
+  <div class="comments">
+    {{ show_comments(comment, is_staff, all_comments)|safe }}
+  </div>
   {% endif %}
-  <button data-oid="{{ comment.oid }}" name="delete">Delete</button>
-{% endif %}
-
-{% endif %}
-<br>
-<span class="ct">{{ comment.rendered|safe }}</span>
-{% if not preview %}
-{{ show_comments(comment, is_staff, all_comments)|safe }}
-{% endif %}
 </div>

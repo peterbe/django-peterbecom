@@ -201,17 +201,6 @@ dd small { color: rgb(153,153,153); }
   font-size: 54px;
 }
 
-img.floatright {
-  float: right;
-  margin: 0 0 7px 7px;
-}
-
-img.floatleft {
-  float: left;
-  margin: 7px 7px 0 0;
-}
-
-
 /* Specifically for fusion_ad */
 #fusion_ad {
   float: right;

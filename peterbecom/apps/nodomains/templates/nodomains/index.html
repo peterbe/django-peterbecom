@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 
+
 {% block extrahead %}
 <style>
 #error_output {
@@ -61,6 +62,9 @@ li span.times {
     color: #666;
     margin-left: 2px;
 }
+tbody tr td:first-child {
+  vertical-align: top;
+}
 </style>
 {% endblock %}
 
@@ -68,8 +72,6 @@ li span.times {
 {% block title_prefix %}{{ page_title }}{% endblock %}
 
 {% block content %}
-
-<h2>{{ page_title }}</h2>
 
 <p class="lead">Are you curious how many different domains a given web page depends on?</p>
 
@@ -80,10 +82,13 @@ li span.times {
 
 <form class="form-submit form-inline" method="post">
   {{ csrf() }}
+    <div class="ui action input" style="width:90%">
       <input type="text" name="url" class="form-control input-lg search-query"
       placeholder="http://www.somethingsomething.com/..."
-      style="width:90%">
-      <button type="submit" class="btn btn-primary btn-lg">Go!</button>
+      >
+      <button type="submit" class="ui button">Go!</button>
+      <!-- <button type="submit" class="btn btn-primary btn-lg">Go!</button> -->
+    </div>
 </form>
 
 <div class="row" id="loading" style="display:none">
@@ -111,7 +116,7 @@ li span.times {
 
 
 <div class="row" id="numbers" style="display:none;margin-top:25px">
-  <table class="table table-condensed">
+  <table class="ui celled table">
     <tbody>
       <tr>
         <th>Average number of domains:</th>
@@ -135,7 +140,7 @@ li span.times {
 
 <div class="row" id="recently" style="display:none;margin-top:25px">
   <h4>Recently Sampled URLs</h4>
-  <table class="table table-striped table-hover table-condensed">
+  <table class="ui celled table">
     <thead>
       <tr>
         <th>&nbsp;</th>
@@ -151,7 +156,7 @@ li span.times {
 
 <div class="row" id="hall_of_fame" style="display:none;margin-top:25px">
   <h4>URLs with the Most Amount of Domains</h4>
-  <table class="table table-striped table-hover table-condensed">
+  <table class="ui celled table">
     <thead>
       <tr>
         <th>URL</th>
@@ -166,7 +171,7 @@ li span.times {
 
 <div class="row" id="most_common" style="display:none;margin-top:25px">
   <h4>10 Most Common Domains</h4>
-  <table class="table table-striped table-hover table-condensed">
+  <table class="ui celled table">
     <thead>
       <tr>
         <th>Domain</th>
@@ -187,7 +192,6 @@ li span.times {
 
 
 {% block extrajs %}
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
   <script src="{{ static("nodomains/index.js") }}"></script>
   <script src="https://www.google.com/jsapi"></script>
   <script src="{{ static("nodomains/histogram.js") }}"></script>

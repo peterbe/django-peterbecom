@@ -2,26 +2,21 @@ import re
 import os
 import tempfile
 import time
-from collections import defaultdict
-from pprint import pprint
-from cgi import escape as html_escape
 import logging
-import re
-import datetime
 import urllib
+from collections import defaultdict
+from cgi import escape as html_escape
+
 from django import http
-from django.conf import settings
-from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.urlresolvers import reverse
 from django.contrib.sites.models import RequestSite
-from django.utils.encoding import iri_to_uri
 from django.views.decorators.cache import cache_control
 from django.contrib.auth.decorators import login_required
 
 from peterbecom.apps.plog.models import Category, BlogItem, BlogComment
-from peterbecom.apps.plog.utils import render_comment_text, utc_now
+from peterbecom.apps.plog.utils import utc_now
 from peterbecom.apps.redisutils import get_redis_connection
 from peterbecom.apps.rediscounter import redis_increment
 from .utils import (
@@ -35,6 +30,15 @@ from peterbecom.apps.mincss_response import mincss_response
 from peterbecom.apps.plog.utils import make_prefix, json_view
 from peterbecom.apps.redis_search_index import RedisSearchIndex
 from .tasks import sample_task
+
+
+logger = logging.getLogger('homepage')
+
+
+ONE_HOUR = 60 * 60
+ONE_DAY = ONE_HOUR * 24
+ONE_WEEK = ONE_DAY * 7
+
 
 def _home_key_prefixer(request):
     if request.method != 'GET':
@@ -53,43 +57,42 @@ def _home_key_prefixer(request):
         if categories:
             cat_q = make_categories_q(categories)
             qs = qs.filter(cat_q)
-        latest, = (qs
-                   .order_by('-modify_date')
-                   .values('modify_date')[:1])
+        latest, = qs.order_by('-modify_date').values('modify_date')[:1]
         latest_date = latest['modify_date'].strftime('%f')
-        cache.set(cache_key, latest_date, 60 * 60  * 5)
+        cache.set(cache_key, latest_date, 60 * 60 * 5)
     prefix += str(latest_date)
 
     try:
         redis_increment('homepage:hits', request)
     except Exception:
-        logging.error('Unable to redis.zincrby', exc_info=True)
+        logger.error('Unable to redis.zincrby', exc_info=True)
 
     return prefix
 
 
 @cache_control(public=True, max_age=60 * 60)
-@cache_page(60 * 60,
-            key_prefix=_home_key_prefixer,
-            post_process_response=mincss_response
-            )
+@cache_page(
+    60 * 60,
+    key_prefix=_home_key_prefixer,
+    post_process_response=mincss_response
+)
 def home(request, oc=None):
-    data = {}
+    context = {}
     qs = BlogItem.objects.filter(pub_date__lt=utc_now())
     if oc:
         categories = parse_ocs_to_categories(oc)
         cat_q = make_categories_q(categories)
         qs = qs.filter(cat_q)
-        data['categories'] = categories
+        context['categories'] = categories
 
-    ## Reasons for not being here
+    # Reasons for not being here
     if request.method == 'HEAD':
         return http.HttpResponse('')
 
     try:
         redis_increment('homepage:misses', request)
     except Exception:
-        logging.error('Unable to redis.zincrby', exc_info=True)
+        logger.error('Unable to redis.zincrby', exc_info=True)
 
     BATCH_SIZE = 10
     try:
@@ -99,20 +102,23 @@ def home(request, oc=None):
     n, m = page * BATCH_SIZE, (page + 1) * BATCH_SIZE
     max_count = qs.count()
     first_post, = qs.order_by('-pub_date')[:1]
-    data['first_post_url'] = request.build_absolute_uri(
+    context['first_post_url'] = request.build_absolute_uri(
         reverse('blog_post', args=[first_post.oid])
     )
     if (page + 1) * BATCH_SIZE < max_count:
-        data['next_page'] = page + 2
-    data['previous_page'] = page
+        context['next_page'] = page + 2
+    context['previous_page'] = page
 
-    data['blogitems'] =  (
-      qs
-      .prefetch_related('categories')
-      .order_by('-pub_date')
+    context['blogitems'] = (
+        qs
+        .prefetch_related('categories')
+        .order_by('-pub_date')
     )[n:m]
 
-    return render(request, 'homepage/home.html', data)
+    if page > 0:  # page starts on 0
+        context['page_title'] = 'Page {}'.format(page + 1)
+
+    return render(request, 'homepage/home.html', context)
 
 
 def search(request):
@@ -156,18 +162,19 @@ def search(request):
         else:
             if not item.blogitem:
                 item.correct_blogitem_parent()
-            title = ("Comment on <em>%s</em>" %
-                     html_escape(item.blogitem.title))
+            title = (
+                "Comment on <em>%s</em>" % html_escape(item.blogitem.title)
+            )
             date = item.add_date
             type_ = 'comment'
 
         documents.append({
-              'title': title,
-              'summary': '<br>'.join(sentences),
-              'date': date,
-              'url': item.get_absolute_url(),
-              'type': type_,
-            })
+            'title': title,
+            'summary': '<br>'.join(sentences),
+            'date': date,
+            'url': item.get_absolute_url(),
+            'type': type_,
+        })
 
     def create_search(s):
         words = re.findall('\w+', s)
@@ -215,14 +222,22 @@ def search(request):
 
     if len(search) > 1:
         search_escaped, words = create_search(search)
-        regex = re.compile(r'\b(%s)' % '|'.join(re.escape(word)
-                           for word in words
-                           if word.lower() not in STOPWORDS),
-                           re.I | re.U)
-        regex_ext = re.compile(r'\b(%s\w*)\b' % '|'.join(re.escape(word)
-                           for word in words
-                           if word.lower() not in STOPWORDS),
-                           re.I | re.U)
+        regex = re.compile(
+            r'\b(%s)' % '|'.join(
+                re.escape(word)
+                for word in words
+                if word.lower() not in STOPWORDS
+            ),
+            re.I | re.U
+        )
+        regex_ext = re.compile(
+            r'\b(%s\w*)\b' % '|'.join(
+                re.escape(word)
+                for word in words
+                if word.lower() not in STOPWORDS
+            ),
+            re.I | re.U
+        )
 
         for model in (BlogItem, BlogComment):
             qs = model.objects
@@ -248,8 +263,10 @@ def search(request):
             elif model == BlogComment:
                 fields = ('comment',)
                 order_by = '-add_date'
-                if any(keyword_search.get(k) for k in ('keyword', 'keywords', 'category', 'categories')):
-                    # BlogComments don't have this keyword so it can never match
+                _specials = ('keyword', 'keywords', 'category', 'categories')
+                if any(keyword_search.get(k) for k in _specials):
+                    # BlogComments don't have this keyword so it can
+                    # never match
                     continue
 
             for field in fields:
@@ -260,21 +277,22 @@ def search(request):
                     _sql += "@@ to_tsquery('english', %s)"
                 else:
                     _sql += "@@ plainto_tsquery('english', %s)"
-                items = (qs
-                         .extra(where=[_sql], params=[search_escaped]))
+                items = qs.extra(where=[_sql], params=[search_escaped])
 
                 t0 = time.time()
-                count = append_queryset_search(items, order_by, words, model_name)
+                count = append_queryset_search(
+                    items, order_by, words, model_name
+                )
                 t1 = time.time()
                 times.append('%s to find %s %ss by field %s' % (
-                  t1 - t0,
-                  count,
-                  model_name,
-                  field
+                    t1 - t0,
+                    count,
+                    model_name,
+                    field
                 ))
                 search_times.append(t1-t0)
 
-        logging.info('Searchin for %r:\n%s' % (search, '\n'.join(times)))
+        logger.info('Searchin for %r:\n%s' % (search, '\n'.join(times)))
     elif keyword_search and any(keyword_search.values()):
         t0 = time.time()
         if keyword_search.get('keyword') or keyword_search.get('keywords'):
@@ -293,7 +311,9 @@ def search(request):
 
         if keyword_search.get('category') or keyword_search.get('categories'):
             if keyword_search.get('category'):
-                categories = Category.objects.filter(name=keyword_search.get('category'))
+                categories = Category.objects.filter(
+                    name=keyword_search.get('category')
+                )
             else:
                 cats = [x.strip() for x
                         in keyword_search.get('categories').split(',')
@@ -307,7 +327,6 @@ def search(request):
         t1 = time.time()
         search_times.append(t1 - t0)
 
-    # print search_times
     data['search_time'] = sum(search_times)
     count_documents_shown = len(documents)
     data['documents'] = documents
@@ -319,11 +338,13 @@ def search(request):
         if ' or ' not in data['q'] and _qterms > 1 and _qterms < 5:
             data['better'] = data['q'].replace(' ', ' or ')
     if data['better']:
-       data['better_url'] = (reverse('search') + '?'
-                     + urllib.urlencode({'q': data['better'].encode('utf-8')}))
+        data['better_url'] = (
+            reverse('search') + '?' +
+            urllib.urlencode({'q': data['better'].encode('utf-8')})
+        )
 
     if not data['q']:
-        page_title = ''
+        page_title = 'Search'
     elif data['count_documents'] == 1:
         page_title = '1 thing found'
     else:
@@ -335,7 +356,10 @@ def search(request):
             page_title += ' (but only %s things shown)' % count_documents_shown
     data['page_title'] = page_title
 
-    if not data['count_documents'] and len(search.split()) == 1 and not keyword_search:
+    if (
+        not data['count_documents'] and
+        len(search.split()) == 1 and not keyword_search
+    ):
         if redis.smembers('kw:%s' % search):
             url = reverse('search')
             url += '?' + urllib.urlencode({'q': 'keyword:%s' % search})
@@ -360,19 +384,22 @@ def autocomplete_tester(request):
     return render(request, 'homepage/autocomplete_tester.html')
 
 
-from .base64allimages import post_process_response as b64_post_process_response
-
-
 @cache_control(public=True, max_age=60 * 60)
-@cache_page(60 * 60, post_process_response=mincss_response)
+@cache_page(ONE_DAY, post_process_response=mincss_response)
 def about(request):
-    return render(request, 'homepage/about.html')
+    context = {
+        'page_title': 'About this site',
+    }
+    return render(request, 'homepage/about.html', context)
 
 
 @cache_control(public=True, max_age=60 * 60)
-@cache_page(60 * 60 * 24, post_process_response=mincss_response)
+@cache_page(ONE_DAY, post_process_response=mincss_response)
 def contact(request):
-    return render(request, 'homepage/contact.html')
+    context = {
+        'page_title': 'Contact me',
+    }
+    return render(request, 'homepage/contact.html', context)
 
 
 @cache_page(60 * 60 * 24)
@@ -395,10 +422,17 @@ def sitemap(request):
         urls.append(url)
 
     now = utc_now()
-    latest_blogitem, = (BlogItem.objects
-                        .filter(pub_date__lt=now)
-                        .order_by('-pub_date')[:1])
-    add('/', priority=1.0, changefreq='daily', lastmod=latest_blogitem.pub_date)
+    latest_blogitem, = (
+        BlogItem.objects
+        .filter(pub_date__lt=now)
+        .order_by('-pub_date')[:1]
+    )
+    add(
+        '/',
+        priority=1.0,
+        changefreq='daily',
+        lastmod=latest_blogitem.pub_date
+    )
     add(reverse('about'), changefreq='weekly', priority=0.5)
     add(reverse('contact'), changefreq='weekly', priority=0.5)
 
@@ -408,9 +442,11 @@ def sitemap(request):
         if not blogitem.modify_date:
             # legacy!
             try:
-                latest_comment, = (BlogComment.objects
-                               .filter(approved=True, blogitem=blogitem)
-                               .order_by('-add_date')[:1])
+                latest_comment, = (
+                    BlogComment.objects
+                    .filter(approved=True, blogitem=blogitem)
+                    .order_by('-add_date')[:1]
+                )
                 blogitem.modify_date = latest_comment.add_date
             except ValueError:
                 blogitem.modify_date = blogitem.pub_date

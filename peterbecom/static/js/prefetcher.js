@@ -1,15 +1,20 @@
+/*global $*/
 $(function() {
+  'use strict';
+
   var prefetched = [];
-  var prefetch_timer = null;
-  $('div.navbar, div.content').on('mouseover', 'a', function(e) {
-    if (!e.target.attributes.href) return;
+  var prefetchTimer = null;
+  $('.container').on('mouseover', 'a', function(e) {
+    if (!e.target.attributes.href) {
+      return;
+    }
     var value = e.target.attributes.href.value;
     if (value.indexOf('/') === 0) {
       if (prefetched.indexOf(value) === -1) {
-        if (prefetch_timer) {
-          clearTimeout(prefetch_timer);
+        if (prefetchTimer) {
+          clearTimeout(prefetchTimer);
         }
-        prefetch_timer = setTimeout(function() {
+        prefetchTimer = setTimeout(function() {
           $.get(value, function() {
             // necessary for $.ajax to start the request :(
           });
@@ -17,9 +22,9 @@ $(function() {
         }, 200);
       }
     }
-  }).on('mouseout', 'a', function(e) {
-    if (prefetch_timer) {
-      clearTimeout(prefetch_timer);
+  }).on('mouseout', 'a', function() {
+    if (prefetchTimer) {
+      clearTimeout(prefetchTimer);
     }
   });
 });

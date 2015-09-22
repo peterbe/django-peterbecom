@@ -1,9 +1,13 @@
+/*global $, localStorage, location*/
+
 var F = (function() {
+  'use strict';
+
   var form = $('form#comment');
   var preview = $('#preview-comment-outer');
-  var _submitting = false;
-  var _preparing = false;
-  var _reattempted = false;
+  var submitting = false;
+  var preparing = false;
+  var reattempted = false;
 
   function commentData() {
     if (!$('input[name="csrfmiddlewaretoken"]', form).val()) {
@@ -20,10 +24,10 @@ var F = (function() {
 
   return {
      prepare: function(callback) {
-       if (_preparing) {
+       if (preparing) {
          return;  // to avoid excessive calls
        }
-       _preparing = true;
+       preparing = true;
        $.getJSON('/plog/prepare.json', function(response) {
          $('input[name="csrfmiddlewaretoken"]', form).val(response.csrf_token);
          if (response.name && !$('input[name="name"]', form).val()) {
@@ -43,14 +47,18 @@ var F = (function() {
            }
          }
 
-         _preparing = false;
-         if (callback) callback();
+         preparing = false;
+         if (callback) {
+           callback();
+         }
        });
      },
-    setup_reply: function(parent) {
-      _preparing = false;
-      if (parent.size() != 1) throw "Must be exactly 1 parent";
-      form.detach().insertAfter($('.ct:eq(0)', parent));
+    setupReply: function(parent) {
+      preparing = false;
+      if (parent.size() !== 1) {
+        throw new Error("Must be exactly 1 parent");
+      }
+      form.detach().insertAfter($('.text:eq(0)', parent));
       preview.detach().insertBefore(form);
       $('input[name="parent"]', form).val(parent.attr('id'));
       $('p.cancel:hidden', form).show();
@@ -64,16 +72,17 @@ var F = (function() {
       $('input[name="parent"]', form).val('');
       $('#comments-outer').append(form.detach());
       preview.detach().insertBefore(form).hide();
-      $('button.preview').addClass('btn-primary').removeClass('btn-default');
-      $('button.post').addClass('btn-default').removeClass('btn-primary');
-      _submitting = false;
+      $('button.preview').addClass('primary');
+      $('button.post').removeClass('primary');
+      submitting = false;
+      form.detach().insertAfter('#comments-outer');
       return false;
     },
     preview: function(callback) {
       preview.hide();
       var data = commentData();
-      if (!data.csrfmiddlewaretoken && !_reattempted) {
-        _reattempted = true;
+      if (!data.csrfmiddlewaretoken && !reattempted) {
+        reattempted = true;
         F.prepare(F.preview);
         return false;
       }
@@ -97,30 +106,29 @@ var F = (function() {
     },
     submit: function() {
       var data = commentData();
-      if (!data.csrfmiddlewaretoken && !_reattempted) {
-        _reattempted = true;
+      if (!data.csrfmiddlewaretoken && !reattempted) {
+        reattempted = true;
         F.prepare(F.submit);
         return false;
       }
       if (!$.trim(data.comment).length) {
-        alert("Please first write something");
+        // alert('Please first write something');
         return false;
       }
-      if (_submitting) {
+      if (submitting) {
         return false;
       }
-      _submitting = true;
+      submitting = true;
       form.css('opacity', 0.3);
       $.ajax({
-         url: form.attr('action'),
+        url: form.attr('action'),
         data: data,
         type: 'POST',
         dataType: 'json',
         success: function(response) {
           var parent;
           if (response.parent) {
-            //parent = $('.commenttext:eq(0)', $('#' + response.parent));
-            parent = $('#' + response.parent);
+            parent = $('.comments', '#' + response.parent).eq(1);
           } else {
             parent = $('#comments-outer');
           }
@@ -130,16 +138,16 @@ var F = (function() {
                 .fadeIn(700);
           $('textarea', form).val('');
           F.reset();
-          $('small.comment-count').fadeOut(600, function() {
+          $('span.comment-count').fadeOut(600, function() {
             var text;
-            if (response.comment_count == 1) {
+            if (response.comment_count === 1) {
               text = '1 comment';
             } else {
               text = response.comment_count + ' comments';
             }
             $(this)
               .text(text)
-                .fadeIn(600);
+                .fadeIn(1000);
           });
           // save the name and email if possible
           if (data.name) {
@@ -152,90 +160,72 @@ var F = (function() {
         error: function (jqXHR, textStatus, errorThrown) {
           form.css('opacity', 1);
           alert('Error: ' + errorThrown);
-          _submitting = false;
+          submitting = false;
         }
       });
       return false;
     }
-  }
+  };
 })();
 
 
 $(function() {
-  var carousel = $('#carousel');
-  if (carousel.size()) {
-    carousel.carousel({
-       interval: 10000
-    });
-    if (location.hash && /#t\d+/.test(location.hash)) {
-      var nth = parseInt(location.hash.replace('#t', ''));
-      carousel.carousel(nth - 1);
-    }
-  }
+  'use strict';
 
   var form = $('form#comment');
 
-  $(window).on('scroll', function() {
-    $(window).off('scroll');
-    $('form#comment').off('mouseover');
-    F.prepare();
-  });
-
   form.on('mouseover', function() {
-    $(window).off('scroll');
+    // $(window).off('scroll');
     $(this).off('mouseover');
     F.prepare();
   });
 
   form.on('mouseover', function() {
-    $(window).off('scroll');
+    // $(window).off('scroll');
     $(this).off('mouseover');
     F.prepare();
   });
 
-  $('button.preview', form).click(function() {
+  form.on('click', 'button.preview', function() {
     if ($('textarea', form).val()) {
       F.preview(function() {
-        $('button.preview', form).removeClass('btn-primary').addClass('btn-default');
-        $('button.post', form).removeClass('btn-default').addClass('btn-primary');
+        $('button.preview', form).removeClass('primary');
+        $('button.post', form).addClass('primary');
       });
     }
     return false;
   });
 
   $('#comments-outer').on('click', 'a.reply', function() {
-    F.setup_reply($('#' + $(this).attr('data-oid')));
+    F.setupReply($('#' + $(this).attr('data-oid')));
     return false;
   });
 
   form.on('submit', F.submit);
 
-  $('.cancel a', form).on('click', F.reset);
+  form.on('click', '.cancel a', F.reset);
 
-  $('#comments').on('click', 'button[name="approve"]', function() {
+  $('#comments-outer').on('click', 'button[name="approve"]', function() {
     var oid = $(this).data('oid');
     var url = location.href;
     url = url.split('#')[0];
     url = url.split('?')[0];
     url += '/approve/' + $(this).data('oid');
     var button = $(this);
-    $.post(url, {csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()}, function(response) {
+    $.post(url, {csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()}, function() {
       $('.not-approved', '#' + oid).remove();
       button.remove();
     });
     return false;
   });
 
-  $('#comments button[name="delete"]').click(function() {
+  $('#comments-outer').on('click', 'button[name="delete"]', function() {
     var oid = $(this).data('oid');
-    var url = location.href;
-    url = url.split('#')[0];
-    url = url.split('?')[0];
+    var url = location.pathname;
     url += '/delete/' + oid;
     var button = $(this);
-    $.post(url, {csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()}, function(response) {
+    $.post(url, {csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()}, function() {
       $('#' + oid).remove();
-      button.remove();
     });
     return false;
   });

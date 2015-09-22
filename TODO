@@ -1,1 +1,21 @@
+DONE
 
+* Upgrade mincss
+
+* Re-enable all fancy caching
+
+* The "Older ->" link from home page.
+
+* About page on mobile
+
+* Test localvsxhr and ajaxornot etc.
+
+* Add/Edit blog post page
+** Might need to fork https://github.com/tzangms/django-bootstrap-form
+   and re-write it for semantic-ui
+
+* Move inline style in base.html to .css file
+
+* Test posting the first comment as anonymous (it disappears)
+
+* Investigate if we need transition.css (it's huge!)

@@ -1,4 +1,6 @@
+/*global $*/
 $(function() {
+  'use strict';
   $('.projects .project').each(function() {
     var h3 = $('h3', this);
     h3.append($('<a href="#">')

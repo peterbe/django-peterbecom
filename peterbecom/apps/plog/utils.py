@@ -8,14 +8,12 @@ import re
 import zope.structuredtext
 from pygments import highlight
 from pygments import lexers
-#from pygments.lexers import (PythonLexer, JavascriptLexer, TextLexer,
-#  HtmlLexer, CssLexer, SqlLexer)
 from pygments.formatters import HtmlFormatter
 from django.conf import settings
 from django import http
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
-from isodate import UTC
+from django.utils import timezone
 from gfm import gfm
 
 
@@ -27,29 +25,8 @@ def make_prefix(request_dict):
     return urllib.urlencode(_get, True)
 
 
-def utcify(dateinstance):
-    return dateinstance.replace(tzinfo=UTC)
-
 def utc_now():
-    """Return a timezone aware datetime instance in UTC timezone
-
-    This funciton is mainly for convenience. Compare:
-
-        >>> from datetimeutil import utc_now
-        >>> utc_now()
-        datetime.datetime(2012, 1, 5, 16, 42, 13, 639834,
-          tzinfo=<isodate.tzinfo.Utc object at 0x101475210>)
-
-    Versus:
-
-        >>> import datetime
-        >>> from datetimeutil import UTC
-        >>> datetime.datetime.now(UTC)
-        datetime.datetime(2012, 1, 5, 16, 42, 13, 639834,
-          tzinfo=<isodate.tzinfo.Utc object at 0x101475210>)
-
-    """
-    return datetime.datetime.now(UTC)
+    return timezone.now()
 
 
 def valid_email(value):
@@ -61,6 +38,8 @@ def valid_email(value):
 
 
 _BASESTRING_TYPES = (basestring, type(None))
+
+
 def to_basestring(value):
     """Converts a string argument to a subclass of basestring.
 
@@ -75,7 +54,10 @@ def to_basestring(value):
     assert isinstance(value, bytes)
     return value.decode("utf-8")
 
+
 _TO_UNICODE_TYPES = (unicode, type(None))
+
+
 def to_unicode(value):
     """Converts a string argument to a unicode string.
 
@@ -94,16 +76,13 @@ _unicode = to_unicode
 
 _XHTML_ESCAPE_RE = re.compile('[&<>"]')
 _XHTML_ESCAPE_DICT = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}
+
+
 def xhtml_escape(value):
     """Escapes a string so it is valid within XML or XHTML."""
-    return _XHTML_ESCAPE_RE.sub(lambda match: _XHTML_ESCAPE_DICT[match.group(0)],
-                                to_basestring(value))
-
-
-def xhtml_unescape(value):
-    """Un-escapes an XML-escaped string."""
-    return re.sub(r"&(#?)(\w+?);", _convert_entity, _unicode(value))
-
+    return _XHTML_ESCAPE_RE.sub(
+        lambda match: _XHTML_ESCAPE_DICT[match.group(0)], to_basestring(value)
+    )
 
 
 # I originally used the regex from
@@ -168,8 +147,10 @@ def linkify(text, shorten=False, extra_params="",
                 # The path is usually not that interesting once shortened
                 # (no more slug, etc), so it really just provides a little
                 # extra indication of shortening.
-                url = url[:proto_len] + parts[0] + "/" + \
-                        parts[1][:8].split('?')[0].split('.')[0]
+                url = (
+                    url[:proto_len] + parts[0] + "/" +
+                    parts[1][:8].split('?')[0].split('.')[0]
+                )
 
             if len(url) > max_len * 1.5:  # still too long
                 url = url[:max_len]
@@ -194,11 +175,11 @@ def linkify(text, shorten=False, extra_params="",
     # The regex is modified to avoid character entites other than &amp; so
     # that we won't pick up &quot;, etc.
     text = _unicode(xhtml_escape(text))
-    #text = xhtml_escape(text)
     return _URL_RE.sub(make_link, text)
 
 
 whitespace_start_regex = re.compile(r'^\n*(\s+)', re.M)
+
 
 def render_comment_text(text):
     html = linkify(text, extra_params=' rel="nofollow"')
@@ -214,8 +195,8 @@ def render_comment_text(text):
 
 def stx_to_html(text, codesyntax):
     rendered = zope.structuredtext.stx2html(
-      text,
-      header=0
+        text,
+        header=0
     )
 
     _regex = re.compile(r'(<pre>(.*?)</pre>)', re.DOTALL)
@@ -237,6 +218,7 @@ def stx_to_html(text, codesyntax):
         return new_inner
 
     return _regex.sub(match, rendered)
+
 
 def _get_lexer(codesyntax):
     if codesyntax in ('cpp', 'javascript'):
@@ -263,6 +245,7 @@ _codesyntax_regex = re.compile(
 )
 _markdown_pre_regex = re.compile('```([^`]+)```')
 
+
 def markdown_to_html(text, codesyntax):
     def matcher(match):
         found = match.group()
@@ -286,12 +269,13 @@ def markdown_to_html(text, codesyntax):
         gfm(text),
         extensions=['markdown.extensions.tables']
     )
-    html = html.replace('<table>', '<table class="table">')
+    html = html.replace('<table>', '<table class="ui celled table">')
     return html
 
 
 _SRC_regex = re.compile('(src|href)="([^"]+)"')
 _image_extension_regex = re.compile('\.(png|jpg|jpeg|gif)$', re.I)
+
 
 # Note: this is quite experimental still
 def cache_prefix_files(text):
@@ -302,15 +286,16 @@ def cache_prefix_files(text):
 
     def matcher(match):
         attr, url = match.groups()
-        if (url.startswith('/') and
+        if (
+            url.startswith('/') and
             not url.startswith('//') and
-            not '://' in url and
-            _image_extension_regex.findall(url)):
+            '://' not in url and
+            _image_extension_regex.findall(url)
+        ):
             url = '%s%s' % (prefix, url)
         return '%s="%s"' % (attr, url)
 
     return _SRC_regex.sub(matcher, text)
-
 
 
 class DateTimeEncoder(json.JSONEncoder):

@@ -1,3 +1,5 @@
+import datetime
+
 from django import forms
 from django.forms.fields import ChoiceField
 from django.forms.widgets import Textarea
@@ -49,3 +51,19 @@ class BlogFileUpload(forms.ModelForm):
     class Meta:
         model = BlogFile
         exclude = ('add_date', 'modify_date')
+
+
+class CalendarDataForm(forms.Form):
+
+    start = forms.DateTimeField()
+    end = forms.DateTimeField()
+
+    def clean(self):
+        cleaned_data = super(CalendarDataForm, self).clean()
+        if 'start' in cleaned_data and 'end' in cleaned_data:
+            if cleaned_data['start'] > cleaned_data['end']:
+                raise forms.ValidationError('start > end')
+            diff = cleaned_data['end'] - cleaned_data['start']
+            if diff > datetime.timedelta(days=50):
+                raise forms.ValidationError('> 50 days')
+        return cleaned_data

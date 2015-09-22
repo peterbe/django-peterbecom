@@ -1,4 +1,6 @@
 var Preview = (function() {
+  'use strict';
+
   var container = $('form[method="post"]');
   var getData = function() {
     var d = {};
@@ -39,12 +41,14 @@ var Preview = (function() {
 var Thumbnails = (function() {
   var oid = location.pathname.split('/').slice(-1)[0];
   return function() {
-    $.ajax('/plog/thumbnails/' + oid, {
-       success: function(response) {
-         $('#thumbnails .inner').html(response);
-         $('#thumbnails:hidden').show();
-       }
-    });
+    if (oid) {
+      $.ajax('/plog/thumbnails/' + oid, {
+         success: function(response) {
+           $('#thumbnails .inner').html(response);
+           $('#thumbnails:hidden').show();
+         }
+      });
+    }
   };
 })();
 
