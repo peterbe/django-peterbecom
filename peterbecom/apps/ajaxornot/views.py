@@ -9,7 +9,7 @@ from peterbecom.apps.plog.utils import utc_now
 from fancy_cache import cache_page
 
 
-@cache_page(60 * 60)
+# @cache_page(60 * 60)
 def index(request):
     return render(request, 'ajaxornot/index.html')
 
@@ -93,3 +93,13 @@ def view6(request):
 @json_view
 def view6_data(request):
     return {'items': get_data(pub_date_format=lambda x: x.strftime('%B %Y'))}
+
+
+@cache_page(60 * 60)
+def view7a(request):
+    return render(request, 'ajaxornot/view7a.html')
+
+
+@cache_page(60 * 60)
+def view7b(request):
+    return render(request, 'ajaxornot/view7b.html')

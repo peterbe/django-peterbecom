@@ -31,18 +31,7 @@ p.pros-and-cons {
 </p>
 
 <div class="toc">
-  <h5>Three Different Versions</h5>
-  <ol>
-    <li><a href="{{ url('ajaxornot:view1') }}">Pure Django template</a></li>
-    <li><a href="{{ url('ajaxornot:view2') }}">AJAX load table with innerHTML</a></li>
-    <li><a href="{{ url('ajaxornot:view3') }}">AJAX load table with AngularJS</a></li>
-  </ol>
-  <h5>Optimization Attempts</h5>
-  <ol>
-    <li><a href="{{ url('ajaxornot:view4') }}">Content as inline javascript JSON</a></li>
-    <li><a href="{{ url('ajaxornot:view5') }}">Server-side above the fold, AJAX underneath</a></li>
-    <li><a href="{{ url('ajaxornot:view6') }}">AJAX load table with React</a></li>
-  </ol>
+  {% include "ajaxornot/_toc.html" %}
 </div>
 
 <div class="well">
@@ -211,6 +200,66 @@ p.pros-and-cons {
   A visual rendering filmstrip showing
   <a href="http://www.webpagetest.org/video/compare.php?tests=140724_BV_YQW,140724_EP_YQX,140724_G5_YQY,140724_4V_YQZ">all four views on Webpagetest.org</a>.
 </p> -->
+
+<h3>Crazy Hybrids</h3>
+
+<p>
+  Here we have examples where we want to experiment. Considering that
+  generally the objective is to show data to the user as soon as follows,
+  one pattern is to store the data in the browser's persistent memory.
+  E.g. <code>localStorage</code> or <code>IndexedDB</code><br>
+  This has the advantage, that for repeated visits you can draw from
+  something much physically nearer and show that instead of having to
+  wait for the network. Obviously, data gets old in the browser so you'll
+  have to combine this such that you show the "cached" stuff first
+  <b>until</b> the network request has finished.
+</p>
+
+<p>
+  In these experiments, when you load them the very first time it just populates
+  the local storage mechanism, whatever that might be, and asks you
+  to refresh the page. In a production application, you'd want to
+  "fail gracefully" and be patient that first time and render once the
+  network request has finished.<br>
+  Also, in a production application, you probably want to first and foremost
+  display what you have in your local storage mechanism immediately and once
+  the network request finishes, you update the page with the latest and
+  greatest data from the server.<br>
+  Remember, this is an experimental playground. The point is to get a feel
+  for how fast it can render with various techniques.
+</p>
+
+<h4>
+  1. <a href="{{ url('ajaxornot:view7a') }}">Store a local copy in Lovefield and render with React</a>
+</h4>
+<p>
+  <b>Notes</b>
+</p>
+<ul>
+  <li><a href="https://google.github.io/lovefield/">Lovefield</a>
+    is a very advanced local storage (abstraction of <code>IndexedDB</code>)
+     so you can
+    later do more advanced queries and you can do writes without
+    updating one enormous big blob.</li>
+  <li>In my testing (ie. on my Macbook, Firefox 43) it takes almost half a
+    second to extract approximated 1,000 records from <code>IndexedDB</code>
+    using Lovefield.</li>
+</ul>
+
+<h4>
+  2. <a href="{{ url('ajaxornot:view7b') }}">Store a local copy in <code>localStorage</code> and render with React</a>
+</h4>
+<p>
+  <b>Notes</b>
+</p>
+<ul>
+  <li>Storing and retrieving a big JSON blob in <code>localStorage</code>
+    is fast but inefficient if you intend to do many inserts, queries, updates
+  etc on the data.</li>
+  <li>In my testing (ie. on my Macbook, Firefox 43) it takes only 1-2 milliseconds
+    to extract and parse the stored JSON from my <code>localStorage</code></li>
+</ul>
+
 
 <h3>Discussion, Thoughts, Conclusion</h3>
 <div class="well">
