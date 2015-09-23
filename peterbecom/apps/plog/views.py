@@ -497,7 +497,7 @@ def _new_comment_key_prefixer(request):
 
 @cache_page(ONE_HOUR, _new_comment_key_prefixer)
 def new_comments(request):
-    data = {}
+    context = {}
     comments = BlogComment.objects.all()
     if not request.user.is_authenticated():
         comments = comments.filter(approved=True)
@@ -509,10 +509,13 @@ def new_comments(request):
         else:
             c.correct_blogitem_parent()
 
-    data['comments'] = (comments
-                        .order_by('-add_date')
-                        .select_related('blogitem')[:50])
-    return render(request, 'plog/new-comments.html', data)
+    context['comments'] = (
+        comments
+        .order_by('-add_date')
+        .select_related('blogitem')[:50]
+    )
+    context['page_title'] = 'Latest new blog comments'
+    return render(request, 'plog/new-comments.html', context)
 
 
 @login_required

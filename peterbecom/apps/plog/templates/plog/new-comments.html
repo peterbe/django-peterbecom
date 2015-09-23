@@ -1,23 +1,25 @@
 {% extends "base.html" %}
 
-{% block title_prefix %}New blog comments{% endblock %}
-
 {% block extrahead %}
 <style>
+div.comment {
+    border-bottom: 1px solid #ccc;
+}
 </style>
+<link rel="stylesheet" href="{{ static("css/label.css") }}">
 {% endblock %}
 
 {% block content %}
-<h1>Latest new blog comments</h1>
 
 {% for comment in comments %}
 <div class="comment">
 <blockquote>
   <p>{{ comment.rendered|safe }}</p>
   {% if not comment.approved %}
-  <span class="label warning">Not approved</span>
-  <a class="btn btn-default btn-xs" href="{{ comment.blogitem.get_absolute_url() }}/approve/{{ comment.oid }}">approve</a>
-  <a class="btn btn-default btn-xs" href="{{ comment.blogitem.get_absolute_url() }}/delete/{{ comment.oid }}">delete</a>
+  <a class="ui red small label">Not approved</a>
+  <a class="small ui button primary" href="{{ comment.blogitem.get_absolute_url() }}/approve/{{ comment.oid }}">approve</a>
+  <a class="small ui button primary" href="{{ comment.blogitem.get_absolute_url() }}/delete/{{ comment.oid }}">delete</a>
+  <br>
   {% endif %}
   <small>{% if comment.name %}<b>{{ comment.name }}</b>{% else %}<em>Anonymous</em>{% endif %}
   on <a href="{{ comment.blogitem.get_absolute_url() }}{% if not comment.approved %}?admin=1{% endif %}#{{ comment.oid }}">{{ comment.blogitem.title }}</a>
