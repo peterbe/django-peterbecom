@@ -365,7 +365,7 @@ def _approve_comment(blogcomment):
     ):
         parent = blogcomment.parent
         tos = [parent.email]
-        from_ = 'Peterbe.com <comments@peterbe.com>'
+        from_ = 'Peterbe.com <mail@peterbe.com>'
         body = _get_comment_reply_body(
             blogcomment.blogitem,
             blogcomment,

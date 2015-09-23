@@ -85,7 +85,7 @@
         <a href="{{ url('contact') }}" class="ui item">Contact</a>
         <form action="{{ url('search') }}" class="navbar-form navbar-right" role="search">
         <div class="item ui input">
-        <input type="text" name="q" {#class="form-control search-query" #}
+        <input type="text" name="q"
           maxlength="90"
           placeholder="Search" {% if q %}value="{{ q }}"{% endif %}>
         </div>
