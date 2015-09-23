@@ -1,12 +1,7 @@
-# import time
-# import urllib
 import logging
 import datetime
-# import re
-# import functools
-# import json
 import cgi
-# from cStringIO import StringIO
+import random
 from collections import defaultdict
 
 from django.contrib.sites.models import Site
@@ -96,8 +91,8 @@ def _blog_post_key_prefixer(request):
         # because not so important exactly how many hits each post gets,
         # just that some posts are more popular than other, therefore
         # we don't need to record this every week.
-        if datetime.datetime.utcnow().strftime('%A') == 'Tuesday':
-            # so we only do this once a week
+        if random.randint(1, 10) == 1:
+            # so we only do this sometimes
             hits, __ = BlogItemHits.objects.get_or_create(oid=oid)
             hits.hits += 1
             hits.save()
