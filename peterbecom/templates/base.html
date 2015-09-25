@@ -37,7 +37,6 @@
   <link rel="stylesheet" type="text/css" href="{{ static('css/carbonads.css') }}">
   {% endcompress %}
   <link rel="stylesheet" href="{{ static('autocompeter/autocompeter.min.css') }}" data-mincss="no">
-  <link rel="stylesheet" href="{{ static('css/mincss-overrides.css') }}" data-mincss="no">
 
   <meta name="description" content="Stuff in Peter's head">
   <link rel="shortcut icon" href="{{ static("images/favicon-32.png") }}">
@@ -67,6 +66,11 @@
     {% block page_header_extra %}
     {% endblock %}
   </div>
+
+  {# By putting this invisible element here, mincss will think this
+     DOM element exists and that way it won't discard those CSS
+     selectors. #}
+  <div class="ui borderless main menu fixed" style="display:none"></div>
 
   <div class="ui borderless main menu">
     <div class="ui text container">
