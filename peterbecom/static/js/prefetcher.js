@@ -8,6 +8,9 @@ $(function() {
     if (!e.target.attributes.href) {
       return;
     }
+    if (e.target.attributes.rel && e.target.attributes.rel.value === 'nofollow') {
+      return;
+    }
     var value = e.target.attributes.href.value;
     if (value.indexOf('/') === 0) {
       if (prefetched.indexOf(value) === -1) {
