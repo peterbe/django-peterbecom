@@ -1,6 +1,5 @@
 import logging
 import datetime
-import cgi
 import random
 from collections import defaultdict
 
@@ -23,6 +22,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.sites.models import RequestSite
 from django.views.decorators.cache import cache_control
 from django.utils import timezone
+
+from sorl.thumbnail import get_thumbnail
 
 # from postmark_inbound import PostmarkInbound
 from .models import BlogItem, BlogItemHits, BlogComment, Category, BlogFile
@@ -691,11 +692,10 @@ def post_thumbnails(request, oid):
     blogfiles = (
         BlogFile.objects
         .filter(blogitem=blogitem)
-        .order_by('-add_date')
+        .order_by('add_date')
     )
-    from sorl.thumbnail import get_thumbnail
-    html = ''
-    # XXX very rough and hacky code
+
+    images = []
     for blogfile in blogfiles:
         full_im = get_thumbnail(
             blogfile.file,
@@ -704,64 +704,34 @@ def post_thumbnails(request, oid):
             quality=100
         )
         full_url = settings.STATIC_URL + full_im.url
-
-        for geometry in ('120x120', '230x230'):
+        delete_url = reverse('delete_post_thumbnail', args=(blogfile.pk,))
+        image = {
+            'full_url': full_url,
+            'delete_url': delete_url,
+        }
+        for key, geometry in (('small', '120x120'), ('big', '230x230')):
             im = get_thumbnail(
                 blogfile.file,
                 geometry,
                 quality=81
             )
-
             url_ = settings.STATIC_URL + im.url
-            tag = (
-                '<img src="%s" alt="%s" width="%s" height="%s">' % (
-                    url_,
-                    getattr(blogfile, 'title', blogitem.title),
-                    im.width,
-                    im.height
-                )
-            )
-            html += tag
-            delete_url = (
-                reverse('delete_post_thumbnail') + '?id=%s' % blogfile.pk
-            )
-            whole_tag = (
-                '<a href="%s" title="%s">%s</a>' % (
-                    full_url,
-                    getattr(blogfile, 'title', blogitem.title),
-                    tag.replace('src="', 'class="floatright" src="'),
-                )
-            )
-            html += ' (%s, %s)' % (im.width, im.height)
-            html += ' <a href="%s">delete</a>' % delete_url
-            html += '<br><input value="%s" title="Full size 1000x1000">' % (
-                full_url,
-            )
-            html += '<br><input value="%s">' % (
-                cgi.escape(tag).replace('"', '&quot;'),
-            )
-            html += '<br><input value="%s">' % (
-                cgi.escape(whole_tag).replace('"', '&quot;'),
-            )
-            html += '<br>'
-
-    return http.HttpResponse(html)
+            image[key] = {
+                'url': url_,
+                'alt': getattr(blogfile, 'title', blogitem.title),
+                'width': im.width,
+                'height': im.height,
+            }
+        images.append(image)
+    return http.JsonResponse({'images': images})
 
 
 @login_required
-def delete_post_thumbnail(request):
-    pk = request.REQUEST.get('id')
-    assert pk
+@require_POST
+def delete_post_thumbnail(request, pk):
     blogfile = get_object_or_404(BlogFile, pk=pk)
-    blogitem = blogfile.blogitem
-    edit_post_url = reverse('edit_post', args=[blogitem.oid])
     blogfile.delete()
-    return http.HttpResponse(
-        'Blogfile deleted.<br><a href="%s">Edit \'%s\'</a>' % (
-            edit_post_url,
-            blogitem.title
-        )
-    )
+    return http.JsonResponse({'ok': True})
 
 
 @cache_page(ONE_DAY)

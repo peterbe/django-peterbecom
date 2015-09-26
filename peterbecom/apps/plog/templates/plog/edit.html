@@ -6,12 +6,29 @@
 #id_oid, #id_title { width:50%; }
 #id_text, #id_summary, #id_url { width:100%; }
 #thumbnails-side {
-    height: 180px;
-    overflow-y: scroll;
-    width: 250px;
-    float: right;
+    /*height: 180px;*/
+    /*overflow-y: scroll;*/
+    /*width: 250px;*/
+    /*float: right;*/
 }
-#thumbnails-side input { font-size:80%; height:11px; }
+#thumbnails-side input {
+    font-size:80%;
+    height:25px;
+    width: 237px;
+}
+#thumbnails-side .thumbnail-wrapper {
+    float: left;
+    width: 250px;
+    border: 1px solid #ccc;
+    padding: 5px;
+    margin-right: 20px;
+    margin-bottom: 20px;
+}
+
+#thumbnails-side .inner,
+#thumbnails-side .toggle {
+    display: none;
+}
 
 /* override what bootstrap set */
 pre { line-height: 15px; }
@@ -20,6 +37,7 @@ pre { line-height: 15px; }
 /* override CodeMirror */
 .CodeMirror-scroll { height: 400px; }
 .CodeMirror { border-top: 1px solid #999; border-bottom: 1px solid #999; }
+form[method="post"] { clear: left; }
 </style>
 {% endblock %}
 
@@ -34,18 +52,19 @@ pre { line-height: 15px; }
 
 {% block content %}
 
+{% if blogitem %}
 <div id="thumbnails-side">
-  {% if blogitem %}
-  <a style="float:right" href="{{ url('plog_add_file') }}?oid={{ blogitem.oid }}">add files</a>
-  {% endif %}
 
-  <h4>Thumbnails</h4>
-  {% if blogitem %}
-    <div class="inner"></div>
-  {% else %}
-    <em>after you can add em</em>
-  {% endif %}
+  <h4>Thumbnails <span class="count"></span>
+    &nbsp;
+    <a href="{{ url('plog_add_file') }}?oid={{ blogitem.oid }}">Add files</a>
+    &nbsp;
+    <a href="#" class="toggle">Show</a>
+  </h4>
+  <div class="inner">
+  </div>
 </div>
+{% endif %}
 
 <form action="" class="ui form" method="post">{{ csrf() }}
 {{ semanticuiform(form) }}

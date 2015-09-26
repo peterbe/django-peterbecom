@@ -1,10 +1,17 @@
-from django.conf.urls import patterns, include, url
+from django.conf.urls import patterns, url
 
 from . import views
-urlpatterns = patterns('',
+
+
+urlpatterns = patterns(
+    '',
     url('^$', views.plog_index, name='plog_index'),
     url('^edit/(.*)', views.edit_post, name='edit_post'),
-    url('^thumbnails/delete/', views.delete_post_thumbnail, name='delete_post_thumbnail'),
+    url(
+        '^thumbnails/delete/(?P<pk>\d+)$',
+        views.delete_post_thumbnail,
+        name='delete_post_thumbnail'
+    ),
     url('^thumbnails/(.*)', views.post_thumbnails, name='post_thumbnails'),
     url('^calendar/$', views.calendar, name='calendar'),
     url('^calendar/data/$', views.calendar_data, name='calendar_data'),
