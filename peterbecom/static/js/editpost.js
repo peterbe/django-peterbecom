@@ -113,10 +113,10 @@ var Thumbnails = (function() {
             .append($('<br>'))
             .append(
               $('<img>')
-                .attr('src', image.small.url)
-                .attr('alt', image.small.alt)
-                .attr('width', image.small.width)
-                .attr('height', image.small.height)
+                .attr('src', image.big.url)
+                .attr('alt', image.big.alt)
+                .attr('width', image.big.width)
+                .attr('height', image.big.height)
             )
             .append($('<br>'))
             .append(
