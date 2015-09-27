@@ -384,7 +384,7 @@ def autocomplete_tester(request):
     return render(request, 'homepage/autocomplete_tester.html')
 
 
-@cache_control(public=True, max_age=60 * 60)
+@cache_control(public=True, max_age=60 * 60 * 3)
 @cache_page(ONE_DAY, post_process_response=mincss_response)
 def about(request):
     context = {
