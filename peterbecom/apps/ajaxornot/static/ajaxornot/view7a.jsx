@@ -82,8 +82,6 @@ var Table = React.createClass({
     return schemaBuilder.connect().then(function(db) {
       var table = db.getSchema().table('post');
       return db.select().from(table).exec();
-    }).then(function(results) {
-      return results;
     });
   },
   componentDidMount: function() {

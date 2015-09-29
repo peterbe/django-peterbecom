@@ -82,9 +82,10 @@ var Table = React.createClass({displayName: "Table",
     return schemaBuilder.connect().then(function(db) {
       var table = db.getSchema().table('post');
       return db.select().from(table).exec();
-    }).then(function(results) {
-      return results;
     });
+    // }).then(function(results) {
+    //   return results;
+    // });
   },
   componentDidMount: function() {
     var t0 = performance.now();
