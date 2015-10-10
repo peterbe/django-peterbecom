@@ -21,11 +21,15 @@ COUNT_JS_PATH = os.path.join(
 def run_queued(queued):
     url = queued.url
     result = run_url(url)
-    queued.delete()
+    if result.get('error'):
+        queued.failed_attempts += 1
+        queued.save()
+    else:
+        queued.delete()
     return result
 
 
-def run_url(url):
+def run_url(url, dry_run=False):
     t0 = time.time()
     command = [
         settings.PHANTOMJS_PATH,
@@ -65,16 +69,17 @@ def run_url(url):
     # print repr(err)
     print "\n"
     if domains:
-        r = models.Result.objects.create(
-            url=url,
-            count=len(domains)
-        )
-        for domain in domains:
-            models.ResultDomain.objects.create(
-                result=r,
-                domain=domain,
-                count=domains[domain]
+        if not dry_run:
+            r = models.Result.objects.create(
+                url=url,
+                count=len(domains)
             )
+            for domain in domains:
+                models.ResultDomain.objects.create(
+                    result=r,
+                    domain=domain,
+                    count=domains[domain]
+                )
     else:
         return {'error': "Unable to download that URL. It's not you, it's me!"}
 

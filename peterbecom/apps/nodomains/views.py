@@ -59,7 +59,12 @@ def run(request):
     except models.Result.DoesNotExist:
         pass
     queued, created = models.Queued.objects.get_or_create(url=url)
-    if created:
+
+    if created or queued.failed_attempts:
+        if queued.failed_attempts >= 5:
+            return {
+                'error': 'Failed to analyze 5 times in a row. So giving up.'
+            }
         run_queued.delay(queued)
     behind = models.Queued.objects.filter(add_date__lt=queued.add_date).count()
     return {'behind': behind}
