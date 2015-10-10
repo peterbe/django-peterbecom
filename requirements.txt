@@ -2,7 +2,7 @@ psycopg2==2.6.1
 Django==1.7.10
 Jinja2==2.7
 jingo==0.7.1
-Pygments==1.6
+Pygments==2.0.2
 celery==3.1.18
 django-celery==3.1.16
 django-celery-email==1.0.3
