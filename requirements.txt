@@ -4,7 +4,7 @@ Jinja2==2.8
 jingo==0.7.1
 Pygments==1.6
 celery==3.1.18
-django-celery==3.1.16
+django-celery==3.1.17
 django-celery-email==1.0.3
 django-redis-cache==1.6.3
 Markdown==2.6.2
