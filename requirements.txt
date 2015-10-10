@@ -1,6 +1,6 @@
 psycopg2==2.6.1
 Django==1.7.10
-Jinja2==2.7
+Jinja2==2.8
 jingo==0.7.1
 Pygments==1.6
 celery==3.1.18
