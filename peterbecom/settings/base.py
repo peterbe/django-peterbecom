@@ -171,6 +171,7 @@ INSTALLED_APPS = (
     'peterbecom.apps.nodomains',
     'peterbecom.apps.ajaxornot',
     'peterbecom.apps.localvsxhr',
+    'peterbecom.apps.cdnthis',
     'fancy_cache',
 )
 
@@ -255,3 +256,5 @@ FANCY_REMEMBER_STATS_ALL_URLS = True
 PHANTOMJS_PATH = 'phantomjs'
 
 AUTOCOMPETER_AUTH_KEY = ''
+
+CDNTHIS_CLOUDFRONT_DOMAIN = None
