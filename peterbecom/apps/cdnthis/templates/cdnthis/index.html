@@ -73,13 +73,28 @@
       <td><a href="{{ cdn_wrap(url('cdnthis:nocaching')) }}">Link</a></td>
     </tr>
     <tr>
-      <td>cached for 1 hour</td>
+      <td>cached for 1 day</td>
       <td><a href="{{ url('cdnthis:cached') }}">Link</a></td>
       <td><a href="{{ cdn_wrap(url('cdnthis:cached')) }}">Link</a></td>
     </tr>
   </tbody>
 </table>
 
+<h3>The Results?</h3>
+
+<p>
+  At the time of writing, I'm still waiting for the results.
+</p>
+<p>
+  What I have set up is a <a href="https://www.pingdom.com/">Pingdom</a>
+  monitoring on these 4 URLs that runs <b>from Europe</b> every 30 minutes.<br>
+  I don't care about them working or being up all the time but a sneaky advantage
+  of Pingdom monitoring is that you get a historical insight into how the
+  long it takes for each ping, over time.
+</p>
+<p>
+  <b>So, watch this space!</b>
+</p>
 {% endblock %}
 
 

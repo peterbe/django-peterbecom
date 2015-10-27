@@ -28,7 +28,7 @@ def nocaching(request):
     return render(request, 'cdnthis/nocaching.html', context)
 
 
-@cache_page(60 * 60)
+@cache_page(60 * 60 * 24)
 def cached(request):
     context = {
         'now': timezone.now().strftime('%a, %d %b %Y %H:%M:%S %z')
