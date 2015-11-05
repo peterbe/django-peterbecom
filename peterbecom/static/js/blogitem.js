@@ -14,49 +14,49 @@ var F = (function() {
       F.prepare();
     }
     return {
-       name: $('input[name="name"]', form).val(),
-       email: $('input[name="email"]', form).val(),
-       parent: $('input[name="parent"]', form).val(),
-       comment: $('textarea', form).val(),
-       csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]', form).val()
+      name: $('input[name="name"]', form).val(),
+      email: $('input[name="email"]', form).val(),
+      parent: $('input[name="parent"]', form).val(),
+      comment: $('textarea', form).val(),
+      csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]', form).val(),
     };
   }
 
   return {
-     prepare: function(callback) {
-       if (preparing) {
-         return;  // to avoid excessive calls
-       }
-       preparing = true;
-       $.getJSON('/plog/prepare.json', function(response) {
-         $('input[name="csrfmiddlewaretoken"]', form).val(response.csrf_token);
-         if (response.name && !$('input[name="name"]', form).val()) {
-           $('input[name="name"]', form).val(response.name);
-         } else {
-           var name = localStorage.getItem('name');
-           if (name) {
-             $('input[name="name"]', form).val(name);
-           }
-         }
-         if (response.email && !$('input[name="email"]', form).val()) {
-           $('input[name="email"]', form).val(response.email);
-         } else {
-           var email = localStorage.getItem('email');
-           if (email) {
-             $('input[name="email"]', form).val(email);
-           }
-         }
+    prepare: function(callback) {
+      if (preparing) {
+        return;  // to avoid excessive calls
+      }
+      preparing = true;
+      $.getJSON('/plog/prepare.json', function(response) {
+        $('input[name="csrfmiddlewaretoken"]', form).val(response.csrf_token);
+        if (response.name && !$('input[name="name"]', form).val()) {
+          $('input[name="name"]', form).val(response.name);
+        } else {
+          var name = localStorage.getItem('name');
+          if (name) {
+            $('input[name="name"]', form).val(name);
+          }
+        }
+        if (response.email && !$('input[name="email"]', form).val()) {
+          $('input[name="email"]', form).val(response.email);
+        } else {
+          var email = localStorage.getItem('email');
+          if (email) {
+            $('input[name="email"]', form).val(email);
+          }
+        }
 
-         preparing = false;
-         if (callback) {
-           callback();
-         }
-       });
-     },
+        preparing = false;
+        if (callback) {
+          callback();
+        }
+      });
+    },
     setupReply: function(parent) {
       preparing = false;
       if (parent.size() !== 1) {
-        throw new Error("Must be exactly 1 parent");
+        throw new Error('Must be exactly 1 parent');
       }
       form.detach().insertAfter($('.text:eq(0)', parent));
       preview.detach().insertBefore(form);
@@ -88,7 +88,7 @@ var F = (function() {
       }
 
       $.ajax({
-         url: '/plog/preview.json',
+        url: '/plog/preview.json',
         data: data,
         type: 'POST',
         dataType: 'json',
@@ -101,7 +101,7 @@ var F = (function() {
         },
         error: function (jqXHR, textStatus, errorThrown) {
           alert('Error: ' + errorThrown);
-        }
+        },
       });
     },
     submit: function() {
@@ -161,10 +161,10 @@ var F = (function() {
           form.css('opacity', 1);
           alert('Error: ' + errorThrown);
           submitting = false;
-        }
+        },
       });
       return false;
-    }
+    },
   };
 })();
 
@@ -175,13 +175,11 @@ $(function() {
   var form = $('form#comment');
 
   form.on('mouseover', function() {
-    // $(window).off('scroll');
     $(this).off('mouseover');
     F.prepare();
   });
 
   form.on('mouseover', function() {
-    // $(window).off('scroll');
     $(this).off('mouseover');
     F.prepare();
   });
@@ -223,11 +221,19 @@ $(function() {
     var oid = $(this).data('oid');
     var url = location.pathname;
     url += '/delete/' + oid;
-    var button = $(this);
     $.post(url, {csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()}, function() {
       $('#' + oid).remove();
     });
     return false;
+  });
+
+  var loadingAllComments = false;  // for the slow-load lock
+  $('.comments-truncated').on('click', 'button', function() {
+    if (loadingAllComments) return;
+    loadingAllComments = true;
+    $('#comments-outer').load(location.pathname + '/all-comments', function() {
+      $('.comments-truncated').remove();
+    });
   });
 
 });

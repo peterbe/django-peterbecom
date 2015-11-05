@@ -116,6 +116,7 @@ JINGO_EXCLUDE_APPS = (
     'semanticuiform',
     'semanticui',
     'fancy_cache',
+    'registration',
 )
 
 MIDDLEWARE_CLASSES = (
