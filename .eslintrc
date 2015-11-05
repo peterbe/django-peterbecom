@@ -1,10 +1,7 @@
 rules:
-  indent:
-    - 2
-    - 4
-    - 8
+  indent: [2, 2]
   quotes:
-    - 2
+    - 1
     - single
   linebreak-style:
     - 2
@@ -12,5 +9,12 @@ rules:
   semi:
     - 2
     - always
+  comma-dangle:
+    - 1
+    - always-multiline
+  no-extra-semi:
+    - 1
 env:
   browser: true
+  jquery: true
+extends: 'eslint:recommended'

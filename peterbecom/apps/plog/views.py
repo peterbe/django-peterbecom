@@ -53,7 +53,12 @@ def _blog_post_key_prefixer(request):
     if request.user.is_authenticated():
         return None
     prefix = utils.make_prefix(request.GET)
-    if request.path.endswith('/'):
+
+    all_comments = False
+    if request.path.endswith('/all-comments'):
+        oid = request.path.split('/')[-2]
+        all_comments = True
+    elif request.path.endswith('/'):
         oid = request.path.split('/')[-2]
     else:
         oid = request.path.split('/')[-1]
@@ -81,29 +86,30 @@ def _blog_post_key_prefixer(request):
         cache.set(cache_key, latest_date, ONE_MONTH)
     prefix += str(latest_date)
 
-    try:
-        redis_increment('plog:hits', request)
-    except Exception:
-        logging.error('Unable to redis.zincrby', exc_info=True)
+    if not all_comments:
+        try:
+            redis_increment('plog:hits', request)
+        except Exception:
+            logging.error('Unable to redis.zincrby', exc_info=True)
 
-    # temporary solution because I can't get Google Analytics API to work
-    ua = request.META.get('HTTP_USER_AGENT', '')
-    if 'bot' not in ua:
-        # because not so important exactly how many hits each post gets,
-        # just that some posts are more popular than other, therefore
-        # we don't need to record this every week.
-        if random.randint(1, 10) == 1:
-            # so we only do this sometimes
-            hits, __ = BlogItemHits.objects.get_or_create(oid=oid)
-            hits.hits += 1
-            hits.save()
+        # temporary solution because I can't get Google Analytics API to work
+        ua = request.META.get('HTTP_USER_AGENT', '')
+        if 'bot' not in ua:
+            # because not so important exactly how many hits each post gets,
+            # just that some posts are more popular than other, therefore
+            # we don't need to record this every week.
+            if random.randint(1, 10) == 1:
+                # so we only do this sometimes
+                hits, __ = BlogItemHits.objects.get_or_create(oid=oid)
+                hits.hits += 1
+                hits.save()
 
     return prefix
 
 
 @cache_control(public=True, max_age=60 * 60)
 @cache_page(
-    ONE_DAY,  # change this to ONE_WEEK when you know SemanticUI works
+    ONE_WEEK,
     _blog_post_key_prefixer,
     post_process_response=mincss_response
 )
@@ -161,9 +167,9 @@ def blog_post(request, oid):
 
     comments_truncated = False
     if request.GET.get('comments') != 'all':
-        comments = comments[:100]
-        if post.count_comments() > 100:
-            comments_truncated = 100
+        comments = comments[:50]
+        if post.count_comments() > 50:
+            comments_truncated = 50
 
     all_comments = defaultdict(list)
     for comment in comments:
@@ -177,6 +183,31 @@ def blog_post(request, oid):
     data['home_url'] = request.build_absolute_uri('/')
     data['page_title'] = post.title
     return render(request, 'plog/post.html', data)
+
+
+@cache_control(public=True, max_age=60 * 60)
+@cache_page(
+    ONE_WEEK,
+    _blog_post_key_prefixer
+)
+def all_blog_post_comments(request, oid):
+    post = get_object_or_404(BlogItem, oid=oid)
+    comments = (
+        BlogComment.objects
+        .filter(blogitem=post)
+        .order_by('add_date')
+    )
+    if not request.user.is_staff:
+        comments = comments.filter(approved=True)
+
+    all_comments = defaultdict(list)
+    for comment in comments:
+        all_comments[comment.parent_id].append(comment)
+    data = {
+        'post': post,
+        'all_comments': all_comments
+    }
+    return render(request, 'plog/_all_comments.html', data)
 
 
 def get_related_posts(post):

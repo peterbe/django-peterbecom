@@ -72,7 +72,7 @@ def _home_key_prefixer(request):
 
 @cache_control(public=True, max_age=60 * 60)
 @cache_page(
-    60 * 60,
+    60 * 60 * 3,  # three hours
     key_prefix=_home_key_prefixer,
     post_process_response=mincss_response
 )

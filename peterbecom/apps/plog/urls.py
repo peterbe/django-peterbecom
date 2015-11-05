@@ -26,5 +26,10 @@ urlpatterns = patterns(
     url('^(.*)/submit$', views.submit_json, name='submit'),
     url('^(.*)/approve/(.*)', views.approve_comment, name='approve_comment'),
     url('^(.*)/delete/(.*)', views.delete_comment, name='delete_comment'),
+    url(
+        '^(.*)/all-comments$',
+        views.all_blog_post_comments,
+        name='all_plog_post_comments'
+    ),
     url('^(.*)', views.blog_post, name='blog_post'),
 )

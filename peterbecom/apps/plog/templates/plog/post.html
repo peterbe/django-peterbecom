@@ -76,14 +76,20 @@
     {% endif %}
   {% else %}
     <div id="comments-outer" class="ui comments">
-    {{ show_comments(post, user.is_staff, all_comments)|safe }}
+      {% include "plog/_all_comments.html" %}
     </div>
     {% if comments_truncated %}
-    <p class="comments-truncated">
-      Only showing the first {{ comments_truncated }} comments ({{ thousands(post.count_comments()) }} in total).
-      <br>
-      <a href="?comments=all" rel="nofollow">Load them all!</a>
-    </p>
+    <div class="ui message comments-truncated">
+      <div class="header">
+        Comments truncated
+      </div>
+      <p>
+        Only showing the first {{ comments_truncated }} comments
+        ({{ thousands(post.count_comments()) }} in total).
+        <br>
+        <button class="ui button">Load them all!</button>
+      </p>
+    </div>
     {% endif %}
 
   {% endif %}
