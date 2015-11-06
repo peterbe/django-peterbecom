@@ -107,6 +107,13 @@ pre {
     overflow: auto;
 }
 
+/* custom code override */
+code {
+    padding: 0.2em 0.2em;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 3px;
+}
+
 /* Specifically for fusion_ad */
 
 #fusion_ad {
