@@ -167,9 +167,9 @@ def blog_post(request, oid):
 
     comments_truncated = False
     if request.GET.get('comments') != 'all':
-        comments = comments[:50]
-        if post.count_comments() > 50:
-            comments_truncated = 50
+        comments = comments[:100]
+        if post.count_comments() > 100:
+            comments_truncated = 100
 
     all_comments = defaultdict(list)
     for comment in comments:

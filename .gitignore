@@ -14,3 +14,4 @@ peterbecom/static/plog/
 peterbecom/settings/live_settings.py
 phantomjs-screenshot.png
 /plog/
+/uwsgilogs/peterbecom.log*
