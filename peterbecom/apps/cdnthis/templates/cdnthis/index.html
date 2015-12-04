@@ -41,20 +41,21 @@
   a <code>Cache-Control: max-age=0</code> header. <b>How does that affect performance?</b>
 </p>
 
-<h3>Amazon CloudFront</h3>
-
+<h3>About the CDN providers</h3>
 <p>
-  <a href="https://aws.amazon.com/cloudfront/">Amazon CloudFront</a> is the CDN
-  I'm most familiar with so this is what I'll use to test things.
-</p>
-<p>
-  The way CloudFront works is that you set up a CDN domain name that basically
+  The way <a href="https://aws.amazon.com/cloudfront/">Amazon CloudFront</a>
+  works is that you set up a CDN domain name that basically
   "sits in front of" another domain. When clients request a URL, that request
   goes to CloudFront who asks itself "Do I have a response for that URL?".
   If the CDN doesn't have a response stored, it basically goes to the
   "origin server" to fetch a copy. Depending on <i>how</i> the origin server
   responds, CloudFront decides to cache a response for a certain amount of time.
 </p>
+<p>
+  <a href="https://www.keycdn.com/">KeyCDN</a> works the same way as
+  Amazon CloudFront.
+</p>
+
 
 <h3>The Test Endpoints</h3>
 
@@ -63,19 +64,22 @@
     <tr>
       <th></th>
       <th>Without CDN</th>
-      <th>Through CloudFront</th>
+      <th>Through <a href="https://aws.amazon.com/cloudfront/">CloudFront</a></th>
+      <th>Through <a href="https://www.keycdn.com/">KeyCDN</a></th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <td>deliberately no caching</td>
       <td><a href="{{ url('cdnthis:nocaching') }}">Link</a></td>
-      <td><a href="{{ cdn_wrap(url('cdnthis:nocaching')) }}">Link</a></td>
+      <td><a href="{{ cdn_wrap('cloudfront', url('cdnthis:nocaching')) }}">Link</a></td>
+      <td><a href="{{ cdn_wrap('keycdn', url('cdnthis:nocaching')) }}">Link</a></td>
     </tr>
     <tr>
       <td>cached for 1 day</td>
       <td><a href="{{ url('cdnthis:cached') }}">Link</a></td>
-      <td><a href="{{ cdn_wrap(url('cdnthis:cached')) }}">Link</a></td>
+      <td><a href="{{ cdn_wrap('cloudfront', url('cdnthis:cached')) }}">Link</a></td>
+      <td><a href="{{ cdn_wrap('keycdn', url('cdnthis:cached')) }}">Link</a></td>
     </tr>
   </tbody>
 </table>

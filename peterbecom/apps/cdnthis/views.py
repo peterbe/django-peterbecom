@@ -6,10 +6,10 @@ from django.utils import timezone
 
 def index(request):
 
-    def cdn_wrap(absolute_path):
+    def cdn_wrap(cdn_key, absolute_path):
         return '{}://{}{}'.format(
             request.is_secure() and 'https' or 'http',
-            settings.CDNTHIS_CLOUDFRONT_DOMAIN,
+            settings.CDNTHIS_DOMAINS[cdn_key],
             absolute_path,
         )
 
