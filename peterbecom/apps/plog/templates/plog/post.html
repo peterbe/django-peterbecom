@@ -80,6 +80,9 @@
     </div>
     {% if comments_truncated %}
     <div class="ui message comments-truncated">
+      <div class="ui inverted dimmer">
+        <div class="ui text loader">Loading all the other comments</div>
+      </div>
       <div class="header">
         Comments truncated
       </div>
@@ -100,6 +103,9 @@
     <div id="preview-comment-outer" class="ui comments preview" style="display:none"></div>
 
     <form action="{{ url('submit', post.oid) }}" method="post" id="comment" class="ui form">
+      <div class="ui inverted dimmer">
+        <div class="ui text loader">Thank you for posting a comment</div>
+      </div>
       <div class="field">
         <label>What do you think?</label>
         <textarea name="comment" tabindex="1" rows="5"></textarea>

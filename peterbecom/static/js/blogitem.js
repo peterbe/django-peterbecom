@@ -119,7 +119,8 @@ var F = (function() {
         return false;
       }
       submitting = true;
-      form.css('opacity', 0.3);
+      $('.dimmer', form).addClass('active');
+      // form.css('opacity', 0.3);
       $.ajax({
         url: form.attr('action'),
         data: data,
@@ -137,6 +138,7 @@ var F = (function() {
               .append(response.html)
                 .fadeIn(700);
           $('textarea', form).val('');
+          $('.dimmer', form).removeClass('active');
           F.reset();
           $('span.comment-count').fadeOut(600, function() {
             var text;
@@ -158,7 +160,7 @@ var F = (function() {
           }
         },
         error: function (jqXHR, textStatus, errorThrown) {
-          form.css('opacity', 1);
+          $('.dimmer', form).removeClass('active');
           alert('Error: ' + errorThrown);
           submitting = false;
         },
@@ -230,6 +232,7 @@ $(function() {
   var loadingAllComments = false;  // for the slow-load lock
   $('.comments-truncated').on('click', 'button', function() {
     if (loadingAllComments) return;
+    $('.comments-truncated .dimmer').addClass('active');
     loadingAllComments = true;
     $('#comments-outer').load(location.pathname + '/all-comments', function() {
       $('.comments-truncated').remove();
