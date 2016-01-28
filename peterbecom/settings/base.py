@@ -206,17 +206,27 @@ LOGGING = {
 }
 
 
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'redis_cache.RedisCache',
+#         'LOCATION': 'localhost:6379',
+#         'OPTIONS': {
+#             'DB': 1,
+#             #'PASSWORD': 'yadayada',
+#             #'PARSER_CLASS': 'redis.connection.HiredisParser'
+#         },
+#     },
+# }
+
 CACHES = {
     'default': {
-        'BACKEND': 'redis_cache.RedisCache',
-        'LOCATION': 'localhost:6379',
-        'OPTIONS': {
-            'DB': 1,
-            #'PASSWORD': 'yadayada',
-            #'PARSER_CLASS': 'redis.connection.HiredisParser'
-        },
-    },
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'KEY_PREFIX': 'peterbecom',
+        'TIMEOUT': 5 * 60,
+        'LOCATION': '127.0.0.1:11211'
+    }
 }
+
 
 REDIS_BACKENDS = {
     'master': 'redis://localhost:6379?socket_timeout=0.5',
