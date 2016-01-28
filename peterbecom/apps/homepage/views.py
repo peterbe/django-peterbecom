@@ -27,8 +27,7 @@ from .utils import (
 )
 from fancy_cache import cache_page
 from peterbecom.apps.mincss_response import mincss_response
-from peterbecom.apps.plog.utils import make_prefix, json_view
-from peterbecom.apps.redis_search_index import RedisSearchIndex
+from peterbecom.apps.plog.utils import make_prefix
 from .tasks import sample_task
 
 
@@ -366,22 +365,6 @@ def search(request):
             return redirect(url)
 
     return render(request, 'homepage/search.html', data)
-
-
-@json_view
-def autocomplete(request):
-    q = request.GET.get('q')
-    if not q:
-        return
-    conn = get_redis_connection('titles')
-    search_index = RedisSearchIndex(conn)
-    n = int(request.GET.get('n', 10))
-    results = search_index.search(q, n=n)
-    return results
-
-
-def autocomplete_tester(request):
-    return render(request, 'homepage/autocomplete_tester.html')
 
 
 @cache_control(public=True, max_age=60 * 60 * 3)
