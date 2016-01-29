@@ -2,6 +2,8 @@ import time
 import re
 import logging
 
+from django.core.cache import cache
+
 from mincss.processor import Processor
 try:
     import cssmin
@@ -22,6 +24,7 @@ def mincss_response(response, request):
     print "mincss", request.path, '%.3fs' % (t1 - t0)
     return r
 
+
 def _mincss_response(response, request):
     if Processor is None or cssmin is None:
         logging.info("No mincss_response() possible")
@@ -31,6 +34,14 @@ def _mincss_response(response, request):
     if abs_uri.startswith('http://testserver'):
         return response
 
+    lock_key = 'lock:' + request.path
+    if cache.get(lock_key):
+        # we're actively busy prepping this one
+        print (
+            "Bailing because mincss_response is already busy for", request.path
+        )
+        return response
+    cache.set(lock_key, True, 100)
     html = unicode(response.content, 'utf-8')
     t0 = time.time()
     p = Processor(
