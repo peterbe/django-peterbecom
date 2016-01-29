@@ -21,7 +21,7 @@ def mincss_response(response, request):
     t0 = time.time()
     r = _mincss_response(response, request)
     t1 = time.time()
-    print "mincss", request.path, '%.3fs' % (t1 - t0)
+    print "mincss_response for", request.path, '%.3fs' % (t1 - t0)
     return r
 
 
@@ -37,11 +37,14 @@ def _mincss_response(response, request):
     lock_key = 'lock:' + request.path
     if cache.get(lock_key):
         # we're actively busy prepping this one
-        print (
-            "Bailing because mincss_response is already busy for", request.path
-        )
+        print "Bailing because mincss_response is already busy for:"
+        print request.path
+        print
         return response
     cache.set(lock_key, True, 100)
+    print "Starting to mincss:"
+    print request.path
+    print
     html = unicode(response.content, 'utf-8')
     t0 = time.time()
     p = Processor(
