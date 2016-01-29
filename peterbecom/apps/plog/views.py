@@ -64,7 +64,6 @@ def _blog_post_key_prefixer(request):
     else:
         oid = request.path.split('/')[-1]
 
-    print "pre-cache-key", oid
     cache_key = 'latest_comment_add_date:%s' % hashlib.md5(oid).hexdigest()
     latest_date = cache.get(cache_key)
     if latest_date is None:
