@@ -1,4 +1,4 @@
-from hashlib import md5
+import hashlib
 import time
 import os
 import uuid
@@ -209,7 +209,7 @@ def _uploader_dir(instance, filename):
     a, b = os.path.splitext(filename)
     if isinstance(a, unicode):
         a = a.encode('ascii', 'ignore')
-    a = md5(a).hexdigest()[:10]
+    a = hashlib.md5(a).hexdigest()[:10]
     filename = '%s.%s%s' % (a, int(time.time()), b)
     return fp(filename)
 
@@ -255,7 +255,7 @@ def invalidate_latest_comment_add_dates(sender, instance, **kwargs):
         oid = instance.blogitem.oid
     else:
         raise NotImplementedError(sender)
-    cache_key = 'latest_comment_add_date:%s' % oid
+    cache_key = 'latest_comment_add_date:%s' % hashlib.md5(oid).hexdigest()
     cache.delete(cache_key)
 
 
@@ -275,7 +275,7 @@ def invalidate_latest_comment_add_date_by_oid(sender, instance, **kwargs):
         oid = instance.blogitem.oid
     else:
         raise NotImplementedError(sender)
-    cache_key = 'latest_comment_add_date:%s' % oid
+    cache_key = 'latest_comment_add_date:%s' % hashlib.md5(oid).hexdigest()
     cache.delete(cache_key)
 
 

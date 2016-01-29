@@ -16,6 +16,13 @@ _link_regex = re.compile('<link.*?>', re.M | re.DOTALL)
 
 
 def mincss_response(response, request):
+    t0 = time.time()
+    r = _mincss_response(response, request)
+    t1 = time.time()
+    print "mincss", request.path, '%.3fs' % (t1 - t0)
+    return r
+
+def _mincss_response(response, request):
     if Processor is None or cssmin is None:
         logging.info("No mincss_response() possible")
         return response
