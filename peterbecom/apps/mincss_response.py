@@ -1,6 +1,7 @@
 import time
 import re
 import logging
+import hashlib
 
 from django.core.cache import cache
 
@@ -37,7 +38,7 @@ def _mincss_response(response, request):
     if abs_uri.startswith('http://testserver'):
         return response
 
-    lock_key = 'lock:' + request.path
+    lock_key = 'lock:' + hashlib.md5(request.path).hexdigest()
     if cache.get(lock_key):
         # we're actively busy prepping this one
         print "Bailing because mincss_response is already busy for: %s" % (
