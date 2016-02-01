@@ -1,0 +1,14 @@
+{
+  "name": "django-peterbecom",
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/peterbe/django-peterbecom.git"
+  },
+  "author": "Peter Bengtsson",
+  "license": "MPL-2.0",
+  "dependencies": {
+    "cssmin": "0.4.3",
+    "uglify-js": "2.6.1"
+  }
+}

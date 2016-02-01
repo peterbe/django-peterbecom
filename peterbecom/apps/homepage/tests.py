@@ -3,11 +3,6 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 from peterbecom.apps.plog.models import BlogItem, BlogComment, Category
 from peterbecom.apps.plog.utils import utc_now
-from django.test import TestCase
-from django.conf import settings
-from django.template.loader import render_to_string
-from django.template import Context
-from django.core.urlresolvers import reverse
 
 
 class HomepageTestCase(TestCase):
@@ -21,14 +16,14 @@ class HomepageTestCase(TestCase):
             display_format='structuredtext',
             pub_date=utc_now() - datetime.timedelta(seconds=10),
         )
-        comment1 = BlogComment.objects.create(
+        BlogComment.objects.create(
             oid='c1',
             comment="textext",
             blogitem=blog1,
             approved=True,
         )
 
-        comment2 = BlogComment.objects.create(
+        BlogComment.objects.create(
             oid='c2',
             comment="tuxtuxt",
             blogitem=blog1,
@@ -111,16 +106,3 @@ class HomepageTestCase(TestCase):
             assert each in response.content
         assert '?page=1' in response.content
         assert '?page=3' in response.content
-
-
-    def test_render_to_string(self):
-        assert not settings.DEBUG
-        reverse('home')
-        context = {'name': 'Peter'}
-        html = render_to_string('homepage/test.html', context)
-        assert 'Name:Peter' in html
-
-        ccontext = Context(context)
-        html = render_to_string('homepage/test.html', context_instance=ccontext)
-        assert 'Name:Peter' in html
-        assert 'main.css' not in html

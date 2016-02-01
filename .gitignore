@@ -4,14 +4,11 @@ all_texts.py
 all_texts.txt
 all_urls.txt
 peterbecom/settings/local.py
-peterbecom/static/images/favicon.jpg
-peterbecom/static/CACHE/
 log.log
 peterbecom-static-content/
-peterbecom/collected/
-peterbecom/static/plog/
-/cache/
 peterbecom/settings/live_settings.py
 phantomjs-screenshot.png
 /plog/
 /uwsgilogs/peterbecom.log*
+node_modules/
+/static/

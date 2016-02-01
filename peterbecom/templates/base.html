@@ -13,33 +13,10 @@
     type="text/css"
     data-mincss="ignore">
 
-  {% compress css %}
-  <link rel="stylesheet" type="text/css" href="{{ static('css/reset.css') }}">
-  <link rel="stylesheet" type="text/css" href="{{ static('css/site.css') }}">
-  <link rel="stylesheet" type="text/css" href="{{ static('css/container.css') }}">
-  <link rel="stylesheet" type="text/css" href="{{ static('css/grid.css') }}">
-  <link rel="stylesheet" type="text/css" href="{{ static('css/header.css') }}">
-  <link rel="stylesheet" type="text/css" href="{{ static('css/image.css') }}">
-  <link rel="stylesheet" type="text/css" href="{{ static('css/menu.css') }}">
-  <link rel="stylesheet" type="text/css" href="{{ static('css/divider.css') }}">
-  <link rel="stylesheet" type="text/css" href="{{ static('css/list.css') }}">
-  <link rel="stylesheet" type="text/css" href="{{ static('css/segment.css') }}">
-  <link rel="stylesheet" type="text/css" href="{{ static('css/dropdown.css') }}">
-  <link rel="stylesheet" type="text/css" href="{{ static('css/icon.css') }}">
-  <link rel="stylesheet" type="text/css" href="{{ static('css/input.css') }}">
-  <link rel="stylesheet" type="text/css" href="{{ static('css/comment.css') }}">
-  <link rel="stylesheet" type="text/css" href="{{ static('css/message.css') }}">
-  <link rel="stylesheet" type="text/css" href="{{ static('css/loader.css') }}">
-  <link rel="stylesheet" type="text/css" href="{{ static('css/dimmer.css') }}">
-  <link rel="stylesheet" type="text/css" href="{{ static('css/form.css') }}">
-  <link rel="stylesheet" type="text/css" href="{{ static('css/button.css') }}">
-  <link rel="stylesheet" type="text/css" href="{{ static('css/highlight.css') }}">
-  <link rel="stylesheet" type="text/css" href="{{ static('css/table.css') }}">
-  <link rel="stylesheet" type="text/css" href="{{ static('css/peterbe.css') }}">
-  <link rel="stylesheet" type="text/css" href="{{ static('css/carbonads.css') }}">
-  {% endcompress %}
-  <link rel="stylesheet" type="text/css" href="{{ static('css/transition.css') }}" data-mincss="no">
-  <link rel="stylesheet" href="{{ static('autocompeter/autocompeter.min.css') }}" data-mincss="no">
+  {% stylesheet 'base' %}
+
+  {# these are supposed to have the attribute data-mincss="no" #}
+  {% stylesheet 'base_dynamic' %}
 
   <meta name="description" content="Stuff in Peter's head">
   <link rel="shortcut icon" href="{{ static("images/favicon-32.png") }}">
@@ -150,14 +127,7 @@
     </div>
   </div>
 
-  {% compress js %}
-  <script src="{{ static('js/jquery.min.js') }}"></script>
-  <script src="{{ static('js/transition.js') }}"></script>
-  <script src="{{ static('js/dropdown.js') }}"></script>
-  <script src="{{ static('js/visibility.js') }}"></script>
-  <script src="{{ static('js/prefetcher.js') }}"></script>
-  <script src="{{ static('js/site.js') }}"></script>
-  {% endcompress %}
+  {% javascript 'base' %}
 
   {% block extrajs %}{% endblock %}
   <script>

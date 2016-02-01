@@ -25,5 +25,7 @@ CACHES = {
 }
 SETTINGS
 
+echo "Installing the node packages"
+npm install
+
 ./manage.py collectstatic --noinput
-./manage.py compress --engine=jinja2 --force
