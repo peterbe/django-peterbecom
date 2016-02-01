@@ -32,6 +32,9 @@ PIPELINE_CSS = {
             'css/transition.css',
             'autocompeter/autocompeter.min.css',
         ),
+        'extra_context': {
+            'no_mincss': True,
+        },
         'output_filename': 'css/base-dynamic.min.css',
     },
 
