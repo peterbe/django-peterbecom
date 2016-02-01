@@ -25,4 +25,7 @@ CACHES = {
 }
 SETTINGS
 
+echo "Installing the node packages"
+npm install
+
 ./manage.py collectstatic --noinput
