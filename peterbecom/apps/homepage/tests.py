@@ -3,11 +3,6 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 from peterbecom.apps.plog.models import BlogItem, BlogComment, Category
 from peterbecom.apps.plog.utils import utc_now
-from django.test import TestCase
-from django.conf import settings
-from django.template.loader import render_to_string
-from django.template import Context
-from django.core.urlresolvers import reverse
 
 
 class HomepageTestCase(TestCase):
@@ -21,14 +16,14 @@ class HomepageTestCase(TestCase):
             display_format='structuredtext',
             pub_date=utc_now() - datetime.timedelta(seconds=10),
         )
-        comment1 = BlogComment.objects.create(
+        BlogComment.objects.create(
             oid='c1',
             comment="textext",
             blogitem=blog1,
             approved=True,
         )
 
-        comment2 = BlogComment.objects.create(
+        BlogComment.objects.create(
             oid='c2',
             comment="tuxtuxt",
             blogitem=blog1,

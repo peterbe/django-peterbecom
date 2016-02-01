@@ -1,15 +1,7 @@
-#import re
 from django.core.urlresolvers import reverse
 from django.template import defaultfilters
 from django.contrib.staticfiles.storage import staticfiles_storage
-import jinja2
 from jingo import register
-
-
-@register.function
-def thisyear():
-    """The current year."""
-    return jinja2.Markup(datetime.date.today().year)
 
 
 @register.function

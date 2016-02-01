@@ -5,10 +5,12 @@ import os
 from bundles import PIPELINE_CSS, PIPELINE_JS  # NOQA
 
 
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 
-path = lambda *x: os.path.join(BASE_DIR, *x)
+def path(*x):
+    return os.path.join(BASE_DIR, *x)
+
 
 DEBUG = TEMPLATE_DEBUG = False
 
@@ -24,12 +26,12 @@ SITE_ID = 1
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': '',                      # Or path to database file if using sqlite3.
-        'USER': '',                      # Not used with sqlite3.
-        'PASSWORD': '',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        'ENGINE': 'django.db.backends.',
+        'NAME': '',
+        'USER': '',
+        'PASSWORD': '',
+        'HOST': '',
+        'PORT': '',
     }
 }
 
@@ -70,9 +72,8 @@ MEDIA_URL = ''
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-#STATIC_ROOT = ''
-STATIC_ROOT = path('../static')
-#STATIC_ROOT = path('collected', 'static')
+# STATIC_ROOT = ''
+STATIC_ROOT = path('static')
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
@@ -122,7 +123,6 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    #'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
@@ -132,7 +132,7 @@ ROOT_URLCONF = 'peterbecom.urls'
 WSGI_APPLICATION = 'peterbecom.wsgi.application'
 
 TEMPLATE_DIRS = (
-    path('templates'),
+    path('peterbecom/templates'),
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
@@ -142,7 +142,6 @@ TEMPLATE_CONTEXT_PROCESSORS = (
    'django.core.context_processors.static',
    'django.core.context_processors.tz',
    'django.core.context_processors.request',
-   # 'django.contrib.messages.context_processors.messages',
    'peterbecom.apps.homepage.context_processors.context',
 )
 
@@ -152,17 +151,15 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
-    #'django.contrib.messages',
     'django.contrib.staticfiles',
-    #'django.contrib.sitemaps',
-    # Uncomment the next line to enable the admin:
     'django.contrib.admin',
-    # Uncomment the next line to enable admin documentation:
-    # 'django.contrib.admindocs',
     'djcelery',
 
     'semanticuiform',
     'sorl.thumbnail',
+
+    # XXX Move all of these some day
+    'peterbecom.apps.base',
     'peterbecom.apps.plog',
     'peterbecom.apps.homepage',
     'peterbecom.apps.legacy',
@@ -204,6 +201,7 @@ LOGGING = {
     }
 }
 
+
 def JINJA_CONFIG():
     config = {
         'extensions': [
@@ -218,17 +216,15 @@ def JINJA_CONFIG():
 
 
 PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.uglifyjs.UglifyJSCompressor'
-PIPELINE_UGLIFYJS_BINARY = path('../node_modules/.bin/uglifyjs')
+PIPELINE_UGLIFYJS_BINARY = path('node_modules/.bin/uglifyjs')
 PIPELINE_UGLIFYJS_ARGUMENTS = '--mangle'
 PIPELINE_CSS_COMPRESSOR = 'pipeline.compressors.cssmin.CSSMinCompressor'
-PIPELINE_CSSMIN_BINARY = path('../node_modules/.bin/cssmin')
+PIPELINE_CSSMIN_BINARY = path('node_modules/.bin/cssmin')
 
 # Don't wrap javascript code in... `(...code...)();`
 # because possibly much code has been built with the assumption that things
 # will be made available globally.
 PIPELINE_DISABLE_WRAPPER = True
-
-
 
 # CACHES = {
 #     'default': {
@@ -272,7 +268,7 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 365  # 1 year
 
 
-UPLOAD_FILE_DIR = path('..', 'peterbecom-static-content')
+UPLOAD_FILE_DIR = path('peterbecom-static-content')
 
 LOGIN_URL = '/admin/'
 

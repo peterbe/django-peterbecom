@@ -1,8 +1,7 @@
 import textwrap
-import jinja2
 from jingo import register
 from django.template.loader import render_to_string
-from .models import BlogItem, BlogComment, Category
+from .models import BlogItem
 from .timesince import smartertimesince
 from .utils import utc_now
 from django.conf import settings
@@ -32,9 +31,12 @@ def show_comments(parent, is_staff, all_comments):
 
 @register.function
 def line_indent(text, indent=' ' * 4):
-    return '\n'.join(textwrap.wrap(text,
-                                   initial_indent=indent,
-                                   subsequent_indent=indent))
+    return '\n'.join(textwrap.wrap(
+        text,
+        initial_indent=indent,
+        subsequent_indent=indent
+    ))
+
 
 @register.function
 def timesince(date):
@@ -60,34 +62,42 @@ def expand_carousel(html, post):
 
     return html
 
+
 @register.function
 def expand_carousel_thumbnails(html, post):
     if '::carousel::' in html:
         thumbnails = get_photos(post, '100x100')
-        html = html.replace('::carousel::',
-                         render_to_string('plog/thumbnails.html',
-                                          dict(thumbnails, post=post)))
+        html = html.replace(
+            '::carousel::',
+            render_to_string(
+                'plog/thumbnails.html',
+                dict(thumbnails, post=post)
+            )
+        )
     return html
-
 
 
 def get_photos(post, size):
     photos = []
     sizes = []
-    for blogfile in BlogFile.objects.filter(blogitem=post).order_by('add_date'):
-        im = get_thumbnail(blogfile.file, size, #crop='center',
-                           quality=81, upscale=False)
-
+    files = BlogFile.objects.filter(blogitem=post).order_by('add_date')
+    for blogfile in files:
+        im = get_thumbnail(
+            blogfile.file,
+            size,
+            quality=81,
+            upscale=False
+        )
         im.full_url = settings.STATIC_URL + im.url
         sizes.append((im.width, im.height))
         im.title = blogfile.title
         photos.append(im)
     return {
-      'photos': photos,
-      'min_height': min(x[1] for x in sizes),
-      'min_width': min(x[0] for x in sizes),
-      'max_height': max(x[1] for x in sizes),
-      'max_width': max(x[0] for x in sizes),
+        'photos': photos,
+        'min_height': min(x[1] for x in sizes),
+        'min_width': min(x[0] for x in sizes),
+        'max_height': max(x[1] for x in sizes),
+        'max_width': max(x[0] for x in sizes),
     }
 
 
