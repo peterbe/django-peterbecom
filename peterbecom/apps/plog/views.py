@@ -9,24 +9,20 @@ from django.core.urlresolvers import reverse
 from django.template import Context, loader
 from django import http
 from django.core.cache import cache
-# from django.views.decorators.cache import cache_page
 from django.db import transaction
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
-# from django.template import Template
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
-# from django.core.files import File
 from django.contrib.sites.models import RequestSite
 from django.views.decorators.cache import cache_control
 from django.utils import timezone
 
 from sorl.thumbnail import get_thumbnail
 
-# from postmark_inbound import PostmarkInbound
 from .models import BlogItem, BlogItemHits, BlogComment, Category, BlogFile
 from .utils import render_comment_text, valid_email, utc_now
 from peterbecom.apps.redisutils import get_redis_connection

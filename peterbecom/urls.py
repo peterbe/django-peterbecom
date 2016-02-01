@@ -29,8 +29,3 @@ urlpatterns += staticfiles_urlpatterns()
 
 
 djcelery.setup_loader()
-
-
-import jingo
-from compressor.contrib.jinja2ext import CompressorExtension
-jingo.env.add_extension(CompressorExtension)

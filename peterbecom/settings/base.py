@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import os
+
+from bundles import PIPELINE_CSS, PIPELINE_JS  # NOQA
+
+
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
 
 path = lambda *x: os.path.join(BASE_DIR, *x)
 
@@ -66,29 +71,29 @@ MEDIA_URL = ''
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
 #STATIC_ROOT = ''
-STATIC_ROOT = path('collected', 'static')
+STATIC_ROOT = path('../static')
+#STATIC_ROOT = path('collected', 'static')
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = '/static/'
 
 # Additional locations of static files
-STATICFILES_DIRS = (
-    # Put strings here, like "/home/html/static" or "C:/www/django/static".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-    path('static'),
-)
+# STATICFILES_DIRS = (
+#     # Put strings here, like "/home/html/static" or "C:/www/django/static".
+#     # Always use forward slashes, even on Windows.
+#     # Don't forget to use absolute paths, not relative paths.
+#     path('static'),
+# )
 
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.CachedStaticFilesStorage'
+STATICFILES_STORAGE = 'pipeline.storage.PipelineCachedStorage'
 
 # List of finder classes that know how to find static files in
 # various locations.
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
-    'compressor.finders.CompressorFinder',
+    'pipeline.finders.PipelineFinder',
 )
 
 # Make this unique, and don't share it with anybody.
@@ -102,14 +107,6 @@ TEMPLATE_LOADERS = (
 )
 
 
-def COMPRESS_JINJA2_GET_ENVIRONMENT():
-    from jingo import env
-    from compressor.contrib.jinja2ext import CompressorExtension
-    env.add_extension(CompressorExtension)
-
-    return env
-
-
 JINGO_EXCLUDE_APPS = (
     'debug_toolbar',
     'admin',
@@ -117,6 +114,7 @@ JINGO_EXCLUDE_APPS = (
     'semanticui',
     'fancy_cache',
     'registration',
+    'pipeline',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -162,7 +160,7 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
     'djcelery',
-    'compressor',
+
     'semanticuiform',
     'sorl.thumbnail',
     'peterbecom.apps.plog',
@@ -174,6 +172,7 @@ INSTALLED_APPS = (
     'peterbecom.apps.localvsxhr',
     'peterbecom.apps.cdnthis',
     'fancy_cache',
+    'pipeline',
 )
 
 # A sample logging configuration. The only tangible logging
@@ -204,6 +203,31 @@ LOGGING = {
         },
     }
 }
+
+def JINJA_CONFIG():
+    config = {
+        'extensions': [
+            'jinja2.ext.do',
+            'jinja2.ext.with_',
+            'jinja2.ext.loopcontrols',
+            'pipeline.templatetags.ext.PipelineExtension',
+        ],
+        'finalize': lambda x: x if x is not None else '',
+    }
+    return config
+
+
+PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.uglifyjs.UglifyJSCompressor'
+PIPELINE_UGLIFYJS_BINARY = path('../node_modules/.bin/uglifyjs')
+PIPELINE_UGLIFYJS_ARGUMENTS = '--mangle'
+PIPELINE_CSS_COMPRESSOR = 'pipeline.compressors.cssmin.CSSMinCompressor'
+PIPELINE_CSSMIN_BINARY = path('../node_modules/.bin/cssmin')
+
+# Don't wrap javascript code in... `(...code...)();`
+# because possibly much code has been built with the assumption that things
+# will be made available globally.
+PIPELINE_DISABLE_WRAPPER = True
+
 
 
 # CACHES = {
@@ -246,13 +270,6 @@ CELERY_IGNORE_RESULT = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 365  # 1 year
-
-assert STATIC_ROOT
-COMPRESS_ROOT = STATIC_ROOT
-COMPRESS_CSS_FILTERS = [
-    'compressor.filters.css_default.CssAbsoluteFilter',
-    'compressor.filters.cssmin.CSSMinFilter',
-]
 
 
 UPLOAD_FILE_DIR = path('..', 'peterbecom-static-content')

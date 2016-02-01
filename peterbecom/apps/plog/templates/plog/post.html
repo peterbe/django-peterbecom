@@ -44,9 +44,7 @@
 
 
 {% block extrajs %}
-  {% compress js %}
-  <script src="{{ static('js/blogitem.js') }}"></script>
-  {% endcompress %}
+  {% javascript 'blogitem' %}
 
   {% if show_buttons %}
   <script>

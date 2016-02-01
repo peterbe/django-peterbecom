@@ -111,16 +111,3 @@ class HomepageTestCase(TestCase):
             assert each in response.content
         assert '?page=1' in response.content
         assert '?page=3' in response.content
-
-
-    def test_render_to_string(self):
-        assert not settings.DEBUG
-        reverse('home')
-        context = {'name': 'Peter'}
-        html = render_to_string('homepage/test.html', context)
-        assert 'Name:Peter' in html
-
-        ccontext = Context(context)
-        html = render_to_string('homepage/test.html', context_instance=ccontext)
-        assert 'Name:Peter' in html
-        assert 'main.css' not in html
