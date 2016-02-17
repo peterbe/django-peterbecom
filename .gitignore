@@ -12,3 +12,6 @@ phantomjs-screenshot.png
 /uwsgilogs/peterbecom.log*
 node_modules/
 /static/
+/podcasts/
+peterbecom/apps/podcasttime/management/commands/.download/
+peterbecom/apps/podcasttime/management/commands/media.json

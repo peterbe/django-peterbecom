@@ -168,6 +168,7 @@ INSTALLED_APPS = (
     'peterbecom.apps.ajaxornot',
     'peterbecom.apps.localvsxhr',
     'peterbecom.apps.cdnthis',
+    'peterbecom.apps.podcasttime',
     'fancy_cache',
     'pipeline',
 )
