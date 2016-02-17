@@ -2,7 +2,7 @@ psycopg2==2.6.1
 Django==1.7.11
 Jinja2==2.8
 jingo==0.8.2
-Pygments==2.1
+Pygments==2.1.1
 python-memcached==1.57
 celery==3.1.20
 django-celery==3.1.17
