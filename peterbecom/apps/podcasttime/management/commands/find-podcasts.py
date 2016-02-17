@@ -73,6 +73,10 @@ class Command(BaseCommand):
             d = feedparser.parse(xml)
             # print d.feed.keys()
 
+            if xml.startswith(u'\xef\xbb\xbf<?xml'):
+                # some buggy XML feed has this
+                xml = xml.replace(u'\xef\xbb\xbf<?xml', u'<?xml')
+
             try:
                 image_url = d.feed.itunes_image
             except AttributeError:
