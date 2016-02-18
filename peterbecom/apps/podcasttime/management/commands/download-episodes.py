@@ -14,11 +14,11 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from peterbecom.apps.podcasttime.models import Podcast, Episode
+from peterbecom.apps.podcasttime.utils import download
 
-from .utils import download
 
 _MEDIA_FILE = os.path.join(
-    os.path.dirname(__file__), 'media.json'
+    os.path.dirname(__file__), '.mediacache.json'
 )
 
 
@@ -63,7 +63,7 @@ def parse_duration_ffmpeg(media_url):
 class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
-        max_ = 10
+        max_ = 5
 
         # first attempt podcasts that have 0 episodes
         podcasts = Podcast.objects.all().annotate(
@@ -75,11 +75,10 @@ class Command(BaseCommand):
             self.download_episodes(podcast)
 
         # then do the ones with the oldest updates
-
-        # for podcast in Podcast.objects.all().order_by('?')[:max_]:
-        #     print repr(podcast)
-        #
-
+        podcasts = Podcast.objects.exclude(id__in=podcasts).order_by('?')
+        for podcast in podcasts[:max_]:
+            print repr(podcast)
+            self.download_episodes(podcast)
 
     def download_episodes(self, podcast):
         xml = download(podcast.url)
@@ -162,8 +161,9 @@ class Command(BaseCommand):
                 try:
                     guid = entry.id
                 except AttributeError:
-                    pprint(entry)
-                    print entry.keys()
+                    print "No guid or id. Going to use the summary."
+                    # pprint(entry)
+                    # print entry.keys()
                     guid = hashlib.md5(
                         entry.summary.encode('utf-8')
                     ).hexdigest()

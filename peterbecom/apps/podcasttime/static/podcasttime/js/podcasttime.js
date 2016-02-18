@@ -2,8 +2,12 @@ $(function() {
   function formatRepo (repo) {
     if (repo.loading) return repo.name;
 
+    var image_url = repo.image_url;
+    if (image_url === null) {
+      image_url = '/static/podcasttime/images/no-image.png';
+    }
     var markup = "<div class='select2-result-repository clearfix'>" +
-      "<div class='select2-result-repository__avatar'><img src='" + repo.image_url + "' /></div>" +
+      "<div class='select2-result-repository__avatar'><img src='" + image_url + "' /></div>" +
       "<div class='select2-result-repository__meta'>" +
         "<div class='select2-result-repository__title'>" + repo.name + "</div>";
 

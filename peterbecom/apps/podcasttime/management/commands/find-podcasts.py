@@ -1,21 +1,12 @@
-import os
-import codecs
 import random
 from urlparse import urljoin
-from xml.parsers.expat import ExpatError
 
-import requests
-import feedparser
 import pyquery
-import xmltodict
 
 from django.core.management.base import BaseCommand
-from django.core.files import File
-from django.core.files.temp import NamedTemporaryFile
 
 from peterbecom.apps.podcasttime.models import Podcast
-
-from .utils import download
+from peterbecom.apps.podcasttime.utils import download, get_image_url
 
 
 class Command(BaseCommand):
@@ -69,58 +60,13 @@ class Command(BaseCommand):
             if not rss_url:
                 print "Skipping", name, show_url
                 continue
-            xml = download(rss_url)
-            d = feedparser.parse(xml)
-            # print d.feed.keys()
 
-            if xml.startswith(u'\xef\xbb\xbf<?xml'):
-                # some buggy XML feed has this
-                xml = xml.replace(u'\xef\xbb\xbf<?xml', u'<?xml')
-
-            try:
-                image_url = d.feed.itunes_image
-            except AttributeError:
-                # print "No itunes_image"
-                # print rss_url
-                if xml.split('<item')[0].find('<itunes:image ') > -1:
-                    # print
-                    # print sorted(d.keys())
-                    # print sorted(d.feed.keys())
-                    # print d.feed
-                    try:
-                        parsed = xmltodict.parse(xml)
-                    except ExpatError:
-                        print "BAD XML!!"
-                        with codecs.open('/tmp/xml.xml', 'w', 'utf-8') as f:
-                            f.write(xml)
-                            print "WROTE /tmp/xml.xml"
-                        raise
-                    try:
-                        image_url = (
-                            parsed['rss']['channel']['itunes:image']['@href']
-                        )
-                    except KeyError:
-                        print "PARSED"
-                        print parsed
-                        print rss_url
-                        with codecs.open('/tmp/xml.xml', 'w', 'utf-8') as f:
-                            f.write(xml)
-                            print "WROTE /tmp/xml.xml"
-                        raise
-                try:
-                    image_url = d.feed.image['href']
-                except AttributeError:
-                    print "NO IMAGE"
-                    print d.feed
-                    try:
-                        print "IMAGE??", d.feed.image
-                        print "IMAGE.URL??", d.feed.image['url']
-                        raise
-                    except AttributeError:
-                        # doesn't even have a feed.image
-                        print "Skipping (no image)", name, rss_url
-                        continue
+            image_url = get_image_url(rss_url)
+            if not image_url:
+                print "Skipping (no image)", name, rss_url
+                continue
             assert '://' in image_url, image_url
+            # print "IMAGE_URL", image_url
 
             try:
                 podcast = Podcast.objects.get(name=name)
@@ -135,14 +81,15 @@ class Command(BaseCommand):
                     image_url=image_url,
                 )
                 created = True
-            podcast.download_image()
-            # img_temp = NamedTemporaryFile(delete=True)
-            # img_temp.write(requests.get(image_url).content)
-            # img_temp.flush()
-            # podcast.image.save(
-            #     os.path.basename(image_url.split('?')[0]),
-            #     File(img_temp)
-            # )
+            try:
+                podcast.download_image()
+            except AssertionError:
+                if verbose:
+                    print "Got an error trying to download the image :("
+                    import sys
+                    print sys.exc_info()
+                    print "IGNORING AND MOVING ON"
+
             if verbose:
                 if created:
                     print "CREATED",
