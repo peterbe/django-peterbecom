@@ -3,7 +3,7 @@ import os
 import hashlib
 import time
 import random
-import urlparse
+# import urlparse
 from xml.parsers.expat import ExpatError
 
 import xmltodict
@@ -27,7 +27,7 @@ def realistic_request(url, verify=True):
             'Gecko/20100101 Firefox/46.0'
         ),
         'Accept-Language': 'en-US,en;q=0.5',
-        'Host': urlparse.urlparse(url).netloc,
+        # 'Host': urlparse.urlparse(url).netloc,
         'Pragma': 'no-cache',
         'Cache-Control': 'no-cache',
     }, verify=verify)
@@ -78,9 +78,17 @@ def get_image_url(rss_url):
                     print "WROTE /tmp/xml.xml"
                 raise
             try:
-                image_url = (
-                    parsed['rss']['channel']['itunes:image']['@href']
-                )
+                if isinstance(
+                    parsed['rss']['channel']['itunes:image'],
+                    list
+                ):
+                    image_url = (
+                        parsed['rss']['channel']['itunes:image'][0]['@href']
+                    )
+                else:
+                    image_url = (
+                        parsed['rss']['channel']['itunes:image']['@href']
+                    )
             except (KeyError, TypeError):
                 print "PARSED IS WEIRD"
                 import sys

@@ -155,6 +155,9 @@ class Command(BaseCommand):
             if published.tzinfo is None:
                 published = published.replace(tzinfo=timezone.utc)
             duration = get_duration(entry)
+            if duration is None:
+                continue
+
             try:
                 guid = entry.guid
             except AttributeError:
@@ -162,14 +165,33 @@ class Command(BaseCommand):
                     guid = entry.id
                 except AttributeError:
                     print "No guid or id. Going to use the summary."
-                    # pprint(entry)
-                    # print entry.keys()
-                    guid = hashlib.md5(
-                        entry.summary.encode('utf-8')
-                    ).hexdigest()
+                    try:
+                        guid = hashlib.md5(
+                            entry.summary.encode('utf-8')
+                        ).hexdigest()
+                    except AttributeError:
+                        print "No guid or id or summary. ",
+                        print "Going to use the title."
+                        guid = hashlib.md5(
+                            entry.title.encode('utf-8')
+                        ).hexdigest()
                     # raise
-            if duration is None:
-                continue
+            try:
+                ep = Episode.objects.get(
+                    podcast=podcast,
+                    guid=guid
+                )
+                if ep.duration != duration:
+                    print "DURATION CHANGED!!!"
+                else:
+                    print "Duration unchanged"
+                if ep.published != published:
+                    print "PUBLISHED CHANGED!!!"
+                else:
+                    print "Published unchanged"
+            except Episode.DoesNotExist:
+                pass
+
             try:
                 episode = Episode.objects.get(
                     podcast=podcast,
