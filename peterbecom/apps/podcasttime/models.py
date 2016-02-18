@@ -64,7 +64,7 @@ class Episode(models.Model):
     podcast = models.ForeignKey(Podcast)
     duration = models.PositiveIntegerField()
     published = models.DateTimeField()
-    guid = models.CharField(max_length=200)
+    guid = models.CharField(max_length=400)
 
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)

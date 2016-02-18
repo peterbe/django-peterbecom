@@ -80,6 +80,13 @@ def get_image_url(rss_url):
             try:
                 if isinstance(
                     parsed['rss']['channel']['itunes:image'],
+                    basestring
+                ):
+                    image_url = (
+                        parsed['rss']['channel']['itunes:image']
+                    )
+                elif isinstance(
+                    parsed['rss']['channel']['itunes:image'],
                     list
                 ):
                     image_url = (
