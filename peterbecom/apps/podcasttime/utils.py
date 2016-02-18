@@ -96,10 +96,8 @@ def get_image_url(rss_url):
                     image_url = (
                         parsed['rss']['channel']['itunes:image']['@href']
                     )
-            except (KeyError, TypeError):
+            except (KeyError, TypeError, KeyError):
                 print "PARSED IS WEIRD"
-                import sys
-                print sys.exc_info()
                 print parsed
                 print rss_url
                 with codecs.open('/tmp/xml.xml', 'w', 'utf-8') as f:

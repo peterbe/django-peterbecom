@@ -86,14 +86,6 @@ class Command(BaseCommand):
 
         def get_duration(entry):
             if 'itunes_duration' not in entry:
-                # print "BUT!", xml.find('<itunes:duration')
-                # if xml.find('<itunes:duration') > -1:
-                #     import codecs
-                #     with codecs.open('/tmp/xml.xml', 'w', 'utf-8') as f:
-                #         f.write(xml)
-                #         print "WROTE /tmp/xml.xml"
-                #     print entry
-                #     raise Exception('Should be there')
                 try:
                     for link in entry['links']:
                         if link['type'] == 'audio/mpeg':
@@ -108,8 +100,6 @@ class Command(BaseCommand):
                         # no 'itunes:duration' and no links
                         print "SKIPPING", entry
                         return
-                # pprint(entry)
-                # print entry.keys()
             elif entry['itunes_duration'].count(':') >= 1:
                 try:
                     itunes_duration = entry['itunes_duration']
