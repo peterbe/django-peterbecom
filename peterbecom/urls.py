@@ -43,6 +43,14 @@ urlpatterns = patterns(
         include('peterbecom.apps.localvsxhr.urls', namespace='localvsxhr')
     ),
     url(
+        r'^podcasttime$',
+        lambda x: http.HttpResponseRedirect('/podcasttime/')
+    ),
+    url(
+        r'^podcasttime/',
+        include('peterbecom.apps.podcasttime.urls', namespace='podcasttime')
+    ),
+    url(
         r'^stats/',
         include('peterbecom.apps.stats.urls')
     ),

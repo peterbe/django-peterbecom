@@ -15,3 +15,4 @@ node_modules/
 /podcasts/
 peterbecom/apps/podcasttime/management/commands/.download/
 peterbecom/apps/podcasttime/management/commands/media.json
+/cache/

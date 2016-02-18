@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title_prefix %}{{ page_title }}{% endblock %}
+
+{% block extrahead %}
+{% stylesheet 'podcasttime' %}
+{% endblock %}
+
+{% block content %}
+
+<h2>How Much Time Do Your Podcasts Take to Listen To?</h2>
+
+<p>
+  Collected
+  <b>{{ thousands(podcasts.count()) }} podcasts</b> and
+  <b>{{ thousands(episodes.count()) }} episodes</b>
+  totalling <b>{{ thousands(total_hours) }} hours</b> of juicy audio content.
+</p>
+
+<p>Type here to pick the podcasts you listen to:</p>
+
+<form>
+  <select name="name" placeholder="Hi!">
+    <option value="">Start typing to find the podcasts you listen to</option>
+  </select>
+</form>
+
+
+{% endblock %}
+
+{% block extrajs %}
+{% javascript 'podcasttime' %}
+{% endblock %}

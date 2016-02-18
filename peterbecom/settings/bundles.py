@@ -37,6 +37,13 @@ PIPELINE_CSS = {
         },
         'output_filename': 'css/base-dynamic.min.css',
     },
+    'podcasttime': {
+        'source_filenames': (
+            'podcasttime/select2/css/select2.min.css',
+            'podcasttime/css/podcasttime.css',
+        ),
+        'output_filename': 'css/podcasttime.min.css',
+    },
 
 }
 
@@ -64,6 +71,13 @@ PIPELINE_JS = {
             'js/blogitem.js',
         ),
         'output_filename': 'js/blogitem.min.js',
+    },
+    'podcasttime': {
+        'source_filenames': (
+            'podcasttime/select2/js/select2.min.js',
+            'podcasttime/js/podcasttime.js',
+        ),
+        'output_filename': 'js/podcasttime.min.js',
     },
 }
 

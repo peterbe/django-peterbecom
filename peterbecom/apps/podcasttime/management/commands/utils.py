@@ -3,6 +3,7 @@ import os
 import hashlib
 import time
 import random
+import urlparse
 
 import requests
 
@@ -25,13 +26,16 @@ def download(url):
         r = requests.get(url, headers={
             'Accept': (
                 'text/html,application/xhtml+xml,application/xml'
-                ';q=0.9,*/*;q=0.8',
+                ';q=0.9,*/*;q=0.8'
             ),
             'User-Agent': (
                 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:46.0) '
-                'Gecko/20100101 Firefox/46.0',
+                'Gecko/20100101 Firefox/46.0'
             ),
             'Accept-Language': 'en-US,en;q=0.5',
+            'Host': urlparse.urlparse(url).netloc,
+            'Pragma': 'no-cache',
+            'Cache-Control': 'no-cache',
         })
         if r.status_code == 200:
             with codecs.open(fp, 'w', 'utf8') as f:
@@ -42,3 +46,8 @@ def download(url):
 
     with codecs.open(fp, 'r', 'utf8') as f:
         return f.read()
+
+
+if __name__ == '__main__':
+    import sys
+    print download(sys.argv[1])

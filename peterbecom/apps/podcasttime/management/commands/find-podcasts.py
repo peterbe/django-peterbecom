@@ -135,13 +135,14 @@ class Command(BaseCommand):
                     image_url=image_url,
                 )
                 created = True
-            img_temp = NamedTemporaryFile(delete=True)
-            img_temp.write(requests.get(image_url).content)
-            img_temp.flush()
-            podcast.image.save(
-                os.path.basename(image_url.split('?')[0]),
-                File(img_temp)
-            )
+            podcast.download_image()
+            # img_temp = NamedTemporaryFile(delete=True)
+            # img_temp.write(requests.get(image_url).content)
+            # img_temp.flush()
+            # podcast.image.save(
+            #     os.path.basename(image_url.split('?')[0]),
+            #     File(img_temp)
+            # )
             if verbose:
                 if created:
                     print "CREATED",

@@ -6,5 +6,5 @@ from . import views
 urlpatterns = patterns(
     '',
     url('^$', views.index, name='index'),
-    # url('^find$', views.find, name='find'),
+    url('^find$', views.find, name='find'),
 )

@@ -3,7 +3,11 @@ import hashlib
 import datetime
 import unicodedata
 
+import requests
+
 from django.db import models
+from django.core.files import File
+from django.core.files.temp import NamedTemporaryFile
 
 from sorl.thumbnail import ImageField
 
@@ -40,6 +44,18 @@ class Podcast(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    def download_image(self):
+        print "Downloading", self.image_url
+        img_temp = NamedTemporaryFile(delete=True)
+        r = requests.get(self.image_url)
+        assert r.status_code == 200, r.status_code
+        img_temp.write(requests.get(self.image_url).content)
+        img_temp.flush()
+        self.image.save(
+            os.path.basename(self.image_url.split('?')[0]),
+            File(img_temp)
+        )
 
 
 class Episode(models.Model):

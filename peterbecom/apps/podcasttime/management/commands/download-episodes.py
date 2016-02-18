@@ -9,6 +9,7 @@ from pprint import pprint
 
 import feedparser
 
+from django.db.models import Count
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
@@ -62,10 +63,23 @@ def parse_duration_ffmpeg(media_url):
 class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
-        max_ = 7
-        for podcast in Podcast.objects.all().order_by('?')[:max_]:
+        max_ = 10
+
+        # first attempt podcasts that have 0 episodes
+        podcasts = Podcast.objects.all().annotate(
+            subcount=Count('episode')
+        ).filter(subcount=0)
+
+        for podcast in podcasts.order_by('?')[:max_]:
             print repr(podcast)
             self.download_episodes(podcast)
+
+        # then do the ones with the oldest updates
+
+        # for podcast in Podcast.objects.all().order_by('?')[:max_]:
+        #     print repr(podcast)
+        #
+
 
     def download_episodes(self, podcast):
         xml = download(podcast.url)
@@ -105,7 +119,7 @@ class Command(BaseCommand):
                     itunes_duration = itunes_duration.replace(';', '')
 
                     itunes_duration = [
-                        int(x) for x in itunes_duration.split(':')
+                        int(float(x)) for x in itunes_duration.split(':')
                     ]
                 except ValueError:
                     print entry
@@ -124,7 +138,7 @@ class Command(BaseCommand):
                     print "BUT!", xml.find('<itunes:duration')
                     return
                 try:
-                    return int(entry['itunes_duration'])
+                    return int(float(entry['itunes_duration']))
                 except ValueError:
                     pprint(entry)
                     print repr(entry['itunes_duration'])
@@ -173,6 +187,7 @@ class Command(BaseCommand):
                     guid=guid,
                 )
                 print "CREATED",
+            podcast.save()
             print (
                 episode.podcast.name,
                 episode.guid,
