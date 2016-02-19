@@ -1,4 +1,3 @@
-import os
 import hashlib
 
 from django import http
@@ -44,13 +43,12 @@ def find(request):
         items = []
         for podcast in found:
             if podcast.image:
-                assert os.path.isfile(podcast.image.path), podcast.image.path
-                if os.stat(podcast.image.path).st_size < 1000:
+                if podcast.image.size < 1000:
                     print "IMAGE LOOKS SUSPICIOUS"
                     print podcast.image_url
                     print repr(podcast), podcast.id
                     print podcast.url
-                    print repr(open(podcast.image.path).read())
+                    print repr(podcast.image.read())
                     podcast.download_image()
 
             episodes = Episode.objects.filter(podcast=podcast)
