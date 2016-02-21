@@ -95,7 +95,7 @@ class Command(BaseCommand):
         d = feedparser.parse(xml)
 
         def get_duration(entry):
-            if 'itunes_duration' not in entry:
+            if not entry.get('itunes_duration'):
                 try:
                     for link in entry['links']:
                         if link['type'] == 'audio/mpeg':
