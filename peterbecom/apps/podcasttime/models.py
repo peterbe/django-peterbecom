@@ -38,6 +38,8 @@ class Podcast(models.Model):
     url = models.URLField(max_length=400)
     image_url = models.URLField(max_length=400, null=True, blank=True)
     image = ImageField(upload_to=_upload_to_podcast, null=True)
+
+    last_fetch = models.DateTimeField(null=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 

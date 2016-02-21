@@ -63,21 +63,31 @@ def parse_duration_ffmpeg(media_url):
 class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
-        max_ = 5
+        max_ = 4
 
         # first attempt podcasts that have 0 episodes
         podcasts = Podcast.objects.all().annotate(
             subcount=Count('episode')
         ).filter(subcount=0)
 
-        for podcast in podcasts.order_by('?')[:max_]:
-            print repr(podcast)
+        for podcast in podcasts.order_by('?')[:max_ * 2]:
+            print (podcast.name, podcast.last_fetch)
+            self.download_episodes(podcast)
+
+        # secondly, do those whose episodes have never been fetched
+        podcasts = Podcast.objects.filter(
+            last_fetch__isnull=True
+        ).order_by('?')
+        for podcast in podcasts[:max_]:
+            print (podcast.name, podcast.last_fetch)
             self.download_episodes(podcast)
 
         # then do the ones with the oldest updates
-        podcasts = Podcast.objects.exclude(id__in=podcasts).order_by('?')
+        podcasts = Podcast.objects.filter(
+            last_fetch__isnull=False
+        ).order_by('last_fetch')
         for podcast in podcasts[:max_]:
-            print repr(podcast)
+            print (podcast.name, podcast.last_fetch)
             self.download_episodes(podcast)
 
     def download_episodes(self, podcast):
@@ -199,10 +209,11 @@ class Command(BaseCommand):
                     guid=guid,
                 )
                 print "CREATED",
-            podcast.save()
             print (
                 episode.podcast.name,
                 episode.guid,
                 episode.duration,
                 episode.published
             )
+        podcast.last_fetch = timezone.now()
+        podcast.save()
