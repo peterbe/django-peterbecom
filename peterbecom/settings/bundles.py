@@ -74,7 +74,7 @@ PIPELINE_JS = {
     },
     'podcasttime': {
         'source_filenames': (
-            'podcasttime/select2/js/select2.min.js',
+            'podcasttime/select2/js/select2.full.min.js',
             'podcasttime/js/podcasttime.js',
         ),
         'output_filename': 'js/podcasttime.min.js',

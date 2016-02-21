@@ -1,37 +1,77 @@
 $(function() {
-  function formatRepo (repo) {
-    if (repo.loading) return repo.name;
 
-    var image_url = repo.image_url;
+  var selected = [];
+  var selection = $('.selected');
+  selection.on('selection:update', function(event) {
+    // console.log('Selection added');
+    // console.log(selected);
+    if (selected.length) {
+      var tmpl = $('.template').clone();//.appendTo(selection);
+      if (tmpl.length !== 1) {
+        throw new Error('multiple templates');
+      }
+      tmpl.addClass('podcast').removeClass('template');
+      selected.forEach(function(podcast) {
+        console.log('Selected podcast:', podcast);
+        $('h3', tmpl).text(podcast.name);
+        $('img', tmpl).attr('src', podcast.image_url);
+        var text = podcast.episodes + ' episodes';
+        if (podcast.hours !== null) {
+          text += ', about ' + parseInt(podcast.hours, 10) + ' hours';
+        }
+        $('p', tmpl).text(text);
+        $('button', tmpl).on('click', function() {
+          console.log('Remove', podcast);
+          selected = selected.filter(function(other) {
+            return other.id !== podcast.id;
+          });
+          selection.trigger('selection:update');
+        });
+        // console.log('TMPL', tmpl.html());
+
+        // console.log(selection.html());
+        selection.append(tmpl);
+      });
+      selection.show();
+    } else {
+      $('.podcast', selection).remove();
+      selection.hide();
+    }
+  });
+
+  function formatPodcast(podcast) {
+    if (podcast.loading) return podcast.name;
+
+    var image_url = podcast.image_url;
     if (image_url === null) {
       image_url = '/static/podcasttime/images/no-image.png';
     }
-    var markup = "<div class='select2-result-repository clearfix'>" +
-      "<div class='select2-result-repository__avatar'><img src='" + image_url + "' /></div>" +
-      "<div class='select2-result-repository__meta'>" +
-        "<div class='select2-result-repository__title'>" + repo.name + "</div>";
-
-    // if (repo.description) {
-    markup += "<div class='select2-result-repository__description'>";
-    markup += repo.episodes + " episodes";
-    if (repo.hours !== null) {
-      markup += ", " + repo.hours.toFixed(1) + " total hours."
+    var markup = "<div class='select2-result-podcast clearfix'>" +
+      "<div class='select2-result-podcast__avatar'><img src='" + image_url + "' /></div>" +
+      "<div class='select2-result-podcast__meta'>" +
+        "<div class='select2-result-podcast__title'>" + podcast.name + "</div>";
+    markup += "<div class='select2-result-podcast__description'>";
+    markup += podcast.episodes + " episodes";
+    if (podcast.hours !== null) {
+      markup += ", about " + parseInt(podcast.hours, 10) + " total hours."
     }
-
     markup += "</div>";
-    // }
     markup += "</div></div>";
-    // markup += "<div class='select2-result-repository__statistics'>" +
-    //   "<div class='select2-result-repository__forks'><i class='fa fa-flash'></i> " + repo.forks_count + " Forks</div>" +
-    //   "<div class='select2-result-repository__stargazers'><i class='fa fa-star'></i> " + repo.stargazers_count + " Stars</div>" +
-    //   "<div class='select2-result-repository__watchers'><i class='fa fa-eye'></i> " + repo.watchers_count + " Watchers</div>" +
-    // "</div>" +
-    // "</div></div>";
     return markup;
   }
 
-  function formatRepoSelection(item) {
-    console.log('selection:', item);
+  function formatPodcastSelection(item) {
+    if (item.id) {
+      // Have we already selected this?
+      var already = selected.filter(function(other) {
+        return other.id === item.id;
+      });
+      // console.log('already:', already);
+      if (!already.length) {
+        selected.unshift(item);
+        selection.trigger('selection:update');
+      }
+    }
     return item.name || item.text;
   }
 
@@ -62,9 +102,12 @@ $(function() {
       },
       cache: true
     },
-    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+    escapeMarkup: function (markup) {
+      // console.log('Markup', markup);
+      return markup; // let our custom formatter work
+    },
     minimumInputLength: 1,
-    templateResult: formatRepo, // omitted for brevity, see the source of this page
-    templateSelection: formatRepoSelection // omitted for brevity, see the source of this page
+    templateResult: formatPodcast,
+    templateSelection: formatPodcastSelection,
   });
 });

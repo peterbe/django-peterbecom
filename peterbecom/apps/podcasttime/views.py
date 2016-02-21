@@ -4,6 +4,7 @@ from django import http
 from django.shortcuts import render
 from django.db.models import Sum
 from django.core.cache import cache
+from django.conf import settings
 
 from sorl.thumbnail import get_thumbnail
 
@@ -78,12 +79,13 @@ def find(request):
                 if total_seconds:
                     total_hours = total_seconds / 3600.0
             items.append({
+                'id': podcast.id,
                 'name': podcast.name,
                 'image_url': thumb_url,
                 'episodes': episodes_count,
                 'hours': total_hours,
             })
 
-        cache.set(cache_key, items, 60 * 60)
+        cache.set(cache_key, items, 60 * 60 * int(settings.DEBUG))
 
     return http.JsonResponse({'items': items})

@@ -63,7 +63,7 @@ def parse_duration_ffmpeg(media_url):
 class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
-        max_ = 4
+        max_ = 5
 
         # first attempt podcasts that have 0 episodes
         podcasts = Podcast.objects.all().annotate(
@@ -125,12 +125,12 @@ class Command(BaseCommand):
                     print repr(entry['itunes_duration'])
                     raise
                 duration = 0
-                duration += 60 * 60 * itunes_duration[0]
-                duration += 60 * itunes_duration[1]
-                try:
-                    duration += itunes_duration[2]
-                except IndexError:
-                    pass
+                itunes_duration.reverse()
+                duration += itunes_duration[0]  # seconds
+                if len(itunes_duration) > 1:
+                    duration += 60 * itunes_duration[1]  # minutes
+                    if len(itunes_duration) > 2:
+                        duration += 60 * 60 * itunes_duration[2]  # hours
                 return duration
             else:
                 if not entry['itunes_duration']:
@@ -157,7 +157,6 @@ class Command(BaseCommand):
             duration = get_duration(entry)
             if duration is None:
                 continue
-
             try:
                 guid = entry.guid
             except AttributeError:
