@@ -2,17 +2,65 @@ import codecs
 import os
 import hashlib
 import time
+import json
+import re
 import random
 from xml.parsers.expat import ExpatError
 
 import xmltodict
 import feedparser
 import requests
+import subprocess32
 
+
+_MEDIA_FILE = os.path.join(
+    os.path.dirname(__file__), '.mediacache.json'
+)
 
 _CACHE = os.path.join(
     os.path.dirname(__file__), '.downloadcache'
 )
+
+
+def wrap_subprocess(command):
+    print command
+    return subprocess32.Popen(
+        command,
+        stdout=subprocess32.PIPE,
+        stderr=subprocess32.PIPE
+    ).communicate(timeout=60 * 2)
+
+
+def parse_duration_ffmpeg(media_url):
+    try:
+        with open(_MEDIA_FILE) as f:
+            _cache = json.load(f)
+    except IOError:
+        _cache = {}
+    except ValueError:
+        # the json file is corrupted
+        _cache = {}
+    if media_url not in _cache:
+        command = ['ffmpeg', '-i', media_url]
+        out, err = wrap_subprocess(command)
+        REGEX = re.compile('Duration: (\d+):(\d+):(\d+).(\d+)')
+        matches = REGEX.findall(err)
+        # if matches:
+        try:
+            found, = matches
+        except ValueError:
+            print err
+            return
+        hours = int(found[0])
+        minutes = int(found[1])
+        minutes += hours * 60
+        seconds = int(found[2])
+        seconds += minutes * 60
+        duration = seconds + minutes * 60 + hours * 60 * 60
+        _cache[media_url] = duration
+        with open(_MEDIA_FILE, 'w') as f:
+            json.dump(_cache, f, indent=4)
+    return _cache[media_url]
 
 
 def realistic_request(url, verify=True):
@@ -119,6 +167,7 @@ def get_image_url(rss_url):
                     return
 
     return image_url
+
 
 if __name__ == '__main__':
     import sys

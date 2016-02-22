@@ -9,6 +9,7 @@ from django.conf import settings
 from sorl.thumbnail import get_thumbnail
 
 from peterbecom.apps.podcasttime.models import Podcast, Episode
+from peterbecom.apps.podcasttime.tasks import download_episodes_task
 
 
 def index(request):
@@ -65,6 +66,8 @@ def find(request):
                 )['duration__sum']
                 if total_seconds:
                     total_hours = total_seconds / 3600.0
+            else:
+                download_episodes_task.delay(podcast.id)
             meta = {
                 'count': episodes_count,
                 'total_hours': total_hours,
