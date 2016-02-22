@@ -30,14 +30,27 @@ def find(request):
     cache_key = 'podcastfind:' + hashlib.md5(q).hexdigest()
     items = []
     found = []
-    podcasts = Podcast.objects.filter(name__istartswith=q)
+    sql = (
+        "to_tsvector('english', name) @@ "
+        "to_tsquery('english', %s)"
+    )
+    podcasts = Podcast.objects.all().extra(
+        where=[sql],
+        params=[q]
+    )[:10]
     for podcast in podcasts[:10]:
         found.append(podcast)
-    podcasts = Podcast.objects.filter(name__icontains=q).exclude(
-        id__in=podcasts
+    podcasts = Podcast.objects.filter(name__istartswith=q).exclude(
+        id__in=[x.id for x in found]
     )
     for podcast in podcasts[:10]:
         found.append(podcast)
+    if len(q) > 1:
+        podcasts = Podcast.objects.filter(name__icontains=q).exclude(
+            id__in=podcasts
+        )
+        for podcast in podcasts[:10]:
+            found.append(podcast)
 
     def episodes_meta(podcast):
         episodes_cache_key = 'episodes-meta-%s' % podcast.id
