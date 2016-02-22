@@ -37,6 +37,9 @@ def parse_duration_ffmpeg(media_url):
             _cache = json.load(f)
     except IOError:
         _cache = {}
+    except ValueError:
+        # the json file is corrupted
+        _cache = {}
     if media_url not in _cache:
         command = ['ffmpeg', '-i', media_url]
         out, err = wrap_subprocess(command)
@@ -56,7 +59,7 @@ def parse_duration_ffmpeg(media_url):
         duration = seconds + minutes * 60 + hours * 60 * 60
         _cache[media_url] = duration
         with open(_MEDIA_FILE, 'w') as f:
-            json.dump(_cache, f)
+            json.dump(_cache, f, indent=4)
     return _cache[media_url]
 
 
