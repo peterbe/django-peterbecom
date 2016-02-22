@@ -9,4 +9,8 @@ def download_episodes_task(podcast_id, verbose=True):
     podcast = Podcast.objects.get(id=podcast_id)
     download_episodes(podcast, verbose=verbose)
 
-print "download_episodes_task REGISTERED!!"
+
+@task()
+def redownload_podcast_image(podcast_id):
+    podcast = Podcast.objects.get(id=podcast_id)
+    podcast.download_image()

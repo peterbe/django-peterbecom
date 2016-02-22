@@ -22,6 +22,16 @@ _CACHE = os.path.join(
 )
 
 
+def is_html_document(filepath):
+    command = ['file', '-b', filepath]
+    out, err = subprocess32.Popen(
+        command,
+        stdout=subprocess32.PIPE,
+        stderr=subprocess32.PIPE
+    ).communicate(timeout=60)
+    return out and 'HTML document text' in out
+
+
 def wrap_subprocess(command):
     print command
     return subprocess32.Popen(
@@ -80,7 +90,7 @@ def realistic_request(url, verify=True):
     }, verify=verify)
 
 
-def download(url):
+def download(url, gently=False):
     if not os.path.isdir(_CACHE):
         os.mkdir(_CACHE)
     key = hashlib.md5(url).hexdigest()
@@ -95,7 +105,8 @@ def download(url):
         if r.status_code == 200:
             with codecs.open(fp, 'w', 'utf8') as f:
                 f.write(r.text)
-            time.sleep(random.randint(1, 3))
+            if gently:
+                time.sleep(random.randint(1, 4))
         else:
             raise Exception(r.status_code)
 

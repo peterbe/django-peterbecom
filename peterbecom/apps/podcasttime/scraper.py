@@ -198,7 +198,7 @@ def find_podcasts(baseurl, verbose=False):
 
 
 def _scrape_index(url, verbose=False, max_=1000):
-    html = download(url)
+    html = download(url, gently=True)
     doc = pyquery.PyQuery(html)
     links = doc('.thumbnails a')
     shows = []

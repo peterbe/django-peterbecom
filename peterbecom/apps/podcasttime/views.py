@@ -9,7 +9,11 @@ from django.conf import settings
 from sorl.thumbnail import get_thumbnail
 
 from peterbecom.apps.podcasttime.models import Podcast, Episode
-from peterbecom.apps.podcasttime.tasks import download_episodes_task
+from peterbecom.apps.podcasttime.utils import is_html_document
+from peterbecom.apps.podcasttime.tasks import (
+    download_episodes_task,
+    redownload_podcast_image,
+)
 
 
 def index(request):
@@ -79,6 +83,11 @@ def find(request):
     if items is None:
         items = []
         for podcast in found:
+
+            if podcast.image and is_html_document(podcast.image.path):
+                print "Found a podcast.image that wasn't an image"
+                podcast.image = None
+                podcast.save()
             if podcast.image:
                 if podcast.image.size < 1000:
                     print "IMAGE LOOKS SUSPICIOUS"
@@ -103,6 +112,9 @@ def find(request):
                     print repr(podcast.image)
                     print repr(podcast), podcast.url
                     print
+                    redownload_podcast_image.delay(podcast.id)
+            else:
+                redownload_podcast_image.delay(podcast.id)
 
             meta = episodes_meta(podcast)
             episodes_count = meta['count']

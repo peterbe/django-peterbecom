@@ -56,12 +56,14 @@ class Podcast(models.Model):
         img_temp = NamedTemporaryFile(delete=True)
         r = realistic_request(self.image_url)
         assert r.status_code == 200, r.status_code
+        print ('Content-Type', r.headers['content-type'])
         img_temp.write(r.content)
         img_temp.flush()
         self.image.save(
             os.path.basename(self.image_url.split('?')[0]),
             File(img_temp)
         )
+        print "Saved image", self.image.size
 
 
 @receiver(models.signals.post_save, sender=Podcast)
