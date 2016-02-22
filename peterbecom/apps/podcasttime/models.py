@@ -6,6 +6,8 @@ import unicodedata
 from django.db import models
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
+from django.dispatch import receiver
+from django.core.cache import cache
 
 from sorl.thumbnail import ImageField
 from peterbecom.apps.podcasttime.utils import realistic_request
@@ -60,6 +62,12 @@ class Podcast(models.Model):
             os.path.basename(self.image_url.split('?')[0]),
             File(img_temp)
         )
+
+
+@receiver(models.signals.post_save, sender=Podcast)
+def invalidate_episodes_meta_cache(sender, instance, **kwargs):
+    cache_key = 'episodes-meta-%s' % instance.id
+    cache.delete(cache_key)
 
 
 class Episode(models.Model):
