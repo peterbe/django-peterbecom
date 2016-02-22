@@ -64,7 +64,7 @@ $(function() {
       data: function (params) {
         return {
           q: params.term, // search term
-          page: params.page
+          page: params.page,
         };
       },
       processResults: function (data, params) {
@@ -81,7 +81,7 @@ $(function() {
           }
         };
       },
-      cache: true
+      cache: true,
     },
     escapeMarkup: function (markup) {
       // console.log('Markup', markup);
