@@ -147,7 +147,7 @@ class Command(BaseCommand):
                     raise
 
         for entry in d['entries']:
-            if not entry['published_parsed']:
+            if not entry.get('published_parsed'):
                 print "Entry without a valid 'published_parsed'!"
                 print entry
                 print "SKIPPING"
