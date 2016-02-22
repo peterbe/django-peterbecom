@@ -2,12 +2,12 @@ import datetime
 import time
 import os
 import hashlib
-import subprocess
 import re
 import json
 from pprint import pprint
 
 import feedparser
+import subprocess32
 
 from django.db.models import Count
 from django.core.management.base import BaseCommand
@@ -24,11 +24,11 @@ _MEDIA_FILE = os.path.join(
 
 def wrap_subprocess(command):
     print command
-    return subprocess.Popen(
+    return subprocess32.Popen(
         command,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    ).communicate()
+        stdout=subprocess32.PIPE,
+        stderr=subprocess32.PIPE
+    ).communicate(timeout=60 * 2)
 
 
 def parse_duration_ffmpeg(media_url):

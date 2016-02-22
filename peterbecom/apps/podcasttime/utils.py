@@ -3,7 +3,6 @@ import os
 import hashlib
 import time
 import random
-# import urlparse
 from xml.parsers.expat import ExpatError
 
 import xmltodict
