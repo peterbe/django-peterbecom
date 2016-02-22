@@ -1,43 +1,29 @@
 $(function() {
 
-  var selected = [];
   var selection = $('.selected');
-  selection.on('selection:update', function(event) {
-    // console.log('Selection added');
-    // console.log(selected);
-    if (selected.length) {
-      var tmpl = $('.template').clone();//.appendTo(selection);
-      if (tmpl.length !== 1) {
-        throw new Error('multiple templates');
-      }
-      tmpl.addClass('podcast').removeClass('template');
-      selected.forEach(function(podcast) {
-        console.log('Selected podcast:', podcast);
-        $('h3', tmpl).text(podcast.name);
-        $('img', tmpl).attr('src', podcast.image_url);
-        var text = podcast.episodes + ' episodes';
-        if (podcast.hours !== null) {
-          text += ', about ' + parseInt(podcast.hours, 10) + ' hours';
-        }
-        $('p', tmpl).text(text);
-        $('button', tmpl).on('click', function() {
-          console.log('Remove', podcast);
-          selected = selected.filter(function(other) {
-            return other.id !== podcast.id;
-          });
-          selection.trigger('selection:update');
-        });
-        // console.log('TMPL', tmpl.html());
-
-        // console.log(selection.html());
-        selection.append(tmpl);
-      });
-      selection.show();
-    } else {
-      $('.podcast', selection).remove();
-      selection.hide();
+  var podcastIDs = [];
+  function addSelectedPodcast(podcast) {
+    podcastIDs.push(podcast.id);
+    var domID = 'podcast-' + podcast.id;
+    var tmpl = $('.template', selection).clone();
+    tmpl.addClass('podcast').removeClass('template').attr('id', domID);
+    $('h3', tmpl).text(podcast.name);
+    $('img', tmpl).attr('src', podcast.image_url);
+    var text = podcast.episodes + ' episodes';
+    if (podcast.hours !== null) {
+      text += ', about ' + parseInt(podcast.hours, 10) + ' hours';
     }
-  });
+    $('p', tmpl).text(text);
+    $('button', tmpl).on('click', function() {
+      $('#' + domID).remove();
+      podcastIDs.splice(podcastIDs.indexOf(podcast.id), 1);
+      if (!$('.podcast', selection).length) {
+        selection.hide();
+      }
+    });
+    $('.selected .your-podcasts').prepend(tmpl);
+    selection.show();
+  }
 
   function formatPodcast(podcast) {
     if (podcast.loading) return podcast.name;
@@ -53,25 +39,20 @@ $(function() {
     markup += "<div class='select2-result-podcast__description'>";
     markup += podcast.episodes + " episodes";
     if (podcast.hours !== null) {
-      markup += ", about " + parseInt(podcast.hours, 10) + " total hours."
+      markup += ", about " + parseInt(podcast.hours, 10) + " total hours.";
     }
     markup += "</div>";
     markup += "</div></div>";
     return markup;
   }
 
+  selection.on('click', 'button.remove-all', function() {
+    $('.podcast', selection).remove();
+    podcastIDs = [];
+    selection.hide();
+  });
+
   function formatPodcastSelection(item) {
-    if (item.id) {
-      // Have we already selected this?
-      var already = selected.filter(function(other) {
-        return other.id === item.id;
-      });
-      // console.log('already:', already);
-      if (!already.length) {
-        selected.unshift(item);
-        selection.trigger('selection:update');
-      }
-    }
     return item.name || item.text;
   }
 
@@ -109,5 +90,8 @@ $(function() {
     minimumInputLength: 1,
     templateResult: formatPodcast,
     templateSelection: formatPodcastSelection,
+  })
+  .on("select2:select", function (event) {
+    addSelectedPodcast(event.params.data);
   });
 });

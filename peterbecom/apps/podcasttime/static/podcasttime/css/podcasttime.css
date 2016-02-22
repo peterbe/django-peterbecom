@@ -12,9 +12,13 @@
 .select2-results__option--highlighted .select2-result-podcast__title { color: white; }
 .select2-results__option--highlighted .select2-result-podcast__forks, .select2-results__option--highlighted .select2-result-podcast__stargazers, .select2-results__option--highlighted .select2-result-podcast__description, .select2-results__option--highlighted .select2-result-podcast__watchers { color: #c6dcef; }
 
+form select {
+  width: 100%;
+}
 .selected {
+  margin-top: 50px;
   display: none;
-  width: 75%;
+  width: 100%;
 }
 .template {
   display: none;
@@ -35,7 +39,4 @@
   width: 100%;
   height: auto;
   border-radius: 2px;
-}
-.selected .podcast .meta {
-  /*margin-left: 140px;*/
 }

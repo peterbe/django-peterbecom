@@ -17,30 +17,38 @@
   totalling <b>{{ thousands(total_hours) }} hours</b> of juicy audio content.
 </p>
 
-<p>Type here to pick the podcasts you listen to:</p>
-
 <form>
-  <select name="name" style="width:75%">
-    <option value="">Start typing to find the podcasts you listen to</option>
+  <select name="name">
+    <option value="">Type here to pick the podcasts you listen to</option>
   </select>
 </form>
 
-<div class="template clearfix">
-  <div class="actions">
-    <button type="button" class="button ui">Remove</button>
-  </div>
-  <div class="img">
-    <img/>
-  </div>
-  <div class="meta">
-    <h3></h3>
-    <p>
-    </p>
-  </div>
-</div>
-
 <div class="selected">
-  <h3>Your Podcasts...</h3>
+  <h3><i>Your</i> Podcasts...</h3>
+
+  <div class="template clearfix">
+    <div class="actions">
+      <button type="button" class="button ui">Remove</button>
+    </div>
+    <div class="img">
+      <img/>
+    </div>
+    <div class="meta">
+      <h3></h3>
+      <p>
+      </p>
+    </div>
+  </div>
+
+  <div class="your-podcasts">
+  </div>
+
+  <div style="float:right; margin-top:15px" class="clearfix">
+    <button
+      type="button"
+      class="button ui remove-all"
+      title="And start over...">Remove All</button>
+  </div>
 
 </div>
 

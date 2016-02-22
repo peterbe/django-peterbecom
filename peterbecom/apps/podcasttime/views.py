@@ -39,6 +39,26 @@ def find(request):
     for podcast in podcasts[:10]:
         found.append(podcast)
 
+    def episodes_meta(podcast):
+        episodes_cache_key = 'episodes-meta-%s' % podcast.id
+        meta = cache.get(episodes_cache_key)
+        if meta is None:
+            episodes = Episode.objects.filter(podcast=podcast)
+            episodes_count = episodes.count()
+            total_hours = None
+            if episodes_count:
+                total_seconds = episodes.aggregate(
+                    Sum('duration')
+                )['duration__sum']
+                if total_seconds:
+                    total_hours = total_seconds / 3600.0
+            meta = {
+                'count': episodes_count,
+                'total_hours': total_hours,
+            }
+            cache.set(episodes_cache_key, meta, 60 * 60 * 24)
+        return meta
+
     items = cache.get(cache_key)
     if items is None:
         items = []
@@ -51,8 +71,6 @@ def find(request):
                     print podcast.url
                     print repr(podcast.image.read())
                     podcast.download_image()
-
-            episodes = Episode.objects.filter(podcast=podcast)
             thumb_url = None
             if podcast.image:
                 try:
@@ -69,15 +87,10 @@ def find(request):
                     print repr(podcast.image)
                     print repr(podcast), podcast.url
                     print
-            total_hours = None
-            episodes_count = episodes.count()
-            # print repr(podcast.name), episodes.count()
-            if episodes_count:
-                total_seconds = episodes.aggregate(
-                    Sum('duration')
-                )['duration__sum']
-                if total_seconds:
-                    total_hours = total_seconds / 3600.0
+
+            meta = episodes_meta(podcast)
+            episodes_count = meta['count']
+            total_hours = meta['total_hours']
             items.append({
                 'id': podcast.id,
                 'name': podcast.name,
