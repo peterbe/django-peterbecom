@@ -72,6 +72,12 @@ PIPELINE_JS = {
         ),
         'output_filename': 'js/blogitem.min.js',
     },
+    'calendar': {
+        'source_filenames': (
+            'plog/js/calendar.js',
+        ),
+        'output_filename': 'js/calendar.min.js',
+    },
     'podcasttime': {
         'source_filenames': (
             'podcasttime/select2/js/select2.full.min.js',
