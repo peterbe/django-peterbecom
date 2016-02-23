@@ -57,7 +57,10 @@ def download_episodes(podcast, verbose=True):
         if not entry.get('itunes_duration'):
             try:
                 for link in entry['links']:
-                    if link['type'] == 'audio/mpeg':
+                    if (
+                        link['type'] == 'audio/mpeg' or
+                        link['href'].lower().endswith('.mp3')
+                    ):
                         return parse_duration_ffmpeg(
                             link['href']
                         )

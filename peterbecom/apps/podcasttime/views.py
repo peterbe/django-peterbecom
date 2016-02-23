@@ -112,6 +112,8 @@ def find(request):
                     print repr(podcast.image)
                     print repr(podcast), podcast.url
                     print
+                    podcast.image = None
+                    podcast.save()
                     redownload_podcast_image.delay(podcast.id)
             else:
                 redownload_podcast_image.delay(podcast.id)

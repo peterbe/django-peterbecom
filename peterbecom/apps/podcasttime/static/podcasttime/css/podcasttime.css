@@ -12,6 +12,10 @@
 .select2-results__option--highlighted .select2-result-podcast__title { color: white; }
 .select2-results__option--highlighted .select2-result-podcast__forks, .select2-results__option--highlighted .select2-result-podcast__stargazers, .select2-results__option--highlighted .select2-result-podcast__description, .select2-results__option--highlighted .select2-result-podcast__watchers { color: #c6dcef; }
 
+.select2-container--default .select2-results > .select2-results__options {
+  max-height: 400px;
+}
+
 form select {
   width: 100%;
 }
