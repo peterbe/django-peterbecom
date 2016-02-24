@@ -1,5 +1,7 @@
 $(function() {
 
+  var calendar = null;
+
   var selection = $('.selected');
   var podcastIDs = [];
   function addSelectedPodcast(podcast) {
@@ -17,12 +19,33 @@ $(function() {
     $('button', tmpl).on('click', function() {
       $('#' + domID).remove();
       podcastIDs.splice(podcastIDs.indexOf(podcast.id), 1);
-      if (!$('.podcast', selection).length) {
+      if (!podcastIDs.length) {
         selection.hide();
+      } else {
+        calendar.fullCalendar('refetchEvents');
       }
     });
     $('.selected .your-podcasts').prepend(tmpl);
     selection.show();
+
+    if (calendar === null) {
+      calendar = $('.calendar').fullCalendar({
+        header: {
+          left: 'title',
+          center: 'prev,next today',
+          right: 'month,agendaWeek,agendaDay'
+        },
+        events: {
+          url: '/podcasttime/calendar',
+          data: function() {
+            return {ids: podcastIDs.join(',')};
+          }
+        }
+      });
+    } else {
+      calendar.fullCalendar('refetchEvents');
+      // console.log('Need to update', calendar);
+    }
   }
 
   function formatPodcast(podcast) {
@@ -94,4 +117,5 @@ $(function() {
   .on("select2:select", function (event) {
     addSelectedPodcast(event.params.data);
   });
+
 });

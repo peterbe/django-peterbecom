@@ -4,6 +4,7 @@
 
 {% block extrahead %}
 {% stylesheet 'podcasttime' %}
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.6.1/fullcalendar.min.css">
 {% endblock %}
 
 {% block content %}
@@ -43,17 +44,25 @@
   <div class="your-podcasts">
   </div>
 
-  <div style="float:right; margin-top:15px" class="clearfix">
+  <div style="float:right; margin-top:15px; margin-bottom: 50px">
     <button
       type="button"
       class="button ui remove-all"
       title="And start over...">Remove All</button>
   </div>
 
+  <div class="clearfix" style="clear:right; margin-top:30px">
+    <div class="calendar">
+    </div>
+  </div>
+
 </div>
 
 {% endblock %}
 
+
 {% block extrajs %}
 {% javascript 'podcasttime' %}
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.11.2/moment.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.6.1/fullcalendar.min.js"></script>
 {% endblock %}

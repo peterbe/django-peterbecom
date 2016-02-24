@@ -1,3 +1,4 @@
+import datetime
 import hashlib
 
 from django import http
@@ -9,6 +10,7 @@ from django.conf import settings
 from sorl.thumbnail import get_thumbnail
 
 from peterbecom.apps.podcasttime.models import Podcast, Episode
+from peterbecom.apps.podcasttime.forms import CalendarDataForm
 from peterbecom.apps.podcasttime.utils import is_html_document
 from peterbecom.apps.podcasttime.tasks import (
     download_episodes_task,
@@ -132,3 +134,38 @@ def find(request):
         cache.set(cache_key, items, 60 * 60 * int(settings.DEBUG))
 
     return http.JsonResponse({'items': items})
+
+
+def calendar(request):
+
+    form = CalendarDataForm(request.GET)
+    if not form.is_valid():
+        return http.HttpResponseBadRequest(form.errors)
+
+    episodes = Episode.objects.filter(
+        podcast__id__in=form.cleaned_data['ids'],
+        published__gte=form.cleaned_data['start'],
+        published__lt=form.cleaned_data['end'],
+    ).select_related('podcast')
+    colors = (
+        "#EAA228", "#c5b47f", "#579575", "#839557", "#958c12",
+        "#953579", "#4b5de4", "#d8b83f", "#ff5800", "#0085cc",
+        "#c747a3", "#cddf54", "#FBD178", "#26B4E3", "#bd70c7",
+    )
+    next_color = iter(colors)
+    items = []
+    podcast_colors = {}
+    for episode in episodes:
+        duration = datetime.timedelta(seconds=episode.duration)
+        if episode.podcast_id not in podcast_colors:
+            podcast_colors[episode.podcast_id] = next_color.next()
+        color = podcast_colors[episode.podcast_id]
+        item = {
+            'id': episode.id,
+            'title': episode.podcast.name,
+            'start': episode.published,
+            'end': episode.published + duration,
+            'color': color,
+        }
+        items.append(item)
+    return http.JsonResponse(items, safe=False)

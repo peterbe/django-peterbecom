@@ -10,6 +10,7 @@ import feedparser
 
 from django.utils import timezone
 from django.db.models import Count
+from django.db.utils import DataError
 
 from peterbecom.apps.podcasttime.models import Podcast, Episode
 from peterbecom.apps.podcasttime.utils import (
@@ -93,6 +94,9 @@ def download_episodes(podcast, verbose=True):
                 duration += 60 * itunes_duration[1]  # minutes
                 if len(itunes_duration) > 2:
                     duration += 60 * 60 * itunes_duration[2]  # hours
+            if duration > 24 * 60 * 60:
+                entry['itunes_duration'] = None
+                return get_duration(entry)
             return duration
         else:
             if not entry['itunes_duration']:
@@ -160,8 +164,15 @@ def download_episodes(podcast, verbose=True):
             )
             episode.duration = duration
             episode.published = published
-            episode.save()
-            print "SAVED",
+            try:
+                episode.save()
+                print "SAVED",
+            except DataError:
+                print "FROM", podcast.url
+                print "ENTRY"
+                print entry
+                print "TRIED TO SAVE DURATION", duration
+                raise
         except Episode.DoesNotExist:
             episode = Episode.objects.create(
                 podcast=podcast,
