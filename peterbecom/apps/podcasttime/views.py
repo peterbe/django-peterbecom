@@ -3,14 +3,15 @@ import hashlib
 
 from django import http
 from django.shortcuts import render
-from django.db.models import Sum
+from django.db.models import Sum, Min, Max
 from django.core.cache import cache
 from django.conf import settings
+from django.utils import timezone
 
 from sorl.thumbnail import get_thumbnail
 
 from peterbecom.apps.podcasttime.models import Podcast, Episode
-from peterbecom.apps.podcasttime.forms import CalendarDataForm
+from peterbecom.apps.podcasttime.forms import CalendarDataForm, StatsDataForm
 from peterbecom.apps.podcasttime.utils import is_html_document
 from peterbecom.apps.podcasttime.tasks import (
     download_episodes_task,
@@ -137,7 +138,6 @@ def find(request):
 
 
 def calendar(request):
-
     form = CalendarDataForm(request.GET)
     if not form.is_valid():
         return http.HttpResponseBadRequest(form.errors)
@@ -169,3 +169,36 @@ def calendar(request):
         }
         items.append(item)
     return http.JsonResponse(items, safe=False)
+
+
+def stats(request):
+    form = StatsDataForm(request.GET)
+    if not form.is_valid():
+        return http.HttpResponseBadRequest(form.errors)
+
+    past = timezone.now() - datetime.timedelta(days=365)
+    episodes = Episode.objects.filter(
+        podcast_id__in=form.cleaned_data['ids'],
+        published__gte=past,
+    ).values(
+        'podcast_id',
+    ).annotate(
+        duration=Sum('duration'),
+        min=Min('published'),
+        max=Max('published'),
+    )
+    rates = []
+    for each in episodes:
+        days = (each['max'] - each['min']).days
+        rates.append(
+            # hours per day
+            1.0 * each['duration'] / days / 3600
+        )
+
+    average = sum(rates) / len(rates)
+    numbers = {
+        'per_day': average,
+        'per_week': average * 7,
+        'per_month': average * (365 / 12.0),
+    }
+    return http.JsonResponse(numbers)

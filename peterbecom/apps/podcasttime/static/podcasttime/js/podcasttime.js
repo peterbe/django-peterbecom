@@ -1,5 +1,39 @@
 $(function() {
 
+  var formatNumber = function(number) {
+    return number.toLocaleString(undefined, {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1
+    });
+  };
+
+  var formatPerDuration = function(hours, container) {
+    var value = hours;
+    if (value > 2.0) {
+      $('.minutes', container).hide();
+      $('.hours', container).show(200);
+    } else {
+      value *= 60;
+      $('.hours', container).hide();
+      $('.minutes', container).show(200);
+    }
+    $('.value', container).text(formatNumber(value));
+  };
+
+  var fetchStats = function() {
+    $.getJSON('/podcasttime/stats?ids=' + podcastIDs.join(','))
+    .done(function(results) {
+      var container = $('.selected .stats');
+
+      // The numbers that come back are HOURS per day/week/month.
+      // We have to decide to use hours or minutes based on the number.
+      formatPerDuration(results.per_day, $('.per-day', container));
+      formatPerDuration(results.per_week, $('.per-week', container));
+      formatPerDuration(results.per_month, $('.per-month', container));
+      container.fadeIn(500);
+    });
+  };
+
   var calendar = null;
 
   var selection = $('.selected');
@@ -22,10 +56,16 @@ $(function() {
       if (!podcastIDs.length) {
         selection.hide();
       } else {
+        fetchStats();
         calendar.fullCalendar('refetchEvents');
       }
     });
     $('.selected .your-podcasts').prepend(tmpl);
+
+
+    // right away
+    fetchStats();
+
     selection.show();
 
     if (calendar === null) {

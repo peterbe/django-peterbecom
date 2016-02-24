@@ -41,6 +41,7 @@ PIPELINE_CSS = {
         'source_filenames': (
             'podcasttime/select2/css/select2.min.css',
             'podcasttime/css/podcasttime.css',
+            'css/statistic.css',
         ),
         'output_filename': 'css/podcasttime.min.css',
     },

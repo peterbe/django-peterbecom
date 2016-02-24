@@ -3,6 +3,14 @@ import datetime
 from django import forms
 
 
+class StatsDataForm(forms.Form):
+
+    ids = forms.CharField()
+
+    def clean_ids(self):
+        return self.cleaned_data['ids'].split(',')
+
+
 class CalendarDataForm(forms.Form):
 
     ids = forms.CharField()
