@@ -40,7 +40,7 @@ def find(request):
     found = []
     sql = (
         "to_tsvector('english', name) @@ "
-        "to_tsquery('english', %s)"
+        "plainto_tsquery('english', %s)"
     )
     podcasts = Podcast.objects.all().extra(
         where=[sql],
