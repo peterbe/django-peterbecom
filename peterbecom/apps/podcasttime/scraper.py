@@ -82,11 +82,13 @@ def download_episodes(podcast, verbose=True):
 
                 itunes_duration = [
                     int(float(x)) for x in itunes_duration.split(':')
+                    if x.strip()
                 ]
             except ValueError:
+                print "SKIPPING, BAD itunes_duration"
                 print entry
-                print repr(entry['itunes_duration'])
-                raise
+                print 'itunes_duration=', repr(entry['itunes_duration'])
+                return
             duration = 0
             itunes_duration.reverse()
             duration += itunes_duration[0]  # seconds

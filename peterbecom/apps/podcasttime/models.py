@@ -41,9 +41,13 @@ class Podcast(models.Model):
     image_url = models.URLField(max_length=400, null=True, blank=True)
     image = ImageField(upload_to=_upload_to_podcast, null=True)
 
+    times_picked = models.PositiveIntegerField(default=0)
     last_fetch = models.DateTimeField(null=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-times_picked']
 
     def __unicode__(self):
         return self.name
@@ -83,3 +87,10 @@ class Episode(models.Model):
 
     class Meta:
         unique_together = ('podcast', 'guid')
+
+
+class Picked(models.Model):
+    podcasts = models.ManyToManyField(Podcast)
+
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)

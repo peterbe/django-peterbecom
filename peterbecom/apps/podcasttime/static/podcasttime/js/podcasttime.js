@@ -21,7 +21,7 @@ $(function() {
   };
 
   var fetchStats = function() {
-    $.getJSON('/podcasttime/stats?ids=' + podcastIDs.join(','))
+    return $.getJSON('/podcasttime/stats?ids=' + podcastIDs.join(','))
     .done(function(results) {
       var container = $('.selected .stats');
 
@@ -31,8 +31,28 @@ $(function() {
       formatPerDuration(results.per_week, $('.per-week', container));
       formatPerDuration(results.per_month, $('.per-month', container));
       container.fadeIn(500);
+      return results;
     });
   };
+
+  var updatePicked = function() {
+    return $.post('/podcasttime/picked', {
+      csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val(),
+      ids: podcastIDs.join(',')
+    });
+  };
+
+  var resetPicked = function() {
+    return $.post('/podcasttime/picked', {
+      csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val(),
+      reset: true,
+    });
+  };
+
+  // Suppose that you picked a bunch last time,
+  // and you refresh the page. Then let's start over on the picked
+  // bunches.
+  resetPicked();
 
   var calendar = null;
 
@@ -55,16 +75,16 @@ $(function() {
       podcastIDs.splice(podcastIDs.indexOf(podcast.id), 1);
       if (!podcastIDs.length) {
         selection.hide();
+        resetPicked();
       } else {
-        fetchStats();
+        fetchStats().done(updatePicked);
         calendar.fullCalendar('refetchEvents');
       }
     });
     $('.selected .your-podcasts').prepend(tmpl);
 
-
     // right away
-    fetchStats();
+    fetchStats().done(updatePicked);
 
     selection.show();
 

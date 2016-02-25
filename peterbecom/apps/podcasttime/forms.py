@@ -3,7 +3,7 @@ import datetime
 from django import forms
 
 
-class StatsDataForm(forms.Form):
+class PodcastsForm(forms.Form):
 
     ids = forms.CharField()
 

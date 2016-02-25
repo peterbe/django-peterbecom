@@ -7,11 +7,15 @@ from django.db.models import Sum, Min, Max
 from django.core.cache import cache
 from django.conf import settings
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from sorl.thumbnail import get_thumbnail
 
-from peterbecom.apps.podcasttime.models import Podcast, Episode
-from peterbecom.apps.podcasttime.forms import CalendarDataForm, StatsDataForm
+from peterbecom.apps.podcasttime.models import Podcast, Episode, Picked
+from peterbecom.apps.podcasttime.forms import (
+    CalendarDataForm,
+    PodcastsForm,
+)
 from peterbecom.apps.podcasttime.utils import is_html_document
 from peterbecom.apps.podcasttime.tasks import (
     download_episodes_task,
@@ -137,6 +141,33 @@ def find(request):
     return http.JsonResponse({'items': items})
 
 
+@require_POST
+def picked(request):
+    if request.POST.get('reset'):
+        del request.session['picked']
+    else:
+        form = PodcastsForm(request.POST)
+        if not form.is_valid():
+            return http.HttpResponseBadRequest(form.errors)
+        podcasts = Podcast.objects.filter(id__in=form.cleaned_data['ids'])
+        if podcasts.exists():
+            if request.session.get('picked'):
+                picked_id = request.session.get('picked')
+                print "Previous picked_id", picked_id
+                try:
+                    picked_obj = Picked.objects.get(id=picked_id)
+                except Picked.DoesNotExist:
+                    return http.HttpResponseBadRequest('bad picked_id')
+            else:
+                picked_obj = Picked.objects.create()
+                print "NEW picked_id", picked_obj.id
+                request.session['picked'] = picked_obj.id
+            picked_obj.podcasts.clear()
+            picked_obj.podcasts.add(*podcasts)
+
+    return http.JsonResponse({'ok': True})
+
+
 def calendar(request):
     form = CalendarDataForm(request.GET)
     if not form.is_valid():
@@ -172,7 +203,7 @@ def calendar(request):
 
 
 def stats(request):
-    form = StatsDataForm(request.GET)
+    form = PodcastsForm(request.GET)
     if not form.is_valid():
         return http.HttpResponseBadRequest(form.errors)
 
@@ -195,7 +226,10 @@ def stats(request):
             1.0 * each['duration'] / days / 3600
         )
 
-    average = sum(rates) / len(rates)
+    if rates:
+        average = sum(rates) / len(rates)
+    else:
+        average = 0.0
     numbers = {
         'per_day': average,
         'per_week': average * 7,
