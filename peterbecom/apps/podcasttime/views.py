@@ -145,7 +145,10 @@ def find(request):
 @require_POST
 def picked(request):
     if request.POST.get('reset'):
-        del request.session['picked']
+        try:
+            del request.session['picked']
+        except KeyError:
+            pass
     else:
         form = PodcastsForm(request.POST)
         if not form.is_valid():
