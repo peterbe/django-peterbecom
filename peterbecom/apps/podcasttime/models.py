@@ -97,7 +97,7 @@ class Picked(models.Model):
 
 
 @receiver(models.signals.m2m_changed, sender=Picked.podcasts.through)
-def CHANGEMELATER(sender, instance, action, **kwargs):
+def update_podcast_times_picked(sender, instance, action, **kwargs):
     if action == 'post_add':
         print "POST_ADD", instance.podcasts.all()
         instance.podcasts.all().update(
