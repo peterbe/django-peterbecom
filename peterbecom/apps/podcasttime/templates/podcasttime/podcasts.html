@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title_prefix %}{{ page_title }}{% endblock %}
+
+{% block extrahead %}
+{% stylesheet 'podcasttime:podcasts' %}
+{% endblock %}
+
+{% block content %}
+
+
+<div class="ui cards">
+{% for podcast in podcasts %}
+  <div class="ui centered card">
+    <div class="image">
+      {% if podcast.image %}
+      <img src="{{ thumbnail(podcast.image, '300x300').url }}">
+      {% else %}
+      work harder
+      {% endif %}
+    </div>
+    <div class="content">
+      <a class="header">{{ podcast.name }}</a>
+      <div class="meta">
+        <span class="date">
+          Last updated {{ timesince(podcast.last_fetch or podcast.modified) }} ago
+        </span>
+      </div>
+      <div class="description">
+        <b>{{ episode_counts[podcast.id] }}</b> episodes,
+        about <b>{{ episode_hours[podcast.id] }}</b> hours of content.
+      </div>
+    </div>
+    <div class="extra content">
+      <a>
+        <i class="user icon"></i>
+        Picked <b>{{ podcast.times_picked }}</b> times
+      </a>
+    </div>
+  </div>
+{% endfor %}
+</div>
+
+
+<div class="ui two column centered grid" style="margin-top: 100px">
+  <div class="ui pagination menu">
+    {% if podcasts.has_previous() %}
+      <a class="item" href="?page={{ podcasts.previous_page_number() }}">
+        &larr; Page {{ podcasts.previous_page_number() }}
+      </a>
+    {% else %}
+      <!-- <a class="item disabled">
+        Page 1
+      </a> -->
+    {% endif %}
+    <a class="item disabled">
+      Page {{ podcasts.number }} of {{ podcasts.paginator.num_pages }}
+    </a>
+    {% if podcasts.has_next() %}
+      <a class="item" href="?page={{ podcasts.next_page_number() }}">
+        Page {{ podcasts.next_page_number() }} &rarr;
+      </a>
+    {% else %}
+      <a class="item disabled">
+        Page {{ podcasts.paginator.num_pages }}
+      </a>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}
+
+
+{% block extrajs %}
+{% endblock %}

@@ -3,11 +3,12 @@ import hashlib
 
 from django import http
 from django.shortcuts import render
-from django.db.models import Sum, Min, Max
+from django.db.models import Sum, Min, Max, Count
 from django.core.cache import cache
 from django.conf import settings
 from django.utils import timezone
 from django.views.decorators.http import require_POST
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from sorl.thumbnail import get_thumbnail
 
@@ -236,3 +237,42 @@ def stats(request):
         'per_month': average * (365 / 12.0),
     }
     return http.JsonResponse(numbers)
+
+
+def podcasts(request):
+    context = {}
+    context['page_title'] = 'All Our Podcasts'
+    podcasts = Podcast.objects.all().order_by('-times_picked', 'name')
+
+    paginator = Paginator(podcasts, 12)
+    page = request.GET.get('page')
+    try:
+        podcasts_page = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        podcasts_page = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        podcasts_page = paginator.page(paginator.num_pages)
+
+    context['podcasts'] = podcasts_page
+
+    past = timezone.now() - datetime.timedelta(days=365)
+    episodes = Episode.objects.filter(
+        podcast__in=podcasts_page,
+        published__gte=past,
+    ).values(
+        'podcast_id',
+    ).annotate(
+        duration=Sum('duration'),
+        count=Count('podcast_id'),
+    )
+    episode_counts = {}
+    episode_hours = {}
+    for x in episodes:
+        episode_counts[x['podcast_id']] = x['count']
+        episode_hours[x['podcast_id']] = x['duration']
+    context['episode_counts'] = episode_counts
+    context['episode_hours'] = episode_hours
+
+    return render(request, 'podcasttime/podcasts.html', context)
