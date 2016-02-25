@@ -9,18 +9,22 @@
 {% block content %}
 
 
-<div class="ui cards">
+<div class="ui link cards">
 {% for podcast in podcasts %}
   <div class="ui centered card">
     <div class="image">
+      <a href="{{ url('podcasttime:podcast', podcast.id) }}">
       {% if podcast.image %}
-      <img src="{{ thumbnail(podcast.image, '300x300').url }}">
+        <img src="{{ thumbnail(podcast.image, '300x300').url }}">
       {% else %}
       work harder
       {% endif %}
+      </a>
     </div>
     <div class="content">
-      <a class="header">{{ podcast.name }}</a>
+      <a
+        href="{{ url('podcasttime:podcast', podcast.id) }}" 
+        class="header">{{ podcast.name }}</a>
       <div class="meta">
         <span class="date">
           Last updated {{ timesince(podcast.last_fetch or podcast.modified) }} ago

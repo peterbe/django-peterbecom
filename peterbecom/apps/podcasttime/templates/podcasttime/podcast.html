@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title_prefix %}{{ page_title }}{% endblock %}
+
+{% block extrahead %}
+{#{% stylesheet 'podcasttime:podcast' %}#}
+{% endblock %}
+
+{% block content %}
+
+
+
+<img src="{{ thumbnail(podcast.image, '300x300').url }}">
+
+<table class="ui celled table">
+  <thead>
+    <tr>
+      <th>Published</th>
+      <th>Duration</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for episode in episodes %}
+    <tr>
+      <td>
+        {{ episode.published }}
+        <small>
+          ({{ timesince(episode.published) }} ago)
+        </small>
+      </td>
+      <td>{{ show_duration(episode.duration) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+
+{% endblock %}
+
+
+{% block extrajs %}
+{% endblock %}

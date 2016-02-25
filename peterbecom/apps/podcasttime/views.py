@@ -2,7 +2,7 @@ import datetime
 import hashlib
 
 from django import http
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.db.models import Sum, Min, Max, Count
 from django.core.cache import cache
 from django.conf import settings
@@ -279,3 +279,15 @@ def podcasts(request):
     context['episode_hours'] = episode_hours
 
     return render(request, 'podcasttime/podcasts.html', context)
+
+
+def podcast(request, id):
+    podcast = get_object_or_404(Podcast, id=id)
+    context = {}
+    context['podcast'] = podcast
+    context['page_title'] = podcast.name
+    episodes = Episode.objects.filter(
+        podcast=podcast
+    ).order_by('-published')
+    context['episodes'] = episodes
+    return render(request, 'podcasttime/podcast.html', context)
