@@ -41,7 +41,7 @@ class Podcast(models.Model):
     image_url = models.URLField(max_length=400, null=True, blank=True)
     image = ImageField(upload_to=_upload_to_podcast, null=True)
 
-    times_picked = models.PositiveIntegerField(default=0)
+    times_picked = models.IntegerField(default=0)
     last_fetch = models.DateTimeField(null=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
@@ -94,3 +94,17 @@ class Picked(models.Model):
 
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
+
+
+@receiver(models.signals.m2m_changed, sender=Picked.podcasts.through)
+def CHANGEMELATER(sender, instance, action, **kwargs):
+    if action == 'post_add':
+        print "POST_ADD", instance.podcasts.all()
+        instance.podcasts.all().update(
+            times_picked=models.F('times_picked') + 1
+        )
+    elif action == 'pre_clear':
+        print "PRE_CLEAR", instance.podcasts.all()
+        instance.podcasts.all().update(
+            times_picked=models.F('times_picked') - 1
+        )
