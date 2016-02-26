@@ -40,7 +40,7 @@ def find(request):
     if not request.GET.get('q'):
         return http.HttpResponseBadRequest('no q')
     q = request.GET['q']
-    cache_key = 'podcastfind:' + hashlib.md5(q).hexdigest()
+    cache_key = 'podcastfind:' + hashlib.md5(q.encode('utf8')).hexdigest()
     items = []
     found = []
     sql = (
