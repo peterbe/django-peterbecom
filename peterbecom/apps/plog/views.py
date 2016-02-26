@@ -388,9 +388,9 @@ def _approve_comment(blogcomment):
     blogcomment.save()
 
     if (
-        blogcomment.parent and blogcomment.parent.email
-        and valid_email(blogcomment.parent.email)
-        and blogcomment.email != blogcomment.parent.email
+        blogcomment.parent and blogcomment.parent.email and
+        valid_email(blogcomment.parent.email) and
+        blogcomment.email != blogcomment.parent.email
     ):
         parent = blogcomment.parent
         tos = [parent.email]
@@ -731,7 +731,7 @@ def post_thumbnails(request, oid):
             upscale=False,
             quality=100
         )
-        full_url = settings.STATIC_URL + full_im.url
+        full_url = full_im.url
         delete_url = reverse('delete_post_thumbnail', args=(blogfile.pk,))
         image = {
             'full_url': full_url,
@@ -743,7 +743,7 @@ def post_thumbnails(request, oid):
                 geometry,
                 quality=81
             )
-            url_ = settings.STATIC_URL + im.url
+            url_ = im.url
             image[key] = {
                 'url': url_,
                 'alt': getattr(blogfile, 'title', blogitem.title),
