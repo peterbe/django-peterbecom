@@ -133,6 +133,7 @@ $(function() {
     $('.podcast', selection).remove();
     podcastIDs = [];
     selection.hide();
+    resetPicked();
   });
 
   function formatPodcastSelection(item) {

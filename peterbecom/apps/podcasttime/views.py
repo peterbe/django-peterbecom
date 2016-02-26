@@ -157,14 +157,12 @@ def picked(request):
         if podcasts.exists():
             if request.session.get('picked'):
                 picked_id = request.session.get('picked')
-                print "Previous picked_id", picked_id
                 try:
                     picked_obj = Picked.objects.get(id=picked_id)
                 except Picked.DoesNotExist:
                     return http.HttpResponseBadRequest('bad picked_id')
             else:
                 picked_obj = Picked.objects.create()
-                print "NEW picked_id", picked_obj.id
                 request.session['picked'] = picked_obj.id
             picked_obj.podcasts.clear()
             picked_obj.podcasts.add(*podcasts)
@@ -225,10 +223,11 @@ def stats(request):
     rates = []
     for each in episodes:
         days = (each['max'] - each['min']).days
-        rates.append(
-            # hours per day
-            1.0 * each['duration'] / days / 3600
-        )
+        if days:
+            rates.append(
+                # hours per day
+                1.0 * each['duration'] / days / 3600
+            )
 
     if rates:
         average = sum(rates) / len(rates)
@@ -279,6 +278,27 @@ def podcasts(request):
     context['episode_hours'] = episode_hours
 
     return render(request, 'podcasttime/podcasts.html', context)
+
+
+def picks(request):
+    context = {}
+    context['page_title'] = 'Picked Podcasts'
+    qs = Picked.objects.all().order_by('-modified')
+
+    paginator = Paginator(qs, 12)
+    page = request.GET.get('page')
+    try:
+        paged = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        paged = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        paged = paginator.page(paginator.num_pages)
+
+    context['picks'] = paged
+
+    return render(request, 'podcasttime/picks.html', context)
 
 
 def podcast(request, id):
