@@ -69,6 +69,12 @@ class Podcast(models.Model):
         )
         print "Saved image", self.image.size
 
+    @property
+    def total_seconds(self):
+        return Episode.objects.filter(podcast=self).aggregate(
+            models.Sum('duration')
+        )['duration__sum']
+
 
 @receiver(models.signals.post_save, sender=Podcast)
 def invalidate_episodes_meta_cache(sender, instance, **kwargs):

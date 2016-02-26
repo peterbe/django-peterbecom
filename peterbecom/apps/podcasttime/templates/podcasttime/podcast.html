@@ -9,8 +9,22 @@
 {% block content %}
 
 
-
-<img src="{{ thumbnail(podcast.image, '300x300').url }}">
+<div class="ui segment clearing">
+  {% if podcast.image %}
+  <img style="float:left" src="{{ thumbnail(podcast.image, '300x300').url }}">
+  {% else %}
+  <img style="float:left" src="/static/podcasttime/images/no-image.png" width="300" height="300">
+  {% endif %}
+  <div style="margin-left: 330px">
+    <h2>Title: {{ podcast.name }}</h2>
+    <h3>Number of episodes: {{ episodes.count() }}</h3>
+    {% if episodes.exists() %}
+    <h3>Total amount of content: {{ show_duration(podcast.total_seconds) }}</h3>
+    {% endif %}
+    <h3>Times picked: {{ thousands(podcast.times_picked) }}</h3>
+    <h3>Last updated: {{ timesince(podcast.last_fetch) }} ago</h3>
+  </div>
+</div>
 
 <table class="ui celled table">
   <thead>

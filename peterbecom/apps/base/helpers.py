@@ -7,6 +7,11 @@ from sorl.thumbnail import get_thumbnail
 
 
 @register.function
+def thousands(n):
+    return format(n, ',')
+
+
+@register.function
 def thumbnail(imagefile, geometry, **options):
     if not options.get('format'):
         # then let's try to do it by the file name

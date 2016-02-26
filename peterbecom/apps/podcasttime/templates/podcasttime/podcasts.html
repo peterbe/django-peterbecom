@@ -12,18 +12,16 @@
 <div class="ui link cards">
 {% for podcast in podcasts %}
   <div class="ui centered card">
-    <div class="image">
-      <a href="{{ url('podcasttime:podcast', podcast.id) }}">
+    <a class="image" href="{{ url('podcasttime:podcast', podcast.id) }}">
       {% if podcast.image %}
         <img src="{{ thumbnail(podcast.image, '300x300').url }}">
       {% else %}
-      work harder
+        <img src="/static/podcasttime/images/no-image.png">
       {% endif %}
-      </a>
-    </div>
+    </a>
     <div class="content">
       <a
-        href="{{ url('podcasttime:podcast', podcast.id) }}" 
+        href="{{ url('podcasttime:podcast', podcast.id) }}"
         class="header">{{ podcast.name }}</a>
       <div class="meta">
         <span class="date">
@@ -31,13 +29,17 @@
         </span>
       </div>
       <div class="description">
-        <b>{{ episode_counts[podcast.id] }}</b> episodes,
-        about <b>{{ episode_hours[podcast.id] }}</b> hours of content.
+        {% if episode_counts[podcast.id] %}
+        <b>{{ thousands(episode_counts[podcast.id]) }}</b> episodes,
+        about <b>{{ thousands(episode_hours[podcast.id]) }}</b> hours of content.
+        {% else %}
+        <i>episodes currently unknown</i>
+        {% endif %}
       </div>
     </div>
     <div class="extra content">
       <a>
-        Picked <b>{{ podcast.times_picked }}</b> times
+        Picked <b>{{ thousands(podcast.times_picked) }}</b> times
       </a>
     </div>
   </div>

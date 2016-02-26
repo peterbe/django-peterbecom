@@ -289,5 +289,15 @@ def podcast(request, id):
     episodes = Episode.objects.filter(
         podcast=podcast
     ).order_by('-published')
+    if podcast.image and is_html_document(podcast.image.path):
+        print "Found a podcast.image that wasn't an image"
+        podcast.image = None
+        podcast.save()
+        redownload_podcast_image.delay(podcast.id)
+    elif not podcast.image and podcast.image_url:
+        redownload_podcast_image.delay(podcast.id)
+
+    if not episodes.exists():
+        download_episodes_task.delay(podcast.id)
     context['episodes'] = episodes
     return render(request, 'podcasttime/podcast.html', context)
