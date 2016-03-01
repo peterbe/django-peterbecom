@@ -49,6 +49,8 @@ PIPELINE_CSS = {
         'source_filenames': (
             'css/card.css',
             'css/label.css',
+            'css/search.css',
+            'podcasttime/css/podcasts.css',
         ),
         'output_filename': 'css/podcasttime.podcasts.min.css',
     },
@@ -92,6 +94,12 @@ PIPELINE_JS = {
             'podcasttime/js/podcasttime.js',
         ),
         'output_filename': 'js/podcasttime.min.js',
+    },
+    'podcasttime:podcasts': {
+        'source_filenames': (
+            'podcasttime/js/podcasts.js',
+        ),
+        'output_filename': 'js/podcasts.min.js',
     },
 }
 

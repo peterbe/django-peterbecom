@@ -8,6 +8,27 @@
 
 {% block content %}
 
+<h5 class="ui right aligned header">
+  {{ thousands(count) }} podcasts found.
+</h5>
+
+
+<form action="." class="ui search">
+  <div class="ui fluid huge icon {% if search %}labeled{% endif %} input">
+    {% if search %}
+    <a href="." class="ui label">
+      <i class="close icon"></i>
+    </a>
+    {% endif %}
+    <input
+      type="text"
+      name="search"
+      placeholder="Search..."
+      value="{% if search %}{{ search }}{% endif %}">
+    <i class="search icon"></i>
+  </div>
+</form>
+
 
 <div class="ui link cards">
 {% for podcast in podcasts %}
@@ -50,7 +71,7 @@
 <div class="ui two column centered grid" style="margin-top: 100px">
   <div class="ui pagination menu">
     {% if podcasts.has_previous() %}
-      <a class="item" href="?page={{ podcasts.previous_page_number() }}">
+      <a class="item" href="?page={{ podcasts.previous_page_number() }}{% if search %}&amp;search={{ search }}{% endif %}">
         &larr; Page {{ podcasts.previous_page_number() }}
       </a>
     {% else %}
@@ -62,7 +83,7 @@
       Page {{ podcasts.number }} of {{ podcasts.paginator.num_pages }}
     </a>
     {% if podcasts.has_next() %}
-      <a class="item" href="?page={{ podcasts.next_page_number() }}">
+      <a class="item" href="?page={{ podcasts.next_page_number() }}{% if search %}&amp;search={{ search }}{% endif %}">
         Page {{ podcasts.next_page_number() }} &rarr;
       </a>
     {% else %}
@@ -77,4 +98,5 @@
 
 
 {% block extrajs %}
+{% javascript 'podcasttime:podcasts' %}
 {% endblock %}

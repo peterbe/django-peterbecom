@@ -22,7 +22,9 @@
     <h3>Total amount of content: {{ show_duration(podcast.total_seconds) }}</h3>
     {% endif %}
     <h3>Times picked: {{ thousands(podcast.times_picked) }}</h3>
+    {% if podcast.last_fetch %}
     <h3>Last updated: {{ timesince(podcast.last_fetch) }} ago</h3>
+    {% endif %}
   </div>
 </div>
 

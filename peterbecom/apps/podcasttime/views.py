@@ -241,10 +241,35 @@ def stats(request):
     return http.JsonResponse(numbers)
 
 
+def _search_podcasts(searchterm, podcasts=None):
+    if podcasts is None:
+        podcasts = Podcast.objects.all()
+
+    sql = (
+        "to_tsvector('english', name) @@ "
+        "plainto_tsquery('english', %s) "
+        "OR name ILIKE %s"
+    )
+    podcasts = podcasts.extra(
+        where=[sql],
+        params=[
+            searchterm,
+            '%{}%'.format(searchterm)
+        ]
+    )
+
+    return podcasts
+
 def podcasts(request):
     context = {}
     context['page_title'] = 'All Our Podcasts'
-    podcasts = Podcast.objects.all().order_by('-times_picked', 'name')
+    search = request.GET.get('search', '').strip()
+
+    podcasts = Podcast.objects.all()
+    if search:
+        podcasts = _search_podcasts(search, podcasts)
+
+    podcasts = podcasts.order_by('-times_picked', 'name')
 
     paginator = Paginator(podcasts, 12)
     page = request.GET.get('page')
@@ -256,6 +281,8 @@ def podcasts(request):
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         podcasts_page = paginator.page(paginator.num_pages)
+
+    context['count'] = paginator.count
 
     context['podcasts'] = podcasts_page
 
@@ -276,6 +303,7 @@ def podcasts(request):
         episode_hours[x['podcast_id']] = x['duration']
     context['episode_counts'] = episode_counts
     context['episode_hours'] = episode_hours
+    context['search'] = search
 
     return render(request, 'podcasttime/podcasts.html', context)
 

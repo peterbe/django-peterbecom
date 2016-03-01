@@ -107,9 +107,10 @@ def download_episodes(podcast, verbose=True):
             try:
                 return int(float(entry['itunes_duration']))
             except ValueError:
-                pprint(entry)
+                # pprint(entry)
+                print "SKIPPING itunes_duration not a number"
                 print repr(entry['itunes_duration'])
-                raise
+                return
 
     for entry in d['entries']:
         if not entry.get('published_parsed'):
