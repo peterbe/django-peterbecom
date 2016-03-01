@@ -44,3 +44,9 @@ form select {
   height: auto;
   border-radius: 2px;
 }
+
+.collected-stats {
+  margin-top: 100px;
+  text-align: center;
+  font-size: 80%;
+}

@@ -9,14 +9,7 @@
 
 {% block content %}
 
-<h2>How Much Time Do Your Podcasts Take to Listen To?</h2>
-
-<p>
-  Collected
-  <b>{{ thousands(podcasts.count()) }} podcasts</b> and
-  <b>{{ thousands(episodes.count()) }} episodes</b>
-  totalling <b>{{ thousands(total_hours) }} hours</b> of juicy audio content.
-</p>
+<h1>How Much Time Do Your Podcasts Take to Listen To?</h1>
 
 <form>
   <select name="name">
@@ -98,6 +91,13 @@
 
   {{ csrf() }}
 </div>
+
+<p class="collected-stats">
+  Collected
+  <a href="{{ url('podcasttime:podcasts') }}"><b>{{ thousands(podcasts.count()) }} podcasts</b></a> and
+  <b>{{ thousands(episodes.count()) }} episodes</b>
+  totalling <b>{{ thousands(total_hours) }} hours</b> of juicy audio content.
+</p>
 
 {% endblock %}
 
