@@ -1,6 +1,8 @@
+import sys
 import os
 import hashlib
 import datetime
+import traceback
 import unicodedata
 
 from django.db import models
@@ -9,6 +11,7 @@ from django.core.files.temp import NamedTemporaryFile
 from django.dispatch import receiver
 from django.core.cache import cache
 
+from jsonfield import JSONField
 from sorl.thumbnail import ImageField
 from peterbecom.apps.podcasttime.utils import realistic_request
 
@@ -80,6 +83,26 @@ class Podcast(models.Model):
 def invalidate_episodes_meta_cache(sender, instance, **kwargs):
     cache_key = 'episodes-meta-%s' % instance.id
     cache.delete(cache_key)
+
+
+class PodcastError(models.Model):
+    podcast = models.ForeignKey(Podcast)
+    error = JSONField()
+    created = models.DateTimeField(auto_now_add=True)
+
+    @classmethod
+    def create(cls, podcast, exc_info=None):
+        if exc_info is None:
+            exc_info = sys.exc_info()
+        exc_type, exc_value, exc_tb = exc_info
+        cls.objects.create(
+            podcast=podcast,
+            error={
+                'type': repr(exc_type),
+                'value': repr(exc_value),
+                'traceback': ''.join(traceback.format_tb(exc_tb)),
+            }
+        )
 
 
 class Episode(models.Model):

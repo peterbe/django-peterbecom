@@ -12,12 +12,16 @@ from django.utils import timezone
 from django.db.models import Count
 from django.db.utils import DataError
 
-from peterbecom.apps.podcasttime.models import Podcast, Episode
+from peterbecom.apps.podcasttime.models import Podcast, Episode, PodcastError
 from peterbecom.apps.podcasttime.utils import (
     download,
     parse_duration_ffmpeg,
     get_image_url,
 )
+
+
+class BadPodcastEntry(Exception):
+    pass
 
 
 def download_some_episodes(max_=5, verbose=False):
@@ -51,6 +55,14 @@ def download_some_episodes(max_=5, verbose=False):
 
 
 def download_episodes(podcast, verbose=True):
+    try:
+        _download_episodes(podcast, verbose=verbose)
+    except Exception:
+        PodcastError.create(podcast)
+        raise
+
+
+def _download_episodes(podcast, verbose=True):
     xml = download(podcast.url)
     d = feedparser.parse(xml)
 
@@ -116,8 +128,9 @@ def download_episodes(podcast, verbose=True):
         if not entry.get('published_parsed'):
             print "Entry without a valid 'published_parsed'!"
             print entry
-            print "SKIPPING"
-            continue
+            # print "SKIPPING"
+            raise BadPodcastEntry("Entry without a valid 'published_parsed'!")
+
         published = datetime.datetime.fromtimestamp(
             time.mktime(entry['published_parsed'])
         )
@@ -175,6 +188,7 @@ def download_episodes(podcast, verbose=True):
                 print "ENTRY"
                 print entry
                 print "TRIED TO SAVE DURATION", duration
+                PodcastError.create(podcast, notes='Tried to save duration')
                 raise
         except Episode.DoesNotExist:
             episode = Episode.objects.create(
@@ -269,6 +283,7 @@ def _scrape_index(url, verbose=False, max_=1000):
                 import sys
                 print sys.exc_info()
                 print "IGNORING AND MOVING ON"
+            PodcastError.create(podcast)
 
         if verbose:
             if created:
