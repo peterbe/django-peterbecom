@@ -61,7 +61,7 @@ def _get_mincssed_html(path):
         with codecs.open(filepath, 'r', 'utf-8') as f:
             return f.read(), time.time() - os.stat(filepath).st_mtime
     except IOError:
-        return
+        return None, None
 
 
 def _save_mincssed_html(path, html):
