@@ -4,6 +4,7 @@ import logging
 import hashlib
 
 from django.core.cache import cache
+from django.utils import timezone
 
 from mincss.processor import Processor
 try:
@@ -22,9 +23,10 @@ def mincss_response(response, request):
     t0 = time.time()
     r = _mincss_response(response, request)
     t1 = time.time()
-    print "mincss_response for: %s (Took %.3fs)" % (
+    print "Running mincss_response for: %s (Took %.3fs) %s" % (
         request.path,
-        t1 - t0
+        t1 - t0,
+        timezone.now().isoformat()
     )
     return r
 
