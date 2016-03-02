@@ -260,9 +260,10 @@ def _search_podcasts(searchterm, podcasts=None):
 
     return podcasts
 
+
 def podcasts(request):
     context = {}
-    context['page_title'] = 'All Our Podcasts'
+    context['page_title'] = 'All Podcasts'
     search = request.GET.get('search', '').strip()
 
     podcasts = Podcast.objects.all()
@@ -271,7 +272,7 @@ def podcasts(request):
 
     podcasts = podcasts.order_by('-times_picked', 'name')
 
-    paginator = Paginator(podcasts, 12)
+    paginator = Paginator(podcasts, 15)
     page = request.GET.get('page')
     try:
         podcasts_page = paginator.page(page)
@@ -313,7 +314,7 @@ def picks(request):
     context['page_title'] = 'Picked Podcasts'
     qs = Picked.objects.all().order_by('-modified')
 
-    paginator = Paginator(qs, 12)
+    paginator = Paginator(qs, 15)
     page = request.GET.get('page')
     try:
         paged = paginator.page(page)

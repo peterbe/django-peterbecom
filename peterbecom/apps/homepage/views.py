@@ -58,7 +58,7 @@ def _home_key_prefixer(request):
             qs = qs.filter(cat_q)
         latest, = qs.order_by('-modify_date').values('modify_date')[:1]
         latest_date = latest['modify_date'].strftime('%f')
-        cache.set(cache_key, latest_date, 60 * 60 * 5)
+        cache.set(cache_key, latest_date, 60 * 60 * 12)
     prefix += str(latest_date)
 
     try:
@@ -69,9 +69,9 @@ def _home_key_prefixer(request):
     return prefix
 
 
-@cache_control(public=True, max_age=60 * 60)
+@cache_control(public=True, max_age=12 * 60 * 60)
 @cache_page(
-    60 * 60 * 3,  # three hours
+    60 * 60 * 12,  # 12 hours
     key_prefix=_home_key_prefixer,
     post_process_response=mincss_response
 )
@@ -367,7 +367,7 @@ def search(request):
     return render(request, 'homepage/search.html', data)
 
 
-@cache_control(public=True, max_age=60 * 60 * 3)
+@cache_control(public=True, max_age=24 * 60 * 60)
 @cache_page(ONE_DAY, post_process_response=mincss_response)
 def about(request):
     context = {
@@ -376,7 +376,7 @@ def about(request):
     return render(request, 'homepage/about.html', context)
 
 
-@cache_control(public=True, max_age=60 * 60)
+@cache_control(public=True, max_age=24 * 60 * 60)
 @cache_page(ONE_DAY, post_process_response=mincss_response)
 def contact(request):
     context = {
@@ -460,7 +460,7 @@ def blog_post_by_alias(request, alias):
     return http.HttpResponsePermanentRedirect(url)
 
 
-@cache_page(60 * 60 * 24)
+@cache_page(24 * 60 * 60)
 def humans_txt(request):
     return render(
         request,

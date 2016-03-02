@@ -1,7 +1,10 @@
+import os
 import time
 import re
 import logging
 import hashlib
+import codecs
+import tempfile
 
 from django.core.cache import cache
 from django.utils import timezone
@@ -18,8 +21,24 @@ logger = logging.getLogger('mincss-response')
 _style_regex = re.compile('<style.*?</style>', re.M | re.DOTALL)
 _link_regex = re.compile('<link.*?>', re.M | re.DOTALL)
 
+# A hack to use files instead of memcache
+cache_save_dir = os.path.join(tempfile.gettempdir(), 'mincssed_responses')
+if not os.path.isdir(cache_save_dir):
+    os.mkdir(cache_save_dir)
+
 
 def mincss_response(response, request):
+    html, age = _get_mincssed_html(request.path)
+
+    if html is not None:
+        if age > 60 * 60:
+            age_human = '%.1f hours' % (age / 3600.0)
+        elif age > 60:
+            age_human = '%.1f minutes' % (age / 60.0)
+        else:
+            age_human = '%d seconds' % (age, )
+        print "BUT!! It existed as a file!", age_human
+
     t0 = time.time()
     r = _mincss_response(response, request)
     t1 = time.time()
@@ -29,6 +48,25 @@ def mincss_response(response, request):
         timezone.now().isoformat()
     )
     return r
+
+
+def _mincssed_key(path):
+    filename = path.replace('/', '_') + '.html'
+    return os.path.join(cache_save_dir, filename)
+
+
+def _get_mincssed_html(path):
+    filepath = _mincssed_key(path)
+    try:
+        with codecs.open(filepath, 'r', 'utf-8') as f:
+            return f.read(), time.time() - os.stat(filepath).st_mtime
+    except IOError:
+        return
+
+
+def _save_mincssed_html(path, html):
+    with codecs.open(_mincssed_key(path), 'w', 'utf-8') as f:
+        f.write(html)
 
 
 def _mincss_response(response, request):
@@ -121,5 +159,7 @@ Saving:           %.fKb
     logger.info('Took %.2fms to post-process remaining CSS' % (
         (t2 - t1) * 1000,
     ))
+
+    _save_mincssed_html(request.path, html)
     response.content = html.encode('utf-8')
     return response
