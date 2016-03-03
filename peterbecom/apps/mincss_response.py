@@ -28,7 +28,9 @@ if not os.path.isdir(cache_save_dir):
 
 
 def mincss_response(response, request):
-    html, age = _get_mincssed_html(request.path)
+    html, age = _get_mincssed_html(
+        request.path + request.META.get('QUERY_STRING')
+    )
 
     if html is not None:
         if age > 60 * 60:
@@ -43,7 +45,7 @@ def mincss_response(response, request):
     r = _mincss_response(response, request)
     t1 = time.time()
     print "Running mincss_response for: %s (Took %.3fs) %s" % (
-        request.path,
+        request.path + request.META.get('QUERY_STRING'),
         t1 - t0,
         timezone.now().isoformat()
     )
@@ -82,12 +84,12 @@ def _mincss_response(response, request):
     if cache.get(lock_key):
         # we're actively busy prepping this one
         print "Bailing because mincss_response is already busy for: %s" % (
-            request.path,
+            request.path + request.META.get('QUERY_STRING'),
         )
         return response
     cache.set(lock_key, True, 200)
     print "Starting to mincss for: %s" % (
-        request.path,
+        request.path + request.META.get('QUERY_STRING'),
     )
     html = unicode(response.content, 'utf-8')
     t0 = time.time()
@@ -160,6 +162,9 @@ Saving:           %.fKb
         (t2 - t1) * 1000,
     ))
 
-    _save_mincssed_html(request.path, html)
+    _save_mincssed_html(
+        request.path + request.META.get('QUERY_STRING'),
+        html
+    )
     response.content = html.encode('utf-8')
     return response

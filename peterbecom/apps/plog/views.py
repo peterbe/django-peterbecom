@@ -111,6 +111,21 @@ def _blog_post_key_prefixer(request):
     post_process_response=mincss_response
 )
 def blog_post(request, oid):
+
+    # temporary debugging
+    if request.method == 'GET':
+        print "blog_post.MISS (%r, %r, %s)" % (
+            request.path,
+            request.META.get('QUERY_STRING'),
+            timezone.now().isoformat()
+        )
+
+    # legacy fix
+    if request.GET.get('comments') == 'all':
+        if '/all-comments' in request.path:
+            return http.HttpResponseBadRequest('invalid URL')
+        return redirect(request.path + '/all-comments', permanent=True)
+
     if oid.endswith('/'):
         oid = oid[:-1]
     try:
@@ -188,6 +203,15 @@ def blog_post(request, oid):
     _blog_post_key_prefixer
 )
 def all_blog_post_comments(request, oid):
+
+    # temporary debugging
+    if request.method == 'GET':
+        print "all_blog_post_comments.MISS (%r, %r, %s)" % (
+            request.path,
+            request.META.get('QUERY_STRING'),
+            timezone.now().isoformat()
+        )
+
     post = get_object_or_404(BlogItem, oid=oid)
     comments = (
         BlogComment.objects
