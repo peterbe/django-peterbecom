@@ -33,7 +33,7 @@
 <div class="ui link cards">
 {% for podcast in podcasts %}
   <div class="ui centered card">
-    <a class="image" href="{{ url('podcasttime:podcast', podcast.id) }}">
+    <a class="image" href="{{ url('podcasttime:podcast_slug', podcast.id, podcast.get_or_create_slug()) }}">
       {% if podcast.image %}
         <img src="{{ thumbnail(podcast.image, '300x300').url }}">
       {% else %}
@@ -42,7 +42,7 @@
     </a>
     <div class="content">
       <a
-        href="{{ url('podcasttime:podcast', podcast.id) }}"
+        href="{{ url('podcasttime:podcast_slug', podcast.id, podcast.get_or_create_slug()) }}"
         class="header">{{ podcast.name }}</a>
       <div class="meta">
         <span class="date">

@@ -91,7 +91,8 @@ $(function() {
     var domID = 'podcast-' + podcast.id;
     var tmpl = $('.template', selection).clone();
     tmpl.addClass('podcast').removeClass('template').attr('id', domID);
-    $('h3', tmpl).text(podcast.name);
+    $('h3 a', tmpl).text(podcast.name);
+    $('a', tmpl).attr('href', podcast.url);
     $('img', tmpl).attr('src', podcast.image_url);
     var text = podcast.episodes + ' episodes';
     if (podcast.hours !== null) {

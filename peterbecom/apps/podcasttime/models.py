@@ -11,6 +11,7 @@ from django.core.files.temp import NamedTemporaryFile
 from django.dispatch import receiver
 from django.core.cache import cache
 
+from slugify import slugify
 from jsonfield import JSONField
 from sorl.thumbnail import ImageField
 from peterbecom.apps.podcasttime.utils import realistic_request
@@ -44,7 +45,7 @@ class Podcast(models.Model):
     image_url = models.URLField(max_length=400, null=True, blank=True)
     image = ImageField(upload_to=_upload_to_podcast, null=True)
     itunes_lookup = JSONField(null=True)
-
+    slug = models.SlugField(max_length=200, null=True)
     times_picked = models.IntegerField(default=0)
     last_fetch = models.DateTimeField(null=True)
     created = models.DateTimeField(auto_now_add=True)
@@ -80,6 +81,12 @@ class Podcast(models.Model):
         return Episode.objects.filter(podcast=self).aggregate(
             models.Sum('duration')
         )['duration__sum']
+
+    def get_or_create_slug(self):
+        if not self.slug:
+            self.slug = slugify(self.name)
+            self.save()
+        return self.slug
 
 
 @receiver(models.signals.post_save, sender=Podcast)

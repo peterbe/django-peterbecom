@@ -9,6 +9,7 @@ from django.conf import settings
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.urlresolvers import reverse
 
 from sorl.thumbnail import get_thumbnail
 
@@ -73,7 +74,7 @@ def find(request):
                 found.append(podcast)
 
     def episodes_meta(podcast):
-        episodes_cache_key = 'episodes-meta-%s' % podcast.id
+        episodes_cache_key = 'episodes-meta%s' % podcast.id
         meta = cache.get(episodes_cache_key)
         if meta is None:
             episodes = Episode.objects.filter(podcast=podcast)
@@ -146,6 +147,10 @@ def find(request):
                 'image_url': thumb_url,
                 'episodes': episodes_count,
                 'hours': total_hours,
+                'url': reverse(
+                    'podcasttime:podcast_slug',
+                    args=(podcast.id, podcast.get_or_create_slug())
+                ),
             })
 
         cache.set(cache_key, items, 60 * 60 * int(settings.DEBUG))
@@ -341,7 +346,7 @@ def picks(request):
     return render(request, 'podcasttime/picks.html', context)
 
 
-def podcast(request, id):
+def podcast(request, id, slug=None):
     podcast = get_object_or_404(Podcast, id=id)
     context = {}
     context['podcast'] = podcast
