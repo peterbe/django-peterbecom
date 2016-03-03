@@ -92,7 +92,6 @@ def _blog_post_key_prefixer(request):
         # temporary solution because I can't get Google Analytics API to work
         ua = request.META.get('HTTP_USER_AGENT', '')
         if 'bot' not in ua.lower():
-            print "Increment on User Agent %r" % ua
             tasks.increment_blogitem_hit.delay(oid)
 
     return prefix
