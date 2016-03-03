@@ -78,7 +78,9 @@ def _home_key_prefixer(request):
 def home(request, oc=None):
     context = {}
     qs = BlogItem.objects.filter(pub_date__lt=utc_now())
-    if oc:
+    if oc is not None:
+        if not oc:  # empty string
+            return redirect('/', permanent=True)
         categories = parse_ocs_to_categories(oc)
         cat_q = make_categories_q(categories)
         qs = qs.filter(cat_q)
