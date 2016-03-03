@@ -140,7 +140,6 @@ def _download_episodes(podcast, verbose=True):
         if not entry.get('published_parsed'):
             print "Entry without a valid 'published_parsed'!"
             print entry
-            # print "SKIPPING"
             raise BadPodcastEntry("Entry without a valid 'published_parsed'!")
 
         published = datetime.datetime.fromtimestamp(

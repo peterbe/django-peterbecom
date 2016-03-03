@@ -38,33 +38,39 @@ def index(request):
 
 
 def find(request):
-    if not request.GET.get('q'):
-        return http.HttpResponseBadRequest('no q')
-    q = request.GET['q']
-    cache_key = 'podcastfind:' + hashlib.md5(q.encode('utf8')).hexdigest()
-    items = []
-    found = []
-    sql = (
-        "to_tsvector('english', name) @@ "
-        "plainto_tsquery('english', %s)"
-    )
-    podcasts = Podcast.objects.all().extra(
-        where=[sql],
-        params=[q]
-    )[:10]
-    for podcast in podcasts[:10]:
-        found.append(podcast)
-    podcasts = Podcast.objects.filter(name__istartswith=q).exclude(
-        id__in=[x.id for x in found]
-    )
-    for podcast in podcasts[:10]:
-        found.append(podcast)
-    if len(q) > 1:
-        podcasts = Podcast.objects.filter(name__icontains=q).exclude(
-            id__in=podcasts
+    if not (request.GET.get('ids') or request.GET.get('q')):
+        return http.HttpResponseBadRequest('no ids or q')
+
+    if request.GET.get('ids'):
+        ids = request.GET['ids'].split(',')
+        found = Podcast.objects.filter(id__in=ids)
+        cache_key = 'podcastfind:ids:' + hashlib.md5(''.join(ids)).hexdigest()
+    else:
+        q = request.GET['q']
+        cache_key = 'podcastfind:' + hashlib.md5(q.encode('utf8')).hexdigest()
+        items = []
+        found = []
+        sql = (
+            "to_tsvector('english', name) @@ "
+            "plainto_tsquery('english', %s)"
+        )
+        podcasts = Podcast.objects.all().extra(
+            where=[sql],
+            params=[q]
+        )[:10]
+        for podcast in podcasts[:10]:
+            found.append(podcast)
+        podcasts = Podcast.objects.filter(name__istartswith=q).exclude(
+            id__in=[x.id for x in found]
         )
         for podcast in podcasts[:10]:
             found.append(podcast)
+        if len(q) > 1:
+            podcasts = Podcast.objects.filter(name__icontains=q).exclude(
+                id__in=podcasts
+            )
+            for podcast in podcasts[:10]:
+                found.append(podcast)
 
     def episodes_meta(podcast):
         episodes_cache_key = 'episodes-meta-%s' % podcast.id

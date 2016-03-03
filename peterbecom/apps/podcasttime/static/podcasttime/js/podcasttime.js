@@ -62,6 +62,14 @@ $(function() {
     });
   };
 
+  var updateShareLink = function() {
+    var absURL = document.location.protocol + '//';
+    absURL += document.location.host;
+    absURL += document.location.pathname;
+    absURL += '#ids=' + podcastIDs.join(',');
+    $('.share .link a').text(absURL).attr('href', absURL);
+  };
+
   var resetPicked = function() {
     return $.post('/podcasttime/picked', {
       csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val(),
@@ -93,11 +101,15 @@ $(function() {
     $('button', tmpl).on('click', function() {
       $('#' + domID).remove();
       podcastIDs.splice(podcastIDs.indexOf(podcast.id), 1);
+
       if (!podcastIDs.length) {
+        document.location.hash = '';
         selection.hide();
         resetPicked();
       } else {
+        document.location.hash = 'ids=' + podcastIDs.join(',');
         fetchStats().done(updatePicked);
+        updateShareLink();
         calendar.fullCalendar('refetchEvents');
       }
     });
@@ -105,8 +117,11 @@ $(function() {
 
     // right away
     fetchStats().done(updatePicked);
+    updateShareLink();
 
     selection.show();
+
+    document.location.hash = 'ids=' + podcastIDs.join(',');
 
     if (calendar === null) {
       calendar = $('.calendar').fullCalendar({
@@ -152,12 +167,23 @@ $(function() {
   selection.on('click', 'button.remove-all', function() {
     $('.podcast', selection).remove();
     podcastIDs = [];
+    document.location.hash = '';
     selection.hide();
     resetPicked();
   });
 
   function formatPodcastSelection(item) {
     return item.name || item.text;
+  }
+
+  if (document.location.hash.match(/ids=[\d\,]+/)) {
+    var tmpPodcastIDs = document.location.hash.match(/ids=([\d\,]+)/)[1].split(',');
+    $.getJSON('/podcasttime/find', {ids: tmpPodcastIDs.join(',')})
+    .done(function(results) {
+      results.items.forEach(function(each) {
+        addSelectedPodcast(each);
+      });
+    });
   }
 
   $('select[name="name"]').select2({
@@ -188,7 +214,6 @@ $(function() {
       cache: true,
     },
     escapeMarkup: function (markup) {
-      // console.log('Markup', markup);
       return markup; // let our custom formatter work
     },
     minimumInputLength: 1,
