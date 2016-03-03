@@ -1,7 +1,10 @@
 from celery.task import task
 
 from peterbecom.apps.podcasttime.models import Podcast, PodcastError
-from peterbecom.apps.podcasttime.scraper import download_episodes
+from peterbecom.apps.podcasttime.scraper import (
+    download_episodes,
+    itunes_search,
+)
 
 
 @task()
@@ -21,3 +24,13 @@ def redownload_podcast_image(podcast_id):
         print "Failed!"
         PodcastError.create(podcast)
         raise
+
+
+@task()
+def fetch_itunes_lookup(podcast_id):
+    podcast = Podcast.objects.get(id=podcast_id)
+    results = itunes_search(podcast)
+    if results['resultCount'] == 1:
+        lookup = results['results'][0]
+        podcast.itunes_lookup = lookup
+        podcast.save()

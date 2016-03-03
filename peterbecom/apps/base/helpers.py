@@ -1,4 +1,7 @@
 import time
+import json
+
+import jinja2
 
 from django.db.utils import IntegrityError
 
@@ -31,3 +34,10 @@ def thumbnail(imagefile, geometry, **options):
         # remember. Just try again a little bit later.
         time.sleep(1)
         return thumbnail(imagefile, geometry, **options)
+
+
+@register.function
+def json_print(*args, **kwargs):
+    dump = json.dumps(*args, **kwargs)
+    dump = dump.replace("</", "<\\/")  # so you can't escape with a </script>
+    return jinja2.Markup(dump)

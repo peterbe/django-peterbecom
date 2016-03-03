@@ -43,6 +43,7 @@ class Podcast(models.Model):
     url = models.URLField(max_length=400)
     image_url = models.URLField(max_length=400, null=True, blank=True)
     image = ImageField(upload_to=_upload_to_podcast, null=True)
+    itunes_lookup = JSONField(null=True)
 
     times_picked = models.IntegerField(default=0)
     last_fetch = models.DateTimeField(null=True)
@@ -63,6 +64,8 @@ class Podcast(models.Model):
         img_temp = NamedTemporaryFile(delete=True)
         r = realistic_request(self.image_url)
         assert r.status_code == 200, r.status_code
+        if r.headers['content-type'] == 'text/html':
+            raise Exception('%s is not an image' % self.image_url)
         print ('Content-Type', r.headers['content-type'])
         img_temp.write(r.content)
         img_temp.flush()
@@ -128,12 +131,12 @@ class Picked(models.Model):
 @receiver(models.signals.m2m_changed, sender=Picked.podcasts.through)
 def update_podcast_times_picked(sender, instance, action, **kwargs):
     if action == 'post_add':
-        print "POST_ADD", instance.podcasts.all()
+        # print "POST_ADD", instance.podcasts.all()
         instance.podcasts.all().update(
             times_picked=models.F('times_picked') + 1
         )
     elif action == 'pre_clear':
-        print "PRE_CLEAR", instance.podcasts.all()
+        # print "PRE_CLEAR", instance.podcasts.all()
         instance.podcasts.all().update(
             times_picked=models.F('times_picked') - 1
         )

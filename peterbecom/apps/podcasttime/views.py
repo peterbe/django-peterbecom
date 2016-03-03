@@ -21,6 +21,7 @@ from peterbecom.apps.podcasttime.utils import is_html_document
 from peterbecom.apps.podcasttime.tasks import (
     download_episodes_task,
     redownload_podcast_image,
+    fetch_itunes_lookup,
 )
 
 
@@ -125,6 +126,10 @@ def find(request):
                     redownload_podcast_image.delay(podcast.id)
             else:
                 redownload_podcast_image.delay(podcast.id)
+
+            # Temporarily put here
+            if podcast.itunes_lookup is None:
+                fetch_itunes_lookup.delay(podcast.id)
 
             meta = episodes_meta(podcast)
             episodes_count = meta['count']
@@ -346,7 +351,11 @@ def podcast(request, id):
     elif not podcast.image and podcast.image_url:
         redownload_podcast_image.delay(podcast.id)
 
+    if podcast.itunes_lookup is None:
+        fetch_itunes_lookup.delay(podcast.id)
+
     if not episodes.exists():
         download_episodes_task.delay(podcast.id)
+
     context['episodes'] = episodes
     return render(request, 'podcasttime/podcast.html', context)

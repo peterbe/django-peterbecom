@@ -3,8 +3,8 @@ import time
 import datetime
 import random
 from urlparse import urljoin
-from pprint import pprint
 
+import requests
 import pyquery
 import feedparser
 
@@ -22,6 +22,18 @@ from peterbecom.apps.podcasttime.utils import (
 
 class BadPodcastEntry(Exception):
     pass
+
+
+def itunes_lookup(itunes_id):
+    url = 'https://itunes.apple.com/lookup'
+    response = requests.get(url, {'id': itunes_id})
+    return response.json()
+
+
+def itunes_search(podcast):
+    url = 'https://itunes.apple.com/search'
+    response = requests.get(url, {'term': podcast.name, 'entity': 'podcast'})
+    return response.json()
 
 
 def download_some_episodes(max_=5, verbose=False):
