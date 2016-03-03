@@ -1,7 +1,6 @@
 import hashlib
 import logging
 import datetime
-import random
 from collections import defaultdict
 
 from django.contrib.sites.models import Site
@@ -23,7 +22,7 @@ from django.utils import timezone
 
 from sorl.thumbnail import get_thumbnail
 
-from .models import BlogItem, BlogItemHits, BlogComment, Category, BlogFile
+from .models import BlogItem, BlogComment, Category, BlogFile
 from .utils import render_comment_text, valid_email, utc_now
 from peterbecom.apps.redisutils import get_redis_connection
 from peterbecom.apps.rediscounter import redis_increment
@@ -32,6 +31,7 @@ from peterbecom.apps.mincss_response import mincss_response
 from . import utils
 from .utils import json_view
 from .forms import BlogForm, BlogFileUpload, CalendarDataForm
+from . import tasks
 
 
 logger = logging.getLogger('plog.views')
@@ -91,15 +91,9 @@ def _blog_post_key_prefixer(request):
 
         # temporary solution because I can't get Google Analytics API to work
         ua = request.META.get('HTTP_USER_AGENT', '')
-        if 'bot' not in ua:
-            # because not so important exactly how many hits each post gets,
-            # just that some posts are more popular than other, therefore
-            # we don't need to record this every week.
-            if random.randint(1, 10) == 1:
-                # so we only do this sometimes
-                hits, __ = BlogItemHits.objects.get_or_create(oid=oid)
-                hits.hits += 1
-                hits.save()
+        if 'bot' not in ua.lower():
+            print "Increment on User Agent %r" % ua
+            tasks.increment_blogitem_hit.delay(oid)
 
     return prefix
 
