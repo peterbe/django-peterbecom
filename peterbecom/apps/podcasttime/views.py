@@ -3,7 +3,7 @@ import hashlib
 
 from django import http
 from django.shortcuts import render, get_object_or_404
-from django.db.models import Sum, Min, Max, Count
+from django.db.models import Sum, Min, Max, Count, Q
 from django.core.cache import cache
 from django.conf import settings
 from django.utils import timezone
@@ -261,6 +261,13 @@ def _search_podcasts(searchterm, podcasts=None):
     if podcasts is None:
         podcasts = Podcast.objects.all()
 
+    directly = podcasts.filter(
+        Q(url=searchterm) |
+        Q(name=searchterm)
+    )
+    if directly.exists():
+        return directly
+
     sql = (
         "to_tsvector('english', name) @@ "
         "plainto_tsquery('english', %s) "
@@ -270,7 +277,7 @@ def _search_podcasts(searchterm, podcasts=None):
         where=[sql],
         params=[
             searchterm,
-            '%{}%'.format(searchterm)
+            '%{}%'.format(searchterm),
         ]
     )
 

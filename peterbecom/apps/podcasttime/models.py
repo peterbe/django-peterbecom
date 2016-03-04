@@ -17,6 +17,10 @@ from sorl.thumbnail import ImageField
 from peterbecom.apps.podcasttime.utils import realistic_request
 
 
+class NotAnImageError(Exception):
+    """when you try to download an image and it's not actually an image"""
+
+
 def _upload_path_tagged(tag, instance, filename):
     if isinstance(filename, unicode):
         filename = (
@@ -66,7 +70,7 @@ class Podcast(models.Model):
         r = realistic_request(self.image_url)
         assert r.status_code == 200, r.status_code
         if r.headers['content-type'] == 'text/html':
-            raise Exception('%s is not an image' % self.image_url)
+            raise NotAnImageError('%s is not an image' % self.image_url)
         print ('Content-Type', r.headers['content-type'])
         img_temp.write(r.content)
         img_temp.flush()
@@ -87,6 +91,12 @@ class Podcast(models.Model):
             self.slug = slugify(self.name)
             self.save()
         return self.slug
+
+
+@receiver(models.signals.post_save, sender=Podcast)
+def set_slug(sender, instance, created=False, **kwargs):
+    if created:
+        instance.get_or_create_slug()
 
 
 @receiver(models.signals.post_save, sender=Podcast)

@@ -5,6 +5,7 @@ import time
 import json
 import re
 import random
+import collections
 from xml.parsers.expat import ExpatError
 
 import xmltodict
@@ -20,6 +21,11 @@ _MEDIA_FILE = os.path.join(
 _CACHE = os.path.join(
     os.path.dirname(__file__), '.downloadcache'
 )
+
+
+class NotXMLResponse(Exception):
+    """happens when you expect an XML feed as a response but get something
+    else."""
 
 
 def is_html_document(filepath):
@@ -73,10 +79,10 @@ def parse_duration_ffmpeg(media_url):
     return _cache[media_url]
 
 
-def realistic_request(url, verify=True):
-    return requests.get(url, headers={
+def realistic_request(url, verify=True, no_user_agent=False):
+    headers = {
         'Accept': (
-            'text/html,application/xhtml+xml,application/xml'
+            'text/html,application/xhtml+xml,application/xml,text/xml'
             ';q=0.9,*/*;q=0.8'
         ),
         'User-Agent': (
@@ -87,22 +93,37 @@ def realistic_request(url, verify=True):
         # 'Host': urlparse.urlparse(url).netloc,
         'Pragma': 'no-cache',
         'Cache-Control': 'no-cache',
-    }, verify=verify)
+    }
+    if no_user_agent:
+        headers.pop('User-Agent')
+    return requests.get(url, headers=headers, verify=verify)
 
 
-def download(url, gently=False):
+def download(
+    url,
+    gently=False,
+    refresh=False,
+    no_user_agent=False,
+    expect_xml=False,
+):
     if not os.path.isdir(_CACHE):
         os.mkdir(_CACHE)
     key = hashlib.md5(url).hexdigest()
+    if no_user_agent:
+        key += 'nouseragent'
     fp = os.path.join(_CACHE, key)
     if os.path.isfile(fp):
         age = time.time() - os.stat(fp).st_mtime
         if age > 60 * 60 * 24:
             os.remove(fp)
-    if not os.path.isfile(fp):
+    if not os.path.isfile(fp) or refresh:
         print "* requesting", url
-        r = realistic_request(url)
+        r = realistic_request(url, no_user_agent=no_user_agent)
         if r.status_code == 200:
+            if expect_xml and not (
+                'xml' in r.headers['Content-Type'] or '<rss' in r.text
+            ):
+                raise NotXMLResponse(r.headers['Content-Type'])
             with codecs.open(fp, 'w', 'utf8') as f:
                 f.write(r.text)
             if gently:
@@ -115,7 +136,10 @@ def download(url, gently=False):
 
 
 def get_image_url(rss_url):
-    xml = download(rss_url)
+    try:
+        xml = download(rss_url, expect_xml=True)
+    except NotXMLResponse:
+        xml = download(rss_url, expect_xml=True, no_user_agent=True)
     d = feedparser.parse(xml)
 
     if xml.startswith(u'\xef\xbb\xbf<?xml'):
@@ -150,13 +174,22 @@ def get_image_url(rss_url):
                     image_url = (
                         parsed['rss']['channel']['itunes:image'][0]['@href']
                     )
-                else:
-                    image_url = (
-                        parsed['rss']['channel']['itunes:image']['@href']
-                    )
+                elif isinstance(
+                    parsed['rss']['channel']['itunes:image'],
+                    collections.Mapping
+                ):
+                    try:
+                        image_url = (
+                            parsed['rss']['channel']['itunes:image']['@href']
+                        )
+                    except KeyError:
+                        image_url = (
+                            parsed['rss']['channel']['itunes:image']['url']
+                        )
+
             except (KeyError, TypeError, KeyError):
                 print "PARSED IS WEIRD"
-                print parsed
+                # print parsed
                 print rss_url
                 with codecs.open('/tmp/xml.xml', 'w', 'utf-8') as f:
                     f.write(xml)
@@ -168,7 +201,7 @@ def get_image_url(rss_url):
                 image_url = d.feed.image['href']
             except AttributeError:
                 print "NO IMAGE"
-                print d.feed
+                # print d.feed
                 try:
                     print "IMAGE??", d.feed.image
                     print "IMAGE.URL??", d.feed.image['url']
@@ -182,4 +215,6 @@ def get_image_url(rss_url):
 
 if __name__ == '__main__':
     import sys
-    print download(sys.argv[1])
+    # print download(sys.argv[1])
+    for arg in sys.argv[1:]:
+        print get_image_url(arg)

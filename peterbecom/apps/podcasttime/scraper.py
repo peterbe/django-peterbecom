@@ -12,7 +12,13 @@ from django.utils import timezone
 from django.db.models import Count
 from django.db.utils import DataError
 
-from peterbecom.apps.podcasttime.models import Podcast, Episode, PodcastError
+from peterbecom.apps.podcasttime.models import (
+    Podcast,
+    Episode,
+    PodcastError,
+    NotAnImageError,
+)
+
 from peterbecom.apps.podcasttime.utils import (
     download,
     parse_duration_ffmpeg,
@@ -288,11 +294,9 @@ def _scrape_index(url, verbose=False, max_=1000):
             created = True
         try:
             podcast.download_image()
-        except AssertionError:
+        except (AssertionError, NotAnImageError):
             if verbose:
                 print "Got an error trying to download the image :("
-                import sys
-                print sys.exc_info()
                 print "IGNORING AND MOVING ON"
             PodcastError.create(podcast)
 
