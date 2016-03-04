@@ -10,8 +10,8 @@
 
 
 <div class="ui segment clearing">
-  {% if podcast.image %}
-  <img style="float:left" src="{{ thumbnail(podcast.image, '300x300').url }}">
+  {% if thumb %}
+  <img style="float:left" src="{{ thumb.url }}">
   {% else %}
   <img style="float:left" src="/static/podcasttime/images/no-image.png" width="300" height="300">
   {% endif %}

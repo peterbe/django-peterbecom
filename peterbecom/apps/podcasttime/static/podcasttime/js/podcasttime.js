@@ -2,30 +2,30 @@ $(function() {
 
   // this is incomplete and has bugs
   // http://codepen.io/peterbe/pen/LNEMoZ
-  var toLocaleString = function toLocaleString(number, options) {
-    options = options || {
-      minimumFractionDigits: 1,
-      maximumFractionDigits: 3
-    };
-    var out = number.toLocaleString(undefined, options);
-    if (options.maximumFractionDigits) {
-      (out.match(/\.\d+$/) || []).forEach(function (frac) {
-        var int = Math.round(options.maximumFractionDigits * 100 * +frac);
-        out = out.replace(frac, '.' + int);
-      });
-    }
-    if (options.minimumFractionDigits && out.match(/\.\d+$/) === null) {
-      out += '.' + '0'.repeat(options.minimumFractionDigits);
-    }
-    return out;
-  };
+  // var toLocaleString = function toLocaleString(number, options) {
+  //   options = options || {
+  //     minimumFractionDigits: 1,
+  //     maximumFractionDigits: 3
+  //   };
+  //   var out = number.toLocaleString(undefined, options);
+  //   if (options.maximumFractionDigits) {
+  //     (out.match(/\.\d+$/) || []).forEach(function (frac) {
+  //       var int = Math.round(options.maximumFractionDigits * 100 * +frac);
+  //       out = out.replace(frac, '.' + int);
+  //     });
+  //   }
+  //   if (options.minimumFractionDigits && out.match(/\.\d+$/) === null) {
+  //     out += '.' + '0'.repeat(options.minimumFractionDigits);
+  //   }
+  //   return out;
+  // };
 
-  var formatNumber = function(number) {
-    return toLocaleString(number, {
-      minimumFractionDigits: 1,
-      maximumFractionDigits: 1
-    });
-  };
+  // var formatNumber = function(number) {
+  //   return toLocaleString(number, {
+  //     minimumFractionDigits: 1,
+  //     maximumFractionDigits: 1
+  //   });
+  // };
 
   var formatPerDuration = function(hours, container) {
     var value = hours;
@@ -37,7 +37,7 @@ $(function() {
       $('.hours', container).hide();
       $('.minutes', container).show(200);
     }
-    $('.value', container).text(formatNumber(value));
+    $('.value', container).text(value.toFixed(1));
   };
 
   var fetchStats = function() {
@@ -50,7 +50,7 @@ $(function() {
       formatPerDuration(results.per_day, $('.per-day', container));
       formatPerDuration(results.per_week, $('.per-week', container));
       formatPerDuration(results.per_month, $('.per-month', container));
-      container.fadeIn(500);
+      container.hide().fadeIn(600);
       return results;
     });
   };

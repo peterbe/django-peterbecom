@@ -11,8 +11,7 @@ from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.urlresolvers import reverse
 
-from sorl.thumbnail import get_thumbnail
-
+from peterbecom.apps.base.helpers import thumbnail
 from peterbecom.apps.podcasttime.models import Podcast, Episode, Picked
 from peterbecom.apps.podcasttime.forms import (
     CalendarDataForm,
@@ -51,26 +50,28 @@ def find(request):
         cache_key = 'podcastfind:' + hashlib.md5(q.encode('utf8')).hexdigest()
         items = []
         found = []
-        sql = (
-            "to_tsvector('english', name) @@ "
-            "plainto_tsquery('english', %s)"
-        )
-        podcasts = Podcast.objects.all().extra(
-            where=[sql],
-            params=[q]
-        )[:10]
-        for podcast in podcasts[:10]:
-            found.append(podcast)
+        max_ = 10
+        if len(q) > 2:
+            sql = (
+                "to_tsvector('english', name) @@ "
+                "plainto_tsquery('english', %s)"
+            )
+            podcasts = Podcast.objects.all().extra(
+                where=[sql],
+                params=[q]
+            )[:max_]
+            for podcast in podcasts[:max_]:
+                found.append(podcast)
         podcasts = Podcast.objects.filter(name__istartswith=q).exclude(
             id__in=[x.id for x in found]
         )
-        for podcast in podcasts[:10]:
+        for podcast in podcasts[:max_]:
             found.append(podcast)
         if len(q) > 1:
             podcasts = Podcast.objects.filter(name__icontains=q).exclude(
                 id__in=podcasts
             )
-            for podcast in podcasts[:10]:
+            for podcast in podcasts[:max_]:
                 found.append(podcast)
 
     def episodes_meta(podcast):
@@ -115,7 +116,7 @@ def find(request):
             thumb_url = None
             if podcast.image:
                 try:
-                    thumb_url = get_thumbnail(
+                    thumb_url = thumbnail(
                         podcast.image,
                         '100x100',
                         quality=81,
@@ -376,4 +377,12 @@ def podcast(request, id, slug=None):
         download_episodes_task.delay(podcast.id)
 
     context['episodes'] = episodes
+    try:
+        context['thumb'] = thumbnail(podcast.image, '300x300')
+    except IOError:
+        # image is so busted it can't be turned into a thumbnail
+        podcast.image = None
+        podcast.save()
+        context['thumb'] = None
+        redownload_podcast_image.delay(podcast.id)
     return render(request, 'podcasttime/podcast.html', context)

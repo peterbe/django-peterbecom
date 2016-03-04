@@ -1,5 +1,6 @@
 from celery.task import task
 
+from peterbecom.apps.base.helpers import thumbnail
 from peterbecom.apps.podcasttime.models import Podcast, PodcastError
 from peterbecom.apps.podcasttime.scraper import (
     download_episodes,
@@ -19,6 +20,12 @@ def redownload_podcast_image(podcast_id):
     print "REDOWNLOAD_PODCAST_IMAGE!!"
     try:
         podcast.download_image()
+        # If it worked, it should be possible to make a thumbnail out of
+        # if. I've seen downloaded images with the right content-type,
+        # and with a size but when you try to turn it into a thumbnail
+        # PIL throws IOErrors.
+        assert podcast.image
+        thumbnail(podcast.image, '300x300')
         print "Worked!"
     except Exception:
         print "Failed!"
