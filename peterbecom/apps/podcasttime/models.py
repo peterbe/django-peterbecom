@@ -44,7 +44,7 @@ def _upload_to_podcast(instance, filename):
 
 
 class Podcast(models.Model):
-    name = models.CharField(max_length=200, unique=True)
+    name = models.CharField(max_length=200)
     url = models.URLField(max_length=400)
     image_url = models.URLField(max_length=400, null=True, blank=True)
     image = ImageField(upload_to=_upload_to_podcast, null=True)
@@ -57,6 +57,7 @@ class Podcast(models.Model):
 
     class Meta:
         ordering = ['-times_picked']
+        unique_together = ['name', 'url']
 
     def __unicode__(self):
         return self.name

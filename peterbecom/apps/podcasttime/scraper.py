@@ -36,9 +36,10 @@ def itunes_lookup(itunes_id):
     return response.json()
 
 
-def itunes_search(podcast):
+def itunes_search(term, **options):
+    options.update({'term': term, 'entity': 'podcast'})
     url = 'https://itunes.apple.com/search'
-    response = requests.get(url, {'term': podcast.name, 'entity': 'podcast'})
+    response = requests.get(url, options)
     return response.json()
 
 
@@ -286,6 +287,7 @@ def _scrape_index(url, verbose=False, max_=1000):
             podcast.save()
             created = False
         except Podcast.DoesNotExist:
+            raise Exception("ABOUT TO CREATE: %s" % name)
             podcast = Podcast.objects.create(
                 name=name,
                 url=rss_url,

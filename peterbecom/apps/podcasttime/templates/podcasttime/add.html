@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title_prefix %}{{ page_title }}{% endblock %}
+
+{% block extrahead %}
+{% stylesheet 'podcasttime:podcasts' %}
+{% endblock %}
+
+{% block content %}
+
+
+<h3>Type to search in the Apple iTunes&trade; Store</h3>
+
+
+<form action="." class="ui search">
+  <div class="ui fluid huge icon {% if search %}labeled{% endif %} input">
+    {% if search %}
+    <a href="." class="ui label">
+      <i class="close icon"></i>
+    </a>
+    {% endif %}
+    <input
+      type="text"
+      name="search"
+      placeholder="Search..."
+      value="{% if search %}{{ search }}{% endif %}">
+    <i class="search icon"></i>
+  </div>
+</form>
+
+{% if found %}
+<h5 class="ui right aligned header" style="margin-top:0">
+  {{ thousands(found) }} podcasts found.
+</h5>
+{% endif %}
+
+<div class="ui link cards">
+{% for podcast in podcasts %}
+  <div class="ui centered card">
+    <a class="image" href="{{ podcast.itunes_url }}">
+      {% if podcast.image_url %}
+        <img src="{{ podcast.image_url }}">
+      {% else %}
+        <img src="/static/podcasttime/images/no-image.png">
+      {% endif %}
+    </a>
+    <div class="content">
+      <a
+        href="{{ podcast.itunes_url }}"
+        class="header">{{ podcast.name }}</a>
+      <div class="meta">
+        <b>Artist:</b> {{ podcast.artist_name }}<br>
+        {% for tag in podcast.tags %}
+          <span class="ui tiny tag label">{{ tag }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="extra content">
+      <a href="?url={{ podcast.url }}" class="ui button primary">This is it!</a>
+    </div>
+  </div>
+{% endfor %}
+</div>
+
+{% if search and not podcasts %}
+  <h4>
+    None. Zitch. Nada. Zero.
+  </h4>
+  <p>
+    Sorry. Could not find anything that matches <code>{{ search }}</code>
+    in the iTunes Store.
+  </p>
+{% endif %}
+
+
+{% endblock %}
+
+
+{% block extrajs %}
+{% javascript 'podcasttime:podcasts' %}
+{% endblock %}

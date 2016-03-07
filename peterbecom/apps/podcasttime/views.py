@@ -2,7 +2,7 @@ import datetime
 import hashlib
 
 from django import http
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Sum, Min, Max, Count, Q
 from django.core.cache import cache
 from django.conf import settings
@@ -18,6 +18,10 @@ from peterbecom.apps.podcasttime.forms import (
     PodcastsForm,
 )
 from peterbecom.apps.podcasttime.utils import is_html_document
+from peterbecom.apps.podcasttime.scraper import (
+    itunes_search,
+    download_episodes,
+)
 from peterbecom.apps.podcasttime.tasks import (
     download_episodes_task,
     redownload_podcast_image,
@@ -69,7 +73,7 @@ def find(request):
             found.append(podcast)
         if len(q) > 1:
             podcasts = Podcast.objects.filter(name__icontains=q).exclude(
-                id__in=podcasts
+                id__in=[x.id for x in found]
             )
             for podcast in podcasts[:max_]:
                 found.append(podcast)
@@ -331,6 +335,51 @@ def podcasts(request):
     context['search'] = search
 
     return render(request, 'podcasttime/podcasts.html', context)
+
+
+def add(request):
+    context = {}
+    context['page_title'] = 'Add Podcast'
+
+    url = request.GET.get('url', '').strip()
+    if url:
+        podcast = get_object_or_404(Podcast, url=url)
+        if not podcast.image and podcast.image_url:
+            podcast.download_image()
+        if not Episode.objects.filter(podcast=podcast).exists():
+            download_episodes(podcast)
+        url = reverse('podcasttime:index') + '#ids={}'.format(podcast.id)
+        return redirect(url)
+
+    search = request.GET.get('search', '').strip()
+    context['search'] = search
+    if search:
+        podcasts = []
+        matches = itunes_search(search, attribute='titleTerm')
+        for result in matches['results']:
+            pod = {
+                'image_url': result['artworkUrl600'],
+                'itunes_url': result['collectionViewUrl'],
+                'artist_name': result['artistName'],
+                'tags': result['genres'],
+                'name': result['collectionName'],
+                'url': result['feedUrl'],
+            }
+            podcasts.append(pod)
+            if not Podcast.objects.filter(url=result['feedUrl']).exists():
+                podcast = Podcast.objects.create(
+                    name=result['collectionName'],
+                    url=result['feedUrl'],
+                    itunes_lookup=result,
+                    image_url=result['artworkUrl600'],
+                )
+                redownload_podcast_image.delay(podcast.id)
+                # episodes will be created and downloaded by the cron job
+
+        context['found'] = matches['resultCount']
+        context['podcasts'] = podcasts
+
+    return render(request, 'podcasttime/add.html', context)
 
 
 def picks(request):

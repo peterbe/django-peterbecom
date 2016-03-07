@@ -205,6 +205,10 @@ $(function() {
         // scrolling can be used
         params.page = params.page || 1;
 
+        if (params.term.length >= 3) {
+          $('.link-to-discover:hidden').fadeIn(600);
+        }
+
         return {
           results: data.items,
           pagination: {

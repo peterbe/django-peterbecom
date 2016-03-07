@@ -9,11 +9,16 @@
 
 {% block content %}
 
+<p class="link-to-discover">
+  <a href="{{ url('podcasttime:add') }}"
+     title="Add Podcasts that aren't available in this database yet">Can't find some podcast?</a>
+</p>
+
 <h1>How Much Time Do <i>Your</i> Podcasts Take to Listen To?</h1>
 
 <form>
   <select name="name">
-    <option value="">Type here to pick the podcasts you listen to</option>
+    <option value="">Type here to find the podcasts you listen to</option>
   </select>
 </form>
 
