@@ -37,7 +37,7 @@
 <div class="ui link cards">
 {% for podcast in podcasts %}
   <div class="ui centered card">
-    <a class="image" href="{{ podcast.itunes_url }}">
+    <a class="image" href="{{ podcast.url }}">
       {% if podcast.image_url %}
         <img src="{{ podcast.image_url }}">
       {% else %}
@@ -46,17 +46,20 @@
     </a>
     <div class="content">
       <a
-        href="{{ podcast.itunes_url }}"
+        href="{{ podcast.url }}"
         class="header">{{ podcast.name }}</a>
       <div class="meta">
         <b>Artist:</b> {{ podcast.artist_name }}<br>
+
         {% for tag in podcast.tags %}
           <span class="ui tiny tag label">{{ tag }}</span>
         {% endfor %}
+        <br>
+        <a href="{{ podcast.itunes_url }}">On iTunes</a>
       </div>
     </div>
     <div class="extra content">
-      <a href="?url={{ podcast.url }}" class="ui button primary">This is it!</a>
+      <a href="?id={{ podcast.id }}" class="ui button primary">This is it!</a>
     </div>
   </div>
 {% endfor %}

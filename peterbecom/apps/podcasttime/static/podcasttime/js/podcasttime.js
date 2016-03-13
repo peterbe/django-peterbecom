@@ -207,6 +207,14 @@ $(function() {
 
         if (params.term.length >= 3) {
           $('.link-to-discover:hidden').fadeIn(600);
+          var link = $('.link-to-discover a');
+          if (!link.data('href')) {
+            link.data('href', link.attr('href'));
+          }
+          link.attr(
+            'href',
+            link.data('href') + '?search=' + encodeURIComponent(params.term)
+          );
         }
 
         return {

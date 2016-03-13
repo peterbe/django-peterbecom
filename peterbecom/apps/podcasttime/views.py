@@ -341,9 +341,9 @@ def add(request):
     context = {}
     context['page_title'] = 'Add Podcast'
 
-    url = request.GET.get('url', '').strip()
-    if url:
-        podcast = get_object_or_404(Podcast, url=url)
+    id = request.GET.get('id', '').strip()
+    if id:
+        podcast = get_object_or_404(Podcast, id=id)
         if not podcast.image and podcast.image_url:
             podcast.download_image()
         if not Episode.objects.filter(podcast=podcast).exists():
@@ -363,18 +363,28 @@ def add(request):
                 'artist_name': result['artistName'],
                 'tags': result['genres'],
                 'name': result['collectionName'],
-                'url': result['feedUrl'],
+                # 'feed_url': result['feedUrl'],
             }
-            podcasts.append(pod)
-            if not Podcast.objects.filter(url=result['feedUrl']).exists():
+            try:
+                podcast = Podcast.objects.get(
+                    url=result['feedUrl'],
+                    name=result['collectionName']
+                )
+            except Podcast.DoesNotExist:
                 podcast = Podcast.objects.create(
                     name=result['collectionName'],
                     url=result['feedUrl'],
                     itunes_lookup=result,
                     image_url=result['artworkUrl600'],
                 )
-                redownload_podcast_image.delay(podcast.id)
                 # episodes will be created and downloaded by the cron job
+                redownload_podcast_image.delay(podcast.id)
+            pod['id'] = podcast.id
+            pod['url'] = reverse(
+                'podcasttime:podcast_slug',
+                args=(podcast.id, podcast.get_or_create_slug())
+            )
+            podcasts.append(pod)
 
         context['found'] = matches['resultCount']
         context['podcasts'] = podcasts
