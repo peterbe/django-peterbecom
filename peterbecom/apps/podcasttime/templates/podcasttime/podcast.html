@@ -8,6 +8,12 @@
 
 {% block content %}
 
+<div class="ui container">
+  <a href="{{ url('podcasttime:add') }}?id={{ podcast.id }}" class="ui button primary">I listen to this!</a>
+  <a href="{{ url('podcasttime:index') }}" class="ui button">Go back to Home</a>
+
+</div>
+
 
 <div class="ui segment clearing">
   {% if thumb %}
@@ -27,6 +33,7 @@
     {% endif %}
   </div>
 </div>
+
 
 <table class="ui celled table">
   <thead>
