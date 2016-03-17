@@ -61,7 +61,7 @@ PIPELINE_CSS = {
 PIPELINE_JS = {
     'base': {
         'source_filenames': (
-            'js/jquery.min.js',
+            'js/jquery-2.2.1.min.js',
             'js/transition.js',
             'js/dropdown.js',
             'js/visibility.js',
