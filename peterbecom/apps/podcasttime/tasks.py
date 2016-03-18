@@ -25,8 +25,13 @@ def redownload_podcast_image(podcast_id):
         # and with a size but when you try to turn it into a thumbnail
         # PIL throws IOErrors.
         assert podcast.image
-        thumbnail(podcast.image, '300x300')
-        print "Worked!"
+        try:
+            thumbnail(podcast.image, '300x300')
+            print "Worked!"
+        except IOError:
+            print "Not a valid image if thumbnails can't be made"
+            podcast.image = None
+            podcast.save()
     except Exception:
         print "Failed!"
         PodcastError.create(podcast)
