@@ -318,3 +318,19 @@ def _scrape_show(url):
             if h4.text_content() == 'Open RSS feed':
                 rss_url = urljoin(url, a.attrib['href'])
                 return rss_url
+
+
+def fix_podcast_images(max_, verbose=False):
+    podcasts = Podcast.objects.filter(
+        image__isnull=True,
+        image_url__isnull=False,
+        itunes_lookup__isnull=False,
+    )
+
+    for podcast in podcasts.order_by('?')[:max_]:
+        print repr(podcast.name)
+        print podcast.image
+        print podcast.image_url
+        print podcast.itunes_lookup['artworkUrl600']
+        print
+        raise NotImplementedError

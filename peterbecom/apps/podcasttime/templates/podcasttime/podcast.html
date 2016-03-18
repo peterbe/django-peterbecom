@@ -59,6 +59,9 @@
 
 
 {% if request.user.is_staff %}
+  <h3>RSS</h3>
+  <a href="{{ podcast.url }}">{{ podcast.url }}</a>
+  
   <h3>iTunes Lookup</h3>
   {% if podcast.itunes_lookup %}
     <pre>{{ json_print(podcast.itunes_lookup, indent=4, sort_keys=True) }}</pre>

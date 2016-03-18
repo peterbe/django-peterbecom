@@ -41,8 +41,12 @@ def redownload_podcast_image(podcast_id):
 @task()
 def fetch_itunes_lookup(podcast_id):
     podcast = Podcast.objects.get(id=podcast_id)
+    print "Fetching itunes lookup", repr(podcast.name)
     results = itunes_search(podcast.name)
     if results['resultCount'] == 1:
         lookup = results['results'][0]
         podcast.itunes_lookup = lookup
         podcast.save()
+    else:
+        print "Found", results['resultCount'], 'results'
+        print results['resultCount']
