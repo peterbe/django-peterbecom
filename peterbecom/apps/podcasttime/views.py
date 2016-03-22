@@ -1,5 +1,6 @@
 import datetime
 import hashlib
+import random
 
 from django import http
 from django.shortcuts import render, get_object_or_404, redirect
@@ -10,6 +11,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.urlresolvers import reverse
+from django.db import transaction
 
 from peterbecom.apps.base.helpers import thumbnail
 from peterbecom.apps.podcasttime.models import Podcast, Episode, Picked
@@ -27,6 +29,14 @@ from peterbecom.apps.podcasttime.tasks import (
     redownload_podcast_image,
     fetch_itunes_lookup,
 )
+
+
+def random_string(length):
+    pool = list('abcdefghijklmnopqrstuvwxyz')
+    pool.extend([x.upper() for x in pool])
+    pool.extend('0123456789')
+    random.shuffle(pool)
+    return ''.join(pool[:length])
 
 
 def index(request):
@@ -163,6 +173,7 @@ def find(request):
     return http.JsonResponse({'items': items})
 
 
+@transaction.atomic
 @require_POST
 def picked(request):
     if request.POST.get('reset'):
@@ -177,14 +188,18 @@ def picked(request):
         podcasts = Podcast.objects.filter(id__in=form.cleaned_data['ids'])
         if podcasts.exists():
             if request.session.get('picked'):
-                picked_id = request.session.get('picked')
                 try:
-                    picked_obj = Picked.objects.get(id=picked_id)
+                    picked_obj = Picked.objects.get(
+                        session_key=request.session.get('picked')
+                    )
                 except Picked.DoesNotExist:
-                    return http.HttpResponseBadRequest('bad picked_id')
+                    return http.HttpResponseBadRequest('bad picked')
             else:
-                picked_obj = Picked.objects.create()
-                request.session['picked'] = picked_obj.id
+                session_key = random_string(32)
+                picked_obj = Picked.objects.create(
+                    session_key=session_key
+                )
+                request.session['picked'] = session_key
             picked_obj.podcasts.clear()
             picked_obj.podcasts.add(*podcasts)
 

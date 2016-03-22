@@ -141,6 +141,7 @@ class Episode(models.Model):
 
 class Picked(models.Model):
     podcasts = models.ManyToManyField(Podcast)
+    session_key = models.CharField(max_length=32, default='legacy')
 
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
