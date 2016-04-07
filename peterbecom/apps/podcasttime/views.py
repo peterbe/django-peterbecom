@@ -162,6 +162,7 @@ def find(request):
                 'image_url': thumb_url,
                 'episodes': episodes_count,
                 'hours': total_hours,
+                'slug': podcast.get_or_create_slug(),
                 'url': reverse(
                     'podcasttime:podcast_slug',
                     args=(podcast.id, podcast.get_or_create_slug())
