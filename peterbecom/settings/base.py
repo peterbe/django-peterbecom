@@ -286,3 +286,8 @@ AUTOCOMPETER_AUTH_KEY = ''
 CDNTHIS_DOMAINS = {}
 
 PINGDOM_RUM_ID = None
+
+
+# Because https://pypi.python.org/pypi/pygments-lexer-babylon isn't
+# particularly flexible. You can only set this via an environment variable.
+os.environ['PYGMENTS_NODE_COMMAND'] = 'node'

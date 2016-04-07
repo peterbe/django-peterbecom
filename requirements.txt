@@ -37,3 +37,4 @@ ndg-httpsclient==0.4.0
 pyasn1==0.1.9
 jsonfield==1.0.3
 awesome-slugify==1.6.5
+pygments-lexer-babylon==0.12.0

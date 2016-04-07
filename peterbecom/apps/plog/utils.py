@@ -9,6 +9,7 @@ import zope.structuredtext
 from pygments import highlight
 from pygments import lexers
 from pygments.formatters import HtmlFormatter
+from pygmentslexerbabylon import BabylonLexer
 from django.conf import settings
 from django import http
 from django.core.validators import validate_email
@@ -221,6 +222,7 @@ def stx_to_html(text, codesyntax):
 
 
 def _get_lexer(codesyntax):
+    print ('codesyntax', codesyntax)
     if codesyntax in ('cpp', 'javascript'):
         return lexers.JavascriptLexer()
     elif codesyntax == 'python':
@@ -235,13 +237,15 @@ def _get_lexer(codesyntax):
         return lexers.BashLexer()
     elif codesyntax == 'go':
         return lexers.GoLexer()
+    elif codesyntax == 'jsx':
+        return BabylonLexer()
     elif codesyntax:
         raise NotImplementedError(codesyntax)
     else:
         return lexers.TextLexer()
 
 _codesyntax_regex = re.compile(
-    '```(python|cpp|javascript|xml|html|css|sql|bash|go)'
+    '```(python|cpp|javascript|xml|html|css|sql|bash|go|jsx)'
 )
 _markdown_pre_regex = re.compile('```([^`]+)```')
 
