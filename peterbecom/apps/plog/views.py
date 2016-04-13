@@ -20,8 +20,7 @@ from django.contrib.sites.models import RequestSite
 from django.views.decorators.cache import cache_control
 from django.utils import timezone
 
-from sorl.thumbnail import get_thumbnail
-
+from peterbecom.apps.base.helpers import thumbnail
 from .models import BlogItem, BlogComment, Category, BlogFile
 from .utils import render_comment_text, valid_email, utc_now
 from peterbecom.apps.redisutils import get_redis_connection
@@ -741,8 +740,9 @@ def post_thumbnails(request, oid):
     )
 
     images = []
+
     for blogfile in blogfiles:
-        full_im = get_thumbnail(
+        full_im = thumbnail(
             blogfile.file,
             '1000x1000',
             upscale=False,
@@ -755,7 +755,7 @@ def post_thumbnails(request, oid):
             'delete_url': delete_url,
         }
         for key, geometry in (('small', '120x120'), ('big', '230x230')):
-            im = get_thumbnail(
+            im = thumbnail(
                 blogfile.file,
                 geometry,
                 quality=81
