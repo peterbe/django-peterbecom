@@ -222,7 +222,6 @@ def stx_to_html(text, codesyntax):
 
 
 def _get_lexer(codesyntax):
-    print ('codesyntax', codesyntax)
     if codesyntax in ('cpp', 'javascript'):
         return lexers.JavascriptLexer()
     elif codesyntax == 'python':

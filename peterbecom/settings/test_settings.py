@@ -15,3 +15,5 @@ DATABASES = {
 REDIS_BACKENDS = {
     'master': 'redis://localhost:6379?socket_timeout=0.5&db=9'
 }
+
+CELERY_ALWAYS_EAGER = True
