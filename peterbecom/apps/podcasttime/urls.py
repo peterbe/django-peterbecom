@@ -9,6 +9,7 @@ urlpatterns = patterns(
     url('^podcasts/$', views.podcasts, name='podcasts'),
     url('^podcasts/add/$', views.add, name='add'),
     url('^picks/$', views.picks, name='picks'),
+    url('^picks/data/$', views.picks_data, name='picks_data'),
     url('^find$', views.find, name='find'),
     url('^calendar$', views.calendar, name='calendar'),
     url('^stats$', views.stats, name='stats'),
