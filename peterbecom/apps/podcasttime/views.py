@@ -353,6 +353,88 @@ def podcasts(request):
     return render(request, 'podcasttime/podcasts.html', context)
 
 
+def podcasts_data(request):
+    context = {}
+    search = request.GET.get('search', '').strip()
+
+    podcasts = Podcast.objects.all()
+    if search:
+        raise NotImplementedError(search)
+        podcasts = _search_podcasts(search, podcasts)
+
+    podcasts = podcasts.order_by('-times_picked', 'name')
+
+    paginator = Paginator(podcasts, 15)
+    page = request.GET.get('page')
+    try:
+        paged = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        paged = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        paged = paginator.page(paginator.num_pages)
+
+    context['count'] = paginator.count
+
+    # context['podcasts'] = podcasts_page
+
+    past = timezone.now() - datetime.timedelta(days=365)
+    episodes = Episode.objects.filter(
+        podcast__in=paged,
+        published__gte=past,
+    ).values(
+        'podcast_id',
+    ).annotate(
+        duration=Sum('duration'),
+        count=Count('podcast_id'),
+    )
+    episode_counts = {}
+    episode_hours = {}
+    for x in episodes:
+        episode_counts[x['podcast_id']] = x['count']
+        episode_hours[x['podcast_id']] = x['duration']
+
+    items = []
+    for podcast in paged:
+        item = {
+            'id': podcast.id,
+            'name': podcast.name,
+            'image': (
+                podcast.image and
+                thumbnail(podcast.image, '300x300').url or
+                None
+            ),
+            'times_picked': podcast.times_picked,
+            'slug': podcast.get_or_create_slug(),
+            'last_fetch': (
+                podcast.last_fetch and
+                podcast.last_fetch.isoformat() or
+                None
+            ),
+            'modified': podcast.modified.isoformat(),
+            'episode_count': episode_counts.get(podcast.id, 0),
+            'episode_hours': episode_hours.get(podcast.id, 0),
+        }
+        items.append(item)
+
+    context['items'] = items
+
+    pagination = {
+        'has_previous': paged.has_previous(),
+        'has_next': paged.has_next(),
+        'number': paged.number,
+        'num_pages': paginator.num_pages,
+    }
+    if pagination['has_previous']:
+        pagination['previous_page_number'] = paged.previous_page_number()
+    if pagination['has_next']:
+        pagination['next_page_number'] = paged.next_page_number()
+    context['pagination'] = pagination
+
+    return http.JsonResponse(context)
+
+
 def add(request):
     context = {}
     context['page_title'] = 'Add Podcast'
