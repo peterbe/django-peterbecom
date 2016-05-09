@@ -28,7 +28,7 @@ anyjson==0.3.3
 lxml==3.6.0
 subprocess32==3.2.7
 django-semanticui-form==0.0.1
-django-pipeline==1.5.4
+django-pipeline==1.6.8
 feedparser==5.2.1
 pyquery==1.2.11
 xmltodict==0.9.2
