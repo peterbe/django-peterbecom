@@ -377,12 +377,10 @@ def podcasts_data(request):
 
     context['count'] = paginator.count
 
-    # context['podcasts'] = podcasts_page
-
-    past = timezone.now() - datetime.timedelta(days=365)
+    # past = timezone.now() - datetime.timedelta(days=365)
     episodes = Episode.objects.filter(
         podcast__in=paged,
-        published__gte=past,
+        # published__gte=past,
     ).values(
         'podcast_id',
     ).annotate(
@@ -390,10 +388,10 @@ def podcasts_data(request):
         count=Count('podcast_id'),
     )
     episode_counts = {}
-    episode_hours = {}
+    episode_seconds = {}
     for x in episodes:
         episode_counts[x['podcast_id']] = x['count']
-        episode_hours[x['podcast_id']] = x['duration']
+        episode_seconds[x['podcast_id']] = x['duration']
 
     items = []
     for podcast in paged:
@@ -414,7 +412,7 @@ def podcasts_data(request):
             ),
             'modified': podcast.modified.isoformat(),
             'episode_count': episode_counts.get(podcast.id, 0),
-            'episode_hours': episode_hours.get(podcast.id, 0),
+            'episode_seconds': episode_seconds.get(podcast.id, 0),
         }
         items.append(item)
 
