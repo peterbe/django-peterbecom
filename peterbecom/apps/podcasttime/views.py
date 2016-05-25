@@ -359,7 +359,6 @@ def podcasts_data(request):
 
     podcasts = Podcast.objects.all()
     if search:
-        raise NotImplementedError(search)
         podcasts = _search_podcasts(search, podcasts)
 
     podcasts = podcasts.order_by('-times_picked', 'name')
@@ -429,7 +428,6 @@ def podcasts_data(request):
     if pagination['has_next']:
         pagination['next_page_number'] = paged.next_page_number()
     context['pagination'] = pagination
-
     return http.JsonResponse(context)
 
 
