@@ -20,11 +20,11 @@ urlpatterns = patterns(
     ),
     url(
         r'^nodomains/',
-        include('peterbecom.apps.nodomains.urls', namespace='nodomains')
+        include('peterbecom.nodomains.urls', namespace='nodomains')
     ),
     url(
         r'^ajaxornot/',
-        include('peterbecom.apps.ajaxornot.urls', namespace='ajaxornot')
+        include('peterbecom.ajaxornot.urls', namespace='ajaxornot')
     ),
     url(
         r'^cdnthis$',
@@ -32,7 +32,7 @@ urlpatterns = patterns(
     ),
     url(
         r'^cdnthis/',
-        include('peterbecom.apps.cdnthis.urls', namespace='cdnthis')
+        include('peterbecom.cdnthis.urls', namespace='cdnthis')
     ),
     url(
         r'^localvsxhr$',
@@ -40,7 +40,7 @@ urlpatterns = patterns(
     ),
     url(
         r'^localvsxhr/',
-        include('peterbecom.apps.localvsxhr.urls', namespace='localvsxhr')
+        include('peterbecom.localvsxhr.urls', namespace='localvsxhr')
     ),
     url(
         r'^podcasttime$',
@@ -48,15 +48,15 @@ urlpatterns = patterns(
     ),
     url(
         r'^podcasttime/',
-        include('peterbecom.apps.podcasttime.urls', namespace='podcasttime')
+        include('peterbecom.podcasttime.urls', namespace='podcasttime')
     ),
     url(
         r'^stats/',
-        include('peterbecom.apps.stats.urls')
+        include('peterbecom.stats.urls')
     ),
     url(
         r'^plog/',
-        include('peterbecom.apps.plog.urls')
+        include('peterbecom.plog.urls')
     ),
     url(
         r'^plog$',
@@ -64,7 +64,7 @@ urlpatterns = patterns(
     ),
     url(
         r'',
-        include('peterbecom.apps.homepage.urls')
+        include('peterbecom.homepage.urls')
     ),
 )
 

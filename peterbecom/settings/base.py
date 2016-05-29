@@ -142,7 +142,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
    'django.core.context_processors.static',
    'django.core.context_processors.tz',
    'django.core.context_processors.request',
-   'peterbecom.apps.homepage.context_processors.context',
+   'peterbecom.homepage.context_processors.context',
 )
 
 
@@ -158,17 +158,15 @@ INSTALLED_APPS = (
     'semanticuiform',
     'sorl.thumbnail',
 
-    # XXX Move all of these some day
-    'peterbecom.apps.base',
-    'peterbecom.apps.plog',
-    'peterbecom.apps.homepage',
-    'peterbecom.apps.legacy',
-    'peterbecom.apps.stats',
-    'peterbecom.apps.nodomains',
-    'peterbecom.apps.ajaxornot',
-    'peterbecom.apps.localvsxhr',
-    'peterbecom.apps.cdnthis',
-    'peterbecom.apps.podcasttime',
+    'peterbecom.base',
+    'peterbecom.plog',
+    'peterbecom.homepage',
+    'peterbecom.stats',
+    'peterbecom.nodomains',
+    'peterbecom.ajaxornot',
+    'peterbecom.localvsxhr',
+    'peterbecom.cdnthis',
+    'peterbecom.podcasttime',
     'fancy_cache',
     'pipeline',
 )
@@ -257,10 +255,10 @@ REDIS_BACKENDS = {
 BROKER_URL = "redis://localhost:6379/0"
 BROKER_TRANSPORT = 'redis'
 CELERY_IMPORTS = (
-    "peterbecom.apps.plog.tasks",
-    "peterbecom.apps.homepage.tasks",
-    "peterbecom.apps.nodomains.tasks",
-    "peterbecom.apps.podcasttime.tasks",
+    "peterbecom.plog.tasks",
+    "peterbecom.homepage.tasks",
+    "peterbecom.nodomains.tasks",
+    "peterbecom.podcasttime.tasks",
 )
 CELERYD_CONCURRENCY = 2
 CELERY_IGNORE_RESULT = True
