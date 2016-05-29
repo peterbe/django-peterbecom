@@ -154,6 +154,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'djcelery',
+    'kombu.transport.django',
 
     'semanticuiform',
     'sorl.thumbnail',
@@ -252,15 +253,18 @@ REDIS_BACKENDS = {
     'titles': 'redis://localhost:6379?db=9',
 }
 
-BROKER_URL = "redis://localhost:6379/0"
-BROKER_TRANSPORT = 'redis'
-CELERY_IMPORTS = (
-    "peterbecom.plog.tasks",
-    "peterbecom.homepage.tasks",
-    "peterbecom.nodomains.tasks",
-    "peterbecom.podcasttime.tasks",
-)
+# BROKER_URL = "redis://localhost:6379/0"
+BROKER_URL = "django://"
+BROKER_CONNECTION_TIMEOUT = 0.1
+# BROKER_TRANSPORT = 'redis'
+# CELERY_IMPORTS = (
+#     "peterbecom.plog.tasks",
+#     "peterbecom.homepage.tasks",
+#     "peterbecom.nodomains.tasks",
+#     "peterbecom.podcasttime.tasks",
+# )
 CELERYD_CONCURRENCY = 2
+CELERY_ALWAYS_EAGER = False
 CELERY_IGNORE_RESULT = True
 
 SESSION_COOKIE_HTTPONLY = True
