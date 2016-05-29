@@ -588,3 +588,59 @@ def podcast(request, id, slug=None):
         context['thumb'] = None
         redownload_podcast_image.delay(podcast.id)
     return render(request, 'podcasttime/podcast.html', context)
+
+
+def podcast_data(request, id, slug=None):
+    podcast = get_object_or_404(Podcast, id=id, slug__iexact=slug)
+    context = {}
+    context.update({
+        'id': podcast.id,
+        'slug': podcast.slug,
+        'name': podcast.name,
+        'url': podcast.url,
+        'image_url': podcast.image_url,
+        'times_picked': podcast.times_picked,
+        'total_seconds': podcast.total_seconds,
+        'last_fetch': podcast.last_fetch,
+        'modified': podcast.modified,
+    })
+    if not podcast.last_fetch:
+        download_episodes_task.delay(podcast.id)
+    episodes = Episode.objects.filter(
+        podcast=podcast
+    ).order_by('-published')
+    if podcast.image and is_html_document(podcast.image.path):
+        print "Found a podcast.image that wasn't an image"
+        podcast.image = None
+        podcast.save()
+        redownload_podcast_image.delay(podcast.id)
+    elif not podcast.image and podcast.image_url:
+        redownload_podcast_image.delay(podcast.id)
+
+    if podcast.itunes_lookup is None:
+        fetch_itunes_lookup.delay(podcast.id)
+
+    if not episodes.exists():
+        download_episodes_task.delay(podcast.id)
+    context['episodes_count'] = episodes.count()
+    context['episodes'] = []
+    for episode in episodes:
+        context['episodes'].append({
+            'duration': episode.duration,
+            'published': episode.published,
+            'guid': episode.guid,
+        })
+    try:
+        thumb = thumbnail(podcast.image, '300x300')
+        context['thumb'] = {
+            'url': thumb.url,
+            'width': thumb.width,
+            'height': thumb.height,
+        }
+    except IOError:
+        # image is so busted it can't be turned into a thumbnail
+        podcast.image = None
+        podcast.save()
+        context['thumb'] = None
+        redownload_podcast_image.delay(podcast.id)
+    return http.JsonResponse(context)

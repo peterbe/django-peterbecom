@@ -21,4 +21,9 @@ urlpatterns = patterns(
         views.podcast,
         name='podcast_slug'
     ),
+    url(
+        '^podcasts/data/(?P<id>\d+)/(?P<slug>[-\w]+)$',
+        views.podcast_data,
+        name='podcast_data_slug'
+    ),
 )
