@@ -3,7 +3,7 @@
 
 {% block content %}
 
-<form action="." class="ui form" method="post" enctype="multipart/form-data">{{ csrf() }}
+<form action="." class="ui form" method="post" enctype="multipart/form-data">{% csrf_token %}
   {{ semanticuiform(form)|safe }}
   <div class="form-actions">
     <button type="submit" class="ui button primary">Save changes</button>

@@ -11,7 +11,7 @@ from django import http
 from django.core.cache import cache
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.urlresolvers import reverse
-from django.contrib.sites.models import RequestSite
+from django.contrib.sites.requests import RequestSite
 from django.views.decorators.cache import cache_control
 from django.contrib.auth.decorators import login_required
 

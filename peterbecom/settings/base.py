@@ -12,7 +12,7 @@ def path(*x):
     return os.path.join(BASE_DIR, *x)
 
 
-DEBUG = TEMPLATE_DEBUG = False
+DEBUG = False
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
@@ -100,23 +100,6 @@ STATICFILES_FINDERS = (
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = ''  # set in local settings
 
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    'jingo.Loader',
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-)
-
-
-JINGO_EXCLUDE_APPS = (
-    'debug_toolbar',
-    'admin',
-    'semanticuiform',
-    'semanticui',
-    'fancy_cache',
-    'registration',
-    # 'pipeline',
-)
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
@@ -131,20 +114,56 @@ ROOT_URLCONF = 'peterbecom.urls'
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'peterbecom.wsgi.application'
 
-TEMPLATE_DIRS = (
-    path('peterbecom/templates'),
+
+_CONTEXT_PROCESSORS = (
+    'django.contrib.auth.context_processors.auth',
+    'django.core.context_processors.debug',
+    'django.core.context_processors.media',
+    'django.core.context_processors.static',
+    'django.core.context_processors.tz',
+    'django.core.context_processors.request',
+    'peterbecom.homepage.context_processors.context',
 )
 
-TEMPLATE_CONTEXT_PROCESSORS = (
-   'django.contrib.auth.context_processors.auth',
-   'django.core.context_processors.debug',
-   'django.core.context_processors.media',
-   'django.core.context_processors.static',
-   'django.core.context_processors.tz',
-   'django.core.context_processors.request',
-   'peterbecom.homepage.context_processors.context',
-)
-
+TEMPLATES = [
+    {
+        'BACKEND': 'django_jinja.backend.Jinja2',
+        'APP_DIRS': True,
+        'OPTIONS': {
+            # Use jinja2/ for jinja templates
+            'app_dirname': 'jinja2',
+            # Don't figure out which template loader to use based on
+            # file extension
+            'match_extension': '',
+            # 'newstyle_gettext': True,
+            'context_processors': _CONTEXT_PROCESSORS,
+            'debug': False,
+            'undefined': 'jinja2.Undefined',
+            'extensions': [
+                'jinja2.ext.do',
+                'jinja2.ext.loopcontrols',
+                'jinja2.ext.with_',
+                'jinja2.ext.i18n',  # needed to avoid errors in django_jinja
+                'jinja2.ext.autoescape',
+                'django_jinja.builtins.extensions.CsrfExtension',
+                'django_jinja.builtins.extensions.StaticFilesExtension',
+                'django_jinja.builtins.extensions.DjangoFiltersExtension',
+                'pipeline.templatetags.ext.PipelineExtension',
+            ],
+            'globals': {
+            }
+        }
+    },
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],  # what does this do?!
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'debug': False,
+            'context_processors': _CONTEXT_PROCESSORS,
+        }
+    },
+]
 
 INSTALLED_APPS = (
     'django.contrib.auth',
@@ -170,6 +189,7 @@ INSTALLED_APPS = (
     'peterbecom.podcasttime',
     'fancy_cache',
     'pipeline',
+    'django_jinja',
 )
 
 # A sample logging configuration. The only tangible logging

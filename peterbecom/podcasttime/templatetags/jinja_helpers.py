@@ -3,10 +3,10 @@ import datetime
 from django.utils import timezone
 from django.utils.timesince import timesince
 
-from jingo import register
+from django_jinja import library
 
 
-@register.function
+@library.global_function
 def show_duration(duration):
     now = timezone.now()
     then = now + datetime.timedelta(seconds=duration)

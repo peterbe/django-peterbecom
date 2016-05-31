@@ -1,6 +1,6 @@
 from celery.task import task
 
-from peterbecom.base.helpers import thumbnail
+from peterbecom.base.templatetags.jinja_helpers import thumbnail
 from peterbecom.podcasttime.models import Podcast, PodcastError
 from peterbecom.podcasttime.scraper import (
     download_episodes,

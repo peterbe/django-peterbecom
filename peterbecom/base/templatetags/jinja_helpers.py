@@ -4,17 +4,24 @@ import json
 import jinja2
 
 from django.db.utils import IntegrityError
+from django.core.urlresolvers import reverse
 
-from jingo import register
+from django_jinja import library
 from sorl.thumbnail import get_thumbnail
 
 
-@register.function
+@library.global_function
+def url(viewname, *args, **kwargs):
+    """Helper for Django's ``reverse`` in templates."""
+    return reverse(viewname, args=args, kwargs=kwargs)
+
+
+@library.global_function
 def thousands(n):
     return format(n, ',')
 
 
-@register.function
+@library.global_function
 def thumbnail(imagefile, geometry, **options):
     if not options.get('format'):
         # then let's try to do it by the file name
@@ -36,7 +43,7 @@ def thumbnail(imagefile, geometry, **options):
         return thumbnail(imagefile, geometry, **options)
 
 
-@register.function
+@library.global_function
 def json_print(*args, **kwargs):
     dump = json.dumps(*args, **kwargs)
     dump = dump.replace("</", "<\\/")  # so you can't escape with a </script>

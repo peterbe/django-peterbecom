@@ -3,11 +3,14 @@ import logging
 import base64
 import urlparse
 import urllib
-from django.contrib.sites.models import RequestSite
+from django.contrib.sites.requests import RequestSite
 from django.conf import settings
 
 
-_img_regex = re.compile('(<img.*?src=(["\'])([^"\']+)(["\']).*?>)', re.DOTALL | re.M)
+_img_regex = re.compile(
+    '(<img.*?src=(["\'])([^"\']+)(["\']).*?>)',
+    re.DOTALL | re.M
+)
 
 
 def post_process_response(response, request):
@@ -16,6 +19,7 @@ def post_process_response(response, request):
     base_url += RequestSite(request).domain
     current_url = urlparse.urljoin(base_url, request.path)
     this_domain = urlparse.urlparse(current_url).netloc
+
     def image_replacer(match):
         bail = match.group()
         whole, deli, src, deli = match.groups()

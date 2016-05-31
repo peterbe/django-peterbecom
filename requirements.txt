@@ -1,7 +1,6 @@
 psycopg2==2.6.1
-Django==1.7.11
+Django==1.8.13
 Jinja2==2.8
-jingo==0.8.2
 Pygments==2.1.3
 python-memcached==1.58
 celery==3.1.23
@@ -40,3 +39,4 @@ awesome-slugify==1.6.5
 pygments-lexer-babylon==0.12.0
 optisorl==0.2.1
 pytz==2016.4
+django-jinja==2.1.3

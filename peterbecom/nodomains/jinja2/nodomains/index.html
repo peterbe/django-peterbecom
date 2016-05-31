@@ -81,7 +81,7 @@ tbody tr td:first-child {
 </p>
 
 <form class="form-submit form-inline" method="post">
-  {{ csrf() }}
+  {% csrf_token %}
     <div class="ui action input" style="width:90%">
       <input type="text" name="url" class="form-control input-lg search-query"
       placeholder="http://www.somethingsomething.com/..."
