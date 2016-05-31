@@ -16,11 +16,11 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.sites.models import RequestSite
+from django.contrib.sites.requests import RequestSite
 from django.views.decorators.cache import cache_control
 from django.utils import timezone
 
-from peterbecom.base.helpers import thumbnail
+from peterbecom.base.templatetags.jinja_helpers import thumbnail
 from .models import BlogItem, BlogComment, Category, BlogFile
 from .utils import render_comment_text, valid_email, utc_now
 from peterbecom.redisutils import get_redis_connection

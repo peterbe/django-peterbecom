@@ -2,12 +2,10 @@ import hashlib
 import time
 import os
 import uuid
-import datetime
 from django.db import models
 from django.core.cache import cache
 from django.db.models.signals import post_save, pre_save, pre_delete
 from django.dispatch import receiver
-from django.conf import settings
 from . import utils
 
 
@@ -88,9 +86,15 @@ class BlogItem(models.Model):
     def _render(self, refresh=False):
         if not self.text_rendered or refresh:
             if self.display_format == 'structuredtext':
-                self.text_rendered = utils.stx_to_html(self.text, self.codesyntax)
+                self.text_rendered = utils.stx_to_html(
+                    self.text,
+                    self.codesyntax
+                )
             else:
-                self.text_rendered = utils.markdown_to_html(self.text, self.codesyntax)
+                self.text_rendered = utils.markdown_to_html(
+                    self.text,
+                    self.codesyntax
+                )
             self.text_rendered = utils.cache_prefix_files(self.text_rendered)
             self.save()
         return self.text_rendered
@@ -171,13 +175,17 @@ class BlogComment(models.Model):
     name = models.CharField(max_length=100, blank=True)
     email = models.CharField(max_length=100, blank=True)
     user_agent = models.CharField(max_length=300, blank=True, null=True)
-    ip_address = models.IPAddressField(blank=True, null=True)
+    ip_address = models.GenericIPAddressField(blank=True, null=True)
     akismet_pass = models.NullBooleanField(null=True)
 
     def __repr__(self):
-        return ('<%s: %r (%sapproved)>' %
-                (self.__class__.__name__, self.oid + ' ' +self.comment[:20],
-                 self.approved and '' or 'not '))
+        return (
+            '<%s: %r (%sapproved)>' % (
+                self.__class__.__name__,
+                self.oid + ' ' + self.comment[:20],
+                self.approved and '' or 'not '
+            )
+        )
 
     @property
     def rendered(self):

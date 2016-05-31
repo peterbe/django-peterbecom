@@ -13,7 +13,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.urlresolvers import reverse
 from django.db import transaction
 
-from peterbecom.base.helpers import thumbnail
+from peterbecom.base.templatetags.jinja_helpers import thumbnail
 from peterbecom.podcasttime.models import Podcast, Episode, Picked
 from peterbecom.podcasttime.forms import (
     CalendarDataForm,

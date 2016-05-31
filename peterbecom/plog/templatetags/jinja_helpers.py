@@ -1,9 +1,9 @@
 import textwrap
-from jingo import register
+from django_jinja import library
 from django.template.loader import render_to_string
-from .models import BlogItem
-from .timesince import smartertimesince
-from .utils import utc_now
+from peterbecom.plog.models import BlogItem
+from peterbecom.plog.timesince import smartertimesince
+from peterbecom.plog.utils import utc_now
 from django.conf import settings
 from django.template import Context
 from django.template.loader import get_template
@@ -11,7 +11,7 @@ from peterbecom.plog.models import BlogFile
 from sorl.thumbnail import get_thumbnail
 
 
-@register.function
+@library.global_function
 def show_comments(parent, is_staff, all_comments):
     if parent.__class__ == BlogItem:
         parent = None
@@ -29,7 +29,7 @@ def show_comments(parent, is_staff, all_comments):
     return '\n'.join(html)
 
 
-@register.function
+@library.global_function
 def line_indent(text, indent=' ' * 4):
     return '\n'.join(textwrap.wrap(
         text,
@@ -38,7 +38,7 @@ def line_indent(text, indent=' ' * 4):
     ))
 
 
-@register.function
+@library.global_function
 def timesince(date):
     if date.tzinfo:
         return smartertimesince(date, utc_now())
@@ -46,14 +46,14 @@ def timesince(date):
         return smartertimesince(date)
 
 
-@register.function
+@library.global_function
 def semanticuiform(form):
     template = get_template("semanticui/form.html")
     context = Context({'form': form})
     return template.render(context)
 
 
-@register.function
+@library.global_function
 def expand_carousel(html, post):
     if '::carousel::' in html:
         thumbnails = get_photos(post, '900x900')
@@ -63,7 +63,7 @@ def expand_carousel(html, post):
     return html
 
 
-@register.function
+@library.global_function
 def expand_carousel_thumbnails(html, post):
     if '::carousel::' in html:
         thumbnails = get_photos(post, '100x100')
@@ -101,6 +101,6 @@ def get_photos(post, size):
     }
 
 
-@register.function
+@library.global_function
 def min_(*args):
     return min(*args)
