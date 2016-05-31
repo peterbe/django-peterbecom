@@ -9,15 +9,19 @@ def stats_index(request):
 
     def get_totals(prefix):
         total_hits = total_misses = 0
-        for uri, count in redis.zrevrange('%s:hits' % prefix,
-                                       0, 100, withscores=True):
+        for uri, count in redis.zrevrange(
+            '%s:hits' % prefix,
+            0, 100, withscores=True
+        ):
             count = int(count)
             total_hits += count
             if uri not in urls:
                 urls[uri] = {'hits': 0, 'misses': 0}
             urls[uri]['hits'] += count
-        for uri, count in redis.zrevrange('%s:misses' % prefix,
-                                       0, 100, withscores=True):
+        for uri, count in redis.zrevrange(
+            '%s:misses' % prefix,
+            0, 100, withscores=True
+        ):
             count = int(count)
             total_misses += count
             if uri not in urls:
@@ -44,10 +48,12 @@ def stats_index(request):
             v['ratio'] = '%.1f%%' % (100.0 * v['misses'] / v['hits'])
         else:
             v['ratio'] = '--'
+
     def make_abs_url(url):
         if url.startswith('GET '):
             return url[4:]
         return None
+
     urls = [(make_abs_url(x), x, y['hits'], y['misses'], y['ratio'])
             for x, y in urls.items()]
     urls.sort(lambda x, y: cmp(y[1], x[1]))
