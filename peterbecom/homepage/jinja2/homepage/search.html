@@ -23,9 +23,11 @@ a.better { font-weight: bold; }
 {% endif %}
 
 {% if not q %}
-  <form class="form-search">
-    <input type="text" name="q" class="input-xlarge search-query">
-    <button type="submit" class="btn">Search</button>
+  <form class="ui search">
+    <div class="ui fluid huge icon  input">
+      <input type="text" name="q" placeholder="Search..." value="">
+      <i class="search icon"></i>
+    </div>
   </form>
 {% endif %}
 
