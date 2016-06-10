@@ -30,7 +30,7 @@ django-semanticui-form==0.0.1
 django-pipeline==1.5.4
 feedparser==5.2.1
 pyquery==1.2.13
-xmltodict==0.10.1
+xmltodict==0.10.2
 pyOpenSSL==16.0.0
 ndg-httpsclient==0.4.0
 pyasn1==0.1.9
