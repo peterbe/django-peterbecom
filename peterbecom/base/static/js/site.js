@@ -4,12 +4,12 @@ $(function() {
 
   // fix main menu to page on passing
   $('.main.menu').visibility({
-    type: 'fixed'
+    type: 'fixed',
   });
 
   // show dropdown on hover
   $('.main.menu .ui.dropdown').dropdown({
-    on: 'hover'
+    on: 'hover',
   });
 
   $('a.page-title-repeated').on('click', function() {
@@ -59,12 +59,12 @@ $(function() {
       .css({
         // Set height to prevent instant jumpdown when max height is removed
         'height': currentHeight,
-        'max-height': 9999
+        'max-height': 9999,
       })
       .animate({
         // Add a little 16px margin since that's excluded in the height
         // but something the last <p> tag's margin normally adds
-        'height': originalHeight + 16
+        'height': originalHeight + 16,
       });
 
     // fade out read-more
