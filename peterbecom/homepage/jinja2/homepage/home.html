@@ -9,6 +9,25 @@ h2 {
   padding-top: 40px;
   border-top: 1px solid #E8E9E9;
 }
+div.post.snippet {
+  max-height: 400px;
+  position: relative;
+  overflow: hidden;
+}
+div.post.snippet .read-more {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  margin: 0;
+  padding: 50px 0 15px 0;
+
+  /* "transparent" only works here because == rgba(0,0,0,0) */
+  background-image: -moz-linear-gradient(top, transparent, white);
+  background-image: linear-gradient(to bottom, transparent, white);
+  background-image: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.2), white);
+}
 </style>
 {% endblock %}
 
