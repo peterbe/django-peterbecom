@@ -40,3 +40,4 @@ pygments-lexer-babylon==0.12.0
 optisorl==0.2.1
 pytz==2016.4
 django-jinja==2.1.3
+https://github.com/imanhodjaev/django-auth0/archive/v0.0.2.zip

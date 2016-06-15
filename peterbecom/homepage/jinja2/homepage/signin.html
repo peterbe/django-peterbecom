@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title_prefix %}Sign In{% endblock %}
+
+{% block content %}
+
+{% if request.user.is_authenticated() %}
+<h3>
+  You are currently signed in as
+  {% if request.user.username %}
+  <code>{{ request.user.username }}</code>
+  {% else %}
+  <i>no username</i>
+  {% endif %}
+</h3>
+<h4>Email: {{ request.user.email }}</h4>
+<h4>Staff? {{ request.user.is_staff }}</h4>
+<h4>Superuser? {{ request.user.is_superuser }}</h4>
+<form action="{{ url('signout') }}" method="post">{% csrf_token %}
+  <button type="submit">Sign out</button>
+</form>
+{% else %}
+<h3>You are currently <i>not</i> signed in</h3>
+{% endif %}
+
+<div>
+  <button onclick="signin()">Sign In</button>
+</div>
+
+{% endblock %}
+
+
+{% block extrajs %}
+<script src="https://cdn.auth0.com/js/lock-9.1.min.js"></script>
+<script type="text/javascript">
+    var lock = new Auth0Lock('{{ AUTH0_CLIENT_ID }}', '{{ AUTH0_DOMAIN }}');
+    function signin() {
+        lock.show({
+            callbackURL: '{{ AUTH0_CALLBACK_URL }}',
+            responseType: 'code',
+            authParams: {
+                scope: 'openid profile'
+            }
+        });
+    }
+</script>
+{% endblock %}
