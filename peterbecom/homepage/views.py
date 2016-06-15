@@ -10,10 +10,13 @@ from cgi import escape as html_escape
 from django import http
 from django.core.cache import cache
 from django.shortcuts import render, get_object_or_404, redirect
+from django.views.decorators.http import require_POST
 from django.core.urlresolvers import reverse
 from django.contrib.sites.requests import RequestSite
 from django.views.decorators.cache import cache_control
+from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
+from django.conf import settings
 
 from peterbecom.plog.models import Category, BlogItem, BlogComment
 from peterbecom.plog.utils import utc_now
@@ -486,3 +489,19 @@ def celerytester(request):
             time.sleep(i)
         return http.HttpResponse('Did not work :(')
     return render(request, 'homepage/celerytester.html')
+
+
+def signin(request):
+    return render(request, 'homepage/signin.html', {
+        'page_title': 'Sign In'
+    })
+
+
+@require_POST
+def signout(request):
+    logout(request)
+    url = 'https://' + settings.AUTH0_DOMAIN + '/v2/logout'
+    url += '?' + urllib.urlencode({
+        'returnTo': settings.AUTH_SIGNOUT_URL,
+    })
+    return redirect(url)

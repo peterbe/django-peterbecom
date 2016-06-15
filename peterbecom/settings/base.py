@@ -111,6 +111,11 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'peterbecom.urls'
 
+AUTHENTICATION_BACKENDS = (
+    'peterbecom.base.auth_backend.AuthBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'peterbecom.wsgi.application'
 
@@ -123,6 +128,7 @@ _CONTEXT_PROCESSORS = (
     'django.core.context_processors.tz',
     'django.core.context_processors.request',
     'peterbecom.homepage.context_processors.context',
+    'django_auth0.context_processors.auth0',
 )
 
 TEMPLATES = [
@@ -177,6 +183,7 @@ INSTALLED_APPS = (
 
     'semanticuiform',
     'sorl.thumbnail',
+    'django_auth0',
 
     'peterbecom.base',
     'peterbecom.plog',
@@ -315,3 +322,11 @@ PINGDOM_RUM_ID = None
 os.environ['PYGMENTS_NODE_COMMAND'] = 'node'
 
 THUMBNAIL_BACKEND = 'optisorl.backend.OptimizingThumbnailBackend'
+
+AUTH0_DOMAIN = 'peterbecom.auth0.com'
+AUTH0_CLIENT_ID = 'YOU_CLIENT_ID'
+AUTH0_SECRET = 'YOUR_SECRET'
+AUTH0_CALLBACK_URL = 'https://www.peterbe.com/auth/callback'
+AUTH0_SUCCESS_URL = '/?logged=in'
+
+AUTH_SIGNOUT_URL = 'https://www.peterbe.com/?logged=out'

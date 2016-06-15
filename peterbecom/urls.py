@@ -55,6 +55,10 @@ urlpatterns = patterns(
         include('peterbecom.stats.urls')
     ),
     url(
+        r'^auth/',
+        include('django_auth0.urls')
+    ),
+    url(
         r'^plog/',
         include('peterbecom.plog.urls')
     ),
