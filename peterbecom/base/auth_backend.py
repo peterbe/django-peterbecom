@@ -8,8 +8,8 @@ class AuthBackend(object):
 
     def authenticate(self, **kwargs):
         try:
-            email = kwargs.pop('email')
-            username = kwargs.pop('nickname')
+            email = kwargs.pop('email', None)
+            username = kwargs.pop('nickname', None)
             print "KWARGS"
             from pprint import pprint
             pprint(kwargs)
