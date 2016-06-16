@@ -12,7 +12,7 @@ Pillow==3.2.0
 mincss==0.11.2
 django-fancy-cache==0.8.0
 cssmin==0.2.0
-cssselect==0.9.1
+cssselect==0.9.2
 BeautifulSoup==3.2.1
 hiredis==0.2.0
 redis==2.10.5
