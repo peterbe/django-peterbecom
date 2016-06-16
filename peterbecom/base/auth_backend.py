@@ -1,6 +1,12 @@
+import hashlib
+
 from django.contrib.auth import get_user_model
 
 UserModel = get_user_model()
+
+
+def hash_email(email):
+    return hashlib.md5(email).hexdigest()[:30]
 
 
 class AuthBackend(object):
@@ -22,6 +28,7 @@ class AuthBackend(object):
                 except UserModel.DoesNotExist:
                     user = UserModel.objects.create(
                         email=email,
+                        username=hash_email(email),
                     )
                 if not user.username:
                     user.username = username
