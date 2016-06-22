@@ -24,7 +24,10 @@
 {% endif %}
 
 <div>
-  <button onclick="signin()">Sign In</button>
+  <button onclick="signin(false)">Sign In</button>
+  <button onclick="signin(true, 'email')">Passwordless (Email)</button>
+  <button onclick="signin(true, 'sms')">Passwordless (SMS)</button>
+  <button onclick="signin(true, 'magiclink')">Passwordless (magic link)</button>
 </div>
 
 {% endblock %}
@@ -32,16 +35,36 @@
 
 {% block extrajs %}
 <script src="https://cdn.auth0.com/js/lock-9.1.min.js"></script>
+<script src="https://cdn.auth0.com/js/lock-passwordless-2.2.min.js"></script>
 <script type="text/javascript">
-    var lock = new Auth0Lock('{{ AUTH0_CLIENT_ID }}', '{{ AUTH0_DOMAIN }}');
-    function signin() {
-        lock.show({
-            callbackURL: '{{ AUTH0_CALLBACK_URL }}',
-            responseType: 'code',
-            authParams: {
-                scope: 'openid profile'
-            }
-        });
+function signin(passwordless, method) {
+  var lock;
+  if (passwordless) {
+    lock = new Auth0LockPasswordless('{{ AUTH0_CLIENT_ID }}', '{{ AUTH0_DOMAIN }}');
+    if (method === 'email') {
+      // lock.emailcode(function(error, profile, id_token, access_token, state, refresh_token) {
+      //   if (!error) {
+      //     alert("User has logged in");
+      //   }
+      // });
+      lock.emailcode({callbackURL: '{{ AUTH0_CALLBACK_URL }}'});
+    } else if (method === 'magiclink') {
+      lock.magiclink({closable: false});
+    } else if (method === 'sms') {
+      lock.sms({callbackURL: '{{ AUTH0_CALLBACK_URL }}'});
+    } else {
+      throw new Error(method);
     }
+  } else {
+    lock = new Auth0Lock('{{ AUTH0_CLIENT_ID }}', '{{ AUTH0_DOMAIN }}');
+    lock.show({
+        callbackURL: '{{ AUTH0_CALLBACK_URL }}',
+        responseType: 'code',
+        authParams: {
+            scope: 'openid profile'
+        }
+    });
+  }
+}
 </script>
 {% endblock %}
