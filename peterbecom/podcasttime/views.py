@@ -56,9 +56,11 @@ def find(request):
         return http.HttpResponseBadRequest('no ids or q')
 
     if request.GET.get('ids'):
-        ids = request.GET['ids'].split(',')
+        ids = [int(x) for x in request.GET['ids'].split(',')]
         found = Podcast.objects.filter(id__in=ids)
-        cache_key = 'podcastfind:ids:' + hashlib.md5(''.join(ids)).hexdigest()
+        # rearrange them in the order they were
+        found = sorted(found, key=lambda x: ids.index(x.id))
+        cache_key = 'podcastfind:ids:' + hashlib.md5(str(ids)).hexdigest()
     else:
         q = request.GET['q']
         cache_key = 'podcastfind:' + hashlib.md5(q.encode('utf8')).hexdigest()
@@ -356,10 +358,15 @@ def podcasts(request):
 def podcasts_data(request):
     context = {}
     search = request.GET.get('search', '').strip()
+    ids = request.GET.get('ids')
 
     podcasts = Podcast.objects.all()
     if search:
         podcasts = _search_podcasts(search, podcasts)
+
+    if ids:
+        ids = [int(x) for x in ids.split(',') if x.strip()]
+        podcasts = podcasts.filter(id__in=ids)
 
     podcasts = podcasts.order_by('-times_picked', 'name')
 
