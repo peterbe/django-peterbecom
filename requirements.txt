@@ -1,4 +1,4 @@
-psycopg2==2.6.1
+psycopg2==2.6.2
 Django==1.8.13
 Jinja2==2.8
 Pygments==2.1.3
