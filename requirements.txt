@@ -38,6 +38,6 @@ jsonfield==1.0.3
 awesome-slugify==1.6.5
 pygments-lexer-babylon==0.12.0
 optisorl==0.2.1
-pytz==2016.4
+pytz==2016.6
 django-jinja==2.1.3
 django-auth0==0.0.2
