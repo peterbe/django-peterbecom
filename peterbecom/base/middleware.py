@@ -3,9 +3,7 @@ import datetime
 import re
 import time
 
-
-from django.conf import settings
-from peterbecom.base.fscache import path_to_fs_path
+from peterbecom.base.fscache import path_to_fs_path, cache_request
 
 max_age_re = re.compile('max-age=(\d+)')
 
@@ -13,18 +11,7 @@ max_age_re = re.compile('max-age=(\d+)')
 class FSCacheMiddleware(object):
 
     def process_response(self, request, response):
-        if not settings.FSCACHE_ROOT:
-            # bail if it hasn't been set up
-            return response
-        if (
-            request.method == 'GET' and
-            request.path != '/' and
-            response.status_code == 200 and
-            not request.META.get('QUERY_STRING') and
-            not request.user.is_authenticated() and
-            # XXX TODO: Support JSON and xml
-            'text/html' in response['Content-Type']
-        ):
+        if cache_request(request, response):
             fs_path = path_to_fs_path(request.path)
             try:
                 seconds = int(

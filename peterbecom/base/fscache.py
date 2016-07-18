@@ -47,3 +47,35 @@ def invalidate_too_old(verbose=False):
                     if verbose:
                         print "INVALIDATE", path
                     invalidate(path)
+
+
+def cache_request(request, response):
+    if not settings.FSCACHE_ROOT:
+        # bail if it hasn't been set up
+        return False
+    if (
+        request.method == 'GET' and
+        request.path != '/' and
+        response.status_code == 200 and
+        not request.META.get('QUERY_STRING') and
+        not request.user.is_authenticated() and
+        # XXX TODO: Support JSON and xml
+        'text/html' in response['Content-Type']
+    ):
+        # let's iterate through some exceptions
+        not_starts = (
+            '/stats/',
+            '/search',
+            '/ajaxornot',
+            '/localvsxhr',
+            '/auth',
+            '/podcasttime',
+            '/nodomain',
+        )
+        for s in not_starts:
+            if request.path.startswith(s):
+                return False
+
+        return True
+
+    return False
