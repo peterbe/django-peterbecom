@@ -16,10 +16,10 @@ class AuthBackend(object):
         try:
             email = kwargs.pop('email', None)
             username = kwargs.pop('nickname', None)
-            print "KWARGS"
-            from pprint import pprint
-            pprint(kwargs)
-            print ("EMAIL", email, "USERNAME", username)
+            # print "KWARGS"
+            # from pprint import pprint
+            # pprint(kwargs)
+            # print ("EMAIL", email, "USERNAME", username)
             if email:
                 try:
                     user = UserModel.objects.get(
