@@ -16,6 +16,7 @@ def path_to_fs_path(path):
                 fs_path += '/' + directory
             if not os.path.isdir(fs_path):
                 os.mkdir(fs_path)
+                os.chmod(fs_path, 0755)
         return fs_path + '/index.html'
 
 
