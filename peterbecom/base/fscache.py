@@ -1,6 +1,7 @@
 import os
 import time
 import re
+import urlparse
 
 from django.conf import settings
 
@@ -34,6 +35,14 @@ def invalidate(fs_path):
     os.remove(fs_path)
     if os.path.isfile(fs_path + '.metadata'):
         os.remove(fs_path + '.metadata')
+
+
+def invalidate_by_url(url):
+    if not url.startswith('/'):
+        url = urlparse.urlparse(url).path
+    fs_path = settings.FSCACHE_ROOT + url + '/index.html'
+    if os.path.isfile(fs_path):
+        invalidate(fs_path)
 
 
 def invalidate_too_old(verbose=False, dry_run=False):
@@ -75,6 +84,7 @@ def cache_request(request, response):
     ):
         # let's iterate through some exceptions
         not_starts = (
+            '/plog/edit/',
             '/stats/',
             '/search',
             '/ajaxornot',

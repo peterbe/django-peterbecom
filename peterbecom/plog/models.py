@@ -1,12 +1,16 @@
 import hashlib
 import time
 import os
+
 import uuid
 from django.db import models
 from django.core.cache import cache
 from django.db.models.signals import post_save, pre_save, pre_delete
 from django.dispatch import receiver
+from django.core.urlresolvers import reverse
+
 from . import utils
+from peterbecom.base.fscache import invalidate_by_url
 
 
 class ArrayField(models.CharField):
@@ -301,3 +305,18 @@ def update_modify_date(sender, instance, **kwargs):
             instance.blogitem.save()
     else:
         raise NotImplementedError(sender)
+
+
+@receiver(post_save, sender=BlogComment)
+@receiver(post_save, sender=BlogItem)
+def invalidate_fscache(sender, instance, **kwargs):
+    if kwargs['raw']:
+        return
+    if sender is BlogItem:
+        url = reverse('blog_post', args=(instance.oid,))
+    elif sender is BlogComment:
+        url = reverse('blog_post', args=(instance.blogitem.oid,))
+    else:
+        raise NotImplementedError(sender)
+
+    invalidate_by_url(url)
