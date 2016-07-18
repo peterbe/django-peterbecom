@@ -15,7 +15,8 @@ class HomepageTestCase(TestCase):
     def setUp(self):
         super(HomepageTestCase, self).setUp()
         assert 'test' in settings.FSCACHE_ROOT
-        shutil.rmtree(settings.FSCACHE_ROOT)
+        if os.path.isdir(settings.FSCACHE_ROOT):
+            shutil.rmtree(settings.FSCACHE_ROOT)
 
     def test_homepage_cache_rendering(self):
         url = reverse('home')
