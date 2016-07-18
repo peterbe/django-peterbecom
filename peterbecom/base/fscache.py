@@ -36,17 +36,28 @@ def invalidate(fs_path):
         os.remove(fs_path + '.metadata')
 
 
-def invalidate_too_old(verbose=False):
+def invalidate_too_old(verbose=False, dry_run=False):
+    found = []
+    deleted = []
     for root, dirs, files in os.walk(settings.FSCACHE_ROOT):
         for file_ in files:
             if file_.endswith('.metadata'):
                 continue
             path = os.path.join(root, file_)
             if os.path.isfile(path + '.metadata'):
+                found.append(os.stat(path).st_size)
                 if too_old(path):
                     if verbose:
                         print "INVALIDATE", path
-                    invalidate(path)
+                    if not dry_run:
+                        invalidate(path)
+                        deleted.append(os.stat(path).st_size)
+                        # delete_empty_directory(path)
+    if verbose:
+        print "Found", len(found), "possible files"
+        mb = sum(found) / 1024.0 / 1024.0
+        print "Totalling", "%.1f MB" % mb
+        print "Deleted", len(deleted), "files"
 
 
 def cache_request(request, response):
