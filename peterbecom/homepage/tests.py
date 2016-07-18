@@ -1,11 +1,21 @@
 import datetime
+import os
+import shutil
+
 from django.core.urlresolvers import reverse
 from django.test import TestCase
+from django.conf import settings
+
 from peterbecom.plog.models import BlogItem, BlogComment, Category
 from peterbecom.plog.utils import utc_now
 
 
 class HomepageTestCase(TestCase):
+
+    def setUp(self):
+        super(HomepageTestCase, self).setUp()
+        assert 'test' in settings.FSCACHE_ROOT
+        shutil.rmtree(settings.FSCACHE_ROOT)
 
     def test_homepage_cache_rendering(self):
         url = reverse('home')
@@ -106,3 +116,11 @@ class HomepageTestCase(TestCase):
             assert each in response.content
         assert '?page=1' in response.content
         assert '?page=3' in response.content
+
+    def test_about_page_fs_cached(self):
+        fs_path = os.path.join(settings.FSCACHE_ROOT, 'about', 'index.html')
+        assert not os.path.isfile(fs_path)
+        url = reverse('about')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(os.path.isfile(fs_path))

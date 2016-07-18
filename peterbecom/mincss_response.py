@@ -7,7 +7,7 @@ import codecs
 import tempfile
 
 from django.core.cache import cache
-from django.utils import timezone
+# from django.utils import timezone
 
 from mincss.processor import Processor
 try:
@@ -41,14 +41,14 @@ def mincss_response(response, request):
             age_human = '%d seconds' % (age, )
         print "BUT!! It existed as a file!", age_human
 
-    t0 = time.time()
+    # t0 = time.time()
     r = _mincss_response(response, request)
-    t1 = time.time()
-    print "Running mincss_response for: %s (Took %.3fs) %s" % (
-        request.path + request.META.get('QUERY_STRING'),
-        t1 - t0,
-        timezone.now().isoformat()
-    )
+    # t1 = time.time()
+    # print "Running mincss_response for: %s (Took %.3fs) %s" % (
+    #     request.path + request.META.get('QUERY_STRING'),
+    #     t1 - t0,
+    #     timezone.now().isoformat()
+    # )
     return r
 
 
@@ -88,9 +88,9 @@ def _mincss_response(response, request):
         )
         return response
     cache.set(lock_key, True, 200)
-    print "Starting to mincss for: %s" % (
-        request.path + request.META.get('QUERY_STRING'),
-    )
+    # print "Starting to mincss for: %s" % (
+    #     request.path + request.META.get('QUERY_STRING'),
+    # )
     html = unicode(response.content, 'utf-8')
     t0 = time.time()
     p = Processor(
