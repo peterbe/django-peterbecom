@@ -1,29 +1,16 @@
 import codecs
 import datetime
-import os
 import re
 import time
 
 
 from django.conf import settings
+from peterbecom.base.fscache import path_to_fs_path
 
-
-file_extension_re = re.compile('\w+\.\w{2,4}$')
 max_age_re = re.compile('max-age=(\d+)')
 
 
 class FSCacheMiddleware(object):
-
-    @staticmethod
-    def path_to_fs_path(path):
-        if path.endswith('/') or not file_extension_re.findall(path):
-            fs_path = settings.FSCACHE_ROOT
-            for directory in path.split('/'):
-                if directory:
-                    fs_path += '/' + directory
-                if not os.path.isdir(fs_path):
-                    os.mkdir(fs_path)
-            return fs_path + '/index.html'
 
     def process_response(self, request, response):
         if not settings.FSCACHE_ROOT:
@@ -38,7 +25,7 @@ class FSCacheMiddleware(object):
             # XXX TODO: Support JSON and xml
             'text/html' in response['Content-Type']
         ):
-            fs_path = self.path_to_fs_path(request.path)
+            fs_path = path_to_fs_path(request.path)
             try:
                 seconds = int(
                     max_age_re.findall(response.get('Cache-Control'))[0]
