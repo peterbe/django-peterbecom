@@ -13,6 +13,9 @@ class FSCacheMiddleware(object):
     def process_response(self, request, response):
         if cache_request(request, response):
             fs_path = path_to_fs_path(request.path)
+            if not fs_path:
+                # exit early
+                return response
             try:
                 seconds = int(
                     max_age_re.findall(response.get('Cache-Control'))[0]
