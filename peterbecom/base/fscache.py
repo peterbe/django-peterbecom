@@ -10,6 +10,8 @@ file_extension_re = re.compile('\w+\.\w{2,4}$')
 
 
 def path_to_fs_path(path):
+    if not file_extension_re.findall(path):
+        print "SKIPPING", path
     if path.endswith('/') or not file_extension_re.findall(path):
         fs_path = settings.FSCACHE_ROOT
         for directory in path.split('/'):
