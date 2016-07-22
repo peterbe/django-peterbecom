@@ -9,12 +9,12 @@ h2 {
   padding-top: 40px;
   border-top: 1px solid #E8E9E9;
 }
-div.post.snippet {
+div.post.snippet { /* no mincss */
   max-height: 400px;
   position: relative;
   overflow: hidden;
 }
-div.post.snippet .read-more {
+div.post.snippet .read-more { /* no mincss */
   position: absolute;
   bottom: 0;
   left: 0;
@@ -27,6 +27,13 @@ div.post.snippet .read-more {
   background-image: -moz-linear-gradient(top, transparent, white);
   background-image: linear-gradient(to bottom, transparent, white);
   background-image: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.2), white);
+}
+div.post.snippet .read-more a { /* no mincss */
+  background-color: #fff;
+  padding: 4px 14px 8px 14px;
+  border: 1px solid #d6d6d6;
+  border-radius: .28571429rem;
+  box-shadow: 0 1px 2px 0 rgba(34,36,38,0.15);
 }
 </style>
 {% endblock %}

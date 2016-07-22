@@ -1,24 +1,19 @@
 import os
 import time
-import re
 import urlparse
 
 from django.conf import settings
 
 
-file_extension_re = re.compile('\w+\.\w{2,4}$')
-
-
 def path_to_fs_path(path):
-    if path.endswith('/') or not file_extension_re.findall(path):
-        fs_path = settings.FSCACHE_ROOT
-        for directory in path.split('/'):
-            if directory:
-                fs_path += '/' + directory
-            if not os.path.isdir(fs_path):
-                os.mkdir(fs_path)
-                os.chmod(fs_path, 0755)
-        return fs_path + '/index.html'
+    fs_path = settings.FSCACHE_ROOT
+    for directory in path.split('/'):
+        if directory:
+            fs_path += '/' + directory
+        if not os.path.isdir(fs_path):
+            os.mkdir(fs_path)
+            os.chmod(fs_path, 0755)
+    return fs_path + '/index.html'
 
 
 def too_old(fs_path):
