@@ -250,7 +250,7 @@ PIPELINE_UGLIFYJS_BINARY = path('node_modules/.bin/uglifyjs')
 PIPELINE_UGLIFYJS_ARGUMENTS = '--mangle'
 # PIPELINE_CSS_COMPRESSOR = 'pipeline.compressors.cssmin.CSSMinCompressor'
 # PIPELINE_CSSMIN_BINARY = path('node_modules/.bin/cssmin')
-CSS_COMPRESSOR = 'pipeline.compressors.NoopCompressor'
+PIPELINE_CSS_COMPRESSOR = 'pipeline.compressors.NoopCompressor'
 
 # Don't wrap javascript code in... `(...code...)();`
 # because possibly much code has been built with the assumption that things
