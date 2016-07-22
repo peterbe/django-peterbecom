@@ -54,8 +54,8 @@ def invalidate_too_old(verbose=False, dry_run=False):
                     if verbose:
                         print "INVALIDATE", path
                     if not dry_run:
-                        invalidate(path)
                         deleted.append(os.stat(path).st_size)
+                        invalidate(path)
                         # delete_empty_directory(path)
     if verbose:
         print "Found", len(found), "possible files"
