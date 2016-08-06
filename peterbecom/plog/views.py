@@ -96,9 +96,9 @@ def _blog_post_key_prefixer(request):
     return prefix
 
 
-@cache_control(public=True, max_age=7 * 24 * 60 * 60)
+@cache_control(public=True, max_age=ONE_MONTH)
 @cache_page(
-    ONE_WEEK,
+    ONE_MONTH,
     _blog_post_key_prefixer,
     post_process_response=mincss_response
 )

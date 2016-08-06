@@ -9,9 +9,14 @@ class Command(BaseCommand):
         parser.add_argument(
             '--dry-run',
             action='store_true',
-            # dest='delete',
             default=False,
             help='Print instead of deleting'
+        )
+        parser.add_argument(
+            '--revisit',
+            action='store_true',
+            default=False,
+            help='Try to request the original URL again'
         )
 
     def handle(self, **options):
@@ -19,4 +24,5 @@ class Command(BaseCommand):
         invalidate_too_old(
             verbose=options['verbosity'] >= 1,
             dry_run=options['dry_run'],
+            revisit=options['revisit'],
         )

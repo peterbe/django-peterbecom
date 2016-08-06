@@ -2,7 +2,10 @@ import os
 import time
 import urlparse
 
+import requests
+
 from django.conf import settings
+from django.contrib.sites.models import Site
 
 
 def path_to_fs_path(path):
@@ -40,7 +43,24 @@ def invalidate_by_url(url):
         invalidate(fs_path)
 
 
-def invalidate_too_old(verbose=False, dry_run=False):
+def delete_empty_directory(filepath):
+    dirpath = os.path.dirname(filepath)
+    if not os.listdir(dirpath):
+        os.rmdir(dirpath)
+
+
+def revisit_url(path):
+    path = path.replace('/index.html', '')
+    path = path.replace(settings.FSCACHE_ROOT, '')
+    site = Site.objects.get_current()
+    secure = getattr(settings, 'FSCACHE_SECURE_SITE', True)
+    base_url = secure and 'https://' or 'http://'
+    base_url += site.domain
+    url = urlparse.urljoin(base_url, path)
+    print 'REVISIT', url, requests.get(url).status_code
+
+
+def invalidate_too_old(verbose=False, dry_run=False, revisit=False):
     found = []
     deleted = []
     for root, dirs, files in os.walk(settings.FSCACHE_ROOT):
@@ -56,7 +76,9 @@ def invalidate_too_old(verbose=False, dry_run=False):
                     if not dry_run:
                         deleted.append(os.stat(path).st_size)
                         invalidate(path)
-                        # delete_empty_directory(path)
+                        delete_empty_directory(path)
+                        if revisit:
+                            revisit_url(path)
     if verbose:
         print "Found", len(found), "possible files"
         mb = sum(found) / 1024.0 / 1024.0
