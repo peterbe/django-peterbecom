@@ -40,6 +40,7 @@ logger = logging.getLogger('homepage')
 ONE_HOUR = 60 * 60
 ONE_DAY = ONE_HOUR * 24
 ONE_WEEK = ONE_DAY * 7
+ONE_MONTH = ONE_WEEK * 4
 
 
 def _home_key_prefixer(request):
@@ -61,7 +62,7 @@ def _home_key_prefixer(request):
             qs = qs.filter(cat_q)
         latest, = qs.order_by('-modify_date').values('modify_date')[:1]
         latest_date = latest['modify_date'].strftime('%f')
-        cache.set(cache_key, latest_date, 60 * 60 * 12)
+        cache.set(cache_key, latest_date, ONE_DAY)
     prefix += str(latest_date)
 
     try:
@@ -72,9 +73,9 @@ def _home_key_prefixer(request):
     return prefix
 
 
-@cache_control(public=True, max_age=12 * 60 * 60)
+@cache_control(public=True, max_age=ONE_DAY)
 @cache_page(
-    60 * 60 * 12,  # 12 hours
+    ONE_DAY,
     key_prefix=_home_key_prefixer,
     post_process_response=mincss_response
 )
@@ -372,8 +373,8 @@ def search(request):
     return render(request, 'homepage/search.html', data)
 
 
-@cache_control(public=True, max_age=24 * 60 * 60)
-@cache_page(ONE_DAY, post_process_response=mincss_response)
+@cache_control(public=True, max_age=ONE_WEEK)
+@cache_page(ONE_WEEK, post_process_response=mincss_response)
 def about(request):
     context = {
         'page_title': 'About this site',
@@ -381,8 +382,8 @@ def about(request):
     return render(request, 'homepage/about.html', context)
 
 
-@cache_control(public=True, max_age=24 * 60 * 60)
-@cache_page(ONE_DAY, post_process_response=mincss_response)
+@cache_control(public=True, max_age=ONE_WEEK)
+@cache_page(ONE_WEEK, post_process_response=mincss_response)
 def contact(request):
     context = {
         'page_title': 'Contact me',
@@ -390,7 +391,7 @@ def contact(request):
     return render(request, 'homepage/contact.html', context)
 
 
-@cache_page(60 * 60 * 24)
+@cache_page(ONE_WEEK)
 def sitemap(request):
     base_url = 'http://%s' % RequestSite(request).domain
 
@@ -465,7 +466,7 @@ def blog_post_by_alias(request, alias):
     return http.HttpResponsePermanentRedirect(url)
 
 
-@cache_page(24 * 60 * 60)
+@cache_page(ONE_MONTH)
 def humans_txt(request):
     return render(
         request,
