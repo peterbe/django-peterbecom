@@ -2,11 +2,11 @@ import os
 import time
 import re
 import logging
-import hashlib
+# import hashlib
 import codecs
 import tempfile
 
-from django.core.cache import cache
+# from django.core.cache import cache
 # from django.utils import timezone
 
 from mincss.processor import Processor
@@ -28,18 +28,18 @@ if not os.path.isdir(cache_save_dir):
 
 
 def mincss_response(response, request):
-    html, age = _get_mincssed_html(
-        request.path + request.META.get('QUERY_STRING')
-    )
-
-    if html is not None:
-        if age > 60 * 60:
-            age_human = '%.1f hours' % (age / 3600.0)
-        elif age > 60:
-            age_human = '%.1f minutes' % (age / 60.0)
-        else:
-            age_human = '%d seconds' % (age, )
-        print "BUT!! It existed as a file!", age_human
+    # html, age = _get_mincssed_html(
+    #     request.path + request.META.get('QUERY_STRING')
+    # )
+    #
+    # if html is not None:
+    #     if age > 60 * 60:
+    #         age_human = '%.1f hours' % (age / 3600.0)
+    #     elif age > 60:
+    #         age_human = '%.1f minutes' % (age / 60.0)
+    #     else:
+    #         age_human = '%d seconds' % (age, )
+    #     print "BUT!! It existed as a file!", age_human
 
     # t0 = time.time()
     r = _mincss_response(response, request)
@@ -80,14 +80,14 @@ def _mincss_response(response, request):
     if abs_uri.startswith('http://testserver'):
         return response
 
-    lock_key = 'lock:' + hashlib.md5(request.path).hexdigest()
-    if cache.get(lock_key):
-        # we're actively busy prepping this one
-        print "Bailing because mincss_response is already busy for: %s" % (
-            request.path + request.META.get('QUERY_STRING'),
-        )
-        return response
-    cache.set(lock_key, True, 200)
+    # lock_key = 'lock:' + hashlib.md5(request.path).hexdigest()
+    # if cache.get(lock_key):
+    #     # we're actively busy prepping this one
+    #     print "Bailing because mincss_response is already busy for: %s" % (
+    #         request.path + request.META.get('QUERY_STRING'),
+    #     )
+    #     return response
+    # cache.set(lock_key, True, 200)
     # print "Starting to mincss for: %s" % (
     #     request.path + request.META.get('QUERY_STRING'),
     # )
@@ -162,9 +162,9 @@ Saving:           %.fKb
         (t2 - t1) * 1000,
     ))
 
-    _save_mincssed_html(
-        request.path + request.META.get('QUERY_STRING'),
-        html
-    )
+    # _save_mincssed_html(
+    #     request.path + request.META.get('QUERY_STRING'),
+    #     html
+    # )
     response.content = html.encode('utf-8')
     return response
