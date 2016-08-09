@@ -65,10 +65,10 @@ def _home_key_prefixer(request):
         cache.set(cache_key, latest_date, ONE_DAY)
     prefix += str(latest_date)
 
-    try:
-        redis_increment('homepage:hits', request)
-    except Exception:
-        logger.error('Unable to redis.zincrby', exc_info=True)
+    # try:
+    #     redis_increment('homepage:hits', request)
+    # except Exception:
+    #     logger.error('Unable to redis.zincrby', exc_info=True)
 
     return prefix
 
