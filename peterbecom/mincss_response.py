@@ -2,14 +2,18 @@ import os
 import time
 import re
 import logging
-# import hashlib
+import hashlib
 import codecs
 import tempfile
 
+try:
+    import ujson as json
+except ImportError:
+    import json
 # from django.core.cache import cache
 # from django.utils import timezone
 
-from mincss.processor import Processor
+from mincss.processor import Processor, InlineResult, LinkResult
 try:
     import cssmin
 except ImportError:
@@ -25,6 +29,85 @@ _link_regex = re.compile('<link.*?>', re.M | re.DOTALL)
 cache_save_dir = os.path.join(tempfile.gettempdir(), 'mincssed_responses')
 if not os.path.isdir(cache_save_dir):
     os.mkdir(cache_save_dir)
+
+
+class CachedProcessor(Processor):
+
+    def __init__(self, *args, **kwargs):
+        super(CachedProcessor, self).__init__(*args, **kwargs)
+        self.cache_dir = os.path.join(
+            tempfile.gettempdir(),
+            'cached-mincss-processor'
+        )
+        if not os.path.isdir(self.cache_dir):
+            os.mkdir(self.cache_dir)
+        self.result = None
+
+    def process_html(self, html, url):
+        hash_filename = hashlib.md5(
+            html.encode('utf-8') + url
+        ).hexdigest() + '.json'
+        hash_filepath = os.path.join(
+            self.cache_dir,
+            hash_filename
+        )
+        self.hash_filepath = hash_filepath
+        if os.path.isfile(hash_filepath):
+            age = time.time() - os.stat(hash_filepath).st_mtime
+            if age < 60 * 60 * 24 * 7:
+                with codecs.open(hash_filepath, 'r', 'utf-8') as f:
+                    self.result = json.load(f)
+                    return
+            else:
+                os.remove(hash_filepath)
+
+        super(CachedProcessor, self).process_html(html, url)
+
+    def process(self, *urls):
+        if urls:
+            raise NotImplementedError(urls)
+        if self.result:
+            print "YAY! Reading from disk cache"
+            self.inlines = [
+                InlineResult(
+                    x['line'],
+                    x['url'],
+                    x['before'],
+                    x['after'],
+                )
+                for x in self.result['inlines']
+            ]
+            self.links = [
+                LinkResult(
+                    x['href'],
+                    x['before'],
+                    x['after'],
+                )
+                for x in self.result['links']
+            ]
+        else:
+            super(CachedProcessor, self).process()
+            print self.hash_filepath
+            with codecs.open(self.hash_filepath, 'w', 'utf-8') as f:
+                json.dump({
+                    'links': [
+                        {
+                            'href': x.href,
+                            'before': x.before,
+                            'after': x.after,
+                        }
+                        for x in self.links
+                    ],
+                    'inlines': [
+                        {
+                            'line': x.line,
+                            'url': x.url,
+                            'before': x.before,
+                            'after': x.after
+                        }
+                        for x in self.inlines
+                    ],
+                }, f)
 
 
 def mincss_response(response, request):
@@ -93,7 +176,8 @@ def _mincss_response(response, request):
     # )
     html = unicode(response.content, 'utf-8')
     t0 = time.time()
-    p = Processor(
+    # p = Processor(
+    p = CachedProcessor(
         preserve_remote_urls=True,
     )
     p.process_html(html, abs_uri)
@@ -133,11 +217,11 @@ def _mincss_response(response, request):
 /*
 Stats about using github.com/peterbe/mincss
 -------------------------------------------
-Requests:         %s (now: 0)
-Before:           %.fKb
-After:            %.fKb
-After (minified): %.fKb
-Saving:           %.fKb
+Requests:             %s (now: 0)
+Before:               %.fKb
+After:                %.fKb
+After (minified):     %.fKb
+Saving:               %.fKb
 */"""
     stats_css = template % (
         _requests_before,
@@ -146,6 +230,16 @@ Saving:           %.fKb
         _total_after_min / 1024.,
         (_total_before - _total_after) / 1024.
     )
+    stats_css = stats_css.replace(
+        '*/',
+        'Time to process:      %.2fms\n'
+        'Time to post-process: %.2fms\n'
+        '*/' % (
+            (t1 - t0) * 1000,
+            (t2 - t1) * 1000,
+        )
+    )
+    print stats_css
     combined_css.insert(0, stats_css)
     new_style = (
         '<style type="text/css">\n%s\n</style>' %

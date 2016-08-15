@@ -41,3 +41,4 @@ optisorl==0.2.1
 pytz==2016.6
 django-jinja==2.2.0
 django-auth0==0.0.2
+ujson==1.35
