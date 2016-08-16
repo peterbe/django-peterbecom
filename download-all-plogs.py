@@ -21,8 +21,11 @@ def download(urls, max=100, sleeptime=1):
         'User-Agent': 'download-all-plots.py/requests 1.0',
     }
     for url in urls[:max]:
-        print url,
-        print requests.get(url, headers=headers).status_code
+        print url.ljust(80),
+        t0 = time.time()
+        r = requests.get(url, headers=headers)
+        t1 = time.time()
+        print r.status_code, '\t', '%.2fs' % (t1 - t0)
         time.sleep(sleeptime)
 
 
