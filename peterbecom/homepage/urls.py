@@ -8,7 +8,7 @@ import views
 urlpatterns = patterns(
     '',
     url('^$', views.home, name='home'),
-    url(r'(.*?)/?rss.xml$', cache_page(60 * 60)(PlogFeed())),
+    url(r'(.*?)/?rss.xml$', cache_page(60 * 60 * 6)(PlogFeed())),
     url('^search$', views.search, name='search'),
     url('^About$', lambda x: HttpResponsePermanentRedirect('/about/')),
     url('^about$', views.about, name='about'),
