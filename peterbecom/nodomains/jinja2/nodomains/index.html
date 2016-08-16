@@ -65,6 +65,22 @@ li span.times {
 tbody tr td:first-child {
   vertical-align: top;
 }
+
+/* Discontinued */
+.discontinued {
+  position: relative;
+}
+.discontinued .old {
+  opacity: 0.1;
+}
+.discontinued .notice {
+  z-index: 2;
+  opacity: 0.8;
+  width: 100%;
+  position: absolute;
+  text-align: center;
+  margin: 40px;
+}
 </style>
 {% endblock %}
 
@@ -73,23 +89,36 @@ tbody tr td:first-child {
 
 {% block content %}
 
-<p class="lead">Are you curious how many different domains a given web page depends on?</p>
+<div class="discontinued">
+  <div class="notice">
+    <p>
+      The ability to submit your own URL has been discontinued.
+    </p>
+    <p>
+      A much more robust tool that does the same, and many many things more,
+      is <a href="https://www.webpagetest.org/">WebPagetest.org</a>.
+    </p>
+  </div>
+  <div class="old">
+    <p class="lead">Are you curious how many different domains a given web page depends on?</p>
 
-<p>
-<b>Yes?</b> Then enter a URL in the field below and hope it works.<br>
-<b>No?</b> That's cool. Here's a <a href="http://www.kulturpop.com/wp-content/uploads/2012/12/41633-cats-cute-cat.jpg">cute cat</a>.
-</p>
+    <p>
+    <b>Yes?</b> Then enter a URL in the field below and hope it works.<br>
+    <b>No?</b> That's cool. Here's a <a href="http://www.kulturpop.com/wp-content/uploads/2012/12/41633-cats-cute-cat.jpg">cute cat</a>.
+    </p>
 
-<form class="form-submit form-inline" method="post">
-  {% csrf_token %}
-    <div class="ui action input" style="width:90%">
-      <input type="text" name="url" class="form-control input-lg search-query"
-      placeholder="http://www.somethingsomething.com/..."
-      >
-      <button type="submit" class="ui button">Go!</button>
-      <!-- <button type="submit" class="btn btn-primary btn-lg">Go!</button> -->
-    </div>
-</form>
+    <form class="form-submit form-inline" method="post">
+      {% csrf_token %}
+        <div class="ui action input" style="width:90%">
+          <input type="text" name="url" class="form-control input-lg search-query"
+          placeholder="http://www.somethingsomething.com/..."
+          >
+          <button type="submit" class="ui button">Go!</button>
+          <!-- <button type="submit" class="btn btn-primary btn-lg">Go!</button> -->
+        </div>
+    </form>
+  </div>
+</div>
 
 <div class="row" id="loading" style="display:none">
   <p><b class="blinking">Loading loading loading...</b></p>

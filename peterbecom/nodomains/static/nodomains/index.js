@@ -28,6 +28,7 @@ $(function() {
   });
 
   $('form.form-submit').submit(function() {
+    return false;
     if (resubmit_interval) clearInterval(resubmit_interval);
     if (countdown_interval) clearInterval(countdown_interval);
     $('#error_output').hide();
