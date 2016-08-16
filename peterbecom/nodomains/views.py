@@ -33,6 +33,7 @@ def index(request):
 @require_POST
 @json_view
 def run(request):
+    return http.HttpResponseBadRequest('Service discontinued.')
     url = request.POST['url']
     if url.isdigit():
         raise NotImplementedError(url)
