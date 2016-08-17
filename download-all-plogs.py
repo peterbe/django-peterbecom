@@ -18,9 +18,20 @@ def get_urls():
 
 def download(urls, max=100, sleeptime=1):
     headers = {
-        'User-Agent': 'download-all-plots.py/requests 1.0',
+        'User-Agent': 'download-all-plogs.py/requests 1.0',
     }
     for url in urls[:max]:
+        print url.ljust(80),
+        t0 = time.time()
+        r = requests.get(url, headers=headers)
+        t1 = time.time()
+        print r.status_code, '\t', '%.2fs' % (t1 - t0)
+        time.sleep(sleeptime)
+
+    # also download a bunch of pages of the home page
+    url_start = 'https://www.peterbe.com/?page='
+    for i in range(2, max / 2):
+        url = url_start + str(i)
         print url.ljust(80),
         t0 = time.time()
         r = requests.get(url, headers=headers)
