@@ -18,7 +18,7 @@ hiredis==0.2.0
 redis==2.10.5
 zope.structuredtext==4.1.0
 Unidecode==0.04.19
-requests==2.11.0
+requests==2.11.1
 six==1.10.0
 django-nose==1.4.4
 nose==1.3.7
