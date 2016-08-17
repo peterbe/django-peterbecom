@@ -30,7 +30,7 @@ def download(urls, max=100, sleeptime=1):
 
     # also download a bunch of pages of the home page
     url_start = 'https://www.peterbe.com/?page='
-    for i in range(2, max / 2):
+    for i in range(2, max):
         url = url_start + str(i)
         print url.ljust(80),
         t0 = time.time()
