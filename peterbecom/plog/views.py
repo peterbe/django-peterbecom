@@ -181,7 +181,7 @@ def blog_post(request, oid):
     data['comments_truncated'] = comments_truncated
     data['all_comments'] = all_comments
     data['related'] = get_related_posts(post)
-    data['related'] = get_related_posts(post)
+    print data['related'].query
     data['show_buttons'] = not settings.DEBUG
     data['show_fusion_ad'] = not settings.DEBUG
     data['home_url'] = request.build_absolute_uri('/')
