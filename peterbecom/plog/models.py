@@ -70,7 +70,6 @@ class BlogItem(models.Model):
     pub_date = models.DateTimeField(db_index=True)
     display_format = models.CharField(max_length=20)
     categories = models.ManyToManyField(Category)
-    keywords = ArrayField(max_length=500)
     # this will be renamed to "keywords" later
     proper_keywords = PGArrayField(
         models.CharField(max_length=100),

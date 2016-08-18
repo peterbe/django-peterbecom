@@ -158,7 +158,6 @@ class PlogTestCase(TestCase):
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, 200)
         # self.assertTrue('Some &lt;script&gt; TITLE' in response.content)
-        print repr(response.content)
         self.assertTrue('This is<br' in response.content)
         self.assertTrue('<em>great</em>' in response.content)
         self.assertTrue('<code>verbatim</code>' in response.content)
