@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render
 
 from peterbecom.plog.views import json_view
 from peterbecom.plog.models import BlogItem, Category
@@ -31,7 +31,7 @@ def get_data(max_length=1000, pub_date_format=None, offset=0):
             'title': item.title,
             'slug': item.oid,
             'pub_date': pub_date,
-            'keywords': [x for x in item.keywords if x][:3],
+            'keywords': [x for x in item.proper_keywords if x][:3],
             'categories': categories[item.id][:3],
         })
     return items

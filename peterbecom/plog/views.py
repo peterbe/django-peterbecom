@@ -23,8 +23,8 @@ from django.utils import timezone
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
 from .models import BlogItem, BlogComment, Category, BlogFile
 from .utils import render_comment_text, valid_email, utc_now
-from peterbecom.redisutils import get_redis_connection
-from peterbecom.rediscounter import redis_increment
+# from peterbecom.redisutils import get_redis_connection
+# from peterbecom.rediscounter import redis_increment
 from fancy_cache import cache_page
 from peterbecom.mincss_response import mincss_response
 from . import utils
@@ -83,10 +83,10 @@ def _blog_post_key_prefixer(request):
     prefix += str(latest_date)
 
     if not all_comments:
-        try:
-            redis_increment('plog:hits', request)
-        except Exception:
-            logging.error('Unable to redis.zincrby', exc_info=True)
+        # try:
+        #     redis_increment('plog:hits', request)
+        # except Exception:
+        #     logging.error('Unable to redis.zincrby', exc_info=True)
 
         # temporary solution because I can't get Google Analytics API to work
         ua = request.META.get('HTTP_USER_AGENT', '')
@@ -139,10 +139,10 @@ def blog_post(request, oid):
     ):
         return http.HttpResponsePermanentRedirect(request.path)
 
-    try:
-        redis_increment('plog:misses', request)
-    except Exception:
-        logging.error('Unable to redis.zincrby', exc_info=True)
+    # try:
+    #     redis_increment('plog:misses', request)
+    # except Exception:
+    #     logging.error('Unable to redis.zincrby', exc_info=True)
 
     # attach a field called `_absolute_url` which depends on the request
     base_url = 'https://' if request.is_secure() else 'http://'
@@ -224,39 +224,14 @@ def all_blog_post_comments(request, oid):
 
 
 def get_related_posts(post):
-    cache_key = 'related_ids:%s' % post.pk
-    related_pks = cache.get(cache_key)
-    if related_pks is None:
-        related_pks = _get_related_pks(post)
-        cache.set(cache_key, related_pks, ONE_DAY)
-
-    return (
-        BlogItem.objects.filter(pk__in=related_pks)
-        .exclude(plogrank__isnull=True)
-        .order_by('-plogrank')[:12]
-    )
-
-
-def _get_related_pks(post):
-    redis = get_redis_connection(reconnection_wrapped=True)
-    count_keywords = redis.get('kwcount')
-    if not count_keywords:
-        for p in (BlogItem.objects
-                  .filter(pub_date__lt=utc_now())):
-            for keyword in p.keywords:
-                redis.sadd('kw:%s' % keyword, p.pk)
-                redis.incr('kwcount')
-
-    _keywords = post.keywords
-    _related = defaultdict(int)
-    for i, keyword in enumerate(_keywords):
-        ids = redis.smembers('kw:%s' % keyword)
-        for pk in ids:
-            pk = int(pk)
-            if pk != post.pk:
-                _related[pk] += (len(_keywords) - i)
-    items = sorted(((v, k) for (k, v) in _related.items()), reverse=True)
-    return [y for (x, y) in items]
+    if not post.proper_keywords:
+        return BlogItem.objects.none()
+    return BlogItem.objects.filter(
+        proper_keywords__overlap=post.proper_keywords,
+        pub_date__lt=timezone.now()
+    ).exclude(
+        id=post.id,
+    ).order_by('-pub_date')[:10]
 
 
 def _render_comment(comment):
@@ -586,17 +561,11 @@ def add_post(request):
                 codesyntax=form.cleaned_data['codesyntax'],
                 url=form.cleaned_data['url'],
                 pub_date=form.cleaned_data['pub_date'],
-                keywords=keywords,
+                proper_keywords=keywords,
             )
             for category in form.cleaned_data['categories']:
                 blogitem.categories.add(category)
             blogitem.save()
-
-            redis = get_redis_connection(reconnection_wrapped=True)
-            for keyword in keywords:
-                if not redis.smembers('kw:%s' % keyword):
-                    redis.sadd('kw:%s' % keyword, blogitem.pk)
-                    redis.incr('kwcount')
 
             url = reverse('edit_post', args=[blogitem.oid])
             return redirect(url)
@@ -630,20 +599,16 @@ def edit_post(request, oid):
             blogitem.display_format = form.cleaned_data['display_format']
             blogitem.codesyntax = form.cleaned_data['codesyntax']
             blogitem.pub_date = form.cleaned_data['pub_date']
-            keywords = [x.strip() for x
-                        in form.cleaned_data['keywords'].splitlines()
-                        if x.strip()]
-            blogitem.keywords = keywords
+            keywords = [
+                x.strip() for x
+                in form.cleaned_data['keywords'].splitlines()
+                if x.strip()
+            ]
+            blogitem.proper_keywords = keywords
             blogitem.categories.clear()
             for category in form.cleaned_data['categories']:
                 blogitem.categories.add(category)
             blogitem.save()
-
-            redis = get_redis_connection(reconnection_wrapped=True)
-            for keyword in keywords:
-                if not redis.smembers('kw:%s' % keyword):
-                    redis.sadd('kw:%s' % keyword, blogitem.pk)
-                    redis.incr('kwcount')
 
             url = reverse('edit_post', args=[blogitem.oid])
             return redirect(url)

@@ -1,13 +1,14 @@
 import hashlib
 import time
 import os
-
 import uuid
+
 from django.db import models
 from django.core.cache import cache
 from django.db.models.signals import post_save, pre_save, pre_delete
 from django.dispatch import receiver
 from django.core.urlresolvers import reverse
+from django.contrib.postgres.fields import ArrayField as PGArrayField
 
 from . import utils
 from peterbecom.base.fscache import invalidate_by_url
@@ -70,6 +71,11 @@ class BlogItem(models.Model):
     display_format = models.CharField(max_length=20)
     categories = models.ManyToManyField(Category)
     keywords = ArrayField(max_length=500)
+    # this will be renamed to "keywords" later
+    proper_keywords = PGArrayField(
+        models.CharField(max_length=100),
+        default=[]
+    )
     plogrank = models.FloatField(null=True)
     codesyntax = models.CharField(max_length=20, blank=True)
     disallow_comments = models.BooleanField(default=False)
