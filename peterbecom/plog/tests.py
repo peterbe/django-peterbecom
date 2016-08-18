@@ -67,15 +67,6 @@ class PlogTestCase(TestCase):
 
         assert len(render_counts) == 2, render_counts
 
-        self.assertTrue(
-            self.redis.zrange('plog:hits', 0, -1, withscores=True),
-            [('/plog/some-longish-test-post', 5.0)]
-        )
-        self.assertTrue(
-            self.redis.zrange('plog:misses', 0, -1, withscores=True),
-            [('/plog/some-longish-test-post', 1.0)]
-        )
-
     def test_blog_post_with_comment_approval(self):
         blog = BlogItem.objects.create(
             oid='some-longish-test-post',
@@ -167,6 +158,7 @@ class PlogTestCase(TestCase):
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, 200)
         # self.assertTrue('Some &lt;script&gt; TITLE' in response.content)
+        print repr(response.content)
         self.assertTrue('This is<br' in response.content)
         self.assertTrue('<em>great</em>' in response.content)
         self.assertTrue('<code>verbatim</code>' in response.content)

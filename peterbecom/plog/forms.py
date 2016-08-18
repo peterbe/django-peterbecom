@@ -12,7 +12,9 @@ from peterbecom.plog.models import BlogItem, BlogFile, Category
 class MultilineTextarea(Textarea):
     def render(self, name, value, attrs=None):
         if value:
-            value = '\n'.join(value)
+            # print "VALUE", repr(value)
+            # value = '\n'.join(value)
+            value = value.replace(',', '\n')
         return super(MultilineTextarea, self).render(name, value, attrs=attrs)
 
 
@@ -21,7 +23,7 @@ class BlogForm(forms.ModelForm):
     class Meta:
         model = BlogItem
         exclude = ('alias', 'bookmark', 'text_rendered', 'plogrank',
-                   'modify_date')
+                   'modify_date', 'keywords')
 
     def __init__(self, *args, **kwargs):
         super(BlogForm, self).__init__(*args, **kwargs)
@@ -30,10 +32,10 @@ class BlogForm(forms.ModelForm):
             ('structuredtext', 'structuredtext'),
             ('markdown', 'markdown'),
         ]
-        self.fields['keywords'].widget = MultilineTextarea()
+        self.fields['proper_keywords'].widget = MultilineTextarea()
         self.fields['url'].required = False
         self.fields['summary'].required = False
-        self.fields['keywords'].required = False
+        self.fields['proper_keywords'].required = False
 
         all_categories = dict(
             Category.objects.all().values_list('id', 'name')

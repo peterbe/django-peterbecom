@@ -17,11 +17,12 @@ from django.views.decorators.cache import cache_control
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
+from django.utils import timezone
 
 from peterbecom.plog.models import Category, BlogItem, BlogComment
 from peterbecom.plog.utils import utc_now
-from peterbecom.redisutils import get_redis_connection
-from peterbecom.rediscounter import redis_increment
+# from peterbecom.redisutils import get_redis_connection
+# from peterbecom.rediscounter import redis_increment
 from .utils import (
     parse_ocs_to_categories,
     make_categories_q,
@@ -94,10 +95,10 @@ def home(request, oc=None):
     if request.method == 'HEAD':
         return http.HttpResponse('')
 
-    try:
-        redis_increment('homepage:misses', request)
-    except Exception:
-        logger.error('Unable to redis.zincrby', exc_info=True)
+    # try:
+    #     redis_increment('homepage:misses', request)
+    # except Exception:
+    #     logger.error('Unable to redis.zincrby', exc_info=True)
 
     BATCH_SIZE = 10
     try:
@@ -207,7 +208,6 @@ def search(request):
     if len(search) > 1:
         _keyword_keys = ('keyword', 'keywords', 'category', 'categories')
         search, keyword_search = split_search(search, _keyword_keys)
-    redis = get_redis_connection(reconnection_wrapped=True)
 
     not_ids = defaultdict(set)
     times = []
@@ -252,19 +252,20 @@ def search(request):
                 fields = ('title', 'text')
                 order_by = '-pub_date'
                 if keyword_search.get('keyword'):
-                    # use Redis!
-                    ids = redis.smembers('kw:%s' % keyword_search['keyword'])
-                    if ids:
-                        qs = qs.filter(pk__in=ids)
+                    qs = qs.filter(
+                        proper_keywords__contains=[keyword_search['keyword']]
+                    )
                 if keyword_search.get('keywords'):
-                    # use Redis!
-                    ids = []
-                    for each in [x.strip() for x
-                                 in keyword_search['keywords'].split(',')
-                                 if x.strip()]:
-                        ids.extend(redis.smembers('kw:%s' % each))
-                    if ids:
-                        qs = qs.filter(pk__in=ids)
+                    keywords = keyword_search['keywords']
+                    keywords = [
+                        x.strip() for x in keywords.split(
+                            ',' in keywords and ',' or None
+                        )
+                        if x.strip()
+                    ]
+                    qs = qs.filter(
+                        proper_keywords__overlap=keywords
+                    )
             elif model == BlogComment:
                 fields = ('comment',)
                 order_by = '-add_date'
@@ -300,19 +301,29 @@ def search(request):
         logger.info('Searchin for %r:\n%s' % (search, '\n'.join(times)))
     elif keyword_search and any(keyword_search.values()):
         t0 = time.time()
+
         if keyword_search.get('keyword') or keyword_search.get('keywords'):
             if keyword_search.get('keyword'):
-                ids = redis.smembers('kw:%s' % keyword_search['keyword'])
-            else:
-                ids = []
-                for each in [x.strip() for x
-                             in keyword_search.get('keywords').split(',')
-                             if x.strip()]:
-                    ids.extend(redis.smembers('kw:%s' % each))
-            if ids:
-                items = BlogItem.objects.filter(pk__in=ids)
-                model_name = BlogItem._meta.object_name
-                append_queryset_search(items, '-pub_date', [], model_name)
+                assert isinstance(keyword_search['keyword'], basestring)
+                items = BlogItem.objects.filter(
+                    pub_date__lt=timezone.now(),
+                    proper_keywords__contains=[keyword_search['keyword']]
+                ).order_by('-pub_date')
+            elif keyword_search.get('keywords'):
+                keywords = keyword_search['keywords']
+                keywords = [
+                    x.strip() for x in keywords.split(
+                        ',' in keywords and ',' or None
+                    )
+                    if x.strip()
+                ]
+                items = BlogItem.objects.filter(
+                    pub_date__lt=timezone.now(),
+                    proper_keywords__overlap=keywords
+                ).order_by('-pub_date')
+
+            model_name = BlogItem._meta.object_name
+            append_queryset_search(items, '-pub_date', [], model_name)
 
         if keyword_search.get('category') or keyword_search.get('categories'):
             if keyword_search.get('category'):
@@ -360,12 +371,14 @@ def search(request):
         else:
             page_title += ' (but only %s things shown)' % count_documents_shown
     data['page_title'] = page_title
-
     if (
         not data['count_documents'] and
         len(search.split()) == 1 and not keyword_search
     ):
-        if redis.smembers('kw:%s' % search):
+        if BlogItem.objects.filter(
+            proper_keywords__overlap=[search],
+            pub_date__lt=timezone.now()
+        ):
             url = reverse('search')
             url += '?' + urllib.urlencode({'q': 'keyword:%s' % search})
             return redirect(url)
