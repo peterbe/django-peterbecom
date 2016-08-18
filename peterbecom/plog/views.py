@@ -549,7 +549,7 @@ def add_post(request):
         if form.is_valid():
             keywords = [
                 x.strip() for x
-                in form.cleaned_data['keywords'].splitlines()
+                in form.cleaned_data['proper_keywords'][0].splitlines()
                 if x.strip()
             ]
             blogitem = BlogItem.objects.create(
@@ -601,7 +601,7 @@ def edit_post(request, oid):
             blogitem.pub_date = form.cleaned_data['pub_date']
             keywords = [
                 x.strip() for x
-                in form.cleaned_data['keywords'].splitlines()
+                in form.cleaned_data['proper_keywords'][0].splitlines()
                 if x.strip()
             ]
             blogitem.proper_keywords = keywords
