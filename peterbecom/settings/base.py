@@ -191,7 +191,6 @@ INSTALLED_APPS = (
     'peterbecom.base',
     'peterbecom.plog',
     'peterbecom.homepage',
-    'peterbecom.stats',
     'peterbecom.nodomains',
     'peterbecom.ajaxornot',
     'peterbecom.localvsxhr',

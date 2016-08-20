@@ -51,10 +51,6 @@ urlpatterns = patterns(
         include('peterbecom.podcasttime.urls', namespace='podcasttime')
     ),
     url(
-        r'^stats/',
-        include('peterbecom.stats.urls')
-    ),
-    url(
         r'^auth/',
         include('django_auth0.urls')
     ),
