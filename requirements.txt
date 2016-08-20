@@ -14,8 +14,6 @@ django-fancy-cache==0.8.0
 cssmin==0.2.0
 cssselect==0.9.2
 BeautifulSoup==3.2.1
-hiredis==0.2.0
-redis==2.10.5
 zope.structuredtext==4.1.0
 Unidecode==0.04.19
 requests==2.11.1

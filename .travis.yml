@@ -16,9 +16,6 @@ branches:
   only:
   - master
 
-services:
-  - redis-server
-
 install:
   - bin/travis/install.sh
 before_script:

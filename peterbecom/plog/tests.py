@@ -7,15 +7,12 @@ from django.conf import settings
 from django.test import TestCase, Client
 from peterbecom.plog.models import BlogItem, BlogComment, Category
 from peterbecom.plog.utils import utc_now
-from peterbecom.redisutils import get_redis_connection
 
 
 class PlogTestCase(TestCase):
 
     def setUp(self):
         super(PlogTestCase, self).setUp()
-        self.redis = get_redis_connection()
-        self.redis.flushdb()
 
     def _login(self):
         admin = User.objects.create(
