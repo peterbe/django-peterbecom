@@ -23,8 +23,6 @@ from django.utils import timezone
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
 from .models import BlogItem, BlogComment, Category, BlogFile
 from .utils import render_comment_text, valid_email, utc_now
-# from peterbecom.redisutils import get_redis_connection
-# from peterbecom.rediscounter import redis_increment
 from fancy_cache import cache_page
 from peterbecom.mincss_response import mincss_response
 from . import utils
@@ -83,11 +81,6 @@ def _blog_post_key_prefixer(request):
     prefix += str(latest_date)
 
     if not all_comments:
-        # try:
-        #     redis_increment('plog:hits', request)
-        # except Exception:
-        #     logging.error('Unable to redis.zincrby', exc_info=True)
-
         # temporary solution because I can't get Google Analytics API to work
         ua = request.META.get('HTTP_USER_AGENT', '')
         if 'bot' not in ua.lower():
@@ -138,11 +131,6 @@ def blog_post(request, oid):
         (request.GET.get('replypath') or request.GET.get('show-comments'))
     ):
         return http.HttpResponsePermanentRedirect(request.path)
-
-    # try:
-    #     redis_increment('plog:misses', request)
-    # except Exception:
-    #     logging.error('Unable to redis.zincrby', exc_info=True)
 
     # attach a field called `_absolute_url` which depends on the request
     base_url = 'https://' if request.is_secure() else 'http://'

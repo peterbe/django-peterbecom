@@ -191,7 +191,6 @@ INSTALLED_APPS = (
     'peterbecom.base',
     'peterbecom.plog',
     'peterbecom.homepage',
-    'peterbecom.stats',
     'peterbecom.nodomains',
     'peterbecom.ajaxornot',
     'peterbecom.localvsxhr',
@@ -257,18 +256,6 @@ PIPELINE_CSS_COMPRESSOR = 'pipeline.compressors.NoopCompressor'
 # will be made available globally.
 PIPELINE_DISABLE_WRAPPER = True
 
-# CACHES = {
-#     'default': {
-#         'BACKEND': 'redis_cache.RedisCache',
-#         'LOCATION': 'localhost:6379',
-#         'OPTIONS': {
-#             'DB': 1,
-#             #'PASSWORD': 'yadayada',
-#             #'PARSER_CLASS': 'redis.connection.HiredisParser'
-#         },
-#     },
-# }
-
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
@@ -278,22 +265,8 @@ CACHES = {
     }
 }
 
-
-REDIS_BACKENDS = {
-    'master': 'redis://localhost:6379?socket_timeout=0.5',
-    'titles': 'redis://localhost:6379?db=9',
-}
-
-# BROKER_URL = "redis://localhost:6379/0"
 BROKER_URL = "django://"
 BROKER_CONNECTION_TIMEOUT = 0.1
-# BROKER_TRANSPORT = 'redis'
-# CELERY_IMPORTS = (
-#     "peterbecom.plog.tasks",
-#     "peterbecom.homepage.tasks",
-#     "peterbecom.nodomains.tasks",
-#     "peterbecom.podcasttime.tasks",
-# )
 CELERYD_CONCURRENCY = 2
 CELERY_ALWAYS_EAGER = False
 CELERY_IGNORE_RESULT = True

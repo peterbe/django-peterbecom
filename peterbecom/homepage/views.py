@@ -21,8 +21,6 @@ from django.utils import timezone
 
 from peterbecom.plog.models import Category, BlogItem, BlogComment
 from peterbecom.plog.utils import utc_now
-# from peterbecom.redisutils import get_redis_connection
-# from peterbecom.rediscounter import redis_increment
 from .utils import (
     parse_ocs_to_categories,
     make_categories_q,
@@ -66,11 +64,6 @@ def _home_key_prefixer(request):
         cache.set(cache_key, latest_date, ONE_DAY)
     prefix += str(latest_date)
 
-    # try:
-    #     redis_increment('homepage:hits', request)
-    # except Exception:
-    #     logger.error('Unable to redis.zincrby', exc_info=True)
-
     return prefix
 
 
@@ -94,11 +87,6 @@ def home(request, oc=None):
     # Reasons for not being here
     if request.method == 'HEAD':
         return http.HttpResponse('')
-
-    # try:
-    #     redis_increment('homepage:misses', request)
-    # except Exception:
-    #     logger.error('Unable to redis.zincrby', exc_info=True)
 
     BATCH_SIZE = 10
     try:
