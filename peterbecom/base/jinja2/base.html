@@ -64,6 +64,7 @@
      selectors. #}
   <div class="ui borderless main menu fixed" style="display:none"></div>
 
+  {% if request.path != '/plog/blogitem-040601-1' %}
   <div class="ui borderless main menu">
     <div class="ui text container">
 
@@ -100,6 +101,7 @@
       </div>
     </div>
   </div>
+  {% endif %}
 
   <div class="ui text container">
     {% block content %}

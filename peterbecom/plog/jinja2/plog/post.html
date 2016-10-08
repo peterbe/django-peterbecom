@@ -20,6 +20,7 @@
 {% block page_header_extra %}
   {% set count = post.count_comments() %}
 
+  {% if request.path != '/plog/blogitem-040601-1' %}
   <p>
     {{ post.pub_date.strftime('%d %B %Y') }}
     &nbsp;
@@ -35,6 +36,7 @@
          >{{ category.name }}</a>{% if not loop.last %}, {% endif %}
     {% endfor %}
   </p>
+  {% endif %}
 
   {% if post.url %}
   <h4><a href="{{ post.url }}">{{ post.url }}</a></h4>
