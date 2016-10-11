@@ -27,7 +27,7 @@ subprocess32==3.2.7
 django-semanticui-form==0.0.1
 django-pipeline==1.5.4
 feedparser==5.2.1
-pyquery==1.2.14
+pyquery==1.2.15
 xmltodict==0.10.2
 pyOpenSSL==16.0.0
 ndg-httpsclient==0.4.2
