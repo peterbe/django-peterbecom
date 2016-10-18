@@ -35,7 +35,7 @@ class Command(BaseCommand):
         now = utc_now()
         verbose = int(options['verbosity']) > 1
 
-        base_url = 'http://%s' % Site.objects.all()[0].domain
+        base_url = 'https://%s' % Site.objects.all()[0].domain
         qs = models.BlogItem.objects.filter(pub_date__lte=now).order_by('?')
         if not options['all']:
             qs = qs[:options['max']]

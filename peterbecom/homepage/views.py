@@ -121,7 +121,7 @@ def search(request):
     if len(search) > 90:
         return http.HttpResponse("Search too long")
     documents = []
-    data['base_url'] = 'http://%s' % RequestSite(request).domain
+    data['base_url'] = 'https://%s' % RequestSite(request).domain
     tag_strip = re.compile('<[^>]+>')
 
     def append_match(item, words):
@@ -394,7 +394,7 @@ def contact(request):
 
 @cache_page(ONE_WEEK)
 def sitemap(request):
-    base_url = 'http://%s' % RequestSite(request).domain
+    base_url = 'https://%s' % RequestSite(request).domain
 
     urls = []
     urls.append('<?xml version="1.0" encoding="iso-8859-1"?>')

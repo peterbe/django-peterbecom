@@ -386,7 +386,7 @@ def _approve_comment(blogcomment):
 
 
 def _get_comment_body(blogitem, blogcomment):
-    base_url = 'http://%s' % Site.objects.get_current().domain
+    base_url = 'https://%s' % Site.objects.get_current().domain
     approve_url = reverse(
         'approve_comment', args=[blogitem.oid, blogcomment.oid]
     )
@@ -405,7 +405,7 @@ def _get_comment_body(blogitem, blogcomment):
 
 
 def _get_comment_reply_body(blogitem, blogcomment, parent):
-    base_url = 'http://%s' % Site.objects.get_current().domain
+    base_url = 'https://%s' % Site.objects.get_current().domain
     template = loader.get_template('plog/comment_reply_body.txt')
     context = {
         'post': blogitem,

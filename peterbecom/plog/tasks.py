@@ -6,7 +6,7 @@ from .models import BlogItemHits
 
 
 site = Site.objects.get_current()
-base_url = 'http://%s' % site.domain
+base_url = 'https://%s' % site.domain
 
 
 @task()
