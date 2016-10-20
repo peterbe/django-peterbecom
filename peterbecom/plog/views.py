@@ -57,7 +57,12 @@ def _blog_post_key_prefixer(request):
     else:
         oid = request.path.split('/')[-1]
 
-    cache_key = 'latest_comment_add_date:%s' % hashlib.md5(oid).hexdigest()
+    try:
+        cache_key = 'latest_comment_add_date:%s' % hashlib.md5(oid).hexdigest()
+    except UnicodeEncodeError:
+        # If the 'oid' can't be converted to ascii, then it's not likely
+        # to be a valid 'oid'.
+        return None
     latest_date = cache.get(cache_key)
     if latest_date is None:
         try:
