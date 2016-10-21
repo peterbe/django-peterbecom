@@ -8,7 +8,7 @@ django-celery==3.1.17
 django-celery-email==1.1.4
 Markdown==2.6.6
 sorl-thumbnail==12.3
-Pillow==3.4.1
+Pillow==3.4.2
 mincss==0.11.2
 django-fancy-cache==0.8.0
 cssmin==0.2.0
