@@ -128,6 +128,12 @@ def blog_post(request, oid):
                 return redirect(reverse('add_post'))
             raise http.Http404(oid)
 
+    # If you try to view a blog post that is beyond one day in the
+    # the future it should raise a 404 error.
+    future = timezone.now() + datetime.timedelta(days=1)
+    if post.pub_date > future:
+        raise http.Http404('not published yet')
+
     # Reasons for not being here
     if request.method == 'HEAD':
         return http.HttpResponse('')
