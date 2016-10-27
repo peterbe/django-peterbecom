@@ -4,6 +4,12 @@
   {% if post.proper_keywords %}
     <meta name="keywords" content="{{ ','.join(post.proper_keywords) }}">
   {% endif %}
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ post.title }}">
+<meta name="twitter:description" content="{{ post.summary }}">
+<meta name="twitter:creator" content="@peterbe">
+
   <style>
   span.not-approved { /* no mincss */
     float:right;
