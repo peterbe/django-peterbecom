@@ -23,7 +23,7 @@ class BlogForm(forms.ModelForm):
     class Meta:
         model = BlogItem
         exclude = ('alias', 'bookmark', 'text_rendered', 'plogrank',
-                   'modify_date', 'keywords')
+                   'modify_date', 'keywords', 'screenshot_image')
 
     def __init__(self, *args, **kwargs):
         super(BlogForm, self).__init__(*args, **kwargs)
