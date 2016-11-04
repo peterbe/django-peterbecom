@@ -1,15 +1,20 @@
 {% extends "base.html" %}
 
 {% block extrahead %}
-  {% if post.proper_keywords %}
-    <meta name="keywords" content="{{ ','.join(post.proper_keywords) }}">
+  {% if screenshot_mode %}
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="canonical" href="{{ post._absolute_url }}">
+  {% else %}
+
+    {% if post.proper_keywords %}
+      <meta name="keywords" content="{{ ','.join(post.proper_keywords) }}">
+    {% endif %}
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ post.title }}">
+    <meta name="twitter:description" content="{{ post.summary }}">
+    <meta name="twitter:creator" content="@peterbe">
+
   {% endif %}
-
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{{ post.title }}">
-<meta name="twitter:description" content="{{ post.summary }}">
-<meta name="twitter:creator" content="@peterbe">
-
   <style>
   span.not-approved { /* no mincss */
     float:right;

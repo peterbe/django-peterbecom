@@ -101,7 +101,6 @@ def _blog_post_key_prefixer(request):
     post_process_response=mincss_response
 )
 def blog_post(request, oid):
-
     # temporary debugging
     if request.method == 'GET':
         print "blog_post.MISS (%r, %r, %s)" % (
@@ -116,6 +115,15 @@ def blog_post(request, oid):
             return http.HttpResponseBadRequest('invalid URL')
         return redirect(request.path + '/all-comments', permanent=True)
 
+    return _render_blog_post(request, oid)
+
+
+def blog_screenshot(request, oid):
+    response = _render_blog_post(request, oid, screenshot_mode=True)
+    return response
+
+
+def _render_blog_post(request, oid, screenshot_mode=False):
     if oid.endswith('/'):
         oid = oid[:-1]
     try:
@@ -148,17 +156,20 @@ def blog_post(request, oid):
     base_url += RequestSite(request).domain
     post._absolute_url = base_url + reverse('blog_post', args=(post.oid,))
 
-    data = {
+    context = {
         'post': post,
+        'screenshot_mode': screenshot_mode,
     }
     try:
-        data['previous_post'] = post.get_previous_by_pub_date()
+        context['previous_post'] = post.get_previous_by_pub_date()
     except BlogItem.DoesNotExist:
-        data['previous_post'] = None
+        context['previous_post'] = None
     try:
-        data['next_post'] = post.get_next_by_pub_date(pub_date__lt=utc_now())
+        context['next_post'] = post.get_next_by_pub_date(
+            pub_date__lt=utc_now()
+        )
     except BlogItem.DoesNotExist:
-        data['next_post'] = None
+        context['next_post'] = None
 
     comments = (
         BlogComment.objects
@@ -177,17 +188,21 @@ def blog_post(request, oid):
     all_comments = defaultdict(list)
     for comment in comments:
         all_comments[comment.parent_id].append(comment)
-    data['comments_truncated'] = comments_truncated
-    data['all_comments'] = all_comments
-    data['related'] = get_related_posts(post)
-    data['show_buttons'] = (
+    context['comments_truncated'] = comments_truncated
+    context['all_comments'] = all_comments
+    context['related'] = get_related_posts(post)
+    context['show_buttons'] = (
+        not screenshot_mode and
         not settings.DEBUG and
         request.path != '/plog/blogitem-040601-1'
     )
-    data['show_fusion_ad'] = not settings.DEBUG
-    data['home_url'] = request.build_absolute_uri('/')
-    data['page_title'] = post.title
-    return render(request, 'plog/post.html', data)
+    context['show_fusion_ad'] = (
+        not screenshot_mode and
+        not settings.DEBUG
+    )
+    context['home_url'] = request.build_absolute_uri('/')
+    context['page_title'] = post.title
+    return render(request, 'plog/post.html', context)
 
 
 @cache_control(public=True, max_age=7 * 24 * 60 * 60)

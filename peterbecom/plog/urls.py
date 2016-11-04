@@ -31,5 +31,6 @@ urlpatterns = patterns(
         views.all_blog_post_comments,
         name='all_plog_post_comments'
     ),
+    url('^screenshot/(.*)', views.blog_screenshot, name='blog_screenshot'),
     url('^(.*)', views.blog_post, name='blog_post'),
 )
