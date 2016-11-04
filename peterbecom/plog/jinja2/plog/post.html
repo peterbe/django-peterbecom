@@ -14,6 +14,17 @@
     <meta name="twitter:description" content="{{ post.summary }}">
     <meta name="twitter:creator" content="@peterbe">
 
+    <meta property="og:url" content="{{ post._absolute_url }}">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="{{ post.title }}">
+    <meta property="og:description" content="{{ post.summary }}" />
+
+    {% if screenshot_image %}
+    <meta name="twitter:image" content="{{ screenshot_image.url }}">
+    <meta property="og:image" content="{{ screenshot_image.url }}">
+    {% endif %}
+
+
   {% endif %}
   <style>
   span.not-approved { /* no mincss */

@@ -2,6 +2,9 @@ import hashlib
 import time
 import os
 import uuid
+import urllib2
+import datetime
+import unicodedata
 
 from django.db import models
 from django.core.cache import cache
@@ -9,8 +12,13 @@ from django.db.models.signals import post_save, pre_save, pre_delete
 from django.dispatch import receiver
 from django.core.urlresolvers import reverse
 from django.contrib.postgres.fields import ArrayField as PGArrayField
+from django.core.files import File
+from django.core.files.temp import NamedTemporaryFile
+
+from sorl.thumbnail import ImageField
 
 from . import utils
+from peterbecom.plog import screenshot
 from peterbecom.base.fscache import invalidate_by_url
 
 
@@ -43,6 +51,28 @@ class Category(models.Model):
 
     def __unicode__(self):
         return self.name
+
+
+def _upload_path_tagged(tag, instance, filename):
+    if isinstance(filename, unicode):
+        filename = (
+            unicodedata
+            .normalize('NFD', filename)
+            .encode('ascii', 'ignore')
+        )
+    now = datetime.datetime.utcnow()
+    path = os.path.join(
+        now.strftime('%Y'),
+        now.strftime('%m'),
+        now.strftime('%d')
+    )
+    hashed_filename = hashlib.md5(filename + str(now.microsecond)).hexdigest()
+    __, extension = os.path.splitext(filename)
+    return os.path.join(tag, path, hashed_filename + extension)
+
+
+def _upload_to_blogitem(instance, filename):
+    return _upload_path_tagged('blogitems', instance, filename)
 
 
 class BlogItem(models.Model):
@@ -80,6 +110,7 @@ class BlogItem(models.Model):
     disallow_comments = models.BooleanField(default=False)
     hide_comments = models.BooleanField(default=False)
     modify_date = models.DateTimeField(default=utils.utc_now)
+    screenshot_image = ImageField(upload_to=_upload_to_blogitem, null=True)
 
     def __repr__(self):
         return '<%s: %r>' % (self.__class__.__name__, self.oid)
@@ -156,6 +187,20 @@ class BlogItem(models.Model):
         if not value:
             raise cls.DoesNotExist("not found")
         return cls.objects.get(pk=value)
+
+    def update_screenshot_image(self, base_url):
+        url = base_url + reverse('blog_screenshot', args=(self.oid,))
+        png_url = screenshot.get_image_url(url)
+
+        img_temp = NamedTemporaryFile(delete=True)
+        img_temp.write(urllib2.urlopen(png_url).read())
+        img_temp.flush()
+
+        self.screenshot_image.save(
+            'screenshot.{}.png'.format(self.oid),
+            File(img_temp)
+        )
+        return png_url
 
 
 class BlogItemHits(models.Model):

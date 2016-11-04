@@ -171,6 +171,16 @@ def _render_blog_post(request, oid, screenshot_mode=False):
     except BlogItem.DoesNotExist:
         context['next_post'] = None
 
+    if post.screenshot_image:
+        context['screenshot_image'] = thumbnail(
+            post.screenshot_image,
+            '1280x1000',
+            # upscale=False,
+            quality=90
+        )
+    else:
+        context['screenshot_image'] = None
+
     comments = (
         BlogComment.objects
         .filter(blogitem=post)
