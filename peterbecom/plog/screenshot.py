@@ -23,7 +23,7 @@ def get_image_url(url, width=1280, height=1000, sign_url=True):
         sign_url=sign_url,
     )
 
-    url = re.findall('src="(.*)"', img_tag)[0]
+    url = re.findall('src="([^"]+)"', img_tag)[0]
     url = url.replace('http://', 'https://')
 
     return url
