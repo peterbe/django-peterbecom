@@ -175,9 +175,13 @@ def _render_blog_post(request, oid, screenshot_mode=False):
         context['screenshot_image'] = thumbnail(
             post.screenshot_image,
             '1280x1000',
-            # upscale=False,
             quality=90
-        )
+        ).url
+        if context['screenshot_image'].startswith('//'):
+            # facebook is not going to like that
+            context['screenshot_image'] = (
+                'https:' + context['screenshot_image']
+            )
     else:
         context['screenshot_image'] = None
 
