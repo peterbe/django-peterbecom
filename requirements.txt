@@ -38,6 +38,6 @@ pygments-lexer-babylon==0.12.0
 optisorl==0.2.1
 pytz==2016.6
 django-jinja==2.2.0
-django-auth0==0.0.2
+django-auth0==0.0.3
 ujson==1.35
 cloudinary==1.4.0
