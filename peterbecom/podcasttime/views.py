@@ -1,17 +1,16 @@
 import datetime
-import hashlib
 import random
 
 from django import http
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Sum, Min, Max, Count, Q
 from django.core.cache import cache
-from django.conf import settings
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.urlresolvers import reverse
 from django.db import transaction
+from django.contrib.sites.requests import RequestSite
 
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
 from peterbecom.podcasttime.models import Podcast, Episode, Picked
@@ -39,6 +38,19 @@ def random_string(length):
     return ''.join(pool[:length])
 
 
+def make_absolute_url(uri, request):
+    prefix = request.is_secure() and 'https' or 'http'
+    if uri.startswith('//'):
+        # we only need the prefix
+        return '%s:%s' % (prefix, uri)
+    else:
+        return '%s://%s%s' % (
+            prefix,
+            RequestSite(request).domain,
+            uri
+        )
+
+
 def index(request):
     context = {}
     context['page_title'] = "Podcast Time"
@@ -55,39 +67,79 @@ def find(request):
     if not (request.GET.get('ids') or request.GET.get('q')):
         return http.HttpResponseBadRequest('no ids or q')
 
+    found = []
+    max_ = 5
+    q = None
+
     if request.GET.get('ids'):
         ids = [int(x) for x in request.GET['ids'].split(',')]
         found = Podcast.objects.filter(id__in=ids)
         # rearrange them in the order they were
         found = sorted(found, key=lambda x: ids.index(x.id))
-        cache_key = 'podcastfind:ids:' + hashlib.md5(str(ids)).hexdigest()
+    elif request.GET.get('itunes'):
+        q = request.GET['q']
+        matches = itunes_search(q, attribute='titleTerm')
+        for result in matches['results']:
+            # pod = {
+            #     'image_url': result['artworkUrl600'],
+            #     'itunes_url': result['collectionViewUrl'],
+            #     'artist_name': result['artistName'],
+            #     'tags': result['genres'],
+            #     'name': result['collectionName'],
+            #     # 'feed_url': result['feedUrl'],
+            # }
+            try:
+                podcast = Podcast.objects.get(
+                    url=result['feedUrl'],
+                    name=result['collectionName']
+                )
+            except Podcast.DoesNotExist:
+                podcast = Podcast.objects.create(
+                    name=result['collectionName'],
+                    url=result['feedUrl'],
+                    itunes_lookup=result,
+                    image_url=result['artworkUrl600'],
+                )
+                # podcast.download_image()
+                download_episodes_task.delay(podcast.id)
+                # episodes will be created and downloaded by the cron job
+                # don't delay
+                redownload_podcast_image(podcast.id)
+                # Reload since the task functions operate on a new instance
+                podcast = Podcast.objects.get(id=podcast.id)
+            found.append(podcast)
     else:
         q = request.GET['q']
-        cache_key = 'podcastfind:' + hashlib.md5(q.encode('utf8')).hexdigest()
         items = []
-        found = []
-        max_ = 10
+
+        # import time
+        # time.sleep(random.randint(1,4))
+
+        podcasts = Podcast.objects.filter(name__istartswith=q)
+        for podcast in podcasts[:max_]:
+            found.append(podcast)
         if len(q) > 2:
             sql = (
                 "to_tsvector('english', name) @@ "
                 "plainto_tsquery('english', %s)"
             )
-            podcasts = Podcast.objects.all().extra(
+            podcasts = Podcast.objects.all().exclude(
+                id__in=[x.id for x in found]
+            ).extra(
                 where=[sql],
                 params=[q]
             )[:max_]
             for podcast in podcasts[:max_]:
+                if len(found) >= max_:
+                    break
                 found.append(podcast)
-        podcasts = Podcast.objects.filter(name__istartswith=q).exclude(
-            id__in=[x.id for x in found]
-        )
-        for podcast in podcasts[:max_]:
-            found.append(podcast)
         if len(q) > 1:
             podcasts = Podcast.objects.filter(name__icontains=q).exclude(
                 id__in=[x.id for x in found]
             )
             for podcast in podcasts[:max_]:
+                if len(found) >= max_:
+                    break
                 found.append(podcast)
 
     def episodes_meta(podcast):
@@ -112,68 +164,65 @@ def find(request):
             cache.set(episodes_cache_key, meta, 60 * 60 * 24)
         return meta
 
-    items = cache.get(cache_key)
-    if items is None:
-        items = []
-        for podcast in found:
+    items = []
+    for podcast in found:
 
-            if podcast.image and is_html_document(podcast.image.path):
-                print "Found a podcast.image that wasn't an image"
+        if podcast.image and is_html_document(podcast.image.path):
+            print "Found a podcast.image that wasn't an image"
+            podcast.image = None
+            podcast.save()
+        if podcast.image:
+            if podcast.image.size < 1000:
+                print "IMAGE LOOKS SUSPICIOUS"
+                print podcast.image_url
+                print repr(podcast), podcast.id
+                print podcast.url
+                print repr(podcast.image.read())
+                podcast.download_image()
+        thumb_url = None
+        if podcast.image:
+            try:
+                thumb_url = thumbnail(
+                    podcast.image,
+                    '100x100',
+                    quality=81,
+                    upscale=False
+                ).url
+                thumb_url = make_absolute_url(thumb_url, request)
+            except IOError:
+                import sys
+                print "BAD IMAGE!"
+                print sys.exc_info()
+                print repr(podcast.image)
+                print repr(podcast), podcast.url
+                print
                 podcast.image = None
                 podcast.save()
-            if podcast.image:
-                if podcast.image.size < 1000:
-                    print "IMAGE LOOKS SUSPICIOUS"
-                    print podcast.image_url
-                    print repr(podcast), podcast.id
-                    print podcast.url
-                    print repr(podcast.image.read())
-                    podcast.download_image()
-            thumb_url = None
-            if podcast.image:
-                try:
-                    thumb_url = thumbnail(
-                        podcast.image,
-                        '100x100',
-                        quality=81,
-                        upscale=False
-                    ).url
-                except IOError:
-                    import sys
-                    print "BAD IMAGE!"
-                    print sys.exc_info()
-                    print repr(podcast.image)
-                    print repr(podcast), podcast.url
-                    print
-                    podcast.image = None
-                    podcast.save()
-                    redownload_podcast_image.delay(podcast.id)
-            else:
                 redownload_podcast_image.delay(podcast.id)
+        else:
+            redownload_podcast_image.delay(podcast.id)
 
-            # Temporarily put here
-            if podcast.itunes_lookup is None:
-                fetch_itunes_lookup.delay(podcast.id)
+        # Temporarily put here
+        if podcast.itunes_lookup is None:
+            fetch_itunes_lookup.delay(podcast.id)
 
-            meta = episodes_meta(podcast)
-            episodes_count = meta['count']
-            total_hours = meta['total_hours']
-            items.append({
-                'id': podcast.id,
-                'name': podcast.name,
-                'image_url': thumb_url,
-                'episodes': episodes_count,
-                'hours': total_hours,
-                'slug': podcast.get_or_create_slug(),
-                'url': reverse(
-                    'podcasttime:podcast_slug',
-                    args=(podcast.id, podcast.get_or_create_slug())
-                ),
-            })
+        meta = episodes_meta(podcast)
+        episodes_count = meta['count']
+        total_hours = meta['total_hours']
+        items.append({
+            'id': podcast.id,
+            'name': podcast.name,
+            'image_url': thumb_url,
+            'episodes': episodes_count,
+            'hours': total_hours,
+            'slug': podcast.get_or_create_slug(),
+            'url': reverse(
+                'podcasttime:podcast_slug',
+                args=(podcast.id, podcast.get_or_create_slug())
+            ),
+        })
 
-        cache.set(cache_key, items, 60 * 60 * int(settings.DEBUG))
-
-    return http.JsonResponse({'items': items})
+    return http.JsonResponse({'items': items, 'q': q})
 
 
 @transaction.atomic
@@ -252,7 +301,12 @@ def stats(request):
     episodes = Episode.objects.filter(
         podcast_id__in=form.cleaned_data['ids'],
         published__gte=past,
-    ).values(
+    )
+    if not episodes.exists():
+        past -= datetime.timedelta(days=365 * 2)
+        episodes = episodes.filter(published__gte=past)
+
+    episodes = episodes.values(
         'podcast_id',
     ).annotate(
         duration=Sum('duration'),

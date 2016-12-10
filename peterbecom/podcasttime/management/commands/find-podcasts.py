@@ -5,7 +5,10 @@ from peterbecom.podcasttime.scraper import find_podcasts
 
 class Command(BaseCommand):
 
+    def add_arguments(self, parser):
+        parser.add_argument('baseurl')
+
     def handle(self, *args, **kwargs):
         verbose = int(kwargs['verbosity']) >= 2
-        baseurl = args[0]
+        baseurl = kwargs['baseurl']
         find_podcasts(baseurl, verbose=verbose)
