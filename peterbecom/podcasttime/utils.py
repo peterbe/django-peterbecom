@@ -6,6 +6,7 @@ import json
 import re
 import random
 import collections
+import urlparse
 from xml.parsers.expat import ExpatError
 
 import xmltodict
@@ -26,6 +27,11 @@ _CACHE = os.path.join(
 class NotXMLResponse(Exception):
     """happens when you expect an XML feed as a response but get something
     else."""
+
+
+def get_base_url(url):
+    parsed = urlparse.urlparse(url)
+    return '{}://{}'.format(parsed.scheme, parsed.netloc)
 
 
 def is_html_document(filepath):
@@ -121,7 +127,7 @@ def download(
         r = realistic_request(url, no_user_agent=no_user_agent)
         if r.status_code == 200:
             if expect_xml and not (
-                'xml' in r.headers['Content-Type'] or '<rss' in r.text
+                'xml' in r.headers.get('Content-Type', '') or '<rss' in r.text
             ):
                 raise NotXMLResponse(r.headers['Content-Type'])
             with codecs.open(fp, 'w', 'utf8') as f:

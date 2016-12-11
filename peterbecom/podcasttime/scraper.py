@@ -23,6 +23,7 @@ from peterbecom.podcasttime.utils import (
     download,
     parse_duration_ffmpeg,
     get_image_url,
+    get_base_url,
 )
 
 
@@ -226,24 +227,91 @@ def _download_episodes(podcast, verbose=True):
     podcast.save()
 
 
-def find_podcasts(baseurl, verbose=False):
-    html = download(baseurl)
-    doc = pyquery.PyQuery(html)
+def find_podcasts(url, verbose=False, depth=0):
     urls = []
-    for a in doc('ul.nav ul.dropdown-menu li a'):
-        href = a.attrib['href']
-        if '/browse/' in href:
-            url = urljoin(baseurl, href)
-            urls.append(url)
+    hash_ = hashlib.md5(get_base_url(url)).hexdigest()
+    print(url, hash_, depth)
+    if hash_ == '73eb773086aa7f75654f4a2d25ca315b':
+        if not depth:
+            url = url + '/feeds'
+        html = download(url)
+        doc = pyquery.PyQuery(html)
+        doc.make_links_absolute(base_url=get_base_url(url))
+        for a in doc('h3 a').items():
+            if a.text() == 'Join Now to Follow':
+                continue
+            # print (a.attr('href'), a.text())
+            urls.append(a.attr('href'))
+        max_ = 10
+        random.shuffle(urls)
+        for url in urls[:max_]:
+            _scrape_feed(
+                url,
+                verbose=verbose,
+            )
+        # Now find the next pages
+        if depth < 5:
+            next_urls = []
+            for a in doc('.pagination a').items():
+                if '?page=' in a.attr('href'):
+                    next_urls.append(a.attr('href'))
+            random.shuffle(urls)
+            for next_url in next_urls[:max_]:
+                for podcast in find_podcasts(
+                    next_url,
+                    verbose=verbose,
+                    depth=depth + 1
+                ):
+                    yield podcast
+    else:
+        html = download(url)
+        doc = pyquery.PyQuery(html)
+        doc.make_links_absolute(base_url=get_base_url(url))
+        for a in doc('ul.nav ul.dropdown-menu li a'):
+            href = a.attrib['href']
+            if '/browse/' in href:
+                urls.append(url)
 
-    max_ = 10
-    random.shuffle(urls)
-    for url in urls[:max_]:
-        _scrape_index(
-            url,
-            verbose=verbose,
-            max_=max_,
-        )
+        max_ = 10
+        random.shuffle(urls)
+        for url in urls[:max_]:
+            yield _scrape_index(
+                url,
+                verbose=verbose,
+                max_=max_,
+            )
+
+
+def _scrape_feed(url, verbose=False):
+    html = download(url, gently=True)
+    doc = pyquery.PyQuery(html)
+    doc.make_links_absolute(get_base_url(url))
+    print "URL:", url
+    for a in doc('.span3 li a').items():
+        if a.text() == 'RSS':
+            feed_url = a.attr('href')
+            response = requests.head(feed_url)
+            if response.status_code in (301, 302):
+                feed_url = response.headers['Location']
+            if Podcast.objects.filter(url=feed_url).exists():
+                print "ALREADY HAD", feed_url
+                continue
+            image_url = get_image_url(feed_url)
+            if not image_url:
+                print "Skipping (no image)", feed_url
+                continue
+            assert '://' in image_url, image_url
+            podcast = Podcast.objects.create(
+                url=feed_url,
+                image_url=image_url,
+            )
+            return podcast
+            # print repr(podcast)
+            podcast.download_image()
+            podcast.download_episodes()
+            # redownload_podcast_image.delay(podcast.id)
+            # # podcast.download_image()
+            # download_episodes_task.delay(podcast.id)
 
 
 def _scrape_index(url, verbose=False, max_=1000):

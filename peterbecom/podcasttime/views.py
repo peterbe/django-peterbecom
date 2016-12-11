@@ -100,13 +100,12 @@ def find(request):
                     itunes_lookup=result,
                     image_url=result['artworkUrl600'],
                 )
-                # podcast.download_image()
+                podcast.download_image()
                 download_episodes_task.delay(podcast.id)
-                # episodes will be created and downloaded by the cron job
-                # don't delay
-                redownload_podcast_image(podcast.id)
+                # redownload_podcast_image(podcast.id)
                 # Reload since the task functions operate on a new instance
-                podcast = Podcast.objects.get(id=podcast.id)
+                # podcast = Podcast.objects.get(id=podcast.id)
+                print "LAST_FETCH?", podcast.last_fetch
             found.append(podcast)
     else:
         q = request.GET['q']
@@ -215,6 +214,7 @@ def find(request):
             'image_url': thumb_url,
             'episodes': episodes_count,
             'hours': total_hours,
+            'last_fetch': podcast.last_fetch,
             'slug': podcast.get_or_create_slug(),
             'url': reverse(
                 'podcasttime:podcast_slug',

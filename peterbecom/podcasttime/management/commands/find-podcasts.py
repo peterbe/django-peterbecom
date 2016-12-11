@@ -11,4 +11,4 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         verbose = int(kwargs['verbosity']) >= 2
         baseurl = kwargs['baseurl']
-        find_podcasts(baseurl, verbose=verbose)
+        list(find_podcasts(baseurl, verbose=verbose))
