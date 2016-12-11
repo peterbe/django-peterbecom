@@ -38,9 +38,10 @@ def itunes_lookup(itunes_id):
 
 
 def itunes_search(term, **options):
+    timeout = options.pop('timeout', None)
     options.update({'term': term, 'entity': 'podcast'})
     url = 'https://itunes.apple.com/search'
-    response = requests.get(url, options)
+    response = requests.get(url, options, timeout=timeout)
     return response.json()
 
 

@@ -1,6 +1,8 @@
 import datetime
 import random
 
+from requests.exceptions import ReadTimeout, ConnectTimeout
+
 from django import http
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Sum, Min, Max, Count, Q
@@ -78,8 +80,16 @@ def find(request):
         found = sorted(found, key=lambda x: ids.index(x.id))
     elif request.GET.get('itunes'):
         q = request.GET['q']
-        matches = itunes_search(q, attribute='titleTerm')
-        for result in matches['results']:
+        try:
+            results = itunes_search(
+                q,
+                attribute='titleTerm',
+                timeout=6,
+            )['results']
+        except (ReadTimeout, ConnectTimeout):
+            results = []
+
+        for result in results:
             # pod = {
             #     'image_url': result['artworkUrl600'],
             #     'itunes_url': result['collectionViewUrl'],
@@ -100,12 +110,13 @@ def find(request):
                     itunes_lookup=result,
                     image_url=result['artworkUrl600'],
                 )
-                podcast.download_image()
+                try:
+                    podcast.download_image(timeout=3)
+                except (ReadTimeout, ConnectTimeout):
+                    redownload_podcast_image(podcast.id)
                 download_episodes_task.delay(podcast.id)
-                # redownload_podcast_image(podcast.id)
                 # Reload since the task functions operate on a new instance
                 # podcast = Podcast.objects.get(id=podcast.id)
-                print "LAST_FETCH?", podcast.last_fetch
             found.append(podcast)
     else:
         q = request.GET['q']
@@ -160,7 +171,8 @@ def find(request):
                 'count': episodes_count,
                 'total_hours': total_hours,
             }
-            cache.set(episodes_cache_key, meta, 60 * 60 * 24)
+            if episodes_count:
+                cache.set(episodes_cache_key, meta, 60 * 60 * 24)
         return meta
 
     items = []
@@ -297,14 +309,14 @@ def stats(request):
     if not form.is_valid():
         return http.HttpResponseBadRequest(form.errors)
 
-    past = timezone.now() - datetime.timedelta(days=365)
+    # past = timezone.now() - datetime.timedelta(days=365)
     episodes = Episode.objects.filter(
         podcast_id__in=form.cleaned_data['ids'],
-        published__gte=past,
+        # published__gte=past,
     )
-    if not episodes.exists():
-        past -= datetime.timedelta(days=365 * 2)
-        episodes = episodes.filter(published__gte=past)
+    # if not episodes.exists():
+    #     past -= datetime.timedelta(days=365 * 10)
+    #     episodes = episodes.filter(published__gte=past)
 
     episodes = episodes.values(
         'podcast_id',

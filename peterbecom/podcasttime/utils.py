@@ -85,7 +85,7 @@ def parse_duration_ffmpeg(media_url):
     return _cache[media_url]
 
 
-def realistic_request(url, verify=True, no_user_agent=False):
+def realistic_request(url, verify=True, no_user_agent=False, timeout=None):
     headers = {
         'Accept': (
             'text/html,application/xhtml+xml,application/xml,text/xml'
@@ -102,7 +102,7 @@ def realistic_request(url, verify=True, no_user_agent=False):
     }
     if no_user_agent:
         headers.pop('User-Agent')
-    return requests.get(url, headers=headers, verify=verify)
+    return requests.get(url, headers=headers, verify=verify, timeout=timeout)
 
 
 def download(
@@ -111,6 +111,7 @@ def download(
     refresh=False,
     no_user_agent=False,
     expect_xml=False,
+    timeout=None,
 ):
     if not os.path.isdir(_CACHE):
         os.mkdir(_CACHE)

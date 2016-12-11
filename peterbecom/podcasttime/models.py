@@ -65,10 +65,10 @@ class Podcast(models.Model):
     def __repr__(self):
         return '<%s: %r>' % (self.__class__.__name__, self.name)
 
-    def download_image(self):
+    def download_image(self, timeout=20):
         print "Downloading", repr(self.image_url)
         img_temp = NamedTemporaryFile(delete=True)
-        r = realistic_request(self.image_url)
+        r = realistic_request(self.image_url, timeout=timeout)
         assert r.status_code == 200, r.status_code
         if r.headers['content-type'] == 'text/html':
             raise NotAnImageError('%s is not an image' % self.image_url)
