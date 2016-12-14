@@ -18,9 +18,9 @@ zope.structuredtext==4.1.0
 Unidecode==0.04.19
 requests==2.11.1
 six==1.10.0
-django-nose==1.4.4
+amqp==2.1.4
 nose==1.3.7
-amqp==1.4.9
+amqp==2.0.3
 anyjson==0.3.3
 lxml==3.6.1
 subprocess32==3.2.7
