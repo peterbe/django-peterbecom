@@ -24,6 +24,10 @@ _CACHE = os.path.join(
 )
 
 
+class NotFound(Exception):
+    """when something can't be downloaded"""
+
+
 class NotXMLResponse(Exception):
     """happens when you expect an XML feed as a response but get something
     else."""
@@ -136,7 +140,9 @@ def download(
             if gently:
                 time.sleep(random.randint(1, 4))
         else:
-            raise Exception(r.status_code)
+            raise NotFound('{} - {}'.format(
+                r.status_code, url
+            ))
 
     with codecs.open(fp, 'r', 'utf8') as f:
         return f.read()

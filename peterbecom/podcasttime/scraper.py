@@ -24,6 +24,7 @@ from peterbecom.podcasttime.utils import (
     parse_duration_ffmpeg,
     get_image_url,
     get_base_url,
+    NotFound,
 )
 
 
@@ -147,9 +148,13 @@ def _download_episodes(podcast, verbose=True):
 
     for entry in d['entries']:
         if not entry.get('published_parsed'):
-            print "Entry without a valid 'published_parsed'!"
-            print entry
-            raise BadPodcastEntry("Entry without a valid 'published_parsed'!")
+            # print "Entry without a valid 'published_parsed'!"
+            # print entry
+            raise BadPodcastEntry(
+                "Entry without a valid 'published_parsed'! ({})".format(
+                    podcast.url
+                )
+            )
 
         published = datetime.datetime.fromtimestamp(
             time.mktime(entry['published_parsed'])
@@ -224,8 +229,10 @@ def _download_episodes(podcast, verbose=True):
             episode.duration,
             episode.published
         )
-    podcast.last_fetch = timezone.now()
-    podcast.save()
+    print("SETTING last_fetch ON {!r}".format(podcast))
+    Podcast.objects.filter(id=podcast.id).update(last_fetch=timezone.now())
+    # podcast.last_fetch = timezone.now()
+    # podcast.save()
 
 
 def find_podcasts(url, verbose=False, depth=0):
@@ -246,10 +253,13 @@ def find_podcasts(url, verbose=False, depth=0):
         max_ = 10
         random.shuffle(urls)
         for url in urls[:max_]:
-            _scrape_feed(
-                url,
-                verbose=verbose,
-            )
+            try:
+                _scrape_feed(
+                    url,
+                    verbose=verbose,
+                )
+            except NotFound:
+                print("WARNING Can't find {}".format(url))
         # Now find the next pages
         if depth < 5:
             next_urls = []

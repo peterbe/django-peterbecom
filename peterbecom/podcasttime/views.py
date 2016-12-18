@@ -13,6 +13,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.contrib.sites.requests import RequestSite
+from django.views.decorators.csrf import csrf_exempt
 
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
 from peterbecom.podcasttime.models import Podcast, Episode, Picked
@@ -78,6 +79,9 @@ def find(request):
         found = Podcast.objects.filter(id__in=ids)
         # rearrange them in the order they were
         found = sorted(found, key=lambda x: ids.index(x.id))
+        # for podcast in found:
+        #     if not podcast.last_fetch:
+        #         download_episodes_task.delay(podcast.id)
     elif request.GET.get('itunes'):
         q = request.GET['q']
         try:
@@ -177,7 +181,8 @@ def find(request):
 
     items = []
     for podcast in found:
-
+        # if not podcast.last_fetch:
+        #     download_episodes_task.delay(podcast.id)
         if podcast.image and is_html_document(podcast.image.path):
             print "Found a podcast.image that wasn't an image"
             podcast.image = None
@@ -233,41 +238,35 @@ def find(request):
                 args=(podcast.id, podcast.get_or_create_slug())
             ),
         })
+    return http.JsonResponse({
+        'items': items,
+        'q': q,
+    })
 
-    return http.JsonResponse({'items': items, 'q': q})
 
-
+@csrf_exempt
 @transaction.atomic
 @require_POST
 def picked(request):
-    if request.POST.get('reset'):
-        try:
-            del request.session['picked']
-        except KeyError:
-            pass
+    form = PodcastsForm(request.POST)
+    if not form.is_valid():
+        return http.HttpResponseBadRequest(form.errors)
+    if request.POST.get('picks'):
+        picked_obj = Picked.objects.get(session_key=request.POST['picks'])
     else:
-        form = PodcastsForm(request.POST)
-        if not form.is_valid():
-            return http.HttpResponseBadRequest(form.errors)
-        podcasts = Podcast.objects.filter(id__in=form.cleaned_data['ids'])
-        if podcasts.exists():
-            if request.session.get('picked'):
-                try:
-                    picked_obj = Picked.objects.get(
-                        session_key=request.session.get('picked')
-                    )
-                except Picked.DoesNotExist:
-                    return http.HttpResponseBadRequest('bad picked')
-            else:
-                session_key = random_string(32)
-                picked_obj = Picked.objects.create(
-                    session_key=session_key
-                )
-                request.session['picked'] = session_key
-            picked_obj.podcasts.clear()
-            picked_obj.podcasts.add(*podcasts)
-
-    return http.JsonResponse({'ok': True})
+        picked_obj = None
+    podcasts = Podcast.objects.filter(id__in=form.cleaned_data['ids'])
+    if picked_obj:
+        # append
+        picked_obj.podcasts.clear()
+    else:
+        # create with first pick
+        session_key = random_string(32)
+        picked_obj = Picked.objects.create(
+            session_key=session_key
+        )
+    picked_obj.podcasts.add(*podcasts)
+    return http.JsonResponse({'session_key': picked_obj.session_key})
 
 
 def calendar(request):
