@@ -252,6 +252,10 @@ PIPELINE = {
     'UGLIFYJS_ARGUMENTS': '--mangle',
     'CSS_COMPRESSOR': 'pipeline.compressors.NoopCompressor',
     'DISABLE_WRAPPER': True,
+    # The pipeline.jinja2.PipelineExtension extension doesn't support
+    # automatically rendering any potentional compilation errors into
+    # the rendered HTML, so just let it raise plain python exceptions.
+    'SHOW_ERRORS_INLINE': False,
 }
 
 
