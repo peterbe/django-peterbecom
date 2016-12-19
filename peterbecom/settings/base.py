@@ -2,7 +2,7 @@
 
 import os
 
-from bundles import PIPELINE_CSS, PIPELINE_JS  # NOQA
+from bundles import PIPELINE_CSS, PIPELINE_JS
 
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -157,7 +157,7 @@ TEMPLATES = [
                 'django_jinja.builtins.extensions.CsrfExtension',
                 'django_jinja.builtins.extensions.StaticFilesExtension',
                 'django_jinja.builtins.extensions.DjangoFiltersExtension',
-                'pipeline.templatetags.ext.PipelineExtension',
+                'pipeline.jinja2.PipelineExtension',
             ],
             'globals': {
             }
@@ -244,17 +244,16 @@ def JINJA_CONFIG():
     return config
 
 
-PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.uglifyjs.UglifyJSCompressor'
-PIPELINE_UGLIFYJS_BINARY = path('node_modules/.bin/uglifyjs')
-PIPELINE_UGLIFYJS_ARGUMENTS = '--mangle'
-# PIPELINE_CSS_COMPRESSOR = 'pipeline.compressors.cssmin.CSSMinCompressor'
-# PIPELINE_CSSMIN_BINARY = path('node_modules/.bin/cssmin')
-PIPELINE_CSS_COMPRESSOR = 'pipeline.compressors.NoopCompressor'
+PIPELINE = {
+    'STYLESHEETS': PIPELINE_CSS,
+    'JAVASCRIPT': PIPELINE_JS,
+    'JS_COMPRESSOR': 'pipeline.compressors.uglifyjs.UglifyJSCompressor',
+    'UGLIFYJS_BINARY': path('node_modules/.bin/uglifyjs'),
+    'UGLIFYJS_ARGUMENTS': '--mangle',
+    'CSS_COMPRESSOR': 'pipeline.compressors.NoopCompressor',
+    'DISABLE_WRAPPER': True,
+}
 
-# Don't wrap javascript code in... `(...code...)();`
-# because possibly much code has been built with the assumption that things
-# will be made available globally.
-PIPELINE_DISABLE_WRAPPER = True
 
 CACHES = {
     'default': {

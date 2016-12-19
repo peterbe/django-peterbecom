@@ -6,7 +6,7 @@ python-memcached==1.58
 celery==3.1.23
 django-celery==3.1.17
 django-celery-email==1.1.4
-Markdown==2.6.6
+Markdown==2.6.7
 sorl-thumbnail==12.3
 Pillow==3.3.1
 mincss==0.11.2
@@ -25,7 +25,8 @@ anyjson==0.3.3
 lxml==3.6.1
 subprocess32==3.2.7
 django-semanticui-form==0.0.1
-django-pipeline==1.5.4
+futures==3.0.5
+django-pipeline==1.6.10
 feedparser==5.2.1
 pyquery==1.2.13
 xmltodict==0.10.2
