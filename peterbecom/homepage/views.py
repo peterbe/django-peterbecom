@@ -483,7 +483,7 @@ def celerytester(request):
         if os.path.isfile(filepath):
             os.remove(filepath)
         assert sample_task.delay(filepath)
-        for i in range(3):
+        for i in range(1, 5):
             if os.path.isfile(filepath):
                 result = open(filepath).read()
                 os.remove(filepath)
