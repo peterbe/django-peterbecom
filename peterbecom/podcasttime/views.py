@@ -128,8 +128,8 @@ def find(request):
 
         # import time
         # time.sleep(random.randint(1,4))
-
-        podcasts = Podcast.objects.filter(name__istartswith=q)
+        base_qs = Podcast.objects.filter(error__isnull=True)
+        podcasts = base_qs.filter(name__istartswith=q)
         for podcast in podcasts[:max_]:
             found.append(podcast)
         if len(q) > 2:
@@ -137,7 +137,7 @@ def find(request):
                 "to_tsvector('english', name) @@ "
                 "plainto_tsquery('english', %s)"
             )
-            podcasts = Podcast.objects.all().exclude(
+            podcasts = base_qs.exclude(
                 id__in=[x.id for x in found]
             ).extra(
                 where=[sql],
@@ -148,7 +148,7 @@ def find(request):
                     break
                 found.append(podcast)
         if len(q) > 1:
-            podcasts = Podcast.objects.filter(name__icontains=q).exclude(
+            podcasts = base_qs.filter(name__icontains=q).exclude(
                 id__in=[x.id for x in found]
             )
             for podcast in podcasts[:max_]:

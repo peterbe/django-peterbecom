@@ -5,6 +5,7 @@ import random
 from urlparse import urljoin
 
 import requests
+from requests.exceptions import ConnectionError
 import pyquery
 import feedparser
 
@@ -64,7 +65,15 @@ def download_some_episodes(max_=5, verbose=False):
     for podcast in podcasts[:max_]:
         if verbose:
             print (podcast.name, podcast.last_fetch)
-        download_episodes(podcast)
+        try:
+            download_episodes(podcast)
+            # If it worked and it didn't before, reset
+            if podcast.error:
+                podcast.error = None
+                podcast.save()
+        except BadPodcastEntry as exception:
+            podcast.error = unicode(exception)
+            podcast.save()
 
     # then do the ones with the oldest updates
     podcasts = Podcast.objects.filter(
@@ -79,6 +88,13 @@ def download_some_episodes(max_=5, verbose=False):
 def download_episodes(podcast, verbose=True):
     try:
         _download_episodes(podcast, verbose=verbose)
+        if podcast.error:
+            Podcast.objects.filter(id=podcast.id).update(error=None)
+    except BadPodcastEntry as exception:
+        Podcast.objects.filter(id=podcast.id).update(
+            error=unicode(exception)
+        )
+        raise
     except Exception:
         PodcastError.create(podcast)
         raise
@@ -307,7 +323,11 @@ def _scrape_feed(url, verbose=False):
             if Podcast.objects.filter(url=feed_url).exists():
                 print "ALREADY HAD", feed_url
                 continue
-            image_url = get_image_url(feed_url)
+            try:
+                image_url = get_image_url(feed_url)
+            except ConnectionError:
+                print('Unable to download image for {}'.format(feed_url))
+                image_url = None
             if not image_url:
                 print "Skipping (no image)", feed_url
                 continue

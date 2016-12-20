@@ -52,6 +52,7 @@ class Podcast(models.Model):
     slug = models.SlugField(max_length=200, null=True)
     times_picked = models.IntegerField(default=0)
     last_fetch = models.DateTimeField(null=True)
+    error = models.TextField(null=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
