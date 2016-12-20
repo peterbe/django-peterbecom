@@ -377,6 +377,7 @@ def search(request):
 @cache_control(public=True, max_age=ONE_WEEK)
 @cache_page(ONE_WEEK, post_process_response=mincss_response)
 def about(request):
+    raise Exception
     context = {
         'page_title': 'About this site',
     }
