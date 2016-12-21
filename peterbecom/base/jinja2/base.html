@@ -64,7 +64,7 @@
      selectors. #}
   <div class="ui borderless main menu fixed" style="display:none"></div>
 
-  {% if request and request.path != '/plog/blogitem-040601-1' %}
+  {% if request.path != '/plog/blogitem-040601-1' %}
   <div class="ui borderless main menu">
     <div class="ui text container">
 
@@ -112,20 +112,25 @@
 
   <div class="ui inverted vertical footer segment">
     <div class="ui center aligned container">
+      <p>
+        &copy; peterbe.com 2003 - {{ THIS_YEAR }}
+        &sdot;
+        Hosted on <a href="https://www.digitalocean.com/?refcode=9c9126b69f33"
+        title="Yes, following this link and signing up will give me a small referal bonus :)"
+        >Digital Ocean</a>
+      </p>
+
       <div class="ui horizontal inverted small divided link list">
-        <p>
-          &copy; peterbe.com 2003 - {{ THIS_YEAR }}
-          &sdot;
-          Hosted on <a href="https://www.digitalocean.com/?refcode=9c9126b69f33"
-          title="Yes, following this link and signing up will give me a small referal bonus :)"
-          >Digital Ocean</a>
-        </p>
-        <a class="item" href="/">Home</a>
-        <a class="item" href="{{ url('plog_index') }}">Archive</a>
-        <a class="item" href="{{ url('about') }}">About</a>
-        <a class="item" href="{{ url('contact') }}">Contact</a>
-        <a class="item" href="{{ url('search') }}">Search</a>
+          <a class="item" href="/">Home</a>
+          <a class="item" href="{{ url('plog_index') }}">Archive</a>
+          <a class="item" href="{{ url('about') }}">About</a>
+          <a class="item" href="{{ url('contact') }}">Contact</a>
+          <a class="item" href="{{ url('search') }}">Search</a>
       </div>
+      <p>
+        Check out my latest side project
+        <a href="https://songsear.ch" title="Find Songs by Lyrics">Song Search</a>
+      </p>
     </div>
   </div>
 
