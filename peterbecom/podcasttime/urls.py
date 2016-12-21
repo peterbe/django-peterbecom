@@ -14,6 +14,7 @@ urlpatterns = patterns(
     url('^find$', views.find, name='find'),
     url('^calendar$', views.calendar, name='calendar'),
     url('^stats$', views.stats, name='stats'),
+    url('^stats/episodes$', views.stats_episodes, name='stats_episodes'),
     url('^picked$', views.picked, name='picked'),
     url('^podcasts/(?P<id>\d+)/$', views.podcast, name='podcast'),
     url(

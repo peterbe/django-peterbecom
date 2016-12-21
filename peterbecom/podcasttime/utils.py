@@ -49,7 +49,7 @@ def is_html_document(filepath):
 
 
 def wrap_subprocess(command):
-    print command
+    # print command
     return subprocess32.Popen(
         command,
         stdout=subprocess32.PIPE,
@@ -68,14 +68,19 @@ def parse_duration_ffmpeg(media_url):
         _cache = {}
     if media_url not in _cache:
         command = ['ffmpeg', '-i', media_url]
-        out, err = wrap_subprocess(command)
+        try:
+            out, err = wrap_subprocess(command)
+        except subprocess32.TimeoutExpired:
+            return
         REGEX = re.compile('Duration: (\d+):(\d+):(\d+).(\d+)')
         matches = REGEX.findall(err)
         # if matches:
         try:
             found, = matches
         except ValueError:
-            print err
+            print "SUBPROCESS ERROR"
+            print repr(err)
+            print
             return
         hours = int(found[0])
         minutes = int(found[1])

@@ -65,15 +65,7 @@ def download_some_episodes(max_=5, verbose=False):
     for podcast in podcasts[:max_]:
         if verbose:
             print (podcast.name, podcast.last_fetch)
-        try:
-            download_episodes(podcast)
-            # If it worked and it didn't before, reset
-            if podcast.error:
-                podcast.error = None
-                podcast.save()
-        except BadPodcastEntry as exception:
-            podcast.error = unicode(exception)
-            podcast.save()
+        download_episodes(podcast)
 
     # then do the ones with the oldest updates
     podcasts = Podcast.objects.filter(
@@ -90,18 +82,19 @@ def download_episodes(podcast, verbose=True):
         _download_episodes(podcast, verbose=verbose)
         if podcast.error:
             Podcast.objects.filter(id=podcast.id).update(error=None)
-    except BadPodcastEntry as exception:
+    except (BadPodcastEntry, NotFound) as exception:
         Podcast.objects.filter(id=podcast.id).update(
             error=unicode(exception)
         )
-        raise
     except Exception:
         PodcastError.create(podcast)
         raise
 
 
 def _download_episodes(podcast, verbose=True):
+    print "URL", podcast.url
     xml = download(podcast.url)
+    print "XML", len(xml)
     d = feedparser.parse(xml)
 
     def get_duration(entry):

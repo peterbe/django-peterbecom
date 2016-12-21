@@ -181,8 +181,6 @@ def find(request):
 
     items = []
     for podcast in found:
-        # if not podcast.last_fetch:
-        #     download_episodes_task.delay(podcast.id)
         if podcast.image and is_html_document(podcast.image.path):
             print "Found a podcast.image that wasn't an image"
             podcast.image = None
@@ -308,14 +306,9 @@ def stats(request):
     if not form.is_valid():
         return http.HttpResponseBadRequest(form.errors)
 
-    # past = timezone.now() - datetime.timedelta(days=365)
     episodes = Episode.objects.filter(
         podcast_id__in=form.cleaned_data['ids'],
-        # published__gte=past,
     )
-    # if not episodes.exists():
-    #     past -= datetime.timedelta(days=365 * 10)
-    #     episodes = episodes.filter(published__gte=past)
 
     episodes = episodes.values(
         'podcast_id',
@@ -343,6 +336,62 @@ def stats(request):
         'per_month': average * (365 / 12.0),
     }
     return http.JsonResponse(numbers)
+
+
+def stats_episodes(request):
+    form = PodcastsForm(request.GET)
+    if not form.is_valid():
+        return http.HttpResponseBadRequest(form.errors)
+
+    # episodes = Episode.objects.filter(
+    #     podcast_id__in=form.cleaned_data['ids'],
+    # )
+    #
+    # episodes = episodes.values(
+    #     'podcast_id',
+    # ).annotate(
+    #     duration=Sum('duration'),
+    #     min=Min('published'),
+    #     max=Max('published'),
+    # )
+    # rates = []
+    # for each in episodes:
+    #     days = (each['max'] - each['min']).days
+    #     if days:
+    #         rates.append(
+    #             # hours per day
+    #             1.0 * each['duration'] / days / 3600
+    #         )
+    #
+    # if rates:
+    #     average = sum(rates) / len(rates)
+    # else:
+    #     average = 0.0
+    # numbers = {
+    #     'per_day': average,
+    #     'per_week': average * 7,
+    #     'per_month': average * (365 / 12.0),
+    # }
+    episodes_ = []
+    past = timezone.now() - datetime.timedelta(days=200)
+    for podcast in Podcast.objects.filter(id__in=form.cleaned_data['ids']):
+        episodes_qs = Episode.objects.filter(
+            podcast=podcast,
+            published__gte=past,
+            duration__gt=0,
+        ).only('published', 'duration')
+        items = []
+        for episode in episodes_qs.order_by('published'):
+            items.append({
+                'date': episode.published,
+                'duration': episode.duration,
+            })
+        episodes_.append({
+            'name': podcast.name,
+            'episodes': items,
+        })
+
+    return http.JsonResponse({'episodes': episodes_})
 
 
 def _search_podcasts(searchterm, podcasts=None):
@@ -676,8 +725,14 @@ def podcast_data(request, id, slug=None):
         'last_fetch': podcast.last_fetch,
         'modified': podcast.modified,
     })
-    if not podcast.last_fetch:
+    if podcast.error:
+        context['_has_error'] = True
+    if (
+        not podcast.last_fetch or
+        podcast.last_fetch < timezone.now() - datetime.timedelta(days=7)
+    ):
         download_episodes_task.delay(podcast.id)
+        context['_updating'] = True
     episodes = Episode.objects.filter(
         podcast=podcast
     ).order_by('-published')
