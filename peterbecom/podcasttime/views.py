@@ -731,8 +731,11 @@ def podcast_data(request, id, slug=None):
         not podcast.last_fetch or
         podcast.last_fetch < timezone.now() - datetime.timedelta(days=7)
     ):
-        download_episodes_task.delay(podcast.id)
-        context['_updating'] = True
+        cache_key = 'updating:episodes:{}'.format(podcast.id)
+        if not cache.get(cache_key):
+            cache.set(cache_key, True, 60)
+            download_episodes_task.delay(podcast.id)
+            context['_updating'] = True
     episodes = Episode.objects.filter(
         podcast=podcast
     ).order_by('-published')

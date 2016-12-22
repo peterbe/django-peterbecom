@@ -3,6 +3,7 @@ import time
 import datetime
 import random
 from urlparse import urljoin
+from xml.parsers.expat import ExpatError
 
 import requests
 from requests.exceptions import ConnectionError
@@ -26,6 +27,7 @@ from peterbecom.podcasttime.utils import (
     get_image_url,
     get_base_url,
     NotFound,
+    NotXMLResponse,
 )
 
 
@@ -92,9 +94,7 @@ def download_episodes(podcast, verbose=True):
 
 
 def _download_episodes(podcast, verbose=True):
-    print "URL", podcast.url
     xml = download(podcast.url)
-    print "XML", len(xml)
     d = feedparser.parse(xml)
 
     def get_duration(entry):
@@ -314,13 +314,21 @@ def _scrape_feed(url, verbose=False):
             if response.status_code in (301, 302):
                 feed_url = response.headers['Location']
             if Podcast.objects.filter(url=feed_url).exists():
-                print "ALREADY HAD", feed_url
+                # print "ALREADY HAD", feed_url
                 continue
             try:
                 image_url = get_image_url(feed_url)
             except ConnectionError:
                 print('Unable to download image for {}'.format(feed_url))
-                image_url = None
+                continue
+            except ExpatError:
+                print('ExpatError when getting image on {}'.format(feed_url))
+                continue
+            except NotXMLResponse:
+                print(
+                    'NotXMLResponse when getting image on {}'.format(feed_url)
+                )
+                continue
             if not image_url:
                 print "Skipping (no image)", feed_url
                 continue
