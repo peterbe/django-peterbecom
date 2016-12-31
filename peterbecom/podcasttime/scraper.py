@@ -313,6 +313,8 @@ def _scrape_feed(url, verbose=False):
             response = requests.head(feed_url)
             if response.status_code in (301, 302):
                 feed_url = response.headers['Location']
+            if '://' not in feed_url:
+                feed_url = 'http://' + feed_url
             if Podcast.objects.filter(url=feed_url).exists():
                 # print "ALREADY HAD", feed_url
                 continue
