@@ -4,7 +4,7 @@ import random
 from requests.exceptions import ReadTimeout, ConnectTimeout
 
 from django import http
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect
 from django.db.models import Sum, Min, Max, Count, Q
 from django.core.cache import cache
 from django.utils import timezone
@@ -24,7 +24,6 @@ from peterbecom.podcasttime.forms import (
 from peterbecom.podcasttime.utils import is_html_document
 from peterbecom.podcasttime.scraper import (
     itunes_search,
-    download_episodes,
 )
 from peterbecom.podcasttime.tasks import (
     download_episodes_task,
@@ -55,15 +54,7 @@ def make_absolute_url(uri, request):
 
 
 def index(request):
-    context = {}
-    context['page_title'] = "Podcast Time"
-    context['podcasts'] = Podcast.objects.all()
-    context['episodes'] = Episode.objects.all()
-    total_seconds = Episode.objects.all().aggregate(
-        Sum('duration')
-    )['duration__sum']
-    context['total_hours'] = total_seconds / 3600
-    return render(request, 'podcasttime/index.html', context)
+    return redirect('https://podcasttime.io', permanent=True)
 
 
 def find(request):
@@ -422,51 +413,7 @@ def _search_podcasts(searchterm, podcasts=None):
 
 
 def podcasts(request):
-    context = {}
-    context['page_title'] = 'All Podcasts'
-    search = request.GET.get('search', '').strip()
-
-    podcasts = Podcast.objects.all()
-    if search:
-        podcasts = _search_podcasts(search, podcasts)
-
-    podcasts = podcasts.order_by('-times_picked', 'name')
-
-    paginator = Paginator(podcasts, 15)
-    page = request.GET.get('page')
-    try:
-        podcasts_page = paginator.page(page)
-    except PageNotAnInteger:
-        # If page is not an integer, deliver first page.
-        podcasts_page = paginator.page(1)
-    except EmptyPage:
-        # If page is out of range (e.g. 9999), deliver last page of results.
-        podcasts_page = paginator.page(paginator.num_pages)
-
-    context['count'] = paginator.count
-
-    context['podcasts'] = podcasts_page
-
-    past = timezone.now() - datetime.timedelta(days=365)
-    episodes = Episode.objects.filter(
-        podcast__in=podcasts_page,
-        published__gte=past,
-    ).values(
-        'podcast_id',
-    ).annotate(
-        duration=Sum('duration'),
-        count=Count('podcast_id'),
-    )
-    episode_counts = {}
-    episode_hours = {}
-    for x in episodes:
-        episode_counts[x['podcast_id']] = x['count']
-        episode_hours[x['podcast_id']] = x['duration']
-    context['episode_counts'] = episode_counts
-    context['episode_hours'] = episode_hours
-    context['search'] = search
-
-    return render(request, 'podcasttime/podcasts.html', context)
+    return redirect('https://podcasttime.io', permanent=True)
 
 
 def podcasts_data(request):
@@ -553,79 +500,11 @@ def podcasts_data(request):
 
 
 def add(request):
-    context = {}
-    context['page_title'] = 'Add Podcast'
-
-    id = request.GET.get('id', '').strip()
-    if id:
-        podcast = get_object_or_404(Podcast, id=id)
-        if not podcast.image and podcast.image_url:
-            podcast.download_image()
-        if not Episode.objects.filter(podcast=podcast).exists():
-            download_episodes(podcast)
-        url = reverse('podcasttime:index') + '#ids={}'.format(podcast.id)
-        return redirect(url)
-
-    search = request.GET.get('search', '').strip()
-    context['search'] = search
-    if search:
-        podcasts = []
-        matches = itunes_search(search, attribute='titleTerm')
-        for result in matches['results']:
-            pod = {
-                'image_url': result['artworkUrl600'],
-                'itunes_url': result['collectionViewUrl'],
-                'artist_name': result['artistName'],
-                'tags': result['genres'],
-                'name': result['collectionName'],
-                # 'feed_url': result['feedUrl'],
-            }
-            try:
-                podcast = Podcast.objects.get(
-                    url=result['feedUrl'],
-                    name=result['collectionName']
-                )
-            except Podcast.DoesNotExist:
-                podcast = Podcast.objects.create(
-                    name=result['collectionName'],
-                    url=result['feedUrl'],
-                    itunes_lookup=result,
-                    image_url=result['artworkUrl600'],
-                )
-                # episodes will be created and downloaded by the cron job
-                redownload_podcast_image.delay(podcast.id)
-            pod['id'] = podcast.id
-            pod['url'] = reverse(
-                'podcasttime:podcast_slug',
-                args=(podcast.id, podcast.get_or_create_slug())
-            )
-            podcasts.append(pod)
-
-        context['found'] = matches['resultCount']
-        context['podcasts'] = podcasts
-
-    return render(request, 'podcasttime/add.html', context)
+    return redirect('https://podcasttime.io', permanent=True)
 
 
 def picks(request):
-    context = {}
-    context['page_title'] = 'Picked Podcasts'
-    qs = Picked.objects.all().order_by('-modified')
-
-    paginator = Paginator(qs, 15)
-    page = request.GET.get('page')
-    try:
-        paged = paginator.page(page)
-    except PageNotAnInteger:
-        # If page is not an integer, deliver first page.
-        paged = paginator.page(1)
-    except EmptyPage:
-        # If page is out of range (e.g. 9999), deliver last page of results.
-        paged = paginator.page(paginator.num_pages)
-
-    context['picks'] = paged
-
-    return render(request, 'podcasttime/picks.html', context)
+    return redirect('https://podcasttime.io/picks', permanent=True)
 
 
 def picks_data(request):
@@ -679,36 +558,13 @@ def picks_data(request):
 
 def podcast(request, id, slug=None):
     podcast = get_object_or_404(Podcast, id=id)
-    context = {}
-    context['podcast'] = podcast
-    context['page_title'] = podcast.name
-    episodes = Episode.objects.filter(
-        podcast=podcast
-    ).order_by('-published')
-    if podcast.image and is_html_document(podcast.image.path):
-        print "Found a podcast.image that wasn't an image"
-        podcast.image = None
-        podcast.save()
-        redownload_podcast_image.delay(podcast.id)
-    elif not podcast.image and podcast.image_url:
-        redownload_podcast_image.delay(podcast.id)
-
-    if podcast.itunes_lookup is None:
-        fetch_itunes_lookup.delay(podcast.id)
-
-    if not episodes.exists():
-        download_episodes_task.delay(podcast.id)
-
-    context['episodes'] = episodes
-    try:
-        context['thumb'] = thumbnail(podcast.image, '300x300')
-    except IOError:
-        # image is so busted it can't be turned into a thumbnail
-        podcast.image = None
-        podcast.save()
-        context['thumb'] = None
-        redownload_podcast_image.delay(podcast.id)
-    return render(request, 'podcasttime/podcast.html', context)
+    return redirect(
+        'https://podcasttime.io/podcasts/{}/{}'.format(
+            podcast.id,
+            podcast.slug,
+        ),
+        permanent=True
+    )
 
 
 def podcast_data(request, id, slug=None):
