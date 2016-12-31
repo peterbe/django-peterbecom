@@ -29,7 +29,7 @@ class Command(BaseCommand):
         self.out(
             prefix,
             podcasts_w_null_last_fetch.count(),
-            'with not last_fetch'
+            'with no last_fetch'
         )
 
         last_week = timezone.now() - datetime.timedelta(days=7)
