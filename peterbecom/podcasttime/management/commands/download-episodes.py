@@ -34,7 +34,6 @@ class Command(BaseCommand):
 
         last_week = timezone.now() - datetime.timedelta(days=7)
         podcasts_w_old_last_fetch = Podcast.objects.filter(
-            last_fetch__isnull=False,
             last_fetch__lt=last_week,
         )
         self.out(
