@@ -35,6 +35,10 @@ class BadPodcastEntry(Exception):
     pass
 
 
+class BadEpisodeDurationError(Exception):
+    """when an episode is so bad it doesn't have a valid duration"""
+
+
 def itunes_lookup(itunes_id):
     url = 'https://itunes.apple.com/lookup'
     response = requests.get(url, {'id': itunes_id})
@@ -55,7 +59,7 @@ def download_some_episodes(max_=5, verbose=False):
         subcount=Count('episode')
     ).filter(subcount=0)
 
-    for podcast in podcasts.order_by('?')[:max_ * 2]:
+    for podcast in podcasts.order_by('?')[:max_]:
         if verbose:
             print (podcast.name, podcast.last_fetch)
         download_episodes(podcast)
@@ -69,14 +73,24 @@ def download_some_episodes(max_=5, verbose=False):
             print (podcast.name, podcast.last_fetch)
         download_episodes(podcast)
 
-    # then do the ones with the oldest updates
+    # randomly do some of the old ones
+    then = timezone.now() - datetime.timedelta(days=7)
     podcasts = Podcast.objects.filter(
-        last_fetch__isnull=False
-    ).order_by('last_fetch')
+        last_fetch__lt=then
+    ).order_by('?')
     for podcast in podcasts[:max_]:
         if verbose:
             print (podcast.name, podcast.last_fetch)
         download_episodes(podcast)
+
+    # # then do the ones with the oldest updates
+    # podcasts = Podcast.objects.filter(
+    #     last_fetch__isnull=False
+    # ).order_by('last_fetch')
+    # for podcast in podcasts[:max_]:
+    #     if verbose:
+    #         print (podcast.name, podcast.last_fetch)
+    #     download_episodes(podcast)
 
 
 def download_episodes(podcast, verbose=True):
@@ -84,7 +98,7 @@ def download_episodes(podcast, verbose=True):
         _download_episodes(podcast, verbose=verbose)
         if podcast.error:
             Podcast.objects.filter(id=podcast.id).update(error=None)
-    except (BadPodcastEntry, NotFound) as exception:
+    except (BadPodcastEntry, NotFound, BadEpisodeDurationError) as exception:
         Podcast.objects.filter(id=podcast.id).update(
             error=unicode(exception)
         )
@@ -105,9 +119,11 @@ def _download_episodes(podcast, verbose=True):
                         link['type'] == 'audio/mpeg' or
                         link['href'].lower().endswith('.mp3')
                     ):
-                        return parse_duration_ffmpeg(
+                        duration, error = parse_duration_ffmpeg(
                             link['href']
                         )
+                        if error:
+                            raise BadEpisodeDurationError(error)
             except KeyError:
                 try:
                     print entry.enclosure

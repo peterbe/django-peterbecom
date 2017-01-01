@@ -70,8 +70,8 @@ def parse_duration_ffmpeg(media_url):
         command = ['ffmpeg', '-i', media_url]
         try:
             out, err = wrap_subprocess(command)
-        except subprocess32.TimeoutExpired:
-            return
+        except subprocess32.TimeoutExpired as exception:
+            return None, exception
         REGEX = re.compile('Duration: (\d+):(\d+):(\d+).(\d+)')
         matches = REGEX.findall(err)
         # if matches:
@@ -81,7 +81,7 @@ def parse_duration_ffmpeg(media_url):
             print "SUBPROCESS ERROR"
             print repr(err)
             print
-            return
+            return None, err
         hours = int(found[0])
         minutes = int(found[1])
         minutes += hours * 60
@@ -91,7 +91,7 @@ def parse_duration_ffmpeg(media_url):
         _cache[media_url] = duration
         with open(_MEDIA_FILE, 'w') as f:
             json.dump(_cache, f, indent=4)
-    return _cache[media_url]
+    return _cache[media_url], None
 
 
 def realistic_request(url, verify=True, no_user_agent=False, timeout=None):
