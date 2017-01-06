@@ -137,6 +137,7 @@
   {% javascript 'base' %}
 
   {% block extrajs %}{% endblock %}
+  {% if request.path != '/plog/blogitem-040601-1' %}
   <script>
   (function() {
     var i=0, urls = [
@@ -154,6 +155,7 @@
     };load();
   })();
   </script>
+  {% endif %}
 
 </body>
 
