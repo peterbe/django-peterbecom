@@ -23,7 +23,7 @@ CACHES = {
         'LOCATION': 'unique-snowflake'
     }
 }
-CELERY_ALWAYS_EAGER = True
+CELERY_TASK_ALWAYS_EAGER = True
 SETTINGS
 
 echo "Installing the node packages"
