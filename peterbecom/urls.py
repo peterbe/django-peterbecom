@@ -2,7 +2,7 @@ from django import http
 from django.conf.urls import include, url
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
-import djcelery
+# import djcelery
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
@@ -70,4 +70,4 @@ urlpatterns = [
 urlpatterns += staticfiles_urlpatterns()
 
 
-djcelery.setup_loader()
+# djcelery.setup_loader()

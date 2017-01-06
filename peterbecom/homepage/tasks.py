@@ -1,9 +1,10 @@
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task
+
 import datetime
 
-from celery.task import task
 
-
-@task()
+@shared_task
 def sample_task(filepath):
     print("Writing to filepath", filepath)
     with open(filepath, 'w') as f:

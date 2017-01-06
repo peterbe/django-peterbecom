@@ -1,3 +1,6 @@
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task
+
 import re
 import os
 import time
@@ -5,8 +8,6 @@ import time
 import subprocess32
 
 from django.conf import settings
-
-from celery.task import task
 
 from . import models
 
@@ -17,7 +18,7 @@ COUNT_JS_PATH = os.path.join(
 )
 
 
-@task()
+@shared_task
 def run_queued(queued):
     url = queued.url
     result = run_url(url)

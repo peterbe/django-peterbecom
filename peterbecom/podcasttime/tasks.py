@@ -1,4 +1,5 @@
-from celery.task import task
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task
 
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
 from peterbecom.podcasttime.models import Podcast, PodcastError
@@ -8,13 +9,13 @@ from peterbecom.podcasttime.scraper import (
 )
 
 
-@task()
+@shared_task
 def download_episodes_task(podcast_id, verbose=True):
     podcast = Podcast.objects.get(id=podcast_id)
     download_episodes(podcast, verbose=verbose)
 
 
-@task()
+@shared_task
 def redownload_podcast_image(podcast_id):
     podcast = Podcast.objects.get(id=podcast_id)
     print "REDOWNLOAD_PODCAST_IMAGE!!"
@@ -38,7 +39,7 @@ def redownload_podcast_image(podcast_id):
         raise
 
 
-@task()
+@shared_task
 def fetch_itunes_lookup(podcast_id):
     podcast = Podcast.objects.get(id=podcast_id)
     print "Fetching itunes lookup", repr(podcast.name)

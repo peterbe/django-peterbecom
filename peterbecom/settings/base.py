@@ -180,9 +180,9 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.staticfiles',
+    # 'django_celery_results',
     # 'django.contrib.admin',
-    'djcelery',
-    'kombu.transport.django',
+    # 'kombu.transport.django',
 
     'semanticuiform',
     'sorl.thumbnail',
@@ -268,11 +268,12 @@ CACHES = {
     }
 }
 
-BROKER_URL = "django://"
-BROKER_CONNECTION_TIMEOUT = 0.1
-CELERYD_CONCURRENCY = 2
-CELERY_ALWAYS_EAGER = False
-CELERY_IGNORE_RESULT = True
+# CELERY_RESULT_BACKEND = 'django-db'
+# BROKER_URL = "django://"
+# BROKER_CONNECTION_TIMEOUT = 0.1
+# CELERYD_CONCURRENCY = 2
+# CELERY_ALWAYS_EAGER = False
+# CELERY_IGNORE_RESULT = True
 
 SESSION_COOKIE_HTTPONLY = True
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
