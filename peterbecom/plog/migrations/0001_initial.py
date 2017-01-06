@@ -58,7 +58,7 @@ class Migration(migrations.Migration):
                 ('url', models.URLField(null=True)),
                 ('pub_date', models.DateTimeField(db_index=True)),
                 ('display_format', models.CharField(max_length=20)),
-                ('keywords', peterbecom.plog.models.ArrayField(max_length=500)),
+                ('keywords', peterbecom.plog.models.ArrayField(models.CharField(max_length=500))),
                 ('plogrank', models.FloatField(null=True)),
                 ('codesyntax', models.CharField(max_length=20, blank=True)),
                 ('disallow_comments', models.BooleanField(default=False)),

@@ -1,8 +1,8 @@
-from django.conf.urls import patterns, include, url
+from django.conf.urls import url
 
 
 from . import views
-urlpatterns = patterns('',
+urlpatterns = [
     url('^$', views.index, name='index'),
     url('^domains$', views.domains, name='domains'),
     url('^numbers$', views.numbers, name='numbers'),
@@ -11,4 +11,4 @@ urlpatterns = patterns('',
     url('^most-common$', views.most_common, name='most_common'),
     url('^hall-of-fame$', views.hall_of_fame, name='hall_of_fame'),
     url('^histogram$', views.histogram, name='histogram'),
-)
+]

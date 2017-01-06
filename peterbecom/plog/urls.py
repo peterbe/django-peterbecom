@@ -1,10 +1,9 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
 from . import views
 
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url('^$', views.plog_index, name='plog_index'),
     url('^edit/(.*)', views.edit_post, name='edit_post'),
     url(
@@ -33,4 +32,4 @@ urlpatterns = patterns(
     ),
     url('^screenshot/(.*)', views.blog_screenshot, name='blog_screenshot'),
     url('^(.*)', views.blog_post, name='blog_post'),
-)
+]

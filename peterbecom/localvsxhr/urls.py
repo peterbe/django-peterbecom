@@ -1,8 +1,8 @@
-from django.conf.urls import patterns, include, url
+from django.conf.urls import url
 
 
 from . import views
-urlpatterns = patterns('',
+urlpatterns = [
     url('^$', views.index, name='index'),
     url('^stats$', views.stats, name='stats'),
     url('^download.json$', views.download_json, name='download_json'),
@@ -12,4 +12,4 @@ urlpatterns = patterns('',
     url('^localforage-localstorage.html$',
         views.localforage_localstorage, name='localforage_localstorage'),
     url('^localstorage.html$', views.localstorage, name='localstorage'),
-)
+]

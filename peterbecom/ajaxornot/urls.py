@@ -1,8 +1,8 @@
-from django.conf.urls import patterns, include, url
+from django.conf.urls import url
 
 
 from . import views
-urlpatterns = patterns('',
+urlpatterns = [
     url('^$', views.index, name='index'),
     url('^view1$', views.view1, name='view1'),
     url('^view2$', views.view2, name='view2'),
@@ -16,5 +16,4 @@ urlpatterns = patterns('',
     url('^view6-data$', views.view6_data, name='view6_data'),
     url('^view7a$', views.view7a, name='view7a'),
     url('^view7b$', views.view7b, name='view7b'),
-
-)
+]

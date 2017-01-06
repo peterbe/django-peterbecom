@@ -714,10 +714,10 @@ def add_file(request):
             return redirect(url)
     else:
         initial = {}
-        if request.REQUEST.get('oid'):
+        if request.GET.get('oid'):
             blogitem = get_object_or_404(
                 BlogItem,
-                oid=request.REQUEST.get('oid')
+                oid=request.GET.get('oid')
             )
             initial['blogitem'] = blogitem
         form = BlogFileUpload(initial=initial)

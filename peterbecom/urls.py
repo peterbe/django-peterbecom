@@ -1,19 +1,18 @@
 from django import http
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 import djcelery
 
 # Uncomment the next two lines to enable the admin:
-from django.contrib import admin
-admin.autodiscover()
+# from django.contrib import admin
+# admin.autodiscover()
 
-urlpatterns = patterns(
-    '',
-    url(
-        r'^admin/',
-        include(admin.site.urls)
-    ),
+urlpatterns = [
+    # url(
+    #     r'^admin/',
+    #     include(admin.site.urls)
+    # ),
     url(
         r'^nodomains$',
         lambda x: http.HttpResponseRedirect('/nodomains/')
@@ -66,7 +65,7 @@ urlpatterns = patterns(
         r'',
         include('peterbecom.homepage.urls')
     ),
-)
+]
 
 urlpatterns += staticfiles_urlpatterns()
 

@@ -22,27 +22,6 @@ from peterbecom.plog import screenshot
 from peterbecom.base.fscache import invalidate_by_url
 
 
-class ArrayField(models.CharField):
-
-    __metaclass__ = models.SubfieldBase
-    description = "basic field for storing string arrays"
-
-    def __init__(self, *args, **kwargs):
-        kwargs['max_length'] = kwargs.get('max_length', 200)
-        super(ArrayField, self).__init__(*args, **kwargs)
-
-    def to_python(self, value):
-        if isinstance(value, list):
-            return value
-
-        return value.split('|')
-
-    def get_prep_value(self, value):
-        if value is None:
-            return None
-        return '|'.join(value)
-
-
 class Category(models.Model):
     name = models.CharField(max_length=100)
 

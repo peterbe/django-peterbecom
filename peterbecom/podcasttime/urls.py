@@ -1,10 +1,9 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
 from . import views
 
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url('^$', views.index, name='index'),
     url('^podcasts/$', views.podcasts, name='podcasts'),
     url('^podcasts/data/$', views.podcasts_data, name='podcasts_data'),
@@ -27,4 +26,4 @@ urlpatterns = patterns(
         views.podcast_data,
         name='podcast_data_slug'
     ),
-)
+]
