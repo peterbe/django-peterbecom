@@ -19,6 +19,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.sites.requests import RequestSite
 from django.views.decorators.cache import cache_control
 from django.utils import timezone
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
 from .models import BlogItem, BlogComment, Category, BlogFile
@@ -269,6 +270,7 @@ def _render_comment(comment):
     return render_to_string('plog/comment.html', {'comment': comment})
 
 
+@ensure_csrf_cookie
 @json_view
 def prepare_json(request):
     data = {
@@ -282,9 +284,7 @@ def prepare_json(request):
             request.COOKIES.get('__blogcomment_email')
         ),
     }
-    # http://stackoverflow.com/a/7503362/205832
-    request.META['CSRF_COOKIE_USED'] = True
-    return data
+    return http.JsonResponse(data)
 
 
 @require_POST
