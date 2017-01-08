@@ -2,7 +2,7 @@ import hashlib
 import time
 import datetime
 import random
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 from xml.parsers.expat import ExpatError
 
 import requests
@@ -351,6 +351,11 @@ def _scrape_feed(url, verbose=False):
             if not image_url:
                 print("Skipping (no image)", feed_url)
                 continue
+            if image_url.startswith('//'):
+                if urlparse(feed_url).scheme == 'https':
+                    image_url = 'https:' + image_url
+                else:
+                    image_url = 'http:' + image_url
             assert '://' in image_url, image_url
             podcast = Podcast.objects.create(
                 url=feed_url,
