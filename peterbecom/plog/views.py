@@ -2,6 +2,7 @@ import hashlib
 import logging
 import datetime
 from collections import defaultdict
+from statistics import median
 
 from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse
@@ -43,6 +44,10 @@ ONE_YEAR = ONE_WEEK * 52
 
 
 def _blog_post_key_prefixer(request):
+    prefix = getattr(request, '_prefix', None)
+    if prefix is not None:
+        return prefix
+    # print("PREFIXED?", getattr(request, '_prefixed', None))
     if request.method != 'GET':
         return None
     if request.user.is_authenticated():
@@ -59,7 +64,9 @@ def _blog_post_key_prefixer(request):
         oid = request.path.split('/')[-1]
 
     try:
-        cache_key = 'latest_comment_add_date:%s' % hashlib.md5(oid).hexdigest()
+        cache_key = 'latest_comment_add_date:%s' % (
+            hashlib.md5(oid.encode('utf-8')).hexdigest()
+        )
     except UnicodeEncodeError:
         # If the 'oid' can't be converted to ascii, then it's not likely
         # to be a valid 'oid'.
@@ -89,9 +96,13 @@ def _blog_post_key_prefixer(request):
     if not all_comments:
         # temporary solution because I can't get Google Analytics API to work
         ua = request.META.get('HTTP_USER_AGENT', '')
-        if 'bot' not in ua.lower():
+        if 'bot' not in ua.lower() and 'download-all-plogs.py' not in ua:
             tasks.increment_blogitem_hit.delay(oid)
 
+    # This is a HACK!
+    # This prefixer function gets called, first for the request,
+    # then for the response. The answer is not going to be any different.
+    request._prefix = prefix
     return prefix
 
 
@@ -102,14 +113,6 @@ def _blog_post_key_prefixer(request):
     post_process_response=mincss_response
 )
 def blog_post(request, oid):
-    # temporary debugging
-    if request.method == 'GET':
-        print "blog_post.MISS (%r, %r, %s)" % (
-            request.path,
-            request.META.get('QUERY_STRING'),
-            timezone.now().isoformat()
-        )
-
     # legacy fix
     if request.GET.get('comments') == 'all':
         if '/all-comments' in request.path:
@@ -230,11 +233,11 @@ def all_blog_post_comments(request, oid):
 
     # temporary debugging
     if request.method == 'GET':
-        print "all_blog_post_comments.MISS (%r, %r, %s)" % (
+        print("all_blog_post_comments.MISS (%r, %r, %s)" % (
             request.path,
             request.META.get('QUERY_STRING'),
             timezone.now().isoformat()
-        )
+        ))
 
     post = get_object_or_404(BlogItem, oid=oid)
     comments = (
@@ -275,14 +278,6 @@ def _render_comment(comment):
 def prepare_json(request):
     data = {
         'csrf_token': request.META["CSRF_COOKIE"],
-        'name': request.COOKIES.get(
-            'name',
-            request.COOKIES.get('__blogcomment_name')
-        ),
-        'email': request.COOKIES.get(
-            'email',
-            request.COOKIES.get('__blogcomment_email')
-        ),
     }
     return http.JsonResponse(data)
 
@@ -375,12 +370,6 @@ def submit_json(request, oid):
     }
 
     response = http.JsonResponse(data)
-    if name:
-        if isinstance(name, unicode):
-            name = name.encode('utf-8')
-        response.set_cookie('name', name)
-    if email:
-        response.set_cookie('email', email)
     return response
 
 
@@ -882,9 +871,9 @@ def plog_hits(request):
         for cat in categories[item.id]:
             category_scores[cat].append(item.score)
 
-    def median(seq):
-        seq.sort()
-        return seq[len(seq) / 2]
+    # def median(seq):
+    #     seq.sort()
+    #     return seq[math.floor(len(seq) / 2)]
 
     summed_category_scores = []
     for name, scores in category_scores.items():

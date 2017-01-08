@@ -2,7 +2,7 @@
 
 import os
 
-from bundles import PIPELINE_CSS, PIPELINE_JS
+from .bundles import PIPELINE_CSS, PIPELINE_JS
 
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))

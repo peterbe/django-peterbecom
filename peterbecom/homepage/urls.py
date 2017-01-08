@@ -2,7 +2,7 @@ from django.http import HttpResponsePermanentRedirect
 from django.conf.urls import url
 from django.views.decorators.cache import cache_page
 from .feed import PlogFeed
-import views
+from . import views
 
 
 urlpatterns = [

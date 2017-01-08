@@ -1,5 +1,4 @@
 import re
-from urlparse import urlparse
 
 from django import http
 from django.shortcuts import render
@@ -13,7 +12,6 @@ from fancy_cache import cache_page
 from peterbecom.plog.views import json_view
 
 from . import models
-from .tasks import run_queued
 
 
 ONE_HOUR = 60 * 60
@@ -34,41 +32,6 @@ def index(request):
 @json_view
 def run(request):
     return http.HttpResponseBadRequest('Service discontinued.')
-    url = request.POST['url']
-    if url.isdigit():
-        raise NotImplementedError(url)
-    try:
-        parsed = urlparse(url)
-        assert parsed.scheme in ('https', 'http'), 'not a httpish thing'
-        assert parsed.netloc, 'no path'
-        assert '"' not in url, 'quotes :('
-    except AssertionError as msg:
-        return {'error': str(msg)}
-
-    url = re.sub('((utm_campaign|utm_source|utm_medium)=(.*)&?)', '', url)
-    if url.endswith('?'):
-        url = url[:-1]
-
-    try:
-        result = models.Result.objects.get(url=url)
-        domains = dict(
-            (x['domain'], x['count']) for x in
-            models.ResultDomain.objects.filter(result=result)
-            .values('domain', 'count')
-        )
-        return {'count': result.count, 'domains': domains}
-    except models.Result.DoesNotExist:
-        pass
-    queued, created = models.Queued.objects.get_or_create(url=url)
-
-    if created or queued.failed_attempts:
-        if queued.failed_attempts >= 5:
-            return {
-                'error': 'Failed to analyze 5 times in a row. So giving up.'
-            }
-        run_queued.delay(queued)
-    behind = models.Queued.objects.filter(add_date__lt=queued.add_date).count()
-    return {'behind': behind}
 
 
 @json_view

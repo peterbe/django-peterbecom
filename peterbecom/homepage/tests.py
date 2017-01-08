@@ -42,13 +42,15 @@ class HomepageTestCase(TestCase):
         )
 
         response = self.client.get(url)
-        self.assertTrue('TITLE1' in response.content)
-        self.assertTrue('2 comments' in response.content)
+        content = response.content.decode('utf-8')
+        self.assertTrue('TITLE1' in content)
+        self.assertTrue('2 comments' in content)
 
         blog1.title = 'TUTLE1'
         blog1.save()
         response = self.client.get(url)
-        self.assertTrue('TUTLE1' in response.content)
+        content = response.content.decode('utf-8')
+        self.assertTrue('TUTLE1' in content)
 
         blog2 = BlogItem.objects.create(
             oid='t2',
@@ -59,10 +61,11 @@ class HomepageTestCase(TestCase):
         )
 
         response = self.client.get(url)
-        self.assertTrue('TATLE2' in response.content)
-        self.assertTrue('0 comments' in response.content)
-        self.assertTrue('TUTLE1' in response.content)
-        self.assertTrue('2 comments' in response.content)
+        content = response.content.decode('utf-8')
+        self.assertTrue('TATLE2' in content)
+        self.assertTrue('0 comments' in content)
+        self.assertTrue('TUTLE1' in content)
+        self.assertTrue('2 comments' in content)
 
         # by categories only
         cat1 = Category.objects.create(
@@ -77,18 +80,21 @@ class HomepageTestCase(TestCase):
         blog2.save()
 
         response = self.client.get(url)
-        self.assertTrue('CATEGORY1' in response.content)
-        self.assertTrue('CATEGORY2' in response.content)
+        content = response.content.decode('utf-8')
+        self.assertTrue('CATEGORY1' in content)
+        self.assertTrue('CATEGORY2' in content)
 
         url = reverse('only_category', args=['CATEGORY2'])
         response = self.client.get(url)
-        self.assertTrue('CATEGORY1' not in response.content)
-        self.assertTrue('CATEGORY2' in response.content)
+        content = response.content.decode('utf-8')
+        self.assertTrue('CATEGORY1' not in content)
+        self.assertTrue('CATEGORY2' in content)
 
         url = reverse('only_category', args=['CATEGORY1'])
         response = self.client.get(url)
-        self.assertTrue('CATEGORY1' in response.content)
-        self.assertTrue('CATEGORY2' not in response.content)
+        content = response.content.decode('utf-8')
+        self.assertTrue('CATEGORY1' in content)
+        self.assertTrue('CATEGORY2' not in content)
 
         for i in range(2, 21):
             BlogItem.objects.create(
@@ -101,22 +107,24 @@ class HomepageTestCase(TestCase):
 
         url = reverse('home')
         response = self.client.get(url)
-        assert '?page=2' in response.content
+        content = response.content.decode('utf-8')
+        assert '?page=2' in content
         visible_titles = []
         not_visible_titles = []
         for item in BlogItem.objects.all():
-            if item.title in response.content:
+            if item.title in content:
                 visible_titles.append(item.title)
             else:
                 not_visible_titles.append(item.title)
 
         response = self.client.get(url, {'page': 2})
+        content = response.content.decode('utf-8')
         for each in visible_titles[:10]:
-            assert each not in response.content
+            assert each not in content
         for each in not_visible_titles[:10]:
-            assert each in response.content
-        assert '?page=1' in response.content
-        assert '?page=3' in response.content
+            assert each in content
+        assert '?page=1' in content
+        assert '?page=3' in content
 
     def test_about_page_fs_cached(self):
         fs_path = os.path.join(settings.FSCACHE_ROOT, 'about', 'index.html')

@@ -61,7 +61,7 @@ class BlogForm(forms.ModelForm):
             )
             used.append(pk)
 
-        category_items = all_categories.iteritems()
+        category_items = all_categories.items()
         for pk, name in sorted(category_items, key=lambda x: x[1].lower()):
             if pk in used:
                 continue

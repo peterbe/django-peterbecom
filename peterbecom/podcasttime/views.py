@@ -173,16 +173,16 @@ def find(request):
     items = []
     for podcast in found:
         if podcast.image and is_html_document(podcast.image.path):
-            print "Found a podcast.image that wasn't an image"
+            print("Found a podcast.image that wasn't an image")
             podcast.image = None
             podcast.save()
         if podcast.image:
             if podcast.image.size < 1000:
-                print "IMAGE LOOKS SUSPICIOUS"
-                print podcast.image_url
-                print repr(podcast), podcast.id
-                print podcast.url
-                print repr(podcast.image.read())
+                print("IMAGE LOOKS SUSPICIOUS")
+                print(podcast.image_url)
+                print(repr(podcast), podcast.id)
+                print(podcast.url)
+                print(repr(podcast.image.read()))
                 podcast.download_image()
         thumb_url = None
         if podcast.image:
@@ -196,11 +196,11 @@ def find(request):
                 thumb_url = make_absolute_url(thumb_url, request)
             except IOError:
                 import sys
-                print "BAD IMAGE!"
-                print sys.exc_info()
-                print repr(podcast.image)
-                print repr(podcast), podcast.url
-                print
+                print("BAD IMAGE!")
+                print(sys.exc_info())
+                print(repr(podcast.image))
+                print(repr(podcast), podcast.url)
+                print()
                 podcast.image = None
                 podcast.save()
                 redownload_podcast_image.delay(podcast.id)
@@ -596,7 +596,7 @@ def podcast_data(request, id, slug=None):
         podcast=podcast
     ).order_by('-published')
     if podcast.image and is_html_document(podcast.image.path):
-        print "Found a podcast.image that wasn't an image"
+        print("Found a podcast.image that wasn't an image")
         podcast.image = None
         podcast.save()
         redownload_podcast_image.delay(podcast.id)

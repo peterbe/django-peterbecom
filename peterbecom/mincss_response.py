@@ -45,7 +45,7 @@ class CachedProcessor(Processor):
 
     def process_html(self, html, url):
         hash_filename = hashlib.md5(
-            html.encode('utf-8') + url
+            (html + url).encode('utf-8')
         ).hexdigest() + '.json'
         hash_filepath = os.path.join(
             self.cache_dir,
@@ -55,7 +55,7 @@ class CachedProcessor(Processor):
         if os.path.isfile(hash_filepath):
             age = time.time() - os.stat(hash_filepath).st_mtime
             if age < 60 * 60 * 24 * 7:
-                with codecs.open(hash_filepath, 'r', 'utf-8') as f:
+                with open(hash_filepath, 'r') as f:
                     self.result = json.load(f)
                     return
             else:
@@ -67,7 +67,7 @@ class CachedProcessor(Processor):
         if urls:
             raise NotImplementedError(urls)
         if self.result:
-            print "YAY! Reading from disk cache"
+            # print "YAY! Reading from disk cache"
             self.inlines = [
                 InlineResult(
                     x['line'],
@@ -87,8 +87,7 @@ class CachedProcessor(Processor):
             ]
         else:
             super(CachedProcessor, self).process()
-            print self.hash_filepath
-            with codecs.open(self.hash_filepath, 'w', 'utf-8') as f:
+            with open(self.hash_filepath, 'w') as f:
                 json.dump({
                     'links': [
                         {
@@ -163,18 +162,7 @@ def _mincss_response(response, request):
     if abs_uri.startswith('http://testserver'):
         return response
 
-    # lock_key = 'lock:' + hashlib.md5(request.path).hexdigest()
-    # if cache.get(lock_key):
-    #     # we're actively busy prepping this one
-    #     print "Bailing because mincss_response is already busy for: %s" % (
-    #         request.path + request.META.get('QUERY_STRING'),
-    #     )
-    #     return response
-    # cache.set(lock_key, True, 200)
-    # print "Starting to mincss for: %s" % (
-    #     request.path + request.META.get('QUERY_STRING'),
-    # )
-    html = unicode(response.content, 'utf-8')
+    html = response.content.decode('utf-8')
     t0 = time.time()
     # p = Processor(
     p = CachedProcessor(
@@ -239,7 +227,7 @@ Saving:               %.fKb
             (t2 - t1) * 1000,
         )
     )
-    print stats_css
+    # print(stats_css)
     combined_css.insert(0, stats_css)
     new_style = (
         '<style type="text/css">\n%s\n</style>' %
