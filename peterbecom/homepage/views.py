@@ -292,7 +292,7 @@ def search(request):
 
         if keyword_search.get('keyword') or keyword_search.get('keywords'):
             if keyword_search.get('keyword'):
-                assert isinstance(keyword_search['keyword'], basestring)
+                assert isinstance(keyword_search['keyword'], str)
                 items = BlogItem.objects.filter(
                     pub_date__lt=timezone.now(),
                     proper_keywords__contains=[keyword_search['keyword']]
@@ -375,7 +375,9 @@ def search(request):
 
 
 @cache_control(public=True, max_age=ONE_WEEK)
-@cache_page(ONE_WEEK, post_process_response=mincss_response)
+# This is commented out because it breaks on the server.
+# But not locally! Need time to think
+# @cache_page(ONE_WEEK, post_process_response=mincss_response)
 def about(request):
     context = {
         'page_title': 'About this site',
@@ -384,7 +386,7 @@ def about(request):
 
 
 @cache_control(public=True, max_age=ONE_WEEK)
-@cache_page(ONE_WEEK, post_process_response=mincss_response)
+# @cache_page(ONE_WEEK, post_process_response=mincss_response)
 def contact(request):
     context = {
         'page_title': 'Contact me',
