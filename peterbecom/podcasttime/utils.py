@@ -6,13 +6,13 @@ import json
 import re
 import random
 import collections
-import urlparse
+from urllib.parse import urlparse
 from xml.parsers.expat import ExpatError
 
 import xmltodict
 import feedparser
 import requests
-import subprocess32
+import subprocess
 
 
 _MEDIA_FILE = os.path.join(
@@ -34,26 +34,25 @@ class NotXMLResponse(Exception):
 
 
 def get_base_url(url):
-    parsed = urlparse.urlparse(url)
+    parsed = urlparse(url)
     return '{}://{}'.format(parsed.scheme, parsed.netloc)
 
 
 def is_html_document(filepath):
     command = ['file', '-b', filepath]
-    out, err = subprocess32.Popen(
+    out, err = subprocess.Popen(
         command,
-        stdout=subprocess32.PIPE,
-        stderr=subprocess32.PIPE
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
     ).communicate(timeout=60)
-    return out and 'HTML document text' in out
+    return out and b'HTML document text' in out
 
 
 def wrap_subprocess(command):
-    # print command
-    return subprocess32.Popen(
+    return subprocess.Popen(
         command,
-        stdout=subprocess32.PIPE,
-        stderr=subprocess32.PIPE
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
     ).communicate(timeout=60 * 2)
 
 
@@ -70,18 +69,17 @@ def parse_duration_ffmpeg(media_url):
         command = ['ffmpeg', '-i', media_url]
         try:
             out, err = wrap_subprocess(command)
-        except subprocess32.TimeoutExpired as exception:
+        except subprocess.TimeoutExpired as exception:
             return None, exception
         REGEX = re.compile('Duration: (\d+):(\d+):(\d+).(\d+)')
-        matches = REGEX.findall(err)
-        # if matches:
+        matches = REGEX.findall(str(err))
         try:
             found, = matches
         except ValueError:
-            print "SUBPROCESS ERROR"
-            print repr(err)
+            print("SUBPROCESS ERROR")
+            print(repr(err))
             print
-            return None, err
+            return None, str(err)
         hours = int(found[0])
         minutes = int(found[1])
         minutes += hours * 60
@@ -124,7 +122,7 @@ def download(
 ):
     if not os.path.isdir(_CACHE):
         os.mkdir(_CACHE)
-    key = hashlib.md5(url).hexdigest()
+    key = hashlib.md5(url.encode('utf-8')).hexdigest()
     if no_user_agent:
         key += 'nouseragent'
     fp = os.path.join(_CACHE, key)
@@ -133,7 +131,7 @@ def download(
         if age > 60 * 60 * 24:
             os.remove(fp)
     if not os.path.isfile(fp) or refresh:
-        print "* requesting", url
+        print("* requesting", url)
         r = realistic_request(url, no_user_agent=no_user_agent)
         if r.status_code == 200:
             if expect_xml and not (
@@ -172,15 +170,15 @@ def get_image_url(rss_url):
             try:
                 parsed = xmltodict.parse(xml)
             except ExpatError:
-                print "BAD XML!!"
+                print("BAD XML!!")
                 with codecs.open('/tmp/xml.xml', 'w', 'utf-8') as f:
                     f.write(xml)
-                    print "WROTE /tmp/xml.xml"
+                    print("WROTE /tmp/xml.xml")
                 raise
             try:
                 if isinstance(
                     parsed['rss']['channel']['itunes:image'],
-                    basestring
+                    str
                 ):
                     image_url = (
                         parsed['rss']['channel']['itunes:image']
@@ -206,23 +204,23 @@ def get_image_url(rss_url):
                         )
 
             except (KeyError, TypeError, KeyError):
-                print "PARSED IS WEIRD"
+                print("PARSED IS WEIRD")
                 # print parsed
-                print rss_url
+                print(rss_url)
                 with codecs.open('/tmp/xml.xml', 'w', 'utf-8') as f:
                     f.write(xml)
-                    print "WROTE /tmp/xml.xml"
+                    print("WROTE /tmp/xml.xml")
                 raise
 
         if not image_url:
             try:
                 image_url = d.feed.image['href']
             except AttributeError:
-                print "NO IMAGE"
+                print("NO IMAGE")
                 # print d.feed
                 try:
-                    print "IMAGE??", d.feed.image
-                    print "IMAGE.URL??", d.feed.image['url']
+                    print("IMAGE??", d.feed.image)
+                    print("IMAGE.URL??", d.feed.image['url'])
                     raise
                 except AttributeError:
                     # doesn't even have a feed.image
@@ -233,6 +231,5 @@ def get_image_url(rss_url):
 
 if __name__ == '__main__':
     import sys
-    # print download(sys.argv[1])
     for arg in sys.argv[1:]:
-        print get_image_url(arg)
+        print(get_image_url(arg))

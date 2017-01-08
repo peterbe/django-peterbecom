@@ -2,7 +2,7 @@ import hashlib
 import time
 import datetime
 import random
-from urlparse import urljoin
+from urllib.parse import urljoin
 from xml.parsers.expat import ExpatError
 
 import requests
@@ -61,7 +61,7 @@ def download_some_episodes(max_=5, verbose=False):
 
     for podcast in podcasts.order_by('?')[:max_]:
         if verbose:
-            print (podcast.name, podcast.last_fetch)
+            print(podcast.name, podcast.last_fetch)
         download_episodes(podcast)
 
     # secondly, do those whose episodes have never been fetched
@@ -70,7 +70,7 @@ def download_some_episodes(max_=5, verbose=False):
     ).order_by('?')
     for podcast in podcasts[:max_]:
         if verbose:
-            print (podcast.name, podcast.last_fetch)
+            print(podcast.name, podcast.last_fetch)
         download_episodes(podcast)
 
     # randomly do some of the old ones
@@ -80,7 +80,7 @@ def download_some_episodes(max_=5, verbose=False):
     ).order_by('?')
     for podcast in podcasts[:max_]:
         if verbose:
-            print (podcast.name, podcast.last_fetch)
+            print(podcast.name, podcast.last_fetch)
         download_episodes(podcast)
 
     # # then do the ones with the oldest updates
@@ -100,7 +100,7 @@ def download_episodes(podcast, verbose=True):
             Podcast.objects.filter(id=podcast.id).update(error=None)
     except (BadPodcastEntry, NotFound, BadEpisodeDurationError) as exception:
         Podcast.objects.filter(id=podcast.id).update(
-            error=unicode(exception)
+            error=str(exception)
         )
     except Exception:
         PodcastError.create(podcast)
@@ -126,11 +126,11 @@ def _download_episodes(podcast, verbose=True):
                             raise BadEpisodeDurationError(error)
             except KeyError:
                 try:
-                    print entry.enclosure
+                    print(entry.enclosure)
                     raise Exception(entry.enclosure)
                 except AttributeError:
                     # no 'itunes:duration' and no links
-                    print "SKIPPING", entry
+                    print("SKIPPING", entry)
                     return
         elif entry['itunes_duration'].count(':') >= 1:
             try:
@@ -144,9 +144,9 @@ def _download_episodes(podcast, verbose=True):
                     if x.strip()
                 ]
             except ValueError:
-                print "SKIPPING, BAD itunes_duration"
-                print entry
-                print 'itunes_duration=', repr(entry['itunes_duration'])
+                print("SKIPPING, BAD itunes_duration")
+                print(entry)
+                print('itunes_duration=', repr(entry['itunes_duration']))
                 return
             duration = 0
             itunes_duration.reverse()
@@ -161,14 +161,14 @@ def _download_episodes(podcast, verbose=True):
             return duration
         else:
             if not entry['itunes_duration']:
-                print "BUT!", xml.find('<itunes:duration')
+                print("BUT!", xml.find('<itunes:duration'))
                 return
             try:
-                return int(float(entry['itunes_duration']))
+                return(int(float(entry['itunes_duration'])))
             except ValueError:
                 # pprint(entry)
-                print "SKIPPING itunes_duration not a number"
-                print repr(entry['itunes_duration'])
+                print("SKIPPING itunes_duration not a number")
+                print(repr(entry['itunes_duration']))
                 return
 
     for entry in d['entries']:
@@ -195,14 +195,16 @@ def _download_episodes(podcast, verbose=True):
             try:
                 guid = entry.id
             except AttributeError:
-                print "No guid or id. Going to use the summary."
+                print("No guid or id. Going to use the summary.")
                 try:
                     guid = hashlib.md5(
                         entry.summary.encode('utf-8')
                     ).hexdigest()
                 except AttributeError:
-                    print "No guid or id or summary. ",
-                    print "Going to use the title."
+                    print(
+                        "No guid or id or summary. ",
+                        "Going to use the title."
+                    )
                     guid = hashlib.md5(
                         entry.title.encode('utf-8')
                     ).hexdigest()
@@ -213,13 +215,13 @@ def _download_episodes(podcast, verbose=True):
                 guid=guid
             )
             if ep.duration != duration:
-                print "DURATION CHANGED!!!"
+                print("DURATION CHANGED!!!")
             else:
-                print "Duration unchanged"
+                print("Duration unchanged")
             if ep.published != published:
-                print "PUBLISHED CHANGED!!!"
+                print("PUBLISHED CHANGED!!!")
             else:
-                print "Published unchanged"
+                print("Published unchanged")
         except Episode.DoesNotExist:
             pass
 
@@ -232,12 +234,12 @@ def _download_episodes(podcast, verbose=True):
             episode.published = published
             try:
                 episode.save()
-                print "SAVED",
+                print("SAVED")
             except DataError:
-                print "FROM", podcast.url
-                print "ENTRY"
-                print entry
-                print "TRIED TO SAVE DURATION", duration
+                print("FROM", podcast.url)
+                print("ENTRY")
+                print(entry)
+                print("TRIED TO SAVE DURATION", duration)
                 PodcastError.create(podcast, notes='Tried to save duration')
                 raise
         except Episode.DoesNotExist:
@@ -247,8 +249,8 @@ def _download_episodes(podcast, verbose=True):
                 published=published,
                 guid=guid,
             )
-            print "CREATED",
-        print (
+            print("CREATED")
+        print(
             episode.podcast.name,
             episode.guid,
             episode.duration,
@@ -256,13 +258,13 @@ def _download_episodes(podcast, verbose=True):
         )
     print("SETTING last_fetch ON {!r}".format(podcast))
     Podcast.objects.filter(id=podcast.id).update(last_fetch=timezone.now())
-    # podcast.last_fetch = timezone.now()
-    # podcast.save()
 
 
 def find_podcasts(url, verbose=False, depth=0):
     urls = []
-    hash_ = hashlib.md5(get_base_url(url)).hexdigest()
+    hash_ = hashlib.md5(
+        get_base_url(url).encode('utf-8')
+    ).hexdigest()
     print(url, hash_, depth)
     if hash_ == '73eb773086aa7f75654f4a2d25ca315b':
         if not depth:
@@ -273,7 +275,6 @@ def find_podcasts(url, verbose=False, depth=0):
         for a in doc('h3 a').items():
             if a.text() == 'Join Now to Follow':
                 continue
-            # print (a.attr('href'), a.text())
             urls.append(a.attr('href'))
         max_ = 10
         random.shuffle(urls)
@@ -322,7 +323,7 @@ def _scrape_feed(url, verbose=False):
     html = download(url, gently=True)
     doc = pyquery.PyQuery(html)
     doc.make_links_absolute(get_base_url(url))
-    print "URL:", url
+    print("URL:", url)
     for a in doc('.span3 li a').items():
         if a.text() == 'RSS':
             feed_url = a.attr('href')
@@ -348,7 +349,7 @@ def _scrape_feed(url, verbose=False):
                 )
                 continue
             if not image_url:
-                print "Skipping (no image)", feed_url
+                print("Skipping (no image)", feed_url)
                 continue
             assert '://' in image_url, image_url
             podcast = Podcast.objects.create(
@@ -356,12 +357,6 @@ def _scrape_feed(url, verbose=False):
                 image_url=image_url,
             )
             return podcast
-            # print repr(podcast)
-            podcast.download_image()
-            podcast.download_episodes()
-            # redownload_podcast_image.delay(podcast.id)
-            # # podcast.download_image()
-            # download_episodes_task.delay(podcast.id)
 
 
 def _scrape_index(url, verbose=False, max_=1000):
@@ -388,15 +383,14 @@ def _scrape_index(url, verbose=False, max_=1000):
     for name, show_url in shows[:max_]:
         rss_url = _scrape_show(show_url)
         if not rss_url:
-            print "Skipping", name, show_url
+            print("Skipping", name, show_url)
             continue
 
         image_url = get_image_url(rss_url)
         if not image_url:
-            print "Skipping (no image)", name, rss_url
+            print("Skipping (no image)", name, rss_url)
             continue
         assert '://' in image_url, image_url
-        # print "IMAGE_URL", image_url
 
         try:
             podcast = Podcast.objects.get(name=name)
@@ -415,16 +409,16 @@ def _scrape_index(url, verbose=False, max_=1000):
             podcast.download_image()
         except (AssertionError, NotAnImageError):
             if verbose:
-                print "Got an error trying to download the image :("
-                print "IGNORING AND MOVING ON"
+                print("Got an error trying to download the image :(")
+                print("IGNORING AND MOVING ON")
             PodcastError.create(podcast)
 
         if verbose:
             if created:
-                print "CREATED",
+                print("CREATED")
             else:
-                print "NOT NEW",
-            print repr(name)
+                print("NOT NEW")
+            print(repr(name))
 
 
 def _scrape_show(url):
@@ -445,9 +439,9 @@ def fix_podcast_images(max_, verbose=False):
     )
 
     for podcast in podcasts.order_by('?')[:max_]:
-        print repr(podcast.name)
-        print podcast.image
-        print podcast.image_url
-        print podcast.itunes_lookup['artworkUrl600']
-        print
+        print(repr(podcast.name))
+        print(podcast.image)
+        print(podcast.image_url)
+        print(podcast.itunes_lookup['artworkUrl600'])
+        print()
         raise NotImplementedError

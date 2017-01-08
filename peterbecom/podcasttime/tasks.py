@@ -18,7 +18,7 @@ def download_episodes_task(podcast_id, verbose=True):
 @shared_task
 def redownload_podcast_image(podcast_id):
     podcast = Podcast.objects.get(id=podcast_id)
-    print "REDOWNLOAD_PODCAST_IMAGE!!"
+    print("REDOWNLOAD_PODCAST_IMAGE!!")
     try:
         podcast.download_image()
         # If it worked, it should be possible to make a thumbnail out of
@@ -28,13 +28,13 @@ def redownload_podcast_image(podcast_id):
         assert podcast.image
         try:
             thumbnail(podcast.image, '300x300')
-            print "Worked!"
+            print("Worked!")
         except IOError:
-            print "Not a valid image if thumbnails can't be made"
+            print("Not a valid image if thumbnails can't be made")
             podcast.image = None
             podcast.save()
     except Exception:
-        print "Failed!"
+        print("Failed!")
         PodcastError.create(podcast)
         raise
 
@@ -42,12 +42,12 @@ def redownload_podcast_image(podcast_id):
 @shared_task
 def fetch_itunes_lookup(podcast_id):
     podcast = Podcast.objects.get(id=podcast_id)
-    print "Fetching itunes lookup", repr(podcast.name)
+    print("Fetching itunes lookup", repr(podcast.name))
     results = itunes_search(podcast.name)
     if results['resultCount'] == 1:
         lookup = results['results'][0]
         podcast.itunes_lookup = lookup
         podcast.save()
     else:
-        print "Found", results['resultCount'], 'results'
-        print results['resultCount']
+        print("Found", results['resultCount'], 'results')
+        print(results['resultCount'])

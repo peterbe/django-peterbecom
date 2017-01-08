@@ -1,6 +1,6 @@
 import os
 import time
-import urlparse
+from urllib.parse import urljoin, urlparse
 
 import requests
 
@@ -15,7 +15,7 @@ def path_to_fs_path(path):
             fs_path += '/' + directory
         if not os.path.isdir(fs_path):
             os.mkdir(fs_path)
-            os.chmod(fs_path, 0755)
+            os.chmod(fs_path, 0o755)
     return fs_path + '/index.html'
 
 
@@ -37,7 +37,7 @@ def invalidate(fs_path):
 
 def invalidate_by_url(url):
     if not url.startswith('/'):
-        url = urlparse.urlparse(url).path
+        url = urlparse(url).path
     fs_path = settings.FSCACHE_ROOT + url + '/index.html'
     if os.path.isfile(fs_path):
         invalidate(fs_path)
@@ -56,8 +56,8 @@ def revisit_url(path):
     secure = getattr(settings, 'FSCACHE_SECURE_SITE', True)
     base_url = secure and 'https://' or 'http://'
     base_url += site.domain
-    url = urlparse.urljoin(base_url, path)
-    print 'REVISIT', url, requests.get(url).status_code
+    url = urljoin(base_url, path)
+    print('REVISIT', url, requests.get(url).status_code)
 
 
 def invalidate_too_old(verbose=False, dry_run=False, revisit=False):
@@ -72,7 +72,7 @@ def invalidate_too_old(verbose=False, dry_run=False, revisit=False):
                 found.append(os.stat(path).st_size)
                 if too_old(path):
                     if verbose:
-                        print "INVALIDATE", path
+                        print("INVALIDATE", path)
                     if not dry_run:
                         deleted.append(os.stat(path).st_size)
                         invalidate(path)
@@ -80,10 +80,10 @@ def invalidate_too_old(verbose=False, dry_run=False, revisit=False):
                         if revisit:
                             revisit_url(path)
     if verbose:
-        print "Found", len(found), "possible files"
+        print("Found", len(found), "possible files")
         mb = sum(found) / 1024.0 / 1024.0
-        print "Totalling", "%.1f MB" % mb
-        print "Deleted", len(deleted), "files"
+        print("Totalling", "%.1f MB" % mb)
+        print("Deleted", len(deleted), "files")
 
 
 def cache_request(request, response):

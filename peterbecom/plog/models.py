@@ -2,7 +2,7 @@ import hashlib
 import time
 import os
 import uuid
-import urllib2
+# import urllib2
 import datetime
 import unicodedata
 
@@ -33,7 +33,7 @@ class Category(models.Model):
 
 
 def _upload_path_tagged(tag, instance, filename):
-    if isinstance(filename, unicode):
+    if isinstance(filename, str):
         filename = (
             unicodedata
             .normalize('NFD', filename)
@@ -45,8 +45,10 @@ def _upload_path_tagged(tag, instance, filename):
         now.strftime('%m'),
         now.strftime('%d')
     )
-    hashed_filename = hashlib.md5(filename + str(now.microsecond)).hexdigest()
-    __, extension = os.path.splitext(filename)
+    hashed_filename = hashlib.md5(
+        filename + str(now.microsecond).encode('utf-8')
+    ).hexdigest()
+    __, extension = os.path.splitext(str(filename))
     return os.path.join(tag, path, hashed_filename + extension)
 
 
@@ -168,18 +170,19 @@ class BlogItem(models.Model):
         return cls.objects.get(pk=value)
 
     def update_screenshot_image(self, base_url):
-        url = base_url + reverse('blog_screenshot', args=(self.oid,))
-        png_url = screenshot.get_image_url(url)
-
-        img_temp = NamedTemporaryFile(delete=True)
-        img_temp.write(urllib2.urlopen(png_url).read())
-        img_temp.flush()
-
-        self.screenshot_image.save(
-            'screenshot.{}.png'.format(self.oid),
-            File(img_temp)
-        )
-        return png_url
+        raise NotImplementedError
+        # url = base_url + reverse('blog_screenshot', args=(self.oid,))
+        # png_url = screenshot.get_image_url(url)
+        #
+        # img_temp = NamedTemporaryFile(delete=True)
+        # img_temp.write(urllib2.urlopen(png_url).read())
+        # img_temp.flush()
+        #
+        # self.screenshot_image.save(
+        #     'screenshot.{}.png'.format(self.oid),
+        #     File(img_temp)
+        # )
+        # return png_url
 
 
 class BlogItemHits(models.Model):
@@ -248,7 +251,7 @@ def _uploader_dir(instance, filename):
                             instance.blogitem.oid,
                             filename)
     a, b = os.path.splitext(filename)
-    if isinstance(a, unicode):
+    if isinstance(a, str):
         a = a.encode('ascii', 'ignore')
     a = hashlib.md5(a).hexdigest()[:10]
     filename = '%s.%s%s' % (a, int(time.time()), b)
@@ -296,7 +299,9 @@ def invalidate_latest_comment_add_dates(sender, instance, **kwargs):
         oid = instance.blogitem.oid
     else:
         raise NotImplementedError(sender)
-    cache_key = 'latest_comment_add_date:%s' % hashlib.md5(oid).hexdigest()
+    cache_key = 'latest_comment_add_date:%s' % (
+        hashlib.md5(oid.encode('utf-8')).hexdigest()
+    )
     cache.delete(cache_key)
 
 
@@ -316,7 +321,9 @@ def invalidate_latest_comment_add_date_by_oid(sender, instance, **kwargs):
         oid = instance.blogitem.oid
     else:
         raise NotImplementedError(sender)
-    cache_key = 'latest_comment_add_date:%s' % hashlib.md5(oid).hexdigest()
+    cache_key = 'latest_comment_add_date:%s' % (
+        hashlib.md5(oid.encode('utf-8')).hexdigest()
+    )
     cache.delete(cache_key)
 
 

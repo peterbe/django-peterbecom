@@ -22,7 +22,7 @@ class NotAnImageError(Exception):
 
 
 def _upload_path_tagged(tag, instance, filename):
-    if isinstance(filename, unicode):
+    if isinstance(filename, str):
         filename = (
             unicodedata
             .normalize('NFD', filename)
@@ -34,8 +34,10 @@ def _upload_path_tagged(tag, instance, filename):
         now.strftime('%m'),
         now.strftime('%d')
     )
-    hashed_filename = hashlib.md5(filename + str(now.microsecond)).hexdigest()
-    __, extension = os.path.splitext(filename)
+    hashed_filename = hashlib.md5(
+        filename + str(now.microsecond).encode('utf-8')
+    ).hexdigest()
+    __, extension = os.path.splitext(str(filename))
     return os.path.join(tag, path, hashed_filename + extension)
 
 
@@ -67,20 +69,20 @@ class Podcast(models.Model):
         return '<%s: %r>' % (self.__class__.__name__, self.name)
 
     def download_image(self, timeout=20):
-        print "Downloading", repr(self.image_url)
+        print("Downloading", repr(self.image_url))
         img_temp = NamedTemporaryFile(delete=True)
         r = realistic_request(self.image_url, timeout=timeout)
         assert r.status_code == 200, r.status_code
         if r.headers['content-type'] == 'text/html':
             raise NotAnImageError('%s is not an image' % self.image_url)
-        print ('Content-Type', r.headers['content-type'])
+        print('Content-Type', r.headers['content-type'])
         img_temp.write(r.content)
         img_temp.flush()
         self.image.save(
             os.path.basename(self.image_url.split('?')[0]),
             File(img_temp)
         )
-        print "Saved image", self.image.size
+        print("Saved image", self.image.size)
 
     @property
     def total_seconds(self):
@@ -151,12 +153,10 @@ class Picked(models.Model):
 @receiver(models.signals.m2m_changed, sender=Picked.podcasts.through)
 def update_podcast_times_picked(sender, instance, action, **kwargs):
     if action == 'post_add':
-        # print "POST_ADD", instance.podcasts.all()
         instance.podcasts.all().update(
             times_picked=models.F('times_picked') + 1
         )
     elif action == 'pre_clear':
-        # print "PRE_CLEAR", instance.podcasts.all()
         instance.podcasts.all().update(
             times_picked=models.F('times_picked') - 1
         )

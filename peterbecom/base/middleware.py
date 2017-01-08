@@ -1,4 +1,3 @@
-import codecs
 import datetime
 import re
 import time
@@ -30,10 +29,10 @@ class FSCacheMiddleware(object):
                     datetime.datetime.utcnow()
                 )
                 # Proceed only if it's a long'ish time to be cached
-                with codecs.open(fs_path, 'w', response.charset) as f:
-                    f.write(unicode(response.content, response.charset))
+                with open(fs_path, 'w') as f:
+                    f.write(response.content.decode('utf-8'))
                     if 'text/html' in response['Content-Type']:
-                        f.write('\n<!-- {} -->'.format(metadata_text))
+                        f.write('\n<!-- {} -->\n'.format(metadata_text))
                 with open(fs_path + '.metadata', 'w') as f:
                     f.write(metadata_text)
                     f.write('\n')

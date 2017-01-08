@@ -3,7 +3,7 @@ import os
 import sys
 import time
 import traceback
-from cStringIO import StringIO
+from io import StringIO
 import datetime
 
 from django.conf import settings

@@ -115,32 +115,32 @@ _used = {}
 for config in PIPELINE_JS, PIPELINE_CSS:  # NOQA
     _trouble = set()
     for k, v in config.items():
-        assert isinstance(k, basestring), k
+        assert isinstance(k, str), k
         out = v['output_filename']
         assert isinstance(v['source_filenames'], tuple), v
-        assert isinstance(out, basestring), v
+        assert isinstance(out, str), v
         assert not out.split('/')[-1].startswith('.'), k
         assert '_' not in out
         assert out.endswith('.min.css') or out.endswith('.min.js')
         for asset_file in v['source_filenames']:
             if asset_file in _used:
                 # Consider using warnings.warn here instead
-                print '{:<52} in {:<20} already in {}'.format(
+                print('{:<52} in {:<20} already in {}'.format(
                     asset_file,
                     k,
                     _used[asset_file]
-                )
+                ))
                 _trouble.add(asset_file)
             _used[asset_file] = k
 
     for asset_file in _trouble:
-        print "REPEATED", asset_file
+        print("REPEATED", asset_file)
         found_in = []
         sets = []
         for k, v in config.items():
             if asset_file in v['source_filenames']:
                 found_in.append(k)
                 sets.append(set(list(v['source_filenames'])))
-        print "FOUND IN", found_in
-        print "ALWAYS TOGETHER WITH", set.intersection(*sets)
+        print("FOUND IN", found_in)
+        print("ALWAYS TOGETHER WITH", set.intersection(*sets))
         break

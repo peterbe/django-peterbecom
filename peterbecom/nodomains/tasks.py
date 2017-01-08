@@ -5,7 +5,7 @@ import re
 import os
 import time
 
-import subprocess32
+import subprocess
 
 from django.conf import settings
 
@@ -38,18 +38,18 @@ def run_url(url, dry_run=False):
         COUNT_JS_PATH,
         '"%s"' % url
     ]
-    print "Running"
-    print command
-    process = subprocess32.Popen(
+    print("Running")
+    print(command)
+    process = subprocess.Popen(
         ' '.join(command),
         shell=True,
-        stdout=subprocess32.PIPE,
-        stderr=subprocess32.PIPE
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
     )
     out, err = process.communicate(timeout=60)
     t1 = time.time()
 
-    print "TOOK", t1 - t0
+    print("TOOK", t1 - t0)
 
     regex = re.compile('DOMAIN: (.*) COUNT: (\d+)')
     domains = {}
@@ -60,15 +60,15 @@ def run_url(url, dry_run=False):
                 count = int(count)
                 domains[domain] = count
             except IndexError:
-                print "Rogue line", repr(line)
+                print("Rogue line", repr(line))
 
-    print "OUT", '-' * 70
-    print out
+    print("OUT", '-' * 70)
+    print(out)
     # print repr(out)
-    print "ERR", '-' * 70
-    print err
+    print("ERR", '-' * 70)
+    print(err)
     # print repr(err)
-    print "\n"
+    print("\n")
     if domains:
         if not dry_run:
             r = models.Result.objects.create(
