@@ -1,5 +1,4 @@
 import json
-from optparse import make_option
 from pprint import pprint
 
 from django.core.management.base import BaseCommand
@@ -15,21 +14,18 @@ from peterbecom.plog.utils import utc_now
 
 class Command(BaseCommand):
 
-    option_list = BaseCommand.option_list + (
-        make_option(
+    def add_arguments(self, parser):
+        parser.add_argument(
             '--all',
-            action='store_true',
-            dest='all',
             default=False,
-            help='Index every single post'
-        ),
-        make_option(
-            '--max',
-            dest='max',
-            default=100,
-            help='Number of (random) elements to index'
+            action='store_true',
+            help='Index every single post',
         )
-    )
+        parser.add_argument(
+            '--max',
+            default=100,
+            help='Number of (random) elements to index',
+        )
 
     def handle(self, *args, **options):
         now = utc_now()
@@ -43,7 +39,7 @@ class Command(BaseCommand):
         documents = []
         for plog in qs:
             if verbose:
-                print repr(plog.title),
+                print(repr(plog.title))
             try:
                 hits = models.BlogItemHits.objects.get(oid=plog.oid).hits
             except models.BlogItemHits.DoesNotExist:
@@ -61,4 +57,4 @@ class Command(BaseCommand):
         )
         if verbose:
             pprint(documents)
-            print response
+            print(response)
