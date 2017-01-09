@@ -26,7 +26,6 @@ from peterbecom.base.templatetags.jinja_helpers import thumbnail
 from .models import BlogItem, BlogComment, Category, BlogFile
 from .utils import render_comment_text, valid_email, utc_now
 from fancy_cache import cache_page
-from peterbecom.mincss_response import mincss_response
 from . import utils
 from .utils import json_view
 from .forms import BlogForm, BlogFileUpload, CalendarDataForm
@@ -110,7 +109,6 @@ def _blog_post_key_prefixer(request):
 @cache_page(
     ONE_MONTH,
     _blog_post_key_prefixer,
-    post_process_response=mincss_response
 )
 def blog_post(request, oid):
     # legacy fix
@@ -482,7 +480,6 @@ def _plog_index_key_prefixer(request):
 @cache_page(
     ONE_DAY,
     _plog_index_key_prefixer,
-    post_process_response=mincss_response
 )
 def plog_index(request):
     groups = defaultdict(list)
@@ -796,46 +793,6 @@ def calendar_data(request):
     return items
 
 
-# @require_POST
-# @csrf_exempt
-# def inbound_email(request):
-#     raw_data = request.read()
-#
-#     data = json.loads(raw_data)
-#     inbound = PostmarkInbound(json=raw_data)
-#     if not inbound.has_attachments():
-#         m = "ERROR! No attachments"
-#         logging.debug(m)
-#         return http.HttpResponse(m)
-#     try:
-#         hashkey, subject = inbound.subject().split(':', 1)
-#     except ValueError:
-#         m = "ERROR! No hashkey defined in subject line"
-#         logging.debug(m)
-#         return http.HttpResponse(m)
-#     try:
-#         post = BlogItem.get_by_inbound_hashkey(hashkey)
-#     except BlogItem.DoesNotExist:
-#         m = "ERROR! Unrecognized hashkey"
-#         logging.debug(m)
-#         return http.HttpResponse(m)
-#
-#     attachments = inbound.attachments()
-#     attachment = attachments[0]
-#     blogfile = BlogFile(
-#         blogitem=post,
-#         title=subject.strip(),
-#     )
-#     content = StringIO(attachment.read())
-#     f = File(content, name=attachment.name())
-#     f.size = attachment.content_length()
-#     blogfile.file.save(attachment.name(),
-#                        f,
-#                        save=True)
-#     blogfile.save()
-#     return http.HttpResponse("OK\n")
-
-
 def plog_hits(request):
     context = {}
     limit = int(request.GET.get('limit', 100))
@@ -870,10 +827,6 @@ def plog_hits(request):
     for item in query:
         for cat in categories[item.id]:
             category_scores[cat].append(item.score)
-
-    # def median(seq):
-    #     seq.sort()
-    #     return seq[math.floor(len(seq) / 2)]
 
     summed_category_scores = []
     for name, scores in category_scores.items():

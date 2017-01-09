@@ -3,6 +3,8 @@ import re
 import time
 
 from peterbecom.base.fscache import path_to_fs_path, cache_request
+from peterbecom.base.tasks import post_process_cached_html
+
 
 max_age_re = re.compile('max-age=(\d+)')
 
@@ -36,4 +38,9 @@ class FSCacheMiddleware(object):
                 with open(fs_path + '.metadata', 'w') as f:
                     f.write(metadata_text)
                     f.write('\n')
+                if 'text/html' in response['Content-Type']:
+                    post_process_cached_html.delay(
+                        fs_path,
+                        request.build_absolute_uri(),
+                    )
         return response

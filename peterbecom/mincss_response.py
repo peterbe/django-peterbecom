@@ -109,31 +109,6 @@ class CachedProcessor(Processor):
                 }, f)
 
 
-def mincss_response(response, request):
-    # html, age = _get_mincssed_html(
-    #     request.path + request.META.get('QUERY_STRING')
-    # )
-    #
-    # if html is not None:
-    #     if age > 60 * 60:
-    #         age_human = '%.1f hours' % (age / 3600.0)
-    #     elif age > 60:
-    #         age_human = '%.1f minutes' % (age / 60.0)
-    #     else:
-    #         age_human = '%d seconds' % (age, )
-    #     print "BUT!! It existed as a file!", age_human
-
-    # t0 = time.time()
-    r = _mincss_response(response, request)
-    # t1 = time.time()
-    # print "Running mincss_response for: %s (Took %.3fs) %s" % (
-    #     request.path + request.META.get('QUERY_STRING'),
-    #     t1 - t0,
-    #     timezone.now().isoformat()
-    # )
-    return r
-
-
 def _mincssed_key(path):
     filename = path.replace('/', '_') + '.html'
     return os.path.join(cache_save_dir, filename)
@@ -153,7 +128,12 @@ def _save_mincssed_html(path, html):
         f.write(html)
 
 
-def _mincss_response(response, request):
+def mincss_response(response, request):
+    import warnings
+    warnings.warn(
+        "Use the post_process_cached_html() task instead.",
+        DeprecationWarning,
+    )
     if Processor is None or cssmin is None:
         logging.info("No mincss_response() possible")
         return response
@@ -163,8 +143,13 @@ def _mincss_response(response, request):
         return response
 
     html = response.content.decode('utf-8')
+    html = mincss_html(html, abs_uri)
+    response.content = html.encode('utf-8')
+    return response
+
+
+def mincss_html(html, abs_uri):
     t0 = time.time()
-    # p = Processor(
     p = CachedProcessor(
         preserve_remote_urls=True,
     )
@@ -203,8 +188,8 @@ def _mincss_response(response, request):
     t2 = time.time()
     template = """
 /*
-Stats about using github.com/peterbe/mincss
--------------------------------------------
+Stats from using github.com/peterbe/mincss
+------------------------------------------
 Requests:             %s (now: 0)
 Before:               %.fKb
 After:                %.fKb
@@ -243,10 +228,4 @@ Saving:               %.fKb
     logger.info('Took %.2fms to post-process remaining CSS' % (
         (t2 - t1) * 1000,
     ))
-
-    # _save_mincssed_html(
-    #     request.path + request.META.get('QUERY_STRING'),
-    #     html
-    # )
-    response.content = html.encode('utf-8')
-    return response
+    return html

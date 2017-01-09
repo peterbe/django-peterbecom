@@ -29,7 +29,6 @@ from .utils import (
     STOPWORDS
 )
 from fancy_cache import cache_page
-from peterbecom.mincss_response import mincss_response
 from peterbecom.plog.utils import make_prefix
 from .tasks import sample_task
 
@@ -72,7 +71,6 @@ def _home_key_prefixer(request):
 @cache_page(
     ONE_DAY,
     key_prefix=_home_key_prefixer,
-    post_process_response=mincss_response
 )
 def home(request, oc=None):
     context = {}
@@ -377,9 +375,6 @@ def search(request):
 
 
 @cache_control(public=True, max_age=ONE_WEEK)
-# This is commented out because it breaks on the server.
-# But not locally! Need time to think
-# @cache_page(ONE_WEEK, post_process_response=mincss_response)
 def about(request):
     context = {
         'page_title': 'About this site',
@@ -388,7 +383,6 @@ def about(request):
 
 
 @cache_control(public=True, max_age=ONE_WEEK)
-# @cache_page(ONE_WEEK, post_process_response=mincss_response)
 def contact(request):
     context = {
         'page_title': 'Contact me',
