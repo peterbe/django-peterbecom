@@ -4,6 +4,7 @@ import tempfile
 import time
 import logging
 import urllib
+from urllib.parse import urlencode
 from collections import defaultdict
 from cgi import escape as html_escape
 
@@ -342,9 +343,10 @@ def search(request):
         if ' or ' not in data['q'] and _qterms > 1 and _qterms < 5:
             data['better'] = data['q'].replace(' ', ' or ')
     if data['better']:
+        print("BETTER?", repr(data['better']), )
         data['better_url'] = (
             reverse('search') + '?' +
-            urllib.urlencode({'q': data['better'].encode('utf-8')})
+            urlencode({'q': data['better'].encode('utf-8')})
         )
 
     if not data['q']:
@@ -368,7 +370,7 @@ def search(request):
             pub_date__lt=timezone.now()
         ):
             url = reverse('search')
-            url += '?' + urllib.urlencode({'q': 'keyword:%s' % search})
+            url += '?' + urlencode({'q': 'keyword:%s' % search})
             return redirect(url)
 
     return render(request, 'homepage/search.html', data)
