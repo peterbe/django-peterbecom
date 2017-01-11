@@ -26,4 +26,9 @@ urlpatterns = [
         views.podcast_data,
         name='podcast_data_slug'
     ),
+    url(
+        '^general-stats/(numbers)$',
+        views.general_stats,
+        name='general_stats'
+    ),
 ]

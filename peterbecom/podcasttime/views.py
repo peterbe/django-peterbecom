@@ -156,8 +156,8 @@ def find(request):
             total_hours = None
             if episodes_count:
                 total_seconds = episodes.aggregate(
-                    Sum('duration')
-                )['duration__sum']
+                    duration=Sum('duration')
+                )['duration']
                 if total_seconds:
                     total_hours = total_seconds / 3600.0
             else:
@@ -189,7 +189,7 @@ def find(request):
             try:
                 thumb_url = thumbnail(
                     podcast.image,
-                    '100x100',
+                    '160x160',
                     quality=81,
                     upscale=False
                 ).url
@@ -421,7 +421,7 @@ def podcasts_data(request):
     search = request.GET.get('search', '').strip()
     ids = request.GET.get('ids')
 
-    podcasts = Podcast.objects.all()
+    podcasts = Podcast.objects.exclude(name='')
     if search:
         podcasts = _search_podcasts(search, podcasts)
 
@@ -467,7 +467,7 @@ def podcasts_data(request):
             'name': podcast.name,
             'image': (
                 podcast.image and
-                thumbnail(podcast.image, '300x300').url or
+                thumbnail(podcast.image, '348x348').url or
                 None
             ),
             'times_picked': podcast.times_picked,
@@ -629,4 +629,20 @@ def podcast_data(request, id, slug=None):
         podcast.save()
         context['thumb'] = None
         redownload_podcast_image.delay(podcast.id)
+    return http.JsonResponse(context)
+
+
+def general_stats(request, what):
+    context = {}
+    if what == 'numbers':
+        numbers = {}
+        numbers['podcasts'] = Podcast.objects.all().count()
+        numbers['picks'] = Picked.objects.all().count()
+        numbers['episodes'] = Episode.objects.all().count()
+        numbers['total_hours'] = int(Episode.objects.all().aggregate(
+            count=Sum('duration')
+        )['count'] / 3600)
+        context['numbers'] = numbers
+    else:
+        raise NotImplementedError(what)
     return http.JsonResponse(context)
