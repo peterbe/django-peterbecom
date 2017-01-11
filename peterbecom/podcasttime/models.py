@@ -55,6 +55,7 @@ class Podcast(models.Model):
     times_picked = models.IntegerField(default=0)
     last_fetch = models.DateTimeField(null=True)
     error = models.TextField(null=True)
+    latest_episode = models.DateTimeField(null=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
@@ -140,6 +141,20 @@ class Episode(models.Model):
 
     class Meta:
         unique_together = ('podcast', 'guid')
+
+
+@receiver(models.signals.post_save, sender=Episode)
+def update_podcast_latest_episode(sender, instance, **kwargs):
+    podcast = instance.podcast
+    if (
+        not podcast.latest_episode or
+        (
+            podcast.latest_episode and
+            instance.published > podcast.latest_episode
+        )
+    ):
+        podcast.latest_episode = instance.published
+        podcast.save()
 
 
 class Picked(models.Model):
