@@ -6,6 +6,7 @@ import traceback
 import unicodedata
 
 from django.db import models
+from django.db.models import Max
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 from django.dispatch import receiver
@@ -97,6 +98,20 @@ class Podcast(models.Model):
             self.save()
         return self.slug
 
+    def update_latest_episode(self):
+        latest = Episode.objects.filter(
+            podcast=self,
+        ).aggregate(published=Max('published'))['published']
+        if latest:
+            if (
+                not self.latest_episode or
+                latest > self.latest_episode
+            ):
+                self.latest_episode = latest
+                self.save()
+                return True
+        return False
+
 
 @receiver(models.signals.post_save, sender=Podcast)
 def set_slug(sender, instance, created=False, **kwargs):
@@ -141,20 +156,6 @@ class Episode(models.Model):
 
     class Meta:
         unique_together = ('podcast', 'guid')
-
-
-@receiver(models.signals.post_save, sender=Episode)
-def update_podcast_latest_episode(sender, instance, **kwargs):
-    podcast = instance.podcast
-    if (
-        not podcast.latest_episode or
-        (
-            podcast.latest_episode and
-            instance.published > podcast.latest_episode
-        )
-    ):
-        podcast.latest_episode = instance.published
-        podcast.save()
 
 
 class Picked(models.Model):

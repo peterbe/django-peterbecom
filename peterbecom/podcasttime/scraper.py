@@ -11,7 +11,7 @@ import pyquery
 import feedparser
 
 from django.utils import timezone
-from django.db.models import Count
+from django.db.models import Count, Max
 from django.db.utils import DataError
 
 from peterbecom.podcasttime.models import (
@@ -257,7 +257,14 @@ def _download_episodes(podcast, verbose=True):
             episode.published
         )
     print("SETTING last_fetch ON {!r}".format(podcast))
-    Podcast.objects.filter(id=podcast.id).update(last_fetch=timezone.now())
+    latest_episode = Episode.objects.filter(podcast=podcast).aggregate(
+        latest=Max('published')
+    )['latest']
+    print("SETTING latest_episode {!r}".format(latest_episode))
+    Podcast.objects.filter(id=podcast.id).update(
+        last_fetch=timezone.now(),
+        latest_episode=latest_episode,
+    )
 
 
 def find_podcasts(url, verbose=False, depth=0):

@@ -1,7 +1,7 @@
-from django.db.models import Max
+from django.db.models import F
 
 from peterbecom.base.basecommand import BaseCommand
-from peterbecom.podcasttime.models import Podcast, Episode
+from peterbecom.podcasttime.models import Podcast
 
 
 class Command(BaseCommand):
@@ -15,10 +15,14 @@ class Command(BaseCommand):
         podcasts = Podcast.objects.filter(latest_episode__isnull=True)
         self.out(podcasts.count(), 'podcasts without latest_episode')
         for podcast in podcasts.order_by('?')[:1000]:
-            latest = Episode.objects.filter(podcast=podcast).aggregate(
-                published=Max('published')
-            )['published']
-            if latest:
-                print('PODCAST', repr(podcast), latest)
-                podcast.latest_episode = latest
-                podcast.save()
+            if podcast.update_latest_episode():
+                print('PODCAST', repr(podcast), podcast.latest_episode)
+
+        podcasts = Podcast.objects.filter(
+            latest_episode__isnull=False,
+            last_fetch__isnull=False,
+            last_fetch__gt=F('latest_episode')
+        )
+        for podcast in podcasts.order_by('?')[:10]:
+            if podcast.update_latest_episode():
+                print('PODCAST', repr(podcast), podcast.latest_episode)

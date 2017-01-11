@@ -222,6 +222,7 @@ def find(request):
             'episodes': episodes_count,
             'hours': total_hours,
             'last_fetch': podcast.last_fetch,
+            'latest_episode': podcast.latest_episode,
             'slug': podcast.get_or_create_slug(),
             'url': reverse(
                 'podcasttime:podcast_slug',
@@ -580,6 +581,7 @@ def podcast_data(request, id, slug=None):
         'times_picked': podcast.times_picked,
         'total_seconds': podcast.total_seconds,
         'last_fetch': podcast.last_fetch,
+        'latest_episode': podcast.latest_episode,
         'modified': podcast.modified,
     })
     if podcast.error:
