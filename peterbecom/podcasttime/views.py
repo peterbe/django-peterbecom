@@ -14,6 +14,7 @@ from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.contrib.sites.requests import RequestSite
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.cache import cache_page
 
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
 from peterbecom.podcasttime.models import Podcast, Episode, Picked
@@ -632,6 +633,7 @@ def podcast_data(request, id, slug=None):
     return http.JsonResponse(context)
 
 
+@cache_page(60 * 60)
 def general_stats(request, what):
     context = {}
     if what == 'numbers':
