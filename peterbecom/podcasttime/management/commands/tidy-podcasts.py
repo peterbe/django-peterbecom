@@ -1,7 +1,10 @@
+import datetime
+
 from django.db.models import F
+from django.utils import timezone
 
 from peterbecom.base.basecommand import BaseCommand
-from peterbecom.podcasttime.models import Podcast
+from peterbecom.podcasttime.models import Podcast, Picked
 
 
 class Command(BaseCommand):
@@ -26,3 +29,13 @@ class Command(BaseCommand):
         for podcast in podcasts.order_by('?')[:10]:
             if podcast.update_latest_episode():
                 print('PODCAST', repr(podcast), podcast.latest_episode)
+
+        yesterday = timezone.now() - datetime.timedelta(days=1)
+        picks = Picked.objects.filter(created__lt=yesterday)
+        deleted_picks = 0
+        for pick in picks.order_by('created'):
+            if pick.podcasts.all().count() <= 1:
+                pick.delete()
+                deleted_picks += 1
+        if deleted_picks:
+            self.out(deleted_picks, 'deleted because they only had 1 podcast')
