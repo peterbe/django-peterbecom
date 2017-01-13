@@ -4,6 +4,7 @@ import hashlib
 import datetime
 import traceback
 import unicodedata
+import time
 
 from django.db import models
 from django.db.models import Max, Sum
@@ -15,6 +16,9 @@ from django.core.cache import cache
 from slugify import slugify
 from jsonfield import JSONField
 from sorl.thumbnail import ImageField
+from elasticsearch.exceptions import (
+    ConnectionTimeout,
+)
 
 from peterbecom.podcasttime.utils import realistic_request
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
@@ -23,6 +27,26 @@ from peterbecom.podcasttime.search import PodcastDoc
 
 class NotAnImageError(Exception):
     """when you try to download an image and it's not actually an image"""
+
+
+def es_retry(callable, *args, **kwargs):
+    sleep_time = kwargs.pop('_sleep_time', 1)
+    attempts = kwargs.pop('_attempts', 5)
+    verbose = kwargs.pop('_verbose', False)
+    try:
+        return callable(*args, **kwargs)
+    except (ConnectionTimeout,) as exception:
+        if attempts:
+            attempts -= 1
+            if verbose:
+                print("ES Retrying ({} {}) {}".format(
+                    attempts,
+                    sleep_time,
+                    exception
+                ))
+            time.sleep(sleep_time)
+        else:
+            raise
 
 
 def _upload_path_tagged(tag, instance, filename):
@@ -79,7 +103,6 @@ class Podcast(models.Model):
         if kwargs.get('duration_sums'):
             duration = kwargs['duration_sums'].get(self.id)
         else:
-            raise NotImplementedError
             duration = episodes_qs.aggregate(
                 duration=Sum('duration')
             )['duration']
@@ -87,7 +110,6 @@ class Podcast(models.Model):
         if kwargs.get('episodes_count'):
             episodes_count = kwargs['episodes_count'].get(self.id)
         else:
-            raise NotImplementedError
             episodes_count = episodes_qs.count()
 
         doc = {
@@ -114,7 +136,8 @@ class Podcast(models.Model):
                 )
             except OSError:
                 print("{!r} lacks a valid image".format(self))
-        return PodcastDoc(meta={'id': doc.pop('id')}, **doc)
+        assert self.id, self
+        return PodcastDoc(meta={'id': self.id}, **doc)
 
     def get_thumbnail(self, *args, **kwargs):
         assert self.image, 'podcast must have an image'
@@ -180,6 +203,24 @@ def set_slug(sender, instance, created=False, **kwargs):
 def invalidate_episodes_meta_cache(sender, instance, **kwargs):
     cache_key = 'episodes-meta-%s' % instance.id
     cache.delete(cache_key)
+
+
+@receiver(models.signals.pre_save, sender=Podcast)
+def update_slug(sender, instance, **kwargs):
+    if instance.slug != slugify(instance.name):
+        instance.slug = slugify(instance.name)
+
+
+@receiver(models.signals.post_save, sender=Podcast)
+def update_es(sender, instance, **kwargs):
+    doc = instance.to_search()
+    es_retry(doc.save)
+
+
+@receiver(models.signals.pre_delete, sender=Podcast)
+def delete_from_es(sender, instance, **kwargs):
+    doc = instance.to_search()
+    es_retry(doc.delete)
 
 
 class PodcastError(models.Model):
