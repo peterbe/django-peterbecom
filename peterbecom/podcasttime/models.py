@@ -101,16 +101,19 @@ class Podcast(models.Model):
             'episodes_seconds': duration,
         }
         if self.image:
-            doc['thumbnail_160'] = self.get_thumbnail_url(
-                '160x160',
-                quality=81,
-                upscale=False
-            )
-            doc['thumbnail_348'] = self.get_thumbnail_url(
-                '348x348',
-                quality=81,
-                upscale=False
-            )
+            try:
+                doc['thumbnail_160'] = self.get_thumbnail_url(
+                    '160x160',
+                    quality=81,
+                    upscale=False
+                )
+                doc['thumbnail_348'] = self.get_thumbnail_url(
+                    '348x348',
+                    quality=81,
+                    upscale=False
+                )
+            except OSError:
+                print("{!r} lacks a valid image".format(self))
         return PodcastDoc(meta={'id': doc.pop('id')}, **doc)
 
     def get_thumbnail(self, *args, **kwargs):
