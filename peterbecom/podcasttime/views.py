@@ -10,13 +10,12 @@ from django.core.cache import cache
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.core.urlresolvers import reverse
+# from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.contrib.sites.requests import RequestSite
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import cache_page
 
-from peterbecom.base.templatetags.jinja_helpers import thumbnail
 from peterbecom.podcasttime.models import Podcast, Episode, Picked
 from peterbecom.podcasttime.forms import (
     CalendarDataForm,
@@ -188,12 +187,11 @@ def find(request):
         thumb_url = None
         if podcast.image:
             try:
-                thumb_url = thumbnail(
-                    podcast.image,
+                thumb_url = podcast.get_thumbnail_url(
                     '160x160',
                     quality=81,
                     upscale=False
-                ).url
+                )
                 thumb_url = make_absolute_url(thumb_url, request)
             except IOError:
                 import sys
@@ -224,10 +222,10 @@ def find(request):
             'last_fetch': podcast.last_fetch,
             'latest_episode': podcast.latest_episode,
             'slug': podcast.get_or_create_slug(),
-            'url': reverse(
-                'podcasttime:podcast_slug',
-                args=(podcast.id, podcast.get_or_create_slug())
-            ),
+            # 'url': reverse(
+            #     'podcasttime:podcast_slug',
+            #     args=(podcast.id, podcast.get_or_create_slug())
+            # ),
         })
     return http.JsonResponse({
         'items': items,
@@ -469,7 +467,7 @@ def podcasts_data(request):
             'name': podcast.name,
             'image': (
                 podcast.image and
-                thumbnail(podcast.image, '348x348').url or
+                podcast.get_thumbnail_url('348x348') or
                 None
             ),
             'times_picked': podcast.times_picked,
@@ -533,7 +531,7 @@ def picks_data(request):
                 'name': podcast.name,
                 'image': (
                     podcast.image and
-                    thumbnail(podcast.image, '300x300').url or
+                    podcast.get_thumbnail_url('348x348') or
                     None
                 ),
                 'times_picked': podcast.times_picked,
@@ -620,10 +618,10 @@ def podcast_data(request, id, slug=None):
             'guid': episode.guid,
         })
     try:
-        thumb = thumbnail(podcast.image, '300x300')
+        thumb = podcast.get_thumbnail('348x348')
         context['thumb'] = {
             'url': thumb.url,
-            'width': thumb.width,
+            'width': thumb.width,  # XXX is this ever used?!
             'height': thumb.height,
         }
     except IOError:

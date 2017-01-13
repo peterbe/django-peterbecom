@@ -6,7 +6,7 @@ import traceback
 import unicodedata
 
 from django.db import models
-from django.db.models import Max
+from django.db.models import Max, Sum
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 from django.dispatch import receiver
@@ -15,7 +15,10 @@ from django.core.cache import cache
 from slugify import slugify
 from jsonfield import JSONField
 from sorl.thumbnail import ImageField
+
 from peterbecom.podcasttime.utils import realistic_request
+from peterbecom.base.templatetags.jinja_helpers import thumbnail
+from peterbecom.podcasttime.search import PodcastDoc
 
 
 class NotAnImageError(Exception):
@@ -69,6 +72,57 @@ class Podcast(models.Model):
 
     def __repr__(self):
         return '<%s: %r>' % (self.__class__.__name__, self.name)
+
+    def to_search(self, **kwargs):
+        episodes_qs = Episode.objects.filter(podcast=self)
+
+        if kwargs.get('duration_sums'):
+            duration = kwargs['duration_sums'].get(self.id)
+        else:
+            raise NotImplementedError
+            duration = episodes_qs.aggregate(
+                duration=Sum('duration')
+            )['duration']
+
+        if kwargs.get('episodes_count'):
+            episodes_count = kwargs['episodes_count'].get(self.id)
+        else:
+            raise NotImplementedError
+            episodes_count = episodes_qs.count()
+
+        doc = {
+            'id': self.id,
+            'slug': self.get_or_create_slug(),
+            'name': self.name,
+            'times_picked': self.times_picked,
+            'latest_episode': self.latest_episode,
+            'last_fetch': self.last_fetch,
+            'episodes_count': episodes_count,
+            'episodes_seconds': duration,
+        }
+        if self.image:
+            doc['thumbnail_160'] = self.get_thumbnail_url(
+                '160x160',
+                quality=81,
+                upscale=False
+            )
+            doc['thumbnail_348'] = self.get_thumbnail_url(
+                '348x348',
+                quality=81,
+                upscale=False
+            )
+        return PodcastDoc(meta={'id': doc.pop('id')}, **doc)
+
+    def get_thumbnail(self, *args, **kwargs):
+        assert self.image, 'podcast must have an image'
+        return thumbnail(
+            self.image,
+            *args,
+            **kwargs
+        )
+
+    def get_thumbnail_url(self, *args, **kwargs):
+        return self.get_thumbnail(*args, **kwargs).url
 
     def download_image(self, timeout=20):
         print("Downloading", repr(self.image_url))

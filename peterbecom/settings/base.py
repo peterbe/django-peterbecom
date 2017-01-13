@@ -316,3 +316,19 @@ AUTH_SIGNOUT_URL = 'https://www.peterbe.com/?logged=out'
 # A path to where Nginx will look for files first
 FSCACHE_ROOT = path('peterbecom-static-content/_FSCACHE')
 assert not FSCACHE_ROOT.endswith('/')
+
+
+# ElasticSearch
+
+ES_INDEX = 'peterbecom'
+
+ES_INDEX_SETTINGS = {
+    'number_of_shards': 1,
+    'number_of_replicas': 0,
+}
+
+ES_CONNECTIONS = {
+    'default': {
+        # 'hosts': ['localhost:9200'],
+    },
+}

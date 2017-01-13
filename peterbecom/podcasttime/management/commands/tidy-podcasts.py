@@ -1,10 +1,19 @@
+import codecs
 import datetime
+
+import ftfy
 
 from django.db.models import F
 from django.utils import timezone
 
 from peterbecom.base.basecommand import BaseCommand
 from peterbecom.podcasttime.models import Podcast, Picked
+
+
+def fix_encoding(s):
+    s = ftfy.fix_encoding(s)
+    better, _ = codecs.escape_decode(s)
+    return better.decode('utf-8').strip()
 
 
 class Command(BaseCommand):
@@ -39,3 +48,13 @@ class Command(BaseCommand):
                 deleted_picks += 1
         if deleted_picks:
             self.out(deleted_picks, 'deleted because they only had 1 podcast')
+
+        for podcast in Podcast.objects.all().order_by('?')[:100]:
+            better = fix_encoding(podcast.name)
+            if better != podcast.name:
+                print("FROM", repr(podcast.name), "TO", repr(better))
+                if Podcast.objects.filter(name=better).exists():
+                    podcast.delete()
+                    continue
+                podcast.name = better
+                podcast.save()

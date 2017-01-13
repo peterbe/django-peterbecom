@@ -10,3 +10,5 @@ FSCACHE_ROOT = os.path.join(
     tempfile.gettempdir(),
     'test-peterbecom-fscache'
 )
+
+ES_INDEX = 'test_peterbecom'
