@@ -39,7 +39,9 @@ class Command(BaseCommand):
         if kwargs['force_create_index'] and not limit:
             raise Exception('force-create-index but not limited')
 
-        iterator = Podcast.objects.all()
+        iterator = Podcast.objects.filter(error__isnull=True).exclude(
+            name=''
+        )
         if limit:
             if kwargs['random']:
                 iterator = iterator.order_by('?')[:limit]

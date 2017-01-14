@@ -83,15 +83,6 @@ def download_some_episodes(max_=5, verbose=False):
             print(podcast.name, podcast.last_fetch)
         download_episodes(podcast)
 
-    # # then do the ones with the oldest updates
-    # podcasts = Podcast.objects.filter(
-    #     last_fetch__isnull=False
-    # ).order_by('last_fetch')
-    # for podcast in podcasts[:max_]:
-    #     if verbose:
-    #         print (podcast.name, podcast.last_fetch)
-    #     download_episodes(podcast)
-
 
 def download_episodes(podcast, verbose=True):
     try:
@@ -261,10 +252,10 @@ def _download_episodes(podcast, verbose=True):
         latest=Max('published')
     )['latest']
     print("SETTING latest_episode {!r}".format(latest_episode))
-    Podcast.objects.filter(id=podcast.id).update(
-        last_fetch=timezone.now(),
-        latest_episode=latest_episode,
-    )
+    podcast = Podcast.objects.get(id=podcast.id)
+    podcast.last_fetch = timezone.now()
+    podcast.latest_episode = latest_episode
+    podcast.save()
 
 
 def find_podcasts(url, verbose=False, depth=0):

@@ -35,7 +35,6 @@ class PodcastDoc(DocType):
     episodes_count = Integer()
     episodes_seconds = Float()
     slug = Keyword(required=True, index=False)
-    # url = Keyword(required=True, index=False)
     name = Text(
         required=True,
         analyzer=edge_ngram_analyzer,
@@ -43,6 +42,7 @@ class PodcastDoc(DocType):
     )
     last_fetch = Date()
     latest_episode = Date()
+    modified = Date()
 
 
 # create an index and register the doc types

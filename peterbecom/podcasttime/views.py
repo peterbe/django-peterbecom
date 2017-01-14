@@ -1,24 +1,24 @@
 import datetime
 import random
+import math
 
 from requests.exceptions import ReadTimeout, ConnectTimeout
 
 from django import http
 from django.shortcuts import get_object_or_404, redirect
-from django.db.models import Sum, Min, Max, Count, Q
+from django.db.models import Sum, Min, Max
 from django.core.cache import cache
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-# from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.contrib.sites.requests import RequestSite
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import cache_page
 
 from peterbecom.podcasttime.models import Podcast, Episode, Picked
+from peterbecom.podcasttime.search import PodcastDoc
 from peterbecom.podcasttime.forms import (
-    CalendarDataForm,
     PodcastsForm,
 )
 from peterbecom.podcasttime.utils import is_html_document
@@ -65,15 +65,33 @@ def find(request):
     max_ = 5
     q = None
 
+    def package_podcast(podcast):
+        if type(podcast) is Podcast:
+            return podcast.to_search_doc()
+        else:
+            podcast['total_hours'] = None
+            if podcast.get('episodes_seconds'):
+                podcast['total_hours'] = podcast.pop('episodes_seconds') / 3600
+            return podcast
+
     if request.GET.get('ids'):
+        search = PodcastDoc.search()
         ids = [int(x) for x in request.GET['ids'].split(',')]
-        found = Podcast.objects.filter(id__in=ids)
-        # rearrange them in the order they were
-        found = sorted(found, key=lambda x: ids.index(x.id))
-        # for podcast in found:
-        #     if not podcast.last_fetch:
-        #         download_episodes_task.delay(podcast.id)
-    elif request.GET.get('itunes'):
+        search = search.filter('terms', id=ids)
+        response = search.execute()
+        for hit in response.hits:
+            podcast = package_podcast(hit.to_dict())
+            if not podcast.get('last_fetch'):
+                cache_key = 'resubmit:{}'.format(podcast['id'])
+                if not cache.get(cache_key):
+                    download_episodes_task.delay(podcast['id'])
+                    cache.set(cache_key, True, 60)
+                podcast['_updating'] = True
+            found.append(podcast)
+        # # rearrange them in the order they were
+        found = sorted(found, key=lambda x: ids.index(x['id']))
+
+    elif request.GET.get('submitted'):
         q = request.GET['q']
         try:
             results = itunes_search(
@@ -84,15 +102,7 @@ def find(request):
         except (ReadTimeout, ConnectTimeout):
             results = []
 
-        for result in results:
-            # pod = {
-            #     'image_url': result['artworkUrl600'],
-            #     'itunes_url': result['collectionViewUrl'],
-            #     'artist_name': result['artistName'],
-            #     'tags': result['genres'],
-            #     'name': result['collectionName'],
-            #     # 'feed_url': result['feedUrl'],
-            # }
+        for result in results[:max_]:
             try:
                 podcast = Podcast.objects.get(
                     url=result['feedUrl'],
@@ -112,123 +122,20 @@ def find(request):
                 download_episodes_task.delay(podcast.id)
                 # Reload since the task functions operate on a new instance
                 # podcast = Podcast.objects.get(id=podcast.id)
-            found.append(podcast)
+            found.append(package_podcast(podcast))
     else:
         q = request.GET['q']
-        items = []
+        search = PodcastDoc.search()
+        search = search.query('match_phrase', name=q)
+        search = search[:max_]
+        response = search.execute()
+        total = response.hits.total
+        for hit in response.hits:
+            found.append(package_podcast(hit.to_dict()))
 
-        # import time
-        # time.sleep(random.randint(1,4))
-        base_qs = Podcast.objects.filter(error__isnull=True)
-        podcasts = base_qs.filter(name__istartswith=q)
-        for podcast in podcasts[:max_]:
-            found.append(podcast)
-        if len(q) > 2:
-            sql = (
-                "to_tsvector('english', name) @@ "
-                "plainto_tsquery('english', %s)"
-            )
-            podcasts = base_qs.exclude(
-                id__in=[x.id for x in found]
-            ).extra(
-                where=[sql],
-                params=[q]
-            )[:max_]
-            for podcast in podcasts[:max_]:
-                if len(found) >= max_:
-                    break
-                found.append(podcast)
-        if len(q) > 1:
-            podcasts = base_qs.filter(name__icontains=q).exclude(
-                id__in=[x.id for x in found]
-            )
-            for podcast in podcasts[:max_]:
-                if len(found) >= max_:
-                    break
-                found.append(podcast)
-
-    def episodes_meta(podcast):
-        episodes_cache_key = 'episodes-meta%s' % podcast.id
-        meta = cache.get(episodes_cache_key)
-        if meta is None:
-            episodes = Episode.objects.filter(podcast=podcast)
-            episodes_count = episodes.count()
-            total_hours = None
-            if episodes_count:
-                total_seconds = episodes.aggregate(
-                    duration=Sum('duration')
-                )['duration']
-                if total_seconds:
-                    total_hours = total_seconds / 3600.0
-            else:
-                download_episodes_task.delay(podcast.id)
-            meta = {
-                'count': episodes_count,
-                'total_hours': total_hours,
-            }
-            if episodes_count:
-                cache.set(episodes_cache_key, meta, 60 * 60 * 24)
-        return meta
-
-    items = []
-    for podcast in found:
-        if podcast.image and is_html_document(podcast.image.path):
-            print("Found a podcast.image that wasn't an image")
-            podcast.image = None
-            podcast.save()
-        if podcast.image:
-            if podcast.image.size < 1000:
-                print("IMAGE LOOKS SUSPICIOUS")
-                print(podcast.image_url)
-                print(repr(podcast), podcast.id)
-                print(podcast.url)
-                print(repr(podcast.image.read()))
-                podcast.download_image()
-        thumb_url = None
-        if podcast.image:
-            try:
-                thumb_url = podcast.get_thumbnail_url(
-                    '160x160',
-                    quality=81,
-                    upscale=False
-                )
-                thumb_url = make_absolute_url(thumb_url, request)
-            except IOError:
-                import sys
-                print("BAD IMAGE!")
-                print(sys.exc_info())
-                print(repr(podcast.image))
-                print(repr(podcast), podcast.url)
-                print()
-                podcast.image = None
-                podcast.save()
-                redownload_podcast_image.delay(podcast.id)
-        else:
-            redownload_podcast_image.delay(podcast.id)
-
-        # Temporarily put here
-        if podcast.itunes_lookup is None:
-            fetch_itunes_lookup.delay(podcast.id)
-
-        meta = episodes_meta(podcast)
-        episodes_count = meta['count']
-        total_hours = meta['total_hours']
-        items.append({
-            'id': podcast.id,
-            'name': podcast.name,
-            'image_url': thumb_url,
-            'episodes': episodes_count,
-            'hours': total_hours,
-            'last_fetch': podcast.last_fetch,
-            'latest_episode': podcast.latest_episode,
-            'slug': podcast.get_or_create_slug(),
-            # 'url': reverse(
-            #     'podcasttime:podcast_slug',
-            #     args=(podcast.id, podcast.get_or_create_slug())
-            # ),
-        })
     return http.JsonResponse({
-        'items': items,
+        'items': found,
+        'total': total,
         'q': q,
     })
 
@@ -258,38 +165,38 @@ def picked(request):
     return http.JsonResponse({'session_key': picked_obj.session_key})
 
 
-def calendar(request):
-    form = CalendarDataForm(request.GET)
-    if not form.is_valid():
-        return http.HttpResponseBadRequest(form.errors)
-
-    episodes = Episode.objects.filter(
-        podcast__id__in=form.cleaned_data['ids'],
-        published__gte=form.cleaned_data['start'],
-        published__lt=form.cleaned_data['end'],
-    ).select_related('podcast')
-    colors = (
-        "#EAA228", "#c5b47f", "#579575", "#839557", "#958c12",
-        "#953579", "#4b5de4", "#d8b83f", "#ff5800", "#0085cc",
-        "#c747a3", "#cddf54", "#FBD178", "#26B4E3", "#bd70c7",
-    )
-    next_color = iter(colors)
-    items = []
-    podcast_colors = {}
-    for episode in episodes:
-        duration = datetime.timedelta(seconds=episode.duration)
-        if episode.podcast_id not in podcast_colors:
-            podcast_colors[episode.podcast_id] = next_color.next()
-        color = podcast_colors[episode.podcast_id]
-        item = {
-            'id': episode.id,
-            'title': episode.podcast.name,
-            'start': episode.published,
-            'end': episode.published + duration,
-            'color': color,
-        }
-        items.append(item)
-    return http.JsonResponse(items, safe=False)
+# def calendar(request):
+#     form = CalendarDataForm(request.GET)
+#     if not form.is_valid():
+#         return http.HttpResponseBadRequest(form.errors)
+#
+#     episodes = Episode.objects.filter(
+#         podcast__id__in=form.cleaned_data['ids'],
+#         published__gte=form.cleaned_data['start'],
+#         published__lt=form.cleaned_data['end'],
+#     ).select_related('podcast')
+#     colors = (
+#         "#EAA228", "#c5b47f", "#579575", "#839557", "#958c12",
+#         "#953579", "#4b5de4", "#d8b83f", "#ff5800", "#0085cc",
+#         "#c747a3", "#cddf54", "#FBD178", "#26B4E3", "#bd70c7",
+#     )
+#     next_color = iter(colors)
+#     items = []
+#     podcast_colors = {}
+#     for episode in episodes:
+#         duration = datetime.timedelta(seconds=episode.duration)
+#         if episode.podcast_id not in podcast_colors:
+#             podcast_colors[episode.podcast_id] = next_color.next()
+#         color = podcast_colors[episode.podcast_id]
+#         item = {
+#             'id': episode.id,
+#             'title': episode.podcast.name,
+#             'start': episode.published,
+#             'end': episode.published + duration,
+#             'color': color,
+#         }
+#         items.append(item)
+#     return http.JsonResponse(items, safe=False)
 
 
 def stats(request):
@@ -385,125 +292,65 @@ def stats_episodes(request):
     return http.JsonResponse({'episodes': episodes_})
 
 
-def _search_podcasts(searchterm, podcasts=None):
-    if podcasts is None:
-        podcasts = Podcast.objects.all()
-
-    directly = podcasts.filter(
-        Q(url=searchterm) |
-        Q(name=searchterm)
-    )
-    if directly.exists():
-        return directly
-
-    sql = (
-        "to_tsvector('english', name) @@ "
-        "plainto_tsquery('english', %s) "
-        "OR name ILIKE %s"
-    )
-    podcasts = podcasts.extra(
-        where=[sql],
-        params=[
-            searchterm,
-            '%{}%'.format(searchterm),
-        ]
-    )
-
-    return podcasts
-
-
-def podcasts(request):
+def legacy_podcasts(request):
     return redirect('https://podcasttime.io', permanent=True)
 
 
 def podcasts_data(request):
     context = {}
-    search = request.GET.get('search', '').strip()
-    ids = request.GET.get('ids')
+    search_term = request.GET.get('search', '').strip()
 
-    podcasts = Podcast.objects.exclude(name='')
-    if search:
-        podcasts = _search_podcasts(search, podcasts)
+    search = PodcastDoc.search()
+    if search_term:
+        search = search.query('match_phrase', name=search_term)
 
-    if ids:
-        ids = [int(x) for x in ids.split(',') if x.strip()]
-        podcasts = podcasts.filter(id__in=ids)
+    search = search.sort('-times_picked', '_score')
+    page = request.GET.get('page', 1)
+    page_index = int(page) - 1
+    batch_size = 15
+    search = search[page_index * batch_size:(page_index + 1) * batch_size]
 
-    podcasts = podcasts.order_by('-times_picked', 'name')
-
-    paginator = Paginator(podcasts, 15)
-    page = request.GET.get('page')
-    try:
-        paged = paginator.page(page)
-    except PageNotAnInteger:
-        # If page is not an integer, deliver first page.
-        paged = paginator.page(1)
-    except EmptyPage:
-        # If page is out of range (e.g. 9999), deliver last page of results.
-        paged = paginator.page(paginator.num_pages)
-
-    context['count'] = paginator.count
-
-    # past = timezone.now() - datetime.timedelta(days=365)
-    episodes = Episode.objects.filter(
-        podcast__in=paged,
-        # published__gte=past,
-    ).values(
-        'podcast_id',
-    ).annotate(
-        duration=Sum('duration'),
-        count=Count('podcast_id'),
-    )
-    episode_counts = {}
-    episode_seconds = {}
-    for x in episodes:
-        episode_counts[x['podcast_id']] = x['count']
-        episode_seconds[x['podcast_id']] = x['duration']
+    response = search.execute()
+    context['count'] = response.hits.total
 
     items = []
-    for podcast in paged:
-        item = {
-            'id': podcast.id,
-            'name': podcast.name,
-            'image': (
-                podcast.image and
-                podcast.get_thumbnail_url('348x348') or
-                None
-            ),
-            'times_picked': podcast.times_picked,
-            'slug': podcast.get_or_create_slug(),
-            'last_fetch': (
-                podcast.last_fetch and
-                podcast.last_fetch.isoformat() or
-                None
-            ),
-            'modified': podcast.modified.isoformat(),
-            'episode_count': episode_counts.get(podcast.id, 0),
-            'episode_seconds': episode_seconds.get(podcast.id, 0),
-        }
-        items.append(item)
+    for hit in response.hits:
+        items.append(hit.to_dict())
 
     context['items'] = items
 
     pagination = {
-        'has_previous': paged.has_previous(),
-        'has_next': paged.has_next(),
-        'number': paged.number,
-        'num_pages': paginator.num_pages,
+        'has_previous': page_index > 0,
+        'has_next': (page_index + 1) * batch_size < context['count'],
+        'number': page_index + 1,
+        'num_pages': math.ceil(context['count'] / batch_size),
     }
     if pagination['has_previous']:
-        pagination['previous_page_number'] = paged.previous_page_number()
+        pagination['previous_page_number'] = page_index
     if pagination['has_next']:
-        pagination['next_page_number'] = paged.next_page_number()
+        pagination['next_page_number'] = page_index + 2
     context['pagination'] = pagination
     return http.JsonResponse(context)
 
 
-def add(request):
-    return redirect('https://podcasttime.io', permanent=True)
+def podcast_episodes(request, id):
+    context = {}
+    episodes = Episode.objects.filter(podcast__id=id)
+
+    if not episodes.exists():
+        download_episodes_task.delay(podcast.id)
+
+    context['episodes'] = []
+    for episode in episodes.order_by('-published'):
+        context['episodes'].append({
+            'duration': episode.duration,
+            'published': episode.published,
+            'guid': episode.guid,
+        })
+    return http.JsonResponse(context)
 
 
-def picks(request):
+def legacy_picks(request):
     return redirect('https://podcasttime.io/picks', permanent=True)
 
 

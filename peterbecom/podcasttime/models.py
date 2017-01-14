@@ -98,6 +98,11 @@ class Podcast(models.Model):
         return '<%s: %r>' % (self.__class__.__name__, self.name)
 
     def to_search(self, **kwargs):
+        assert self.id, self
+        doc = self.to_search_doc(**kwargs)
+        return PodcastDoc(meta={'id': self.id}, **doc)
+
+    def to_search_doc(self, **kwargs):
         episodes_qs = Episode.objects.filter(podcast=self)
 
         if kwargs.get('duration_sums'):
@@ -119,6 +124,7 @@ class Podcast(models.Model):
             'times_picked': self.times_picked,
             'latest_episode': self.latest_episode,
             'last_fetch': self.last_fetch,
+            'modified': self.modified,
             'episodes_count': episodes_count,
             'episodes_seconds': duration,
         }
@@ -136,8 +142,7 @@ class Podcast(models.Model):
                 )
             except OSError:
                 print("{!r} lacks a valid image".format(self))
-        assert self.id, self
-        return PodcastDoc(meta={'id': self.id}, **doc)
+        return doc
 
     def get_thumbnail(self, *args, **kwargs):
         assert self.image, 'podcast must have an image'
@@ -214,7 +219,10 @@ def update_slug(sender, instance, **kwargs):
 @receiver(models.signals.post_save, sender=Podcast)
 def update_es(sender, instance, **kwargs):
     doc = instance.to_search()
-    es_retry(doc.save)
+    if instance.error:
+        es_retry(doc.delete)
+    else:
+        es_retry(doc.save)
 
 
 @receiver(models.signals.pre_delete, sender=Podcast)
