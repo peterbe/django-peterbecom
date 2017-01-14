@@ -119,7 +119,7 @@ class Podcast(models.Model):
 
         doc = {
             'id': self.id,
-            'slug': self.get_or_create_slug(),
+            'slug': self.get_or_create_slug(save=False),
             'name': self.name,
             'times_picked': self.times_picked,
             'latest_episode': self.latest_episode,
@@ -177,10 +177,11 @@ class Podcast(models.Model):
             models.Sum('duration')
         )['duration__sum']
 
-    def get_or_create_slug(self):
+    def get_or_create_slug(self, save=True):
         if not self.slug:
             self.slug = slugify(self.name)
-            self.save()
+            if save:
+                self.save()
         return self.slug
 
     def update_latest_episode(self):
@@ -220,6 +221,7 @@ def update_slug(sender, instance, **kwargs):
 def update_es(sender, instance, **kwargs):
     doc = instance.to_search()
     if instance.error:
+        print("DELETE {!r} BECAUSE OF {!r}".format(instance, instance.error))
         es_retry(doc.delete)
     else:
         es_retry(doc.save)
