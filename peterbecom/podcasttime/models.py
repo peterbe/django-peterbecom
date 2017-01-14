@@ -18,6 +18,7 @@ from jsonfield import JSONField
 from sorl.thumbnail import ImageField
 from elasticsearch.exceptions import (
     ConnectionTimeout,
+    NotFoundError,
 )
 
 from peterbecom.podcasttime.utils import realistic_request
@@ -33,6 +34,7 @@ def es_retry(callable, *args, **kwargs):
     sleep_time = kwargs.pop('_sleep_time', 1)
     attempts = kwargs.pop('_attempts', 5)
     verbose = kwargs.pop('_verbose', False)
+    ignore_not_found = kwargs.pop('_ignore_not_found', False)
     try:
         return callable(*args, **kwargs)
     except (ConnectionTimeout,) as exception:
@@ -46,6 +48,9 @@ def es_retry(callable, *args, **kwargs):
                 ))
             time.sleep(sleep_time)
         else:
+            raise
+    except NotFoundError:
+        if not ignore_not_found:
             raise
 
 
@@ -222,7 +227,7 @@ def update_es(sender, instance, **kwargs):
     doc = instance.to_search()
     if instance.error:
         print("DELETE {!r} BECAUSE OF {!r}".format(instance, instance.error))
-        es_retry(doc.delete)
+        es_retry(doc.delete, _ignore_not_found=True)
     else:
         es_retry(doc.save)
 
@@ -230,7 +235,7 @@ def update_es(sender, instance, **kwargs):
 @receiver(models.signals.pre_delete, sender=Podcast)
 def delete_from_es(sender, instance, **kwargs):
     doc = instance.to_search()
-    es_retry(doc.delete)
+    es_retry(doc.delete, _ignore_not_found=True)
 
 
 class PodcastError(models.Model):
