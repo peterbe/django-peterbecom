@@ -64,6 +64,7 @@ def find(request):
     found = []
     max_ = 5
     q = None
+    total = None
 
     def package_podcast(podcast):
         if type(podcast) is Podcast:
@@ -81,14 +82,19 @@ def find(request):
         response = search.execute()
         for hit in response.hits:
             podcast = package_podcast(hit.to_dict())
-            if not podcast.get('last_fetch'):
+            if (
+                not podcast.get('last_fetch') or
+                podcast['last_fetch'] < (
+                    timezone.now() - datetime.timedelta(days=7)
+                )
+            ):
                 cache_key = 'resubmit:{}'.format(podcast['id'])
                 if not cache.get(cache_key):
                     download_episodes_task.delay(podcast['id'])
                     cache.set(cache_key, True, 60)
                 podcast['_updating'] = True
             found.append(podcast)
-        # # rearrange them in the order they were
+        # rearrange them in the order they were
         found = sorted(found, key=lambda x: ids.index(x['id']))
 
     elif request.GET.get('submitted'):
@@ -133,6 +139,8 @@ def find(request):
         for hit in response.hits:
             found.append(package_podcast(hit.to_dict()))
 
+    if total is None:
+        total = len(found)
     return http.JsonResponse({
         'items': found,
         'total': total,

@@ -226,7 +226,6 @@ def update_slug(sender, instance, **kwargs):
 def update_es(sender, instance, **kwargs):
     doc = instance.to_search()
     if instance.error:
-        print("DELETE {!r} BECAUSE OF {!r}".format(instance, instance.error))
         es_retry(doc.delete, _ignore_not_found=True)
     else:
         es_retry(doc.save)
