@@ -138,12 +138,14 @@ class Podcast(models.Model):
                 doc['thumbnail_160'] = self.get_thumbnail_url(
                     '160x160',
                     quality=81,
-                    upscale=False
+                    upscale=False,
+                    crop='center',
                 )
                 doc['thumbnail_348'] = self.get_thumbnail_url(
                     '348x348',
                     quality=81,
-                    upscale=False
+                    upscale=False,
+                    crop='center',
                 )
             except OSError:
                 print("{!r} lacks a valid image".format(self))
