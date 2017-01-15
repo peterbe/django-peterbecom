@@ -315,7 +315,13 @@ def podcasts_data(request):
     search = search.sort('-times_picked', '_score')
     page = request.GET.get('page', 1)
     page_index = int(page) - 1
+    assert page_index >= 0, page_index
     batch_size = 15
+    if page_index > 0:
+        # need to check that it's not out of bounds
+        response = PodcastDoc.search().execute()
+        if batch_size * (1 + page_index) > response.hits.total:
+            raise http.Http404('Page too big')
     search = search[page_index * batch_size:(page_index + 1) * batch_size]
 
     response = search.execute()
