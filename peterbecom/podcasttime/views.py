@@ -15,6 +15,7 @@ from django.db import transaction
 from django.contrib.sites.requests import RequestSite
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import cache_page
+from django.conf import settings
 
 from peterbecom.podcasttime.models import Podcast, Episode, Picked
 from peterbecom.podcasttime.search import PodcastDoc
@@ -66,6 +67,10 @@ def find(request):
     q = None
     total = None
 
+    cutoff = timezone.now() - datetime.timedelta(
+        days=settings.LATEST_PODCAST_CUTOFF_DAYS
+    )
+
     def package_podcast(podcast):
         if type(podcast) is Podcast:
             return podcast.to_search_doc()
@@ -76,6 +81,10 @@ def find(request):
             podcast['total_hours'] = None
             if podcast.get('episodes_seconds'):
                 podcast['total_hours'] = podcast.pop('episodes_seconds') / 3600
+            if podcast['latest_episode'] < cutoff:
+                podcast['_outdated'] = True
+            else:
+                podcast['_outdated'] = False
             return podcast
 
     if request.GET.get('ids'):
@@ -235,8 +244,13 @@ def stats(request):
     if not form.is_valid():
         return http.HttpResponseBadRequest(form.errors)
 
+    cutoff = timezone.now() - datetime.timedelta(
+        days=settings.LATEST_PODCAST_CUTOFF_DAYS
+    )
+
     episodes = Episode.objects.filter(
         podcast_id__in=form.cleaned_data['ids'],
+        published__gte=cutoff,
     )
 
     episodes = episodes.values(
@@ -301,12 +315,16 @@ def stats_episodes(request):
     #     'per_week': average * 7,
     #     'per_month': average * (365 / 12.0),
     # }
+
+    cutoff = timezone.now() - datetime.timedelta(
+        days=settings.LATEST_PODCAST_CUTOFF_DAYS
+    )
+
     episodes_ = []
-    past = timezone.now() - datetime.timedelta(days=200)
     for podcast in Podcast.objects.filter(id__in=form.cleaned_data['ids']):
         episodes_qs = Episode.objects.filter(
             podcast=podcast,
-            published__gte=past,
+            published__gte=cutoff,
             duration__gt=0,
         ).only('published', 'duration')
         items = []
