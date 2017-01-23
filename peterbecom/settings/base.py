@@ -332,3 +332,5 @@ ES_CONNECTIONS = {
         # 'hosts': ['localhost:9200'],
     },
 }
+
+LATEST_PODCAST_CUTOFF_DAYS = 300

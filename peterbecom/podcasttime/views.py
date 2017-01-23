@@ -70,6 +70,9 @@ def find(request):
         if type(podcast) is Podcast:
             return podcast.to_search_doc()
         else:
+            if 'episodes_count' not in podcast:
+                # better than undefined
+                podcast['episodes_count'] = None
             podcast['total_hours'] = None
             if podcast.get('episodes_seconds'):
                 podcast['total_hours'] = podcast.pop('episodes_seconds') / 3600
@@ -90,6 +93,12 @@ def find(request):
             ):
                 cache_key = 'resubmit:{}'.format(podcast['id'])
                 if not cache.get(cache_key):
+                    print(
+                        "Forcing {!r} (id={}) to download episodes".format(
+                            podcast['name'],
+                            podcast['id'],
+                        )
+                    )
                     download_episodes_task.delay(podcast['id'])
                     cache.set(cache_key, True, 60)
                 podcast['_updating'] = True
@@ -137,7 +146,21 @@ def find(request):
         response = search.execute()
         total = response.hits.total
         for hit in response.hits:
-            found.append(package_podcast(hit.to_dict()))
+            podcast = package_podcast(hit.to_dict())
+            if podcast['episodes_count'] is None:
+                cache_key = 'resubmit:{}'.format(podcast['id'])
+                if not cache.get(cache_key):
+                    print(
+                        "Forcing {!r} (id={}) to download episodes".format(
+                            podcast['name'],
+                            podcast['id'],
+                        )
+                    )
+                    download_episodes_task.delay(podcast['id'])
+                    cache.set(cache_key, True, 60)
+                    # this will force the client-side to re-query for this
+                    podcast['last_fetch'] = None
+            found.append(podcast)
 
     if total is None:
         total = len(found)
@@ -352,7 +375,7 @@ def podcast_episodes(request, id):
     episodes = Episode.objects.filter(podcast__id=id)
 
     if not episodes.exists():
-        download_episodes_task.delay(podcast.id)
+        download_episodes_task.delay(id)
 
     context['episodes'] = []
     for episode in episodes.order_by('-published'):

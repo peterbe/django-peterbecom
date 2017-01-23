@@ -88,14 +88,15 @@ def download_episodes(podcast, verbose=True):
     try:
         _download_episodes(podcast, verbose=verbose)
         if podcast.error:
-            Podcast.objects.filter(id=podcast.id).update(error=None)
-    except (BadPodcastEntry, NotFound, BadEpisodeDurationError) as exception:
-        Podcast.objects.filter(id=podcast.id).update(
-            error=str(exception)
-        )
-    except Exception:
-        PodcastError.create(podcast)
-        raise
+            p = Podcast.objects.get(id=podcast.id)
+            p.error = None
+            p.save()
+    except Exception as exception:
+        p = Podcast.objects.get(id=podcast.id)
+
+        print('EXCEPTION', repr(exception))
+        p.error = str(exception)
+        p.save()
 
 
 def _download_episodes(podcast, verbose=True):

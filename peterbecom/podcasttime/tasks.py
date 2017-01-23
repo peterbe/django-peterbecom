@@ -11,8 +11,13 @@ from peterbecom.podcasttime.scraper import (
 
 @shared_task
 def download_episodes_task(podcast_id, verbose=True):
-    podcast = Podcast.objects.get(id=podcast_id)
-    download_episodes(podcast, verbose=verbose)
+    try:
+        podcast = Podcast.objects.get(id=podcast_id)
+        download_episodes(podcast, verbose=verbose)
+    except Podcast.DoesNotExist:
+        print("Warning! Podcast with id {} does not exist".format(
+            podcast_id
+        ))
 
 
 @shared_task
