@@ -11,10 +11,10 @@ from peterbecom.podcasttime.models import Podcast
 class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
-        max_ = 5
+        max_ = 10
         verbose = int(kwargs['verbosity']) >= 2
         self.print_stats('BEFORE')
-        download_some_episodes(max_=max_, verbose=verbose)
+        download_some_episodes(max_=max_, verbose=verbose, timeout=5)
         self.print_stats('AFTER')
 
     def print_stats(self, prefix):

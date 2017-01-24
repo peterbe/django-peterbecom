@@ -53,7 +53,7 @@ def itunes_search(term, **options):
     return response.json()
 
 
-def download_some_episodes(max_=5, verbose=False):
+def download_some_episodes(max_=5, verbose=False, timeout=10):
     # first attempt podcasts that have 0 episodes
     podcasts = Podcast.objects.all().annotate(
         subcount=Count('episode')
@@ -62,7 +62,7 @@ def download_some_episodes(max_=5, verbose=False):
     for podcast in podcasts.order_by('?')[:max_]:
         if verbose:
             print(podcast.name, podcast.last_fetch)
-        download_episodes(podcast)
+        download_episodes(podcast, timeout=timeout)
 
     # secondly, do those whose episodes have never been fetched
     podcasts = Podcast.objects.filter(
@@ -71,7 +71,7 @@ def download_some_episodes(max_=5, verbose=False):
     for podcast in podcasts[:max_]:
         if verbose:
             print(podcast.name, podcast.last_fetch)
-        download_episodes(podcast)
+        download_episodes(podcast, timeout=timeout)
 
     # randomly do some of the old ones
     then = timezone.now() - datetime.timedelta(days=7)
@@ -81,26 +81,27 @@ def download_some_episodes(max_=5, verbose=False):
     for podcast in podcasts[:max_]:
         if verbose:
             print(podcast.name, podcast.last_fetch)
-        download_episodes(podcast)
+        download_episodes(podcast, timeout=timeout)
 
 
-def download_episodes(podcast, verbose=True):
+def download_episodes(podcast, verbose=True, timeout=10):
     try:
-        _download_episodes(podcast, verbose=verbose)
+        _download_episodes(podcast, verbose=verbose, timeout=timeout)
         if podcast.error:
             p = Podcast.objects.get(id=podcast.id)
             p.error = None
             p.save()
+    except Podcast.DoesNotExist:
+        raise
     except Exception as exception:
         p = Podcast.objects.get(id=podcast.id)
-
         print('EXCEPTION', repr(exception))
         p.error = str(exception)
         p.save()
 
 
-def _download_episodes(podcast, verbose=True):
-    xml = download(podcast.url)
+def _download_episodes(podcast, verbose=True, timeout=10):
+    xml = download(podcast.url, timeout=timeout)
     d = feedparser.parse(xml)
 
     def get_duration(entry):

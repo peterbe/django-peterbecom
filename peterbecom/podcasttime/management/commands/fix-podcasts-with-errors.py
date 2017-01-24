@@ -12,7 +12,7 @@ class Command(BaseCommand):
         for podcast in podcasts.order_by('?')[:10]:
             print((podcast.name, podcast.id))
             print("ERROR (before)", repr(podcast.error[:100]))
-            download_episodes(podcast)
+            download_episodes(podcast, timeout=20)
             podcast.refresh_from_db()
             print("ERROR (after)", bool(podcast.error))
             print()
