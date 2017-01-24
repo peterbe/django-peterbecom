@@ -3,6 +3,7 @@ import time
 import datetime
 import json
 import functools
+import hashlib
 import re
 from urllib.parse import urlencode
 
@@ -25,14 +26,21 @@ from .gfm import gfm
 from .escape import linkify
 
 
-def make_prefix(request_dict):
+def make_prefix(request_dict, max_length=200, hash_keys=False):
     _get = dict(request_dict)
+
+    def stringify(s):
+        encoded = isinstance(s, str) and s.encode('utf-8') or s
+        if hash_keys:
+            return hashlib.md5(encoded).hexdigest()
+        return encoded
+
     for key, value in _get.items():
-        _get[key] = [
-            isinstance(x, str) and x.encode('utf-8') or x
-            for x in value
-        ]
-    return urlencode(_get, True)
+        _get[key] = [stringify(x) for x in value]
+    url_encoded = urlencode(_get, True)
+    if len(url_encoded) > max_length and not hash_keys:
+        return make_prefix(request_dict, max_length=max_length, hash_keys=True)
+    return url_encoded
 
 
 def utc_now():
