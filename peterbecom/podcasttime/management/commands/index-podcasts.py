@@ -40,7 +40,8 @@ class Command(BaseCommand):
             raise Exception('force-create-index but not limited')
 
         iterator = Podcast.objects.filter(error__isnull=True).exclude(
-            name=''
+            name='',
+            last_fetch__isnull=True,
         )
         if limit:
             if kwargs['random']:
