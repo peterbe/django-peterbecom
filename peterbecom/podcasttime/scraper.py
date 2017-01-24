@@ -55,7 +55,7 @@ def itunes_search(term, **options):
 
 def download_some_episodes(max_=5, verbose=False, timeout=10):
     # first attempt podcasts that have 0 episodes
-    podcasts = Podcast.objects.all().annotate(
+    podcasts = Podcast.objects.filter(error__isnull=True).annotate(
         subcount=Count('episode')
     ).filter(subcount=0)
 
@@ -66,6 +66,7 @@ def download_some_episodes(max_=5, verbose=False, timeout=10):
 
     # secondly, do those whose episodes have never been fetched
     podcasts = Podcast.objects.filter(
+        error__isnull=True,
         last_fetch__isnull=True
     ).order_by('?')
     for podcast in podcasts[:max_]:
@@ -76,6 +77,7 @@ def download_some_episodes(max_=5, verbose=False, timeout=10):
     # randomly do some of the old ones
     then = timezone.now() - datetime.timedelta(days=7)
     podcasts = Podcast.objects.filter(
+        error__isnull=True,
         last_fetch__lt=then
     ).order_by('?')
     for podcast in podcasts[:max_]:
@@ -95,8 +97,10 @@ def download_episodes(podcast, verbose=True, timeout=10):
         raise
     except Exception as exception:
         p = Podcast.objects.get(id=podcast.id)
-        print('EXCEPTION', repr(exception))
-        p.error = str(exception)
+        if isinstance(exception, bytes):
+            p.error = exception.decode('utf-8')
+        else:
+            p.error = str(exception)
         p.save()
 
 
