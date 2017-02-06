@@ -26,20 +26,30 @@ from .gfm import gfm
 from .escape import linkify
 
 
-def make_prefix(request_dict, max_length=200, hash_keys=False):
+def make_prefix(request_dict, max_length=100, hash_request_values=False):
     _get = dict(request_dict)
 
     def stringify(s):
-        encoded = isinstance(s, str) and s.encode('utf-8') or s
-        if hash_keys:
-            return hashlib.md5(encoded).hexdigest()
-        return encoded
+        if isinstance(s, str):
+            s = s.encode('utf-8')
+        if hash_request_values:
+            return hashlib.md5(s).hexdigest()
+        return s
 
     for key, value in _get.items():
         _get[key] = [stringify(x) for x in value]
     url_encoded = urlencode(_get, True)
-    if len(url_encoded) > max_length and not hash_keys:
-        return make_prefix(request_dict, max_length=max_length, hash_keys=True)
+    if len(url_encoded) > max_length:
+        if hash_request_values:
+            # Still too darn long!
+            return stringify(url_encoded)
+        else:
+            # Try again by md5 hashing each value
+            return make_prefix(
+                request_dict,
+                max_length=max_length,
+                hash_request_values=True
+            )
     return url_encoded
 
 
