@@ -81,10 +81,14 @@ def find(request):
             podcast['total_hours'] = None
             if podcast.get('episodes_seconds'):
                 podcast['total_hours'] = podcast.pop('episodes_seconds') / 3600
-            if podcast['latest_episode'] < cutoff:
+
+            try:
+                if podcast['latest_episode'] < cutoff:
+                    podcast['_outdated'] = True
+                else:
+                    podcast['_outdated'] = False
+            except KeyError:
                 podcast['_outdated'] = True
-            else:
-                podcast['_outdated'] = False
             return podcast
 
     if request.GET.get('ids'):
