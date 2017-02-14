@@ -46,7 +46,7 @@
 {% block content %}
 
 <p>My name is <strong>Peter Bengtsson</strong> and I'm a web developer.<br>
-This site is my notice board for things that go on in my head.</p>
+This site is my place for things that go on in my head.</p>
 
 <p>I currently work for <a href="https://mozilla.org" class="bold">Mozilla</a>,
   from home in South Carolina.
@@ -62,8 +62,34 @@ on various tools that help the development of Firefox and my other Mozilla proje
 
 <h2>Side projects</h2>
 
+<div class="project" id="podcasttime">
+  <div class="screenshot">
+    <a href="https://podcasttime.io" title="Podcasttime">
+      <img src="{{ static('images/podcasttime-scr.png') }}" alt="Screenshot"/>
+    </a>
+  </div>
+  <div class="rest">
+    <h3>Podcast Time</h3>
+    <h4><a href="https://podcasttime.io">podcasttime.io</a></h4>
+    <p>
+      This started as me trying to figure out how much content
+      <i>my</i> preferred podcasts require me to listen to to keep up and not fall
+      behind. Later I structured it with a real database and a web app to
+      display it. Then in early 2017 I re-wrote the front-end entirely in
+      React and added Elasticsearch on the back-end for better search.<br/>
+      The <a href="https://github.com/peterbe/podcasttime2">front-end code is here</a>
+      and the <a href="https://github.com/peterbe/django-peterbecom/tree/master/peterbecom/podcasttime">back-end code is here</a>.
+      <a href="https://www.peterbe.com/plog/podcasttime.io">Blogged about how it was built too</a>.
+    </p>
+  </div>
+</div>
+
 <div class="project" id="battleshits">
-  <div class="screenshot"><a href="https://btlsh.it/" title="Battleshits"><img src="{{ static('images/battleshits-scr.png') }}" alt="Screenshot"></a></div>
+  <div class="screenshot">
+    <a href="https://btlsh.it/" title="Battleshits">
+      <img src="{{ static('images/battleshits-scr.png') }}" alt="Screenshot"/>
+    </a>
+  </div>
   <div class="rest">
     <h3>Battleshits</h3>
     <h4><a href="https://btlsh.it/">btlsh.it</a></h4>
