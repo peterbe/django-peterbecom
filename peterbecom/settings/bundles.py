@@ -70,6 +70,12 @@ PIPELINE_JS = {
         ),
         'output_filename': 'js/base.min.js',
     },
+    'google_analytics': {
+        'source_filenames': (
+            'js/google-analytics.js',
+        ),
+        'output_filename': 'js/google-analytics.min.js',
+    },
     'autocompeter': {
         'source_filenames': (
             'js/autocompeter.js',
