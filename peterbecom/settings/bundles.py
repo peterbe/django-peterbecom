@@ -70,6 +70,12 @@ PIPELINE_JS = {
         ),
         'output_filename': 'js/base.min.js',
     },
+    'autocompeter': {
+        'source_filenames': (
+            'js/autocompeter.js',
+        ),
+        'output_filename': 'js/autocompeter.min.js',
+    },
     'about': {
         'source_filenames': (
             'js/about.js',

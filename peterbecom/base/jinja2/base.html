@@ -138,23 +138,7 @@
 
   {% block extrajs %}{% endblock %}
   {% if request.path != '/plog/blogitem-040601-1' %}
-  <script>
-  (function() {
-    var i=0, urls = [
-      '//cdn.jsdelivr.net/autocompeter/1/autocompeter.min.js',
-      '{{ static('js/autocompeter.js') }}'
-    ];
-    var load = function() {
-      if (i < urls.length) {
-        var script = document.createElement('script');
-        script.src = urls[i];
-        script.onload = load;
-        document.head.appendChild(script);
-        i++;
-      }
-    };load();
-  })();
-  </script>
+  {% javascript 'autocompeter' %}
   {% endif %}
 
 </body>
