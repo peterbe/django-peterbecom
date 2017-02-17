@@ -24,6 +24,7 @@
 
   {% if use_google_analytics %}
   {% javascript 'google_analytics' %}
+  <script src="https://www.google-analytics.com/analytics.js" async></script>
   {% endif %}
 
   {% block extrahead %}
@@ -82,7 +83,7 @@
   </div>
   {% endif %}
 
-  <div class="ui text container">
+  <div class="ui text container content">
     {% block content %}
       {% block content_body %}
       {% endblock %}

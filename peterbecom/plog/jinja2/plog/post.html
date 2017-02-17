@@ -33,6 +33,11 @@
     color:red;
   }
   </style>
+
+  {% if request.path == '/plog/blogitem-040601-1' %}
+  <!-- At the time of writing, only Chrome supports prerender -->
+  <link rel="prerender" href="https://songsear.ch/">
+  {% endif %}
 {% endblock %}
 
 
@@ -70,6 +75,10 @@
 {% block extrajs %}
   {% javascript 'blogitem' %}
 
+  {% if request.path == '/plog/blogitem-040601-1' %}
+  {% javascript 'warmup_songsearch' %}
+  {% endif %}
+
   {% if show_buttons %}
   <script>
   {% include "plog/twitter_javascript.js" %}
@@ -88,7 +97,9 @@
 {% endif %}
 
 {% if post.hide_comments and post.disallow_comments %}
+  {% if request.path != '/plog/blogitem-040601-1' %}
   <p><em>Comments closed for this page</em></p>
+  {% endif %}
 {% else %}
   <h2 class="ui dividing header">Comments</h2>
 
@@ -156,33 +167,36 @@
 
 {% endif %}
 
-<h2 class="ui dividing header">Related posts</h2>
 
-<dl>
-  {% if previous_post %}
-  <dt>Previous:</dt>
-  <dd><a href="{{ previous_post.get_absolute_url() }}">{{ previous_post.title }}</a>
-  <small>{{ previous_post.pub_date.strftime('%d %B %Y') }}</small>
-  </dd>
+{% if request.path != '/plog/blogitem-040601-1' %}
+  <h2 class="ui dividing header">Related posts</h2>
+
+  <dl>
+    {% if previous_post %}
+    <dt>Previous:</dt>
+    <dd><a href="{{ previous_post.get_absolute_url() }}">{{ previous_post.title }}</a>
+    <small>{{ previous_post.pub_date.strftime('%d %B %Y') }}</small>
+    </dd>
+    {% endif %}
+
+    {% if next_post %}
+    <dt>Next:</dt>
+    <dd><a href="{{ next_post.get_absolute_url() }}">{{ next_post.title }}</a>
+    <small>{{ next_post.pub_date.strftime('%d %B %Y') }}</small>
+    </dd>
+    {% endif %}
+  </dl>
+
+  {% if related %}
+  <dl>
+    <dt>Related:</dt>
+    {% for each in related %}
+    <dd><a href="{{ each.get_absolute_url() }}" data-plogrank="{{ each.plogrank }}">{{ each.title }}</a>
+    <small>{{ each.pub_date.strftime('%d %B %Y') }}</small>
+    </dd>
+    {% endfor %}
+  </dl>
   {% endif %}
-
-  {% if next_post %}
-  <dt>Next:</dt>
-  <dd><a href="{{ next_post.get_absolute_url() }}">{{ next_post.title }}</a>
-  <small>{{ next_post.pub_date.strftime('%d %B %Y') }}</small>
-  </dd>
-  {% endif %}
-</dl>
-
-{% if related %}
-<dl>
-  <dt>Related:</dt>
-  {% for each in related %}
-  <dd><a href="{{ each.get_absolute_url() }}" data-plogrank="{{ each.plogrank }}">{{ each.title }}</a>
-  <small>{{ each.pub_date.strftime('%d %B %Y') }}</small>
-  </dd>
-  {% endfor %}
-</dl>
 {% endif %}
 
 {% endblock %}

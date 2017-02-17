@@ -75,6 +75,15 @@ PIPELINE_JS = {
             'js/google-analytics.js',
         ),
         'output_filename': 'js/google-analytics.min.js',
+        'extra_context': {
+            'async': True,
+        },
+    },
+    'warmup_songsearch': {
+        'source_filenames': (
+            'plog/js/warmup-songsearch.js',
+        ),
+        'output_filename': 'js/warmup-songsearch.min.js',
     },
     'autocompeter': {
         'source_filenames': (
