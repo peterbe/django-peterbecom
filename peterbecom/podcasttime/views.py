@@ -209,40 +209,6 @@ def picked(request):
     return http.JsonResponse({'session_key': picked_obj.session_key})
 
 
-# def calendar(request):
-#     form = CalendarDataForm(request.GET)
-#     if not form.is_valid():
-#         return http.HttpResponseBadRequest(form.errors)
-#
-#     episodes = Episode.objects.filter(
-#         podcast__id__in=form.cleaned_data['ids'],
-#         published__gte=form.cleaned_data['start'],
-#         published__lt=form.cleaned_data['end'],
-#     ).select_related('podcast')
-#     colors = (
-#         "#EAA228", "#c5b47f", "#579575", "#839557", "#958c12",
-#         "#953579", "#4b5de4", "#d8b83f", "#ff5800", "#0085cc",
-#         "#c747a3", "#cddf54", "#FBD178", "#26B4E3", "#bd70c7",
-#     )
-#     next_color = iter(colors)
-#     items = []
-#     podcast_colors = {}
-#     for episode in episodes:
-#         duration = datetime.timedelta(seconds=episode.duration)
-#         if episode.podcast_id not in podcast_colors:
-#             podcast_colors[episode.podcast_id] = next_color.next()
-#         color = podcast_colors[episode.podcast_id]
-#         item = {
-#             'id': episode.id,
-#             'title': episode.podcast.name,
-#             'start': episode.published,
-#             'end': episode.published + duration,
-#             'color': color,
-#         }
-#         items.append(item)
-#     return http.JsonResponse(items, safe=False)
-
-
 def stats(request):
     form = PodcastsForm(request.GET)
     if not form.is_valid():
@@ -251,6 +217,12 @@ def stats(request):
     cutoff = timezone.now() - datetime.timedelta(
         days=settings.LATEST_PODCAST_CUTOFF_DAYS
     )
+
+    for podcast in Podcast.objects.filter(id__in=form.cleaned_data['ids']):
+        first_published = Episode.objects.filter(
+            podcast=podcast,
+        ).aggregate(first=Min('published'))['first']
+        cutoff = max(cutoff, first_published)
 
     episodes = Episode.objects.filter(
         podcast_id__in=form.cleaned_data['ids'],
@@ -264,23 +236,25 @@ def stats(request):
         min=Min('published'),
         max=Max('published'),
     )
-    rates = []
+    total_duration_days = 0.0
+    min_dates = []
+    max_dates = []
     for each in episodes:
-        days = (each['max'] - each['min']).days
-        if days:
-            rates.append(
-                # hours per day
-                1.0 * each['duration'] / days / 3600
-            )
+        total_duration_days += each['duration']
+        min_dates.append(each['min'])
+        max_dates.append(each['max'])
 
-    if rates:
-        average = sum(rates) / len(rates)
-    else:
-        average = 0.0
+    max_date = max(max_dates)
+    min_date = min(min_dates)
+    days = (max_date - min_date).days
+    # minutes per day
+    per_day = total_duration_days / days / 3600
     numbers = {
-        'per_day': average,
-        'per_week': average * 7,
-        'per_month': average * (365 / 12.0),
+        'per_day': per_day,
+        'per_week': per_day * 7,
+        'per_month': per_day * (365 / 12.0),
+        'max_date': max_date,
+        'min_date': min_date,
     }
     return http.JsonResponse(numbers)
 
