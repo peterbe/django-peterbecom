@@ -279,6 +279,9 @@ class Picked(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
+    def __repr__(self):
+        return '<%s: %r>' % (self.__class__.__name__, self.session_key)
+
 
 @receiver(models.signals.m2m_changed, sender=Picked.podcasts.through)
 def update_podcast_times_picked(sender, instance, action, **kwargs):

@@ -244,18 +244,27 @@ def stats(request):
         min_dates.append(each['min'])
         max_dates.append(each['max'])
 
-    max_date = max(max_dates)
-    min_date = min(min_dates)
-    days = (max_date - min_date).days
-    # minutes per day
-    per_day = total_duration_days / days / 3600
-    numbers = {
-        'per_day': per_day,
-        'per_week': per_day * 7,
-        'per_month': per_day * (365 / 12.0),
-        'max_date': max_date,
-        'min_date': min_date,
-    }
+    if total_duration_days > 0:
+        max_date = max(max_dates)
+        min_date = min(min_dates)
+        days = (max_date - min_date).days
+        # minutes per day
+        per_day = total_duration_days / days / 3600
+        numbers = {
+            'per_day': per_day,
+            'per_week': per_day * 7,
+            'per_month': per_day * (365 / 12.0),
+            'max_date': max_date,
+            'min_date': min_date,
+        }
+    else:
+        numbers = {
+            'per_day': 0,
+            'per_week': 0,
+            'per_month': 0,
+            # 'max_date': max_date,
+            # 'min_date': min_date,
+        }
     return http.JsonResponse(numbers)
 
 
@@ -323,6 +332,7 @@ def legacy_podcasts(request):
     return redirect('https://podcasttime.io', permanent=True)
 
 
+@cache_page(settings.DEBUG and 10 or 60 * 60)
 def podcasts_data(request):
     context = {}
     search_term = request.GET.get('search', '').strip()
@@ -387,11 +397,11 @@ def legacy_picks(request):
     return redirect('https://podcasttime.io/picks', permanent=True)
 
 
+@cache_page(settings.DEBUG and 10 or 60)
 def picks_data(request):
     context = {}
     qs = Picked.objects.all().order_by('-modified')
-
-    paginator = Paginator(qs, 5)  # XXX make this something bigger like 15
+    paginator = Paginator(qs, 15)
     page = request.GET.get('page')
     try:
         paged = paginator.page(page)
@@ -403,21 +413,30 @@ def picks_data(request):
         paged = paginator.page(paginator.num_pages)
 
     items = []
-    # XXX ALL of this needs to be optimized
+
+    # First build up a map that maps all unique podcast IDs to
+    # a little dict.
+    # Then when doing the nested loop, later, we have already done
+    # this work for each *unique* podcast only once.
+    all_podcasts = {}
+    for pick in paged:
+        for podcast in pick.podcasts.all():
+            if podcast.id not in all_podcasts:
+                all_podcasts[podcast.id] = {
+                    'name': podcast.name,
+                    'image': (
+                        podcast.image and
+                        podcast.get_thumbnail_url('348x348') or
+                        None
+                    ),
+                    'times_picked': podcast.times_picked,
+                    'id': podcast.id,
+                    'slug': podcast.get_or_create_slug(),
+                }
     for pick in paged:
         podcasts = []
-        for podcast in pick.podcasts.all().order_by('-times_picked'):
-            podcasts.append({
-                'name': podcast.name,
-                'image': (
-                    podcast.image and
-                    podcast.get_thumbnail_url('348x348') or
-                    None
-                ),
-                'times_picked': podcast.times_picked,
-                'id': podcast.id,
-                'slug': podcast.get_or_create_slug(),
-            })
+        for each in pick.podcasts.all().values('id'):
+            podcasts.append(all_podcasts[each['id']])
         items.append({'podcasts': podcasts, 'id': pick.id})
     context['items'] = items
 
