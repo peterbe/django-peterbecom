@@ -79,7 +79,7 @@ def parse_duration_ffmpeg(media_url):
             print("SUBPROCESS ERROR")
             print(repr(err))
             print
-            return None, str(err)
+            return None, err.decode('utf-8')
         hours = int(found[0])
         minutes = int(found[1])
         minutes += hours * 60

@@ -408,6 +408,7 @@ def _scrape_index(url, verbose=False, max_=1000):
             podcast.save()
             created = False
         except Podcast.DoesNotExist:
+            assert name, rss_url
             podcast = Podcast.objects.create(
                 name=name,
                 url=rss_url,

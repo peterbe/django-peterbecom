@@ -137,6 +137,7 @@ def find(request):
                     name=result['collectionName']
                 )
             except Podcast.DoesNotExist:
+                assert result['collectionName'], result
                 podcast = Podcast.objects.create(
                     name=result['collectionName'],
                     url=result['feedUrl'],
@@ -392,9 +393,7 @@ def podcasts_table(request):
             if desc == 'false':
                 key = '-{}'.format(key)
             order_by.append(key)
-    # print("ORDER_BY", order_by)
     qs = qs.order_by(*order_by)
-    # print(sorting)
     paginator = Paginator(qs, page_size)
     paged = paginator.page(page + 1)
 
