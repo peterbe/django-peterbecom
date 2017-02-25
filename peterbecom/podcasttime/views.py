@@ -99,6 +99,7 @@ def find(request):
         for hit in response.hits:
             podcast = package_podcast(hit.to_dict())
             if (
+                podcast['episodes_count'] is None or
                 not podcast.get('last_fetch') or
                 podcast['last_fetch'] < (
                     timezone.now() - datetime.timedelta(days=7)
@@ -223,7 +224,8 @@ def stats(request):
         first_published = Episode.objects.filter(
             podcast=podcast,
         ).aggregate(first=Min('published'))['first']
-        cutoff = max(cutoff, first_published)
+        if first_published:
+            cutoff = max(cutoff, first_published)
 
     episodes = Episode.objects.filter(
         podcast_id__in=form.cleaned_data['ids'],

@@ -28,7 +28,7 @@ class Category(models.Model):
     def __repr__(self):
         return '<%s: %r>' % (self.__class__.__name__, self.name)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -134,7 +134,7 @@ class BlogItem(models.Model):
     def _count_comments(self):
         return BlogComment.objects.filter(blogitem=self, approved=True).count()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.title
 
     def get_or_create_inbound_hashkey(self):

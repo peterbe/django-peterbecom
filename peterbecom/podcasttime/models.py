@@ -96,7 +96,7 @@ class Podcast(models.Model):
         ordering = ['-times_picked']
         unique_together = ['name', 'url']
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def __repr__(self):
