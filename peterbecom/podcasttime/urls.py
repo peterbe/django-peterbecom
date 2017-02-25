@@ -7,6 +7,7 @@ urlpatterns = [
     url('^$', views.index, name='index'),
     url('^podcasts/$', views.legacy_podcasts, name='podcasts'),
     url('^podcasts/data/$', views.podcasts_data, name='podcasts_data'),
+    url('^podcasts/table/$', views.podcasts_table, name='podcasts_table'),
 
     url('^picks/$', views.legacy_picks, name='picks'),
     url('^picks/data/$', views.picks_data, name='picks_data'),

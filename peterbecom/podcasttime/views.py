@@ -376,6 +376,47 @@ def podcasts_data(request):
     return http.JsonResponse(context)
 
 
+@cache_page(settings.DEBUG and 10 or 60 * 60)
+def podcasts_table(request):
+    context = {}
+    page_size = int(request.GET.get('page_size', 10))
+    page = int(request.GET.get('page', 0))
+    sorting = request.GET.getlist('sorting')
+
+    qs = Podcast.objects.all()
+    order_by = []
+    if not sorting:
+        order_by.append('-modified')
+    else:
+        for key, desc in [x.split(':', 1) for x in sorting]:
+            if desc == 'false':
+                key = '-{}'.format(key)
+            order_by.append(key)
+    # print("ORDER_BY", order_by)
+    qs = qs.order_by(*order_by)
+    # print(sorting)
+    paginator = Paginator(qs, page_size)
+    paged = paginator.page(page + 1)
+
+    rows = []
+    for podcast in paged:
+        rows.append({
+            'id': podcast.id,
+            'name': podcast.name,
+            'last_fetch': podcast.last_fetch,
+            'error': podcast.error,
+            'times_picked': podcast.times_picked,
+            'latest_episode': podcast.latest_episode,
+            'slug': podcast.get_or_create_slug(),
+            'created': podcast.created,
+            'modified': podcast.modified,
+            'episodes_count': Episode.objects.filter(podcast=podcast).count(),
+        })
+    context['rows'] = rows
+    context['pages'] = paginator.num_pages
+    return http.JsonResponse(context)
+
+
 def podcast_episodes(request, id):
     context = {}
     episodes = Episode.objects.filter(podcast__id=id)
