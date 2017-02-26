@@ -46,6 +46,7 @@ class Command(BaseCommand):
         if limit:
             if kwargs['random']:
                 iterator = iterator.order_by('?')[:limit]
+                iterator = list(iterator)
             else:
                 iterator = iterator.order_by('-modified')[:limit]
 
@@ -54,15 +55,17 @@ class Command(BaseCommand):
             index.create()
 
         # Compute a big map of every podcast's total episode count
-        episode_hours = {}
+        episode_counts = {}
         all_episodes = Episode.objects.all()
         if limit:
-            all_episodes = all_episodes.filter(podcast__in=iterator)
+            all_episodes = all_episodes.filter(
+                podcast_id__in=[x.id for x in iterator]
+            )
         all_episodes_annotated = all_episodes.values('podcast_id').annotate(
             count=Count('podcast_id')
         )
         for e in all_episodes_annotated:
-            episode_hours[e['podcast_id']] = e['count']
+            episode_counts[e['podcast_id']] = e['count']
 
         duration_sums = {}
         all_durations_annotated = all_episodes.values('podcast_id').annotate(
@@ -81,7 +84,7 @@ class Command(BaseCommand):
             (
                 m.to_search(
                     duration_sums=duration_sums,
-                    episodes_count=episode_hours,
+                    episodes_count=episode_counts,
                 ).to_dict(True)
                 for m in iterator
             ),

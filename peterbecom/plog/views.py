@@ -197,9 +197,9 @@ def _render_blog_post(request, oid, screenshot_mode=False):
 
     comments_truncated = False
     if request.GET.get('comments') != 'all':
-        comments = comments[:100]
-        if post.count_comments() > 100:
-            comments_truncated = 100
+        comments = comments[:settings.MAX_INITIAL_COMMENTS]
+        if post.count_comments() > settings.MAX_INITIAL_COMMENTS:
+            comments_truncated = settings.MAX_INITIAL_COMMENTS
 
     all_comments = defaultdict(list)
     for comment in comments:

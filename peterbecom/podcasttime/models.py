@@ -119,6 +119,8 @@ class Podcast(models.Model):
 
         if kwargs.get('episodes_count'):
             episodes_count = kwargs['episodes_count'].get(self.id)
+            if episodes_count is None:
+                print(repr(self.name), 'Has No episodes_count')
         else:
             episodes_count = episodes_qs.count()
 
