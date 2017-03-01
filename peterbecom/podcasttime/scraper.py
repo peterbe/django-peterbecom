@@ -13,6 +13,7 @@ import feedparser
 from django.utils import timezone
 from django.db.models import Count, Max
 from django.db.utils import DataError
+from django.utils.html import strip_tags
 
 from peterbecom.podcasttime.models import (
     Podcast,
@@ -121,6 +122,7 @@ def _download_episodes(podcast, verbose=True, timeout=10):
                         )
                         if error:
                             raise BadEpisodeDurationError(error)
+                        return duration
             except KeyError:
                 try:
                     print(entry.enclosure)
@@ -222,6 +224,10 @@ def _download_episodes(podcast, verbose=True, timeout=10):
         except Episode.DoesNotExist:
             pass
 
+        metadata = dict(entry)
+        title = strip_tags(metadata.get('title'))
+        summary = strip_tags(metadata.get('summary'))
+
         try:
             episode = Episode.objects.get(
                 podcast=podcast,
@@ -229,6 +235,10 @@ def _download_episodes(podcast, verbose=True, timeout=10):
             )
             episode.duration = duration
             episode.published = published
+            episode.metadata = metadata
+            episode.title = title
+            episode.summary = summary
+
             try:
                 episode.save()
                 print("SAVED")
@@ -245,6 +255,9 @@ def _download_episodes(podcast, verbose=True, timeout=10):
                 duration=duration,
                 published=published,
                 guid=guid,
+                metadata=metadata,
+                title=title,
+                summary=summary,
             )
             print("CREATED")
         print(

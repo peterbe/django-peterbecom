@@ -12,6 +12,7 @@ from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 from django.dispatch import receiver
 from django.core.cache import cache
+from django.contrib.postgres.fields import JSONField as PGJSONField
 
 from slugify import slugify
 from jsonfield import JSONField
@@ -266,6 +267,10 @@ class Episode(models.Model):
     duration = models.PositiveIntegerField()
     published = models.DateTimeField()
     guid = models.CharField(max_length=400)
+
+    title = models.TextField(null=True)
+    summary = models.TextField(null=True)
+    metadata = PGJSONField(null=True)
 
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
