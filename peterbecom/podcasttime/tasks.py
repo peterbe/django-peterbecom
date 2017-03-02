@@ -3,6 +3,7 @@ from celery import shared_task
 
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
 from peterbecom.podcasttime.models import Podcast, PodcastError
+from peterbecom.podcasttime.utils import get_podcast_metadata, NotFound
 from peterbecom.podcasttime.scraper import (
     download_episodes,
     itunes_search,
@@ -13,11 +14,20 @@ from peterbecom.podcasttime.scraper import (
 def download_episodes_task(podcast_id, verbose=True):
     try:
         podcast = Podcast.objects.get(id=podcast_id)
-        download_episodes(podcast, verbose=verbose)
     except Podcast.DoesNotExist:
         print("Warning! Podcast with id {} does not exist".format(
             podcast_id
         ))
+        return
+    try:
+        download_episodes(podcast, verbose=verbose)
+    except NotFound as exception:
+        PodcastError.create(podcast)
+        if isinstance(exception, bytes):
+            podcast.error = exception.decode('utf-8')
+        else:
+            podcast.error = str(exception)
+        podcast.save()
 
 
 @shared_task
@@ -56,3 +66,19 @@ def fetch_itunes_lookup(podcast_id):
     else:
         print("Found", results['resultCount'], 'results')
         print(results['resultCount'])
+
+
+@shared_task
+def download_podcast_metadata(podcast_id):
+    metadata = get_podcast_metadata(
+        Podcast.objects.get(id=podcast_id).url
+    )
+    if metadata:
+        podcast = Podcast.objects.get(id=podcast_id)
+        if metadata.get('link'):
+            podcast.link = metadata['link']
+        if metadata.get('subtitle'):
+            podcast.subtitle = metadata['subtitle']
+        if metadata.get('summary'):
+            podcast.summary = metadata['summary']
+        podcast.save()

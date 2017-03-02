@@ -26,13 +26,15 @@ def debug_task(self):
 # app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
 from django.conf import settings
-from opbeat.contrib.django.models import client, logger, register_handlers
-from opbeat.contrib.celery import register_signal
-
-try:
-    register_signal(client)
-except Exception as e:
-    logger.exception('Failed installing celery hook: %s' % e)
 
 if 'opbeat.contrib.django' in settings.INSTALLED_APPS:
+
+    from opbeat.contrib.django.models import client, logger, register_handlers
+    from opbeat.contrib.celery import register_signal
+
+    try:
+        register_signal(client)
+    except Exception as e:
+        logger.exception('Failed installing celery hook: %s' % e)
+
     register_handlers()

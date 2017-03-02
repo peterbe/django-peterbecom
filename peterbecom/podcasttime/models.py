@@ -90,6 +90,11 @@ class Podcast(models.Model):
     last_fetch = models.DateTimeField(null=True)
     error = models.TextField(null=True)
     latest_episode = models.DateTimeField(null=True)
+
+    link = models.URLField(max_length=400, null=True)
+    subtitle = models.TextField(null=True)
+    summary = models.TextField(null=True)
+
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
@@ -129,6 +134,9 @@ class Podcast(models.Model):
             'id': self.id,
             'slug': self.get_or_create_slug(save=False),
             'name': self.name,
+            'link': self.link,
+            'subtitle': self.subtitle,
+            'summary': self.summary,
             'times_picked': self.times_picked,
             'latest_episode': self.latest_episode,
             'last_fetch': self.last_fetch,

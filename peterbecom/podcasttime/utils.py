@@ -229,6 +229,28 @@ def get_image_url(rss_url):
     return image_url
 
 
+def get_podcast_metadata(rss_url):
+    metadata = {}
+    try:
+        xml = download(rss_url, expect_xml=True)
+    except NotXMLResponse:
+        xml = download(rss_url, expect_xml=True, no_user_agent=True)
+
+    d = feedparser.parse(xml)
+
+    for key in ('link', 'subtitle', 'summary'):
+        if d['feed'].get(key):
+            metadata[key] = d['feed'][key]
+
+    if (
+        metadata.get('subtitle') and
+        metadata.get('subtitle') == metadata.get('summary')
+    ):
+        del metadata['subtitle']
+
+    return metadata
+
+
 if __name__ == '__main__':
     import sys
     for arg in sys.argv[1:]:

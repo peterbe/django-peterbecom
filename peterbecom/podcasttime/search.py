@@ -40,6 +40,9 @@ class PodcastDoc(DocType):
         analyzer=edge_ngram_analyzer,
         search_analyzer='standard'
     )
+    link = Keyword()
+    subtitle = Text()
+    summary = Text()
     last_fetch = Date()
     latest_episode = Date()
     modified = Date()

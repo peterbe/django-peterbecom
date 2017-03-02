@@ -30,6 +30,7 @@ from peterbecom.podcasttime.tasks import (
     download_episodes_task,
     redownload_podcast_image,
     fetch_itunes_lookup,
+    download_podcast_metadata,
 )
 
 
@@ -75,6 +76,9 @@ def find(request):
         if type(podcast) is Podcast:
             return podcast.to_search_doc()
         else:
+            # remove summary fields since it's rather large
+            podcast.pop('summary', None)
+
             if 'episodes_count' not in podcast:
                 # better than undefined
                 podcast['episodes_count'] = None
@@ -419,17 +423,33 @@ def podcasts_table(request):
 
 
 def podcast_episodes(request, id):
+    podcast = get_object_or_404(Podcast, id=id)
     context = {}
-    episodes = Episode.objects.filter(podcast__id=id)
+    episodes = Episode.objects.filter(podcast=podcast)
 
-    if not episodes.exists():
+    if (
+        not episodes.exists() or
+        episodes.count() == episodes.filter(title__isnull=True).count()
+    ):
         download_episodes_task.delay(id)
+
+    if (
+        podcast.link is None and
+        podcast.summary is None and
+        podcast.subtitle is None
+    ):
+        cache_key = 'download_podcast_metadata:{}'.format(podcast.id)
+        if not cache.get(cache_key):
+            download_podcast_metadata.delay(podcast.id)
+            cache.set(cache_key, True, 60)
 
     context['episodes'] = []
     for episode in episodes.order_by('-published'):
         context['episodes'].append({
             'duration': episode.duration,
             'published': episode.published,
+            'title': episode.title,
+            'summary': episode.summary,
             'guid': episode.guid,
         })
     return http.JsonResponse(context)

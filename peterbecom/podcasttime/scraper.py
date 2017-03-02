@@ -14,6 +14,7 @@ from django.utils import timezone
 from django.db.models import Count, Max
 from django.db.utils import DataError
 from django.utils.html import strip_tags
+from django.conf import settings
 
 from peterbecom.podcasttime.models import (
     Podcast,
@@ -97,6 +98,8 @@ def download_episodes(podcast, verbose=True, timeout=10):
     except Podcast.DoesNotExist:
         raise
     except Exception as exception:
+        if settings.DEBUG:
+            raise
         p = Podcast.objects.get(id=podcast.id)
         if isinstance(exception, bytes):
             p.error = exception.decode('utf-8')
