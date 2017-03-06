@@ -11,6 +11,3 @@ pip wheel -r requirements.txt
 
 echo "Install Python dependencies"
 pip install -r requirements.txt
-
-echo "Creating a test database"
-psql -c 'create database peterbecom;' -U postgres
