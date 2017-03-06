@@ -1,19 +1,21 @@
 # http://travis-ci.org/peterbe/django-peterbecom
 
 # Needed to install custom java and elasticsearch
-sudo: true
+sudo: required
+
+dist: trusty
+
+addons:
+  postgresql: "9.5"
+
+services:
+  - postgresql
 
 language: python
 
 cache: pip
 
 python: 3.5
-
-services:
-  - postgresql
-
-addons:
-  postgresql: "9.5"
 
 branches:
   only:
