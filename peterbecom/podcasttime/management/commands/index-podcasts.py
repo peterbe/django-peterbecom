@@ -32,7 +32,7 @@ class Command(BaseCommand):
             help='create index even with limit'
         )
 
-    def handle(self, *args, **kwargs):
+    def _handle(self, *args, **kwargs):
         limit = int(kwargs['limit'])
         if kwargs['random'] and not limit:
             raise Exception('random but not limited')

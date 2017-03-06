@@ -18,7 +18,7 @@ def fix_encoding(s):
 
 class Command(BaseCommand):
 
-    def handle(self, *args, **kwargs):
+    def _handle(self, *args, **kwargs):
         podcasts = Podcast.objects.filter(name='')
         self.out(podcasts.count(), 'podcasts without a name')
         for podcast in podcasts:

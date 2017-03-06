@@ -13,6 +13,8 @@ from peterbecom.base.models import CommandRun
 
 try:
     import opbeat
+    if not getattr(settings, 'OPBEAT', None):
+        raise ImportError('opbeat not in use')
 
     def get_opbeat_client():
         client = opbeat.Client(

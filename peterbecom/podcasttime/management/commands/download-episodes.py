@@ -10,7 +10,7 @@ from peterbecom.podcasttime.models import Podcast
 
 class Command(BaseCommand):
 
-    def handle(self, *args, **kwargs):
+    def _handle(self, *args, **kwargs):
         max_ = 10
         verbose = int(kwargs['verbosity']) >= 2
         self.print_stats('BEFORE')

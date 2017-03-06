@@ -8,7 +8,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('baseurl')
 
-    def handle(self, *args, **kwargs):
+    def _handle(self, *args, **kwargs):
         verbose = int(kwargs['verbosity']) >= 2
         baseurl = kwargs['baseurl']
         self.print_stats('BEFORE')

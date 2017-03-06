@@ -5,7 +5,7 @@ from peterbecom.podcasttime.scraper import download_episodes
 
 class Command(BaseCommand):
 
-    def handle(self, *args, **kwargs):
+    def _handle(self, *args, **kwargs):
         podcasts = Podcast.objects.filter(error__isnull=False)
         self.out(podcasts.count(), 'podcasts with errors')
 
