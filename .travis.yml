@@ -1,7 +1,12 @@
 # http://travis-ci.org/peterbe/django-peterbecom
 
 # Needed to install custom java and elasticsearch
-sudo: true
+sudo: required
+
+dist: trusty
+
+services:
+  - postgresql
 
 language: python
 
@@ -14,12 +19,15 @@ branches:
   - master
 
 addons:
+  postgresql: "9.5"
   apt:
     packages:
       - oracle-java8-set-default
 
 before_install:
   - curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.1.1.deb && sudo dpkg -i --force-confnew elasticsearch-5.1.1.deb && sudo service elasticsearch start
+  - psql -V
+  - psql -c 'create database peterbecom;' -U postgres
 
 install:
   - bin/travis/install.sh
