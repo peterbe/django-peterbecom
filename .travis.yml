@@ -9,6 +9,9 @@ cache: pip
 
 python: 3.5
 
+addons:
+  postgresql: 9.5
+
 branches:
   only:
   - master
