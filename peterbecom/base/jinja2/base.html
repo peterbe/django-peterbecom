@@ -7,11 +7,14 @@
 
   <title>{% block title %}{% block title_prefix %}{{ page_title }}{% endblock %} - Peterbe.com{% endblock %}</title>
 
+  {% if request.path != '/plog/blogitem-040601-1' %}
+  {# don't bother with fonts on this page because people don't stick around so no need to use pretty fonts #}
   <link
     href="//fonts.googleapis.com/css?family=Lato:400,700,400italic&amp;subset=latin"
     rel="stylesheet"
     type="text/css"
     data-mincss="ignore">
+  {% endif %}
 
   {% stylesheet 'base' %}
 
@@ -30,6 +33,11 @@
   {% block extrahead %}
   {% endblock %}
 
+  {% if request.path == '/plog/blogitem-040601-1' %}
+  <style>
+  #fusion_ad { float: none !important; }
+  </style>
+  {% endif %}
 </head>
 <body>
 

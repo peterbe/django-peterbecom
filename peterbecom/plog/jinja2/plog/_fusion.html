@@ -1,0 +1,11 @@
+<div id="fusion_ad">
+<a href="http://fusionads.net">Powered by Fusion</a><a class="close" href="#" onclick="$('#fusion_ad').remove();return false">&times;</a>
+</div>
+<script>
+(function(){
+  var fusion = document.createElement('script');
+  fusion.src = window.location.protocol + '//adn.fusionads.net/api/1.0/ad.js?zoneid=176&rand=' + Math.floor(Math.random()*9999999);
+  fusion.async = true;
+  (document.head || document.getElementsByTagName('head')[0]).appendChild(fusion);
+})();
+</script>

@@ -1,18 +1,8 @@
 
 
 {% if not post.has_carousel_tag() %}
-  {% if show_fusion_ad %}
-  <div id="fusion_ad">
-  <a href="http://fusionads.net">Powered by Fusion</a><a class="close" href="#" onclick="$('#fusion_ad').remove();return false">&times;</a>
-  </div>
-  <script>
-  (function(){
-    var fusion = document.createElement('script');
-    fusion.src = window.location.protocol + '//adn.fusionads.net/api/1.0/ad.js?zoneid=176&rand=' + Math.floor(Math.random()*9999999);
-    fusion.async = true;
-    (document.head || document.getElementsByTagName('head')[0]).appendChild(fusion);
-  })();
-  </script>
+  {% if show_fusion_ad and request.path != '/plog/blogitem-040601-1' %}
+    {% include "plog/_fusion.html" %}
   {% endif %}
 {% endif %}
 
@@ -21,4 +11,9 @@
 {{ expand_carousel(post.rendered, post)|safe }}
 {% else %}
 {{ post.rendered|safe }}
+{% endif %}
+
+
+{% if show_fusion_ad and request.path == '/plog/blogitem-040601-1' %}
+  {% include "plog/_fusion.html" %}
 {% endif %}

@@ -214,8 +214,7 @@ def _render_blog_post(request, oid, screenshot_mode=False):
     )
     context['show_fusion_ad'] = (
         not screenshot_mode and
-        not settings.DEBUG and
-        request.path != '/plog/blogitem-040601-1'
+        not settings.DEBUG
     )
     context['home_url'] = request.build_absolute_uri('/')
     context['page_title'] = post.title
