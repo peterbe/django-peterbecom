@@ -178,9 +178,12 @@ class Podcast(models.Model):
         img_temp = NamedTemporaryFile(delete=True)
         r = realistic_request(self.image_url, timeout=timeout)
         assert r.status_code == 200, r.status_code
-        if r.headers['content-type'] == 'text/html':
-            raise NotAnImageError('%s is not an image' % self.image_url)
-        print('Content-Type', r.headers['content-type'])
+        try:
+            if r.headers['content-type'] == 'text/html':
+                raise NotAnImageError('%s is not an image' % self.image_url)
+            print('Content-Type', r.headers['content-type'])
+        except KeyError:
+            pass
         img_temp.write(r.content)
         img_temp.flush()
         self.image.save(

@@ -1,4 +1,5 @@
 body {
+    color: #333;
     background-color: #FFFFFF;
 }
 .main.container {
@@ -24,16 +25,22 @@ body {
 }
 .main.menu.fixed .page-title-repeated { /* no mincss */
     display: inline;
-    padding-left: 10px;
+    /*padding-left: 10px;*/
     text-overflow: ellipsis;
 }
-@media (max-width: 768px) {
-    /* ipads in portrait mode */
-    .main.menu.fixed .page-title-repeated { /* no mincss */
-        /*color: green;*/
-        display: none;
-    }
+.main.menu.fixed .item { /* no mincss */
+    padding-left: 17px;
 }
+.main.menu.fixed .header a[href] { /* no mincss */
+  display: none;
+}
+@media (max-width: 414px) {
+  .main.menu.fixed .page-title-repeated { /* no mincss */
+    font-size: 1rem;
+  }
+
+}
+
 .overlay {
     float: left;
     margin: 0em 3em 1em 0em;
@@ -64,8 +71,17 @@ body {
 
 /* my overrides */
 
+.ui.header {
+  color: #333;
+}
+
 h1.ui.header {
     font-size: 3rem;
+}
+@media (max-width: 414px) {
+    h1.ui.header {
+        font-size: 2.5rem;
+    }
 }
 img.floatright {
     float: right;
@@ -80,7 +96,7 @@ img.floatleft {
     background: transparent;
 }
 a.page-title-repeated {
-    color: black;
+    color: #333;
     cursor: pointer;
 }
 
@@ -138,7 +154,6 @@ code {
     .main.menu .right.menu {
         display: flex;
     }
-    /*p {color: red;}*/
 }
 @media (max-width: 768px) {
     .main.menu .right.dropdown {
@@ -147,5 +162,4 @@ code {
     .main.menu .right.menu {
         display: none !important;
     }
-    /*p {color: green;}*/
 }
