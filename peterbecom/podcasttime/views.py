@@ -251,7 +251,7 @@ def stats(request):
         min_dates.append(each['min'])
         max_dates.append(each['max'])
 
-    if total_duration_days > 0:
+    if total_duration_days > 0 and min_dates != max_dates:
         max_date = max(max_dates)
         min_date = min(min_dates)
         days = (max_date - min_date).days
@@ -269,8 +269,6 @@ def stats(request):
             'per_day': 0,
             'per_week': 0,
             'per_month': 0,
-            # 'max_date': max_date,
-            # 'min_date': min_date,
         }
     return http.JsonResponse(numbers)
 
