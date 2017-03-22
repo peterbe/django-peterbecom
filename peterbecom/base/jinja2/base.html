@@ -7,13 +7,24 @@
 
   <title>{% block title %}{% block title_prefix %}{{ page_title }}{% endblock %} - Peterbe.com{% endblock %}</title>
 
-  {% if request.path != '/plog/blogitem-040601-1' %}
   {# don't bother with fonts on this page because people don't stick around so no need to use pretty fonts #}
-  <link
+  {% if request.path != '/plog/blogitem-040601-1' %}
+
+
+  {#
+    To avoid an extra network request, instead of relying on fonts.googleapis.com
+    to just define the font-families and then point to .woff files on their
+    CDN, I instead just copied the current output of this here URL and
+    put it into the _googlefonts.css template.
+  #}
+  <!--<link
     href="//fonts.googleapis.com/css?family=Lato:400,700,400italic&amp;subset=latin"
     rel="stylesheet"
     type="text/css"
-    data-mincss="ignore">
+    data-mincss="ignore">-->
+  <style type="text/css" data-mincss="ignore">
+  {% include "_googlefonts.css" %}
+  </style>
   {% endif %}
 
   {% stylesheet 'base' %}
@@ -50,7 +61,7 @@
   {# By putting this invisible element here, mincss will think this
      DOM element exists and that way it won't discard those CSS
      selectors. #}
-  <div class="ui borderless main menu fixed" style="display:none"></div>
+  {#<div class="ui borderless main menu fixed" style="display:none"></div>#}
 
   {% if request.path != '/plog/blogitem-040601-1' %}
   <div class="ui borderless main menu">

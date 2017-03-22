@@ -67,11 +67,11 @@ def _home_key_prefixer(request):
     return prefix
 
 
-@cache_control(public=True, max_age=ONE_DAY)
-@cache_page(
-    ONE_DAY,
-    key_prefix=_home_key_prefixer,
-)
+@cache_control(public=True, max_age=ONE_HOUR * 1)
+# @cache_page(
+#     ONE_HOUR * 3,
+#     key_prefix=_home_key_prefixer,
+# )
 def home(request, oc=None):
     context = {}
     qs = BlogItem.objects.filter(pub_date__lt=utc_now())

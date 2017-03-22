@@ -133,12 +133,19 @@ var F = (function() {
           } else {
             parent = $('#comments-outer');
           }
-          parent
-            .hide()
-              .append(response.html)
-                .fadeIn(700);
-          $('textarea', form).val('');
-          $('.dimmer', form).removeClass('active');
+
+          // Put a slight delay on these updates so it "feels"
+          // slightly more realistic if the POST manages to happen
+          // too fast.
+          setTimeout(function() {
+            parent
+              .hide()
+                .append(response.html)
+                  .fadeIn(700);
+            $('textarea', form).val('');
+            $('.dimmer', form).removeClass('active');
+          }, 1000);
+
           F.reset();
           $('span.comment-count').fadeOut(600, function() {
             var text;

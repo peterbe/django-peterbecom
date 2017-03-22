@@ -92,7 +92,7 @@ def cache_request(request, response):
         return False
     if (
         request.method == 'GET' and
-        request.path != '/' and
+        # request.path != '/' and
         response.status_code == 200 and
         not request.META.get('QUERY_STRING') and
         not request.user.is_authenticated() and

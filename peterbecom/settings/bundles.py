@@ -17,7 +17,7 @@ PIPELINE_CSS = {
             'css/comment.css',
             'css/message.css',
             'css/loader.css',
-            'css/dimmer.css',
+            # 'css/dimmer.css',
             'css/form.css',
             'css/button.css',
             'css/highlight.css',
@@ -29,6 +29,7 @@ PIPELINE_CSS = {
     },
     'base_dynamic': {
         'source_filenames': (
+            'css/dimmer.css',
             'css/transition.css',
             'autocompeter/autocompeter.min.css',
         ),
@@ -64,7 +65,7 @@ PIPELINE_JS = {
             'js/jquery-2.2.4.min.js',
             'js/transition.js',
             'js/dropdown.js',
-            'js/visibility.js',
+            # 'js/visibility.js',
             'js/prefetcher.js',
             'js/site.js',
         ),
@@ -90,12 +91,18 @@ PIPELINE_JS = {
             'js/autocompeter.js',
         ),
         'output_filename': 'js/autocompeter.min.js',
+        'extra_context': {
+            'async': True,
+        },
     },
     'about': {
         'source_filenames': (
             'js/about.js',
         ),
         'output_filename': 'js/about.min.js',
+        'extra_context': {
+            'defer': True,
+        },
     },
     'blogitem': {
         'source_filenames': (
@@ -108,19 +115,6 @@ PIPELINE_JS = {
             'plog/js/calendar.js',
         ),
         'output_filename': 'js/calendar.min.js',
-    },
-    'podcasttime': {
-        'source_filenames': (
-            'podcasttime/select2/js/select2.full.min.js',
-            'podcasttime/js/podcasttime.js',
-        ),
-        'output_filename': 'js/podcasttime.min.js',
-    },
-    'podcasttime:podcasts': {
-        'source_filenames': (
-            'podcasttime/js/podcasts.js',
-        ),
-        'output_filename': 'js/podcasts.min.js',
     },
 }
 

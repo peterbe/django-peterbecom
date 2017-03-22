@@ -170,7 +170,15 @@ def mincss_html(html, abs_uri):
         combined_css.append(inline.after)
 
     if p.inlines:
-        html = _style_regex.sub('', html)
+
+        def inline_remover(m):
+            bail = m.group()
+            if 'data-mincss="ignore"' in bail:
+                return bail
+            return ''
+
+        html = _style_regex.sub(inline_remover, html)
+
     found_link_hrefs = [x.href for x in p.links]
 
     def link_remover(m):
