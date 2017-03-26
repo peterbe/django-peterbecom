@@ -26,7 +26,7 @@ class Command(BaseCommand):
             help='Randomly pick podcasts (to limit the whole process time)'
         )
         parser.add_argument(
-            '--force-create-index',
+            '--create-index',
             action='store_true',
             default=False,
             help='create index even with limit'
@@ -36,8 +36,8 @@ class Command(BaseCommand):
         limit = int(kwargs['limit'])
         if kwargs['random'] and not limit:
             raise Exception('random but not limited')
-        if kwargs['force_create_index'] and not limit:
-            raise Exception('force-create-index but not limited')
+        # if kwargs['force_create_index'] and not limit:
+        #     raise Exception('force-create-index but not limited')
 
         iterator = Podcast.objects.filter(error__isnull=True).exclude(
             name='',
@@ -50,7 +50,7 @@ class Command(BaseCommand):
             else:
                 iterator = iterator.order_by('-modified')[:limit]
 
-        if kwargs['force_create_index'] or not limit:
+        if kwargs['create_index']:  # or not limit:
             index.delete(ignore=404)
             index.create()
 

@@ -69,22 +69,22 @@ div.post.snippet .read-more a { /* no mincss */
 
 <div class="ui two column centered grid" style="margin-top: 100px">
   <div class="ui pagination menu">
-    {% if previous_page %}
-      <a class="item" href="?page={{ previous_page }}">
-        &larr; Newer
-      </a>
-    {% else %}
-      <a class="item disabled">
-        Newer
-      </a>
-    {% endif %}
     {% if next_page %}
-      <a class="item" href="?page={{ next_page }}">
-        Older &rarr;
+      <a class="item" href="{{ next_page_url }}">
+        &larr; Older
       </a>
     {% else %}
       <a class="item disabled">
         Older
+      </a>
+    {% endif %}
+    {% if previous_page %}
+      <a class="item" href="{{ previous_page_url }}">
+        Newer &rarr;
+      </a>
+    {% else %}
+      <a class="item disabled">
+        Newer
       </a>
     {% endif %}
   </div>

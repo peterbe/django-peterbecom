@@ -4,7 +4,7 @@ import hashlib
 import datetime
 import traceback
 import unicodedata
-import time
+# import time
 
 from django.db import models
 from django.db.models import Max, Sum
@@ -17,42 +17,19 @@ from django.contrib.postgres.fields import JSONField as PGJSONField
 from slugify import slugify
 from jsonfield import JSONField
 from sorl.thumbnail import ImageField
-from elasticsearch.exceptions import (
-    ConnectionTimeout,
-    NotFoundError,
-)
+# from elasticsearch.exceptions import (
+#     ConnectionTimeout,
+#     NotFoundError,
+# )
 
 from peterbecom.podcasttime.utils import realistic_request
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
+from peterbecom.base.search import es_retry
 from peterbecom.podcasttime.search import PodcastDoc
 
 
 class NotAnImageError(Exception):
     """when you try to download an image and it's not actually an image"""
-
-
-def es_retry(callable, *args, **kwargs):
-    sleep_time = kwargs.pop('_sleep_time', 1)
-    attempts = kwargs.pop('_attempts', 5)
-    verbose = kwargs.pop('_verbose', False)
-    ignore_not_found = kwargs.pop('_ignore_not_found', False)
-    try:
-        return callable(*args, **kwargs)
-    except (ConnectionTimeout,) as exception:
-        if attempts:
-            attempts -= 1
-            if verbose:
-                print("ES Retrying ({} {}) {}".format(
-                    attempts,
-                    sleep_time,
-                    exception
-                ))
-            time.sleep(sleep_time)
-        else:
-            raise
-    except NotFoundError:
-        if not ignore_not_found:
-            raise
 
 
 def _upload_path_tagged(tag, instance, filename):

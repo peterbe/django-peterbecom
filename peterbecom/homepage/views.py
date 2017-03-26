@@ -4,9 +4,8 @@ import tempfile
 import time
 import logging
 import urllib
-from urllib.parse import urlencode
-from collections import defaultdict
-from cgi import escape as html_escape
+
+from elasticsearch_dsl import Q
 
 from django import http
 from django.core.cache import cache
@@ -18,9 +17,9 @@ from django.views.decorators.cache import cache_control
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
-from django.utils import timezone
+from django.utils.html import strip_tags
 
-from peterbecom.plog.models import Category, BlogItem, BlogComment
+from peterbecom.plog.models import BlogItem, BlogComment
 from peterbecom.plog.utils import utc_now
 from .utils import (
     parse_ocs_to_categories,
@@ -30,6 +29,7 @@ from .utils import (
 )
 from fancy_cache import cache_page
 from peterbecom.plog.utils import make_prefix
+from peterbecom.plog.search import BlogItemDoc, BlogCommentDoc
 from .tasks import sample_task
 
 
@@ -72,7 +72,7 @@ def _home_key_prefixer(request):
 #     ONE_HOUR * 3,
 #     key_prefix=_home_key_prefixer,
 # )
-def home(request, oc=None):
+def home(request, oc=None, page=1):
     context = {}
     qs = BlogItem.objects.filter(pub_date__lt=utc_now())
     if oc is not None:
@@ -89,7 +89,7 @@ def home(request, oc=None):
 
     BATCH_SIZE = 10
     try:
-        page = max(1, int(request.GET.get('page', 1))) - 1
+        page = max(1, int(page)) - 1
     except ValueError:
         raise http.Http404('invalid page value')
     n, m = page * BATCH_SIZE, (page + 1) * BATCH_SIZE
@@ -101,6 +101,47 @@ def home(request, oc=None):
     if (page + 1) * BATCH_SIZE < max_count:
         context['next_page'] = page + 2
     context['previous_page'] = page
+
+    if context.get('categories'):
+        oc_path = '/'.join(
+            ['oc-{}'.format(c.name) for c in context['categories']]
+        )
+        oc_path = oc_path[3:]
+
+    if context.get('next_page'):
+        if context.get('categories'):
+            next_page_url = reverse(
+                'only_category_paged',
+                args=(oc_path, context['next_page'])
+            )
+        else:
+            next_page_url = reverse(
+                'home_paged',
+                args=(context['next_page'],)
+            )
+        context['next_page_url'] = next_page_url
+
+    if context['previous_page'] > 1:
+        if context.get('categories'):
+            previous_page_url = reverse(
+                'only_category_paged',
+                args=(oc_path, context['previous_page'])
+            )
+        else:
+            previous_page_url = reverse(
+                'home_paged',
+                args=(context['previous_page'],)
+            )
+        context['previous_page_url'] = previous_page_url
+    elif context['previous_page']:  # i.e. == 1
+        if context.get('categories'):
+            previous_page_url = reverse(
+                'only_category',
+                args=(oc_path,)
+            )
+        else:
+            previous_page_url = '/'
+        context['previous_page_url'] = previous_page_url
 
     context['blogitems'] = (
         qs
@@ -114,264 +155,303 @@ def home(request, oc=None):
     return render(request, 'homepage/home.html', context)
 
 
-def search(request):
-    data = {}
-    search = request.GET.get('q', '')
-    if len(search) > 90:
-        return http.HttpResponse("Search too long")
-    documents = []
-    data['base_url'] = 'https://%s' % RequestSite(request).domain
-    tag_strip = re.compile('<[^>]+>')
+_uppercase = set('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+_html_regex = re.compile(r'<.*?>')
 
-    def append_match(item, words):
 
-        text = item.rendered
-        text = tag_strip.sub(' ', text)
+def htmlify_text(text, newline_to_br=True, allow=()):
+    allow_ = []
+    for each in allow:
+        allow_.append('<{}>'.format(each))
+        allow_.append('</{}>'.format(each))
 
-        sentences = []
+    def replacer(match):
+        group = match.group()
+        if group in allow_:
+            # let it be
+            return group
+        return ''
 
-        def matcher(match):
-            return '<b>%s</b>' % match.group()
+    html = _html_regex.sub(replacer, text)
+    if newline_to_br:
+        html = html.replace('\n', '<br/>')
+    return html
 
-        if regex:
-            for each in regex.finditer(text):
-                sentence = text[max(each.start() - 35, 0): each.end() + 40]
-                sentence = regex_ext.sub(matcher, sentence)
-                sentence = sentence.strip()
-                if each.start() > 0 and not sentence[0].isupper():
-                    sentence = '...%s' % sentence
-                if each.end() < len(text):
-                    sentence = '%s...' % sentence
-                sentences.append(sentence.strip())
-                if len(sentences) > 3:
-                    break
 
-        if isinstance(item, BlogItem):
-            title = html_escape(item.title)
-            if regex_ext:
-                title = regex_ext.sub(matcher, title)
-            date = item.pub_date
-            type_ = 'blog'
+def massage_fragment(text, max_length=300):
+    while len(text) > max_length:
+        split = text.split()
+        d_left = text.find('<mark>')
+        d_right = len(text) - text.rfind('</mark>')
+        if d_left > d_right:
+            # there's more non-<mark> on the left
+            split = split[1:]
         else:
-            if not item.blogitem:
-                item.correct_blogitem_parent()
-            title = (
-                "Comment on <em>%s</em>" % html_escape(item.blogitem.title)
-            )
-            date = item.add_date
-            type_ = 'comment'
+            split = split[:-1]
+        text = ' '.join(split)
+    text = text.strip()
+    if not text.endswith('.'):
+        text += '…'
+    text = text.lstrip(', ')
+    text = text.lstrip('. ')
+    if text[0] not in _uppercase:
+        text = '…' + text
+    text = htmlify_text(
+        text,
+        newline_to_br=False,
+        allow=('mark',)
+    )
+    text = text.replace('</mark> <mark>', ' ')
+    return text
 
-        documents.append({
-            'title': title,
-            'summary': '<br>'.join(sentences),
-            'date': date,
-            'url': item.get_absolute_url(),
-            'type': type_,
-        })
 
-    def create_search(s):
-        words = re.findall('\w+', s)
-        words_orig = words[:]
+def clean_fragment_html(fragment):
 
-        if 'or' in words:
-            which = words.index('or')
-            words_orig.remove('or')
-            if (which + 1) < len(words) and which > 0:
-                before = words.pop(which - 1)
-                words.pop(which - 1)
-                after = words.pop(which - 1)
-                words.insert(which - 1, '%s | %s' % (before, after))
-        while 'and' in words_orig:
-            words_orig.remove('and')
-        while 'and' in words:
-            words.remove('and')
+    def replacer(match):
+        group = match.group()
+        if group in ('<mark>', '</mark>'):
+            return group
+        return ''
 
-        escaped = ' & '.join(words)
-        return escaped, words_orig
+    fragment = _html_regex.sub(replacer, fragment)
+    return fragment.replace('</mark> <mark>', ' ')
 
-    data['q'] = search
+
+def search(request, original_q=None):
+    context = {}
+    q = request.GET.get('q', '')
+    if len(q) > 90:
+        return http.HttpResponse("Search too long")
+
+    LIMIT_BLOG_ITEMS = 30
+    LIMIT_BLOG_COMMENTS = 20
+
+    documents = []
+    search_times = []
+    context['base_url'] = 'https://%s' % RequestSite(request).domain
+
+    context['q'] = q
 
     keyword_search = {}
-    if len(search) > 1:
+    if len(q) > 1:
         _keyword_keys = ('keyword', 'keywords', 'category', 'categories')
-        search, keyword_search = split_search(search, _keyword_keys)
+        q, keyword_search = split_search(q, _keyword_keys)
 
-    not_ids = defaultdict(set)
-    times = []
-    search_times = []
-    count_documents = []
-    regex = regex_ext = None
+    search_terms = [(1.1, q)]
+    _search_terms = set([q])
+    doc_type_keys = (
+        (BlogItemDoc, ('title', 'text')),
+        (BlogCommentDoc, ('comment',)),
+    )
+    for doc_type, keys in doc_type_keys:
+        suggester = doc_type.search()
+        for key in keys:
+            suggester = suggester.suggest('sugg', q, term={'field': key})
+        suggestions = suggester.execute_suggest()
+        for each in suggestions.sugg:
+            # print('EACH',each['text'])
+            if each.options:
+                for option in each.options:
+                    # print('\tOPTION', option['text'], option['score'])
+                    # Instead of doing this, consider chopping of the list
+                    # search_terms to the top 4 terms or something.
+                    if option.score >= 0.6:
+                        better = q.replace(each['text'], option['text'])
+                        if better not in _search_terms:
+                            search_terms.append((
+                                option['score'],
+                                better,
+                            ))
+                            _search_terms.add(better)
+                    # else:
+                    #     print('\tSKIPPING SUGGESTION:', option)
 
-    def append_queryset_search(queryset, order_by, words, model_name):
-        count = items.count()
-        count_documents.append(count)
-        for item in items.order_by(order_by)[:20]:
-            append_match(item, words)
-            not_ids[model_name].add(item.pk)
-        return count
+    search_query = BlogItemDoc.search()
+    search_query.update_from_dict({
+        'query': {
+            'range': {
+                'pub_date': {
+                    'lt': 'now'
+                }
+            }
+        }
+    })
 
-    now = utc_now()
-
-    if len(search) > 1:
-        search_escaped, words = create_search(search)
-        regex = re.compile(
-            r'\b(%s)' % '|'.join(
-                re.escape(word)
-                for word in words
-                if word.lower() not in STOPWORDS
-            ),
-            re.I | re.U
+    if keyword_search.get('keyword'):
+        search_query = search_query.filter(
+            'terms',
+            keywords=[keyword_search['keyword']]
         )
-        regex_ext = re.compile(
-            r'\b(%s\w*)\b' % '|'.join(
-                re.escape(word)
-                for word in words
-                if word.lower() not in STOPWORDS
-            ),
-            re.I | re.U
-        )
-
-        for model in (BlogItem, BlogComment):
-            qs = model.objects
-            model_name = model._meta.object_name
-            if model == BlogItem:
-                qs = qs.filter(pub_date__lte=now)
-                fields = ('title', 'text')
-                order_by = '-pub_date'
-                if keyword_search.get('keyword'):
-                    qs = qs.filter(
-                        proper_keywords__contains=[keyword_search['keyword']]
-                    )
-                if keyword_search.get('keywords'):
-                    keywords = keyword_search['keywords']
-                    keywords = [
-                        x.strip() for x in keywords.split(
-                            ',' in keywords and ',' or None
-                        )
-                        if x.strip()
-                    ]
-                    qs = qs.filter(
-                        proper_keywords__overlap=keywords
-                    )
-            elif model == BlogComment:
-                fields = ('comment',)
-                order_by = '-add_date'
-                _specials = ('keyword', 'keywords', 'category', 'categories')
-                if any(keyword_search.get(k) for k in _specials):
-                    # BlogComments don't have this keyword so it can
-                    # never match
-                    continue
-
-            for field in fields:
-                if not_ids[model_name]:
-                    qs = qs.exclude(pk__in=not_ids[model_name])
-                _sql = "to_tsvector('english'," + field + ") "
-                if ' | ' in search_escaped or ' & ' in search_escaped:
-                    _sql += "@@ to_tsquery('english', %s)"
-                else:
-                    _sql += "@@ plainto_tsquery('english', %s)"
-                items = qs.extra(where=[_sql], params=[search_escaped])
-
-                t0 = time.time()
-                count = append_queryset_search(
-                    items, order_by, words, model_name
-                )
-                t1 = time.time()
-                times.append('%s to find %s %ss by field %s' % (
-                    t1 - t0,
-                    count,
-                    model_name,
-                    field
-                ))
-                search_times.append(t1-t0)
-
-        logger.info('Searchin for %r:\n%s' % (search, '\n'.join(times)))
-    elif keyword_search and any(keyword_search.values()):
-        t0 = time.time()
-
-        if keyword_search.get('keyword') or keyword_search.get('keywords'):
-            if keyword_search.get('keyword'):
-                assert isinstance(keyword_search['keyword'], str)
-                items = BlogItem.objects.filter(
-                    pub_date__lt=timezone.now(),
-                    proper_keywords__contains=[keyword_search['keyword']]
-                ).order_by('-pub_date')
-            elif keyword_search.get('keywords'):
-                keywords = keyword_search['keywords']
-                keywords = [
-                    x.strip() for x in keywords.split(
-                        ',' in keywords and ',' or None
-                    )
-                    if x.strip()
-                ]
-                items = BlogItem.objects.filter(
-                    pub_date__lt=timezone.now(),
-                    proper_keywords__overlap=keywords
-                ).order_by('-pub_date')
-
-            model_name = BlogItem._meta.object_name
-            append_queryset_search(items, '-pub_date', [], model_name)
-
-        if keyword_search.get('category') or keyword_search.get('categories'):
-            if keyword_search.get('category'):
-                categories = Category.objects.filter(
-                    name=keyword_search.get('category')
-                )
-            else:
-                cats = [x.strip() for x
-                        in keyword_search.get('categories').split(',')
-                        if x.strip()]
-                categories = Category.objects.filter(name__in=cats)
-            if categories:
-                cat_q = make_categories_q(categories)
-                items = BlogItem.objects.filter(cat_q)
-                model_name = BlogItem._meta.object_name
-                append_queryset_search(items, '-pub_date', [], model_name)
-        t1 = time.time()
-        search_times.append(t1 - t0)
-
-    data['search_time'] = sum(search_times)
-    count_documents_shown = len(documents)
-    data['documents'] = documents
-    data['count_documents'] = sum(count_documents)
-    data['count_documents_shown'] = count_documents_shown
-    data['better'] = None
-    if not data['count_documents']:
-        _qterms = len(data['q'].split())
-        if ' or ' not in data['q'] and _qterms > 1 and _qterms < 5:
-            data['better'] = data['q'].replace(' ', ' or ')
-    if data['better']:
-        print("BETTER?", repr(data['better']), )
-        data['better_url'] = (
-            reverse('search') + '?' +
-            urlencode({'q': data['better'].encode('utf-8')})
+    if keyword_search.get('category'):
+        search_query = search_query.filter(
+            'terms',
+            categories=[keyword_search['category']]
         )
 
-    if not data['q']:
-        page_title = 'Search'
-    elif data['count_documents'] == 1:
-        page_title = '1 thing found'
-    else:
-        page_title = '%s things found' % data['count_documents']
-    if count_documents_shown < data['count_documents']:
-        if count_documents_shown == 1:
-            page_title += ' (but only 1 thing shown)'
+    matcher = None
+    search_terms.sort(reverse=True)
+    max_search_terms = 5  # to not send too much stuff to ES
+    if len(search_terms) > max_search_terms:
+        search_terms = search_terms[:max_search_terms]
+    # print("SEARCH_TERMS:", search_terms)
+
+    strategy = 'match_phrase'
+    if original_q:
+        strategy = 'match'
+    for i, (score, word) in enumerate(search_terms):
+        j = len(search_terms) - i
+        # print("WORDj", word, (2 * j * 10 * score, 1 * j * 10 * score))
+        # meaning the first search_term should be boosted most
+        boost = 1 * j * 10 * score
+        boost_title = 2 * boost
+        # print(i, word, score, (boost_title, boost))
+        match = Q(strategy, title={
+            'query': word,
+            'boost': boost_title,
+        }) | Q(strategy, text={
+            'query': word,
+            'boost': boost,
+        })
+        if matcher is None:
+            matcher = match
         else:
-            page_title += ' (but only %s things shown)' % count_documents_shown
-    data['page_title'] = page_title
-    if (
-        not data['count_documents'] and
-        len(search.split()) == 1 and not keyword_search
-    ):
-        if BlogItem.objects.filter(
-            proper_keywords__overlap=[search],
-            pub_date__lt=timezone.now()
-        ):
-            url = reverse('search')
-            url += '?' + urlencode({'q': 'keyword:%s' % search})
-            return redirect(url)
+            matcher |= match
 
-    return render(request, 'homepage/search.html', data)
+    search_query = search_query.query(matcher)
+
+    search_query = search_query.highlight(
+        'text',
+        fragment_size=80,
+        number_of_fragments=2,
+    )
+    search_query = search_query.highlight(
+        'title',
+        fragment_size=120,
+        number_of_fragments=1,
+    )
+    search_query = search_query.highlight_options(
+        pre_tags=['<mark>'],
+        post_tags=['</mark>'],
+    )
+    search_query = search_query[:LIMIT_BLOG_ITEMS]
+    t0 = time.time()
+    response = search_query.execute()
+    t1 = time.time()
+    search_times.append(t1 - t0)
+
+    for hit in response:
+        result = hit.to_dict()
+
+        try:
+            for fragment in hit.meta.highlight.title:
+                title = clean_fragment_html(fragment)
+        except AttributeError:
+            title = clean_fragment_html(result['title'])
+        texts = []
+        try:
+            for fragment in hit.meta.highlight.text:
+                texts.append(massage_fragment(fragment))
+        except AttributeError:
+            texts.append(strip_tags(result['text'])[:100] + '...')
+        summary = '<br>'.join(texts)
+        documents.append({
+            'url': reverse('blog_post', args=(result['oid'],)),
+            'title': title,
+            'date': result['pub_date'],
+            'summary': summary,
+        })
+
+    context['count_documents'] = response.hits.total
+    if not original_q and not response.hits.total and ' ' in q:
+        # recurse
+        return search(request, original_q=q)
+
+    # Now append the search results based on blog comments
+    search_query = BlogCommentDoc.search()
+    search_query = search_query.filter('term', approved=True)
+    search_query = search_query.query('match_phrase', comment=q)
+
+    search_query = search_query.highlight(
+        'comment',
+        fragment_size=80,
+        number_of_fragments=2,
+    )
+    search_query = search_query.highlight_options(
+        pre_tags=['<mark>'],
+        post_tags=['</mark>'],
+    )
+    search_query = search_query[:LIMIT_BLOG_COMMENTS]
+    t0 = time.time()
+    response = search_query.execute()
+    t1 = time.time()
+    search_times.append(t1 - t0)
+
+    context['count_documents'] += response.hits.total
+
+    blogitem_lookups = set()
+    for hit in response:
+        result = hit.to_dict()
+        texts = []
+        try:
+            for fragment in hit.meta.highlight.comment:
+                texts.append(massage_fragment(fragment))
+        except AttributeError:
+            texts.append(strip_tags(result['comment'])[:100] + '...')
+        summary = '<br>'.join(texts)
+        blogitem_lookups.add(result['blogitem_id'])
+        documents.append({
+            '_id': result['blogitem_id'],
+            'url': None,
+            'title': None,
+            'date': result['add_date'],
+            'summary': summary,
+        })
+
+    if blogitem_lookups:
+        blogitems = {}
+        blogitem_qs = BlogItem.objects.filter(id__in=blogitem_lookups)
+        for blog_item in blogitem_qs.only('title', 'oid'):
+            blogitems[blog_item.id] = {
+                'title': (
+                    'Comment on <i>{}</i>'.format(
+                        clean_fragment_html(blog_item.title)
+                    )
+                ),
+                'url': reverse('blog_post', args=(blog_item.oid,)),
+            }
+        for doc in documents:
+            _id = doc.pop('_id', None)
+            if _id:
+                doc['url'] = blogitems[_id]['url']
+                doc['title'] = blogitems[_id]['title']
+
+    context['documents'] = documents
+    context['count_documents_shown'] = len(documents)
+
+    context['search_time'] = sum(search_times)
+    if not context['q']:
+        page_title = 'Search'
+    elif context['count_documents'] == 1:
+        page_title = '1 thing found'
+    elif context['count_documents'] == 0:
+        page_title = 'Nothing found'
+    else:
+        page_title = '%s things found' % context['count_documents']
+    if context['count_documents_shown'] < context['count_documents']:
+        if context['count_documents_shown'] == 1:
+            page_title += ' (1 shown)'
+        else:
+            page_title += ' ({} shown)'.format(
+                context['count_documents_shown']
+            )
+    context['page_title'] = page_title
+    context['original_q'] = original_q
+    if original_q:
+        context['non_stopwords_q'] = [
+            x for x in q.split() if x.lower() not in STOPWORDS
+        ]
+
+    return render(request, 'homepage/search.html', context)
 
 
 @cache_control(public=True, max_age=ONE_WEEK)

@@ -1,4 +1,3 @@
-import datetime
 import re
 from django import http
 from django.db.models import Q
@@ -15,6 +14,7 @@ STOPWORDS = "a able about across after all almost also am among an and "\
             "wants was we were what when where which while who whom why "\
             "will with would yet you your"
 STOPWORDS_TUPLE = tuple(STOPWORDS.split())
+
 
 def split_search(q, keywords):
     params = {}
@@ -43,7 +43,8 @@ def split_search(q, keywords):
 
 
 def parse_ocs_to_categories(oc):
-    ocs = [x.strip().replace('/', '').replace('+',' ')
+    oc = re.sub('/p\d+$', '', oc)
+    ocs = [x.strip().replace('/', '').replace('+', ' ')
            for x
            in re.split('oc-(.*?)', oc) if x.strip()]
     categories = Category.objects.filter(name__in=ocs)

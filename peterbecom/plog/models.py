@@ -12,14 +12,16 @@ from django.db.models.signals import post_save, pre_save, pre_delete
 from django.dispatch import receiver
 from django.core.urlresolvers import reverse
 from django.contrib.postgres.fields import ArrayField
-from django.core.files import File
-from django.core.files.temp import NamedTemporaryFile
+# from django.core.files import File
+# from django.core.files.temp import NamedTemporaryFile
 
 from sorl.thumbnail import ImageField
 
 from . import utils
-from peterbecom.plog import screenshot
+# from peterbecom.plog import screenshot
 from peterbecom.base.fscache import invalidate_by_url
+from peterbecom.base.search import es_retry
+from peterbecom.plog.search import BlogItemDoc, BlogCommentDoc
 
 
 class Category(models.Model):
@@ -184,6 +186,27 @@ class BlogItem(models.Model):
         # )
         # return png_url
 
+    def to_search(self, **kwargs):
+        doc = self.to_search_doc(**kwargs)
+        return BlogItemDoc(meta={'id': self.id}, **doc)
+
+    def to_search_doc(self, **kwargs):
+        if 'all_categories' in kwargs:
+            categories = kwargs['all_categories'].get(self.id, [])
+            assert isinstance(categories, list), categories
+        else:
+            categories = [x.name for x in self.categories.all()]
+
+        doc = {
+            'oid': self.oid,
+            'title': self.title,
+            'text': self.text_rendered or self.text,
+            'pub_date': self.pub_date,
+            'categories': categories,
+            'keywords': self.proper_keywords,
+        }
+        return doc
+
 
 class BlogItemHits(models.Model):
     oid = models.CharField(max_length=100, db_index=True, unique=True)
@@ -243,6 +266,20 @@ class BlogComment(models.Model):
             self.parent.correct_blogitem_parent()
         self.blogitem = self.parent.blogitem
         self.save()
+
+    def to_search(self, **kwargs):
+        doc = self.to_search_doc(**kwargs)
+        return BlogCommentDoc(meta={'id': self.id}, **doc)
+
+    def to_search_doc(self, **kwargs):
+        doc = {
+            'oid': self.oid,
+            'blogitem_id': self.blogitem_id,
+            'approved': self.approved,
+            'add_date': self.add_date,
+            'comment': self.comment_rendered or self.comment,
+        }
+        return doc
 
 
 def _uploader_dir(instance, filename):
@@ -356,3 +393,17 @@ def invalidate_fscache(sender, instance, **kwargs):
         raise NotImplementedError(sender)
 
     invalidate_by_url(url)
+
+
+@receiver(models.signals.post_save, sender=BlogItem)
+@receiver(models.signals.post_save, sender=BlogComment)
+def update_es(sender, instance, **kwargs):
+    doc = instance.to_search()
+    es_retry(doc.save)
+
+
+@receiver(models.signals.pre_delete, sender=BlogItem)
+@receiver(models.signals.pre_delete, sender=BlogComment)
+def delete_from_es(sender, instance, **kwargs):
+    doc = instance.to_search()
+    es_retry(doc.delete, _ignore_not_found=True)

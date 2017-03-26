@@ -79,7 +79,10 @@
         <a href="{{ url('plog_index') }}" class="ui item">Archive</a>
         <a href="{{ url('about') }}" class="ui item">About</a>
         <a href="{{ url('contact') }}" class="ui item">Contact</a>
-        <form action="{{ url('search') }}" class="navbar-form navbar-right" role="search">
+        <form
+          {# temporary hack whilst there is two ways to search #}
+          action="{{ url('search') }}"
+          class="navbar-form navbar-right" role="search">
         <div class="item ui input">
         <input type="text" name="q"
           maxlength="90"

@@ -7,6 +7,7 @@ from . import views
 
 urlpatterns = [
     url('^$', views.home, name='home'),
+    url('^p(?P<page>\d+)$', views.home, name='home_paged'),
     url(r'(.*?)/?rss.xml$', cache_page(60 * 60 * 6)(PlogFeed())),
     url('^search$', views.search, name='search'),
     url('^About$', lambda x: HttpResponsePermanentRedirect('/about/')),
@@ -15,7 +16,9 @@ urlpatterns = [
     url('^celerytester/$', views.celerytester, name='celerytester'),
     url('^signin/$', views.signin, name='signin'),
     url('^signout/$', views.signout, name='signout'),
-    url('^oc-(.*)', views.home, name='only_category'),
+    url('^oc-(?P<oc>.*)/p(?P<page>\d+)$', views.home,
+        name='only_category_paged'),
+    url('^oc-(?P<oc>.*)', views.home, name='only_category'),
     url('^zitemap.xml$', views.sitemap, name='sitemap'),
     url('^humans.txt$', views.humans_txt, name='humans_txt'),
     url('^(.*)', views.blog_post_by_alias, name='blog_post_by_alias'),

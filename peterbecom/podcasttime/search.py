@@ -4,13 +4,14 @@ from elasticsearch_dsl import (
     Text,
     Integer,
     Date,
-    Index,
     analyzer,
     Keyword,
     token_filter,
 )
 
-from django.conf import settings
+from peterbecom.base.search import index
+
+# from django.conf import settings
 
 
 edge_ngram_analyzer = analyzer(
@@ -49,6 +50,6 @@ class PodcastDoc(DocType):
 
 
 # create an index and register the doc types
-index = Index(settings.ES_INDEX)
-index.settings(**settings.ES_INDEX_SETTINGS)
+# index = Index(settings.ES_INDEX)
+# index.settings(**settings.ES_INDEX_SETTINGS)
 index.doc_type(PodcastDoc)

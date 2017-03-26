@@ -88,6 +88,20 @@
 
 {% block content %}
 
+  {% if pub_date_years > 3 %}
+  <div class="ui {% if pub_date_years > 6 %}warning{% else %}info{% endif %} message"
+     style="margin-bottom:40px">
+    <div class="header">
+      Mind That Age!
+    </div>
+    <p>
+      This blog post is
+      <b>{{ pub_date_years }} years old!</b> Most likely, it's content is outdated.
+      Especially if it's technical.
+    </p>
+  </div>
+  {% endif %}
+
 {% include "plog/_post.html" %}
 
 {% if show_buttons %}

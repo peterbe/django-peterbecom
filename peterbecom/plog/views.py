@@ -40,6 +40,7 @@ ONE_DAY = ONE_HOUR * 24
 ONE_WEEK = ONE_DAY * 7
 ONE_MONTH = ONE_WEEK * 4
 ONE_YEAR = ONE_WEEK * 52
+THIS_YEAR = timezone.now().year
 
 
 def _blog_post_key_prefixer(request):
@@ -218,6 +219,7 @@ def _render_blog_post(request, oid, screenshot_mode=False):
     )
     context['home_url'] = request.build_absolute_uri('/')
     context['page_title'] = post.title
+    context['pub_date_years'] = THIS_YEAR - post.pub_date.year
     return render(request, 'plog/post.html', context)
 
 
