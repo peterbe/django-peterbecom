@@ -88,7 +88,7 @@
 
 {% block content %}
 
-  {% if pub_date_years > 3 %}
+  {% if pub_date_years > 3 and request.path != '/plog/blogitem-040601-1' %}
   <div class="ui {% if pub_date_years > 6 %}warning{% else %}info{% endif %} message"
      style="margin-bottom:40px">
     <div class="header">
