@@ -10,6 +10,7 @@ urlpatterns = [
     url('^p(?P<page>\d+)$', views.home, name='home_paged'),
     url(r'(.*?)/?rss.xml$', cache_page(60 * 60 * 6)(PlogFeed())),
     url('^search$', views.search, name='search'),
+    url('^autocompete/v1$', views.autocompete, name='autocompete'),
     url('^About$', lambda x: HttpResponsePermanentRedirect('/about/')),
     url('^about$', views.about, name='about'),
     url('^contact$', views.contact, name='contact'),

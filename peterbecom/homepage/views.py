@@ -454,6 +454,57 @@ def search(request, original_q=None):
     return render(request, 'homepage/search.html', context)
 
 
+def autocompete(request):
+    q = request.GET.get('q', '')
+    if not q:
+        return http.JsonResponse({'error': "Missing 'q'"}, status=400)
+    size = int(request.GET.get('n', 10))
+    terms = [q]
+    search_query = BlogItemDoc.search()
+    if len(q) > 2:
+        suggestion = search_query.suggest('suggestions', q, term={
+            'field': 'title',
+        })
+        suggestions = suggestion.execute_suggest()
+        for suggestion in getattr(suggestions, 'suggestions', []):
+            for option in suggestion.options:
+                terms.append(
+                    q.replace(suggestion.text, option.text)
+                )
+
+    search_query.update_from_dict({
+        'query': {
+            'range': {
+                'pub_date': {
+                    'lt': 'now'
+                }
+            }
+        }
+    })
+    # print('TERMS', terms)
+    query = Q('match_phrase', title=terms[0])
+    for term in terms[1:]:
+        query |= Q('match_phrase', title=term)
+
+    search_query = search_query.query(query)
+    search_query = search_query.sort('-pub_date', '_score')
+    search_query = search_query[:size]
+    response = search_query.execute()
+    results = []
+    for hit in response.hits:
+        # print(hit.pub_date, hit._score)
+        results.append([
+            reverse('blog_post', args=(hit.oid,)),
+            hit.title,
+        ])
+
+    response = http.JsonResponse({
+        'results': results,
+        'terms': terms,
+    })
+    return response
+
+
 @cache_control(public=True, max_age=ONE_WEEK)
 def about(request):
     context = {
