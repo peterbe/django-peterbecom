@@ -6,7 +6,7 @@ from urllib.parse import urljoin, urlparse
 from xml.parsers.expat import ExpatError
 
 import requests
-from requests.exceptions import ConnectionError
+from requests.exceptions import ConnectionError, ReadTimeout
 import pyquery
 import feedparser
 
@@ -100,12 +100,15 @@ def download_episodes(podcast, verbose=True, timeout=10):
     except Exception as exception:
         if settings.DEBUG:
             raise
-        p = Podcast.objects.get(id=podcast.id)
-        if isinstance(exception, bytes):
-            p.error = exception.decode('utf-8')
-        else:
-            p.error = str(exception)
-        p.save()
+        try:
+            p = Podcast.objects.get(id=podcast.id)
+            if isinstance(exception, bytes):
+                p.error = exception.decode('utf-8')
+            else:
+                p.error = str(exception)
+            p.save()
+        except Podcast.DoesNotExist:
+            print('Podcast with ID {!r} does not exist'.format(podcast.id))
 
 
 def _download_episodes(podcast, verbose=True, timeout=10):
@@ -321,7 +324,10 @@ def find_podcasts(url, verbose=False, depth=0):
                 ):
                     yield podcast
     else:
-        html = download(url)
+        try:
+            html = download(url)
+        except ConnectionError:
+            return
         doc = pyquery.PyQuery(html)
         doc.make_links_absolute(base_url=get_base_url(url))
         for a in doc('ul.nav ul.dropdown-menu li a'):
@@ -448,7 +454,10 @@ def _scrape_index(url, verbose=False, max_=1000):
 
 
 def _scrape_show(url):
-    html = download(url)
+    try:
+        html = download(url)
+    except (ConnectionError, ReadTimeout):
+        return
     doc = pyquery.PyQuery(html)
     for a in doc('.sidebar-nav a'):
         for h4 in pyquery.PyQuery(a).find('h4'):

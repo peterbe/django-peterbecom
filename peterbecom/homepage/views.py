@@ -94,10 +94,12 @@ def home(request, oc=None, page=1):
         raise http.Http404('invalid page value')
     n, m = page * BATCH_SIZE, (page + 1) * BATCH_SIZE
     max_count = qs.count()
-    first_post, = qs.order_by('-pub_date')[:1]
-    context['first_post_url'] = request.build_absolute_uri(
-        reverse('blog_post', args=[first_post.oid])
-    )
+    if page * BATCH_SIZE > max_count:
+        return http.HttpResponse('Too far back in time\n', status=404)
+    # first_post, = qs.order_by('-pub_date')[:1]
+    # context['first_post_url'] = request.build_absolute_uri(
+    #     reverse('blog_post', args=[first_post.oid])
+    # )
     if (page + 1) * BATCH_SIZE < max_count:
         context['next_page'] = page + 2
     context['previous_page'] = page

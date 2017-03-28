@@ -83,7 +83,7 @@ class Podcast(models.Model):
         return self.name
 
     def __repr__(self):
-        return '<%s: %r>' % (self.__class__.__name__, self.name)
+        return '<%s: %r (%s)>' % (self.__class__.__name__, self.name, self.id)
 
     def to_search(self, **kwargs):
         assert self.id, self

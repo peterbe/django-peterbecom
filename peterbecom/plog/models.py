@@ -188,6 +188,7 @@ class BlogItem(models.Model):
 
     def to_search(self, **kwargs):
         doc = self.to_search_doc(**kwargs)
+        assert self.id
         return BlogItemDoc(meta={'id': self.id}, **doc)
 
     def to_search_doc(self, **kwargs):
@@ -198,6 +199,7 @@ class BlogItem(models.Model):
             categories = [x.name for x in self.categories.all()]
 
         doc = {
+            'id': self.id,
             'oid': self.oid,
             'title': self.title,
             'text': self.text_rendered or self.text,
@@ -273,6 +275,7 @@ class BlogComment(models.Model):
 
     def to_search_doc(self, **kwargs):
         doc = {
+            'id': self.id,
             'oid': self.oid,
             'blogitem_id': self.blogitem_id,
             'approved': self.approved,
