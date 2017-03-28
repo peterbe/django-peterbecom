@@ -108,7 +108,7 @@ class HomepageTestCase(TestCase):
         url = reverse('home')
         response = self.client.get(url)
         content = response.content.decode('utf-8')
-        assert '?page=2' in content
+        assert '/p2' in content
         visible_titles = []
         not_visible_titles = []
         for item in BlogItem.objects.all():
@@ -117,14 +117,14 @@ class HomepageTestCase(TestCase):
             else:
                 not_visible_titles.append(item.title)
 
-        response = self.client.get(url, {'page': 2})
+        url = reverse('home_paged', args=(2,))
+        response = self.client.get(url)
         content = response.content.decode('utf-8')
         for each in visible_titles[:10]:
             assert each not in content
         for each in not_visible_titles[:10]:
             assert each in content
-        assert '?page=1' in content
-        assert '?page=3' in content
+        assert '/p3' in content
 
     def test_about_page_fs_cached(self):
         fs_path = os.path.join(settings.FSCACHE_ROOT, 'about', 'index.html')
