@@ -3,7 +3,7 @@
 set -e
 
 echo "Install latestish pip"
-pip install -U pip
+pip install -U pip wheel
 
 # Before installation, we'll run ``pip wheel``, this will build wheels for
 # anything that doesn't already have one on PyPI.
