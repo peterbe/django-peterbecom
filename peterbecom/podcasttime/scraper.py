@@ -383,11 +383,10 @@ def _scrape_feed(url, verbose=False):
                 else:
                     image_url = 'http:' + image_url
             assert '://' in image_url, image_url
-            podcast = Podcast.objects.create(
+            Podcast.objects.get_or_create(
                 url=feed_url,
                 image_url=image_url,
             )
-            return podcast
 
 
 def _scrape_index(url, verbose=False, max_=1000):
