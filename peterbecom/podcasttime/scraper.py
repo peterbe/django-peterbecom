@@ -112,6 +112,7 @@ def download_episodes(podcast, verbose=True, timeout=10):
 
 
 def _download_episodes(podcast, verbose=True, timeout=10):
+    assert podcast.name, podcast.id
     xml = download(podcast.url, timeout=timeout)
     d = feedparser.parse(xml)
 
@@ -265,7 +266,7 @@ def _download_episodes(podcast, verbose=True, timeout=10):
                 title=title,
                 summary=summary,
             )
-            print("CREATED")
+            print("CREATED episode")
         print(
             episode.podcast.name,
             episode.guid,
@@ -277,18 +278,22 @@ def _download_episodes(podcast, verbose=True, timeout=10):
         latest=Max('published')
     )['latest']
     print("SETTING latest_episode {!r}".format(latest_episode))
-    podcast = Podcast.objects.get(id=podcast.id)
+    # print(dir(podcast))
+    podcast = podcast.refresh_from_db()
+    # podcast = Podcast.objects.get(id=podcast.id)
     podcast.last_fetch = timezone.now()
     podcast.latest_episode = latest_episode
     podcast.save()
 
 
-def find_podcasts(url, verbose=False, depth=0):
+def find_podcasts(url, verbose=False, depth=0, tested_urls=None):
     urls = []
     hash_ = hashlib.md5(
         get_base_url(url).encode('utf-8')
     ).hexdigest()
     print(url, hash_, depth)
+    if tested_urls is None:
+        tested_urls = []  # a mutable
     if hash_ == '73eb773086aa7f75654f4a2d25ca315b':
         if not depth:
             url = url + '/feeds'
@@ -305,6 +310,7 @@ def find_podcasts(url, verbose=False, depth=0):
             try:
                 _scrape_feed(
                     url,
+                    tested_urls,
                     verbose=verbose,
                 )
             except NotFound:
@@ -320,7 +326,8 @@ def find_podcasts(url, verbose=False, depth=0):
                 for podcast in find_podcasts(
                     next_url,
                     verbose=verbose,
-                    depth=depth + 1
+                    depth=depth + 1,
+                    tested_urls=tested_urls,
                 ):
                     yield podcast
     else:
@@ -345,7 +352,7 @@ def find_podcasts(url, verbose=False, depth=0):
             )
 
 
-def _scrape_feed(url, verbose=False):
+def _scrape_feed(url, tested_urls, verbose=False):
     html = download(url, gently=True)
     doc = pyquery.PyQuery(html)
     doc.make_links_absolute(get_base_url(url))
@@ -358,9 +365,16 @@ def _scrape_feed(url, verbose=False):
                 feed_url = response.headers['Location']
             if '://' not in feed_url:
                 feed_url = 'http://' + feed_url
-            if Podcast.objects.filter(url=feed_url).exists():
-                # print "ALREADY HAD", feed_url
+            if feed_url in tested_urls:
+                # We've scraped this one before
                 continue
+            tested_urls.append(feed_url)
+            try:
+                podcast = Podcast.objects.get(url=feed_url)
+                if podcast.name:
+                    continue
+            except Podcast.DoesNotExist:
+                pass
             try:
                 image_url = get_image_url(feed_url)
             except ConnectionError:
@@ -383,10 +397,20 @@ def _scrape_feed(url, verbose=False):
                 else:
                     image_url = 'http:' + image_url
             assert '://' in image_url, image_url
-            Podcast.objects.get_or_create(
+            podcast, created = Podcast.objects.get_or_create(
                 url=feed_url,
                 image_url=image_url,
             )
+            if not podcast.name:
+                d = feedparser.parse(feed_url)
+                print('STATUS?', d.get('status'), feed_url)
+                if d.get('status') == 404:
+                    podcast.delete()
+                else:
+                    print(feed_url)
+                    assert d['feed']['title'], feed_url
+                    podcast.name = d['feed']['title']
+                    podcast.save()
 
 
 def _scrape_index(url, verbose=False, max_=1000):
@@ -422,20 +446,26 @@ def _scrape_index(url, verbose=False, max_=1000):
             continue
         assert '://' in image_url, image_url
 
-        try:
-            podcast = Podcast.objects.get(name=name)
-            podcast.url = rss_url
-            podcast.image_url = image_url
-            podcast.save()
-            created = False
-        except Podcast.DoesNotExist:
-            assert name, rss_url
-            podcast = Podcast.objects.create(
-                name=name,
-                url=rss_url,
-                image_url=image_url,
-            )
-            created = True
+        podcast, created = Podcast.objects.get_or_create(
+            name=name,
+            url=rss_url,
+        )
+        podcast.image_url = image_url
+        podcast.save()
+        # try:
+        #     podcast = Podcast.objects.get(name=name)
+        #     podcast.url = rss_url
+        #     podcast.image_url = image_url
+        #     podcast.save()
+        #     created = False
+        # except Podcast.DoesNotExist:
+        #     assert name, rss_url
+        #     podcast = Podcast.objects.create(
+        #         name=name,
+        #         url=rss_url,
+        #         image_url=image_url,
+        #     )
+        #     created = True
         try:
             podcast.download_image()
         except (AssertionError, NotAnImageError):
