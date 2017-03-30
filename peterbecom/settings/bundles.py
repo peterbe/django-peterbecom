@@ -17,7 +17,6 @@ PIPELINE_CSS = {
             'css/comment.css',
             'css/message.css',
             'css/loader.css',
-            # 'css/dimmer.css',
             'css/form.css',
             'css/button.css',
             'css/highlight.css',
@@ -37,6 +36,12 @@ PIPELINE_CSS = {
             'no_mincss': True,
         },
         'output_filename': 'css/base-dynamic.min.css',
+    },
+    'homepage:search': {
+        'source_filenames': (
+            'css/label.css',
+        ),
+        'output_filename': 'css/search.min.css',
     },
     'podcasttime': {
         'source_filenames': (

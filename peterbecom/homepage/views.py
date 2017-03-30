@@ -362,6 +362,7 @@ def search(request, original_q=None):
             'title': title,
             'date': result['pub_date'],
             'summary': summary,
+            'score': hit._score,
         })
 
     context['count_documents'] = response.hits.total
@@ -454,7 +455,7 @@ def search(request, original_q=None):
             x for x in q.split() if x.lower() not in STOPWORDS
         ]
 
-    context['debug_search_terms'] = 'debug-search' in request.GET
+    context['debug_search'] = 'debug-search' in request.GET
 
     return render(request, 'homepage/search.html', context)
 

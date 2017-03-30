@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block extrahead %}
+{% stylesheet 'homepage:search' %}
 <style>
 a.better { font-weight: bold; }
 .row .page-header { padding-bottom:5px; margin: 25px 0 5px 0;}
@@ -53,6 +54,12 @@ mark {
   <div class="result">
     <h3>
       <a href="{{ document.url }}">{{ document.title|safe }}</a>
+      {% if debug_search %}
+        <span
+          class="ui tag tiny label"
+          title="Score straight from Elasticsearch's mouth"
+          >Score {{ floatformat(document.score, 1) }}</span>
+      {% endif %}
       &nbsp;
       <small style="float: right">{{ document.date.strftime('%d %b %Y') }}</small>
     </h3>
@@ -62,7 +69,8 @@ mark {
   </div>
 {% endfor %}
 
-{% if debug_search_terms and search_terms %}
+{% if debug_search and search_terms %}
+<p><small>Search Term Debugging</small></p>
 <table class="ui celled table">
   <thead>
     <tr>
