@@ -32,6 +32,8 @@ from peterbecom.podcasttime.utils import (
     NotXMLResponse,
 )
 
+requests_operational_errors = (ConnectionError, ReadTimeout)
+
 
 class BadPodcastEntry(Exception):
     pass
@@ -405,16 +407,29 @@ def _scrape_feed(url, tested_urls, verbose=False):
                 d = feedparser.parse(feed_url)
                 print('STATUS?', d.get('status'), feed_url)
                 if d.get('status') == 404:
+                    print('DELETE {} because of 404 status'.format(feed_url))
                     podcast.delete()
-                else:
-                    print(feed_url)
-                    assert d['feed']['title'], feed_url
-                    podcast.name = d['feed']['title']
-                    podcast.save()
+                    continue
+                if 'title' not in d['feed']:
+                    if not d['feed'] and not d['entries']:
+                        print(
+                            'DELETE {} becuase not title, feed or '
+                            'entries'.format(
+                                feed_url
+                            )
+                        )
+                        podcast.delete()
+                        continue
+                assert d['feed']['title'], feed_url
+                podcast.name = d['feed']['title']
+                podcast.save()
 
 
 def _scrape_index(url, verbose=False, max_=1000):
-    html = download(url, gently=True)
+    try:
+        html = download(url, gently=True)
+    except requests_operational_errors:
+        return
     doc = pyquery.PyQuery(html)
     links = doc('.thumbnails a')
     shows = []
