@@ -96,10 +96,6 @@ def home(request, oc=None, page=1):
     max_count = qs.count()
     if page * BATCH_SIZE > max_count:
         return http.HttpResponse('Too far back in time\n', status=404)
-    # first_post, = qs.order_by('-pub_date')[:1]
-    # context['first_post_url'] = request.build_absolute_uri(
-    #     reverse('blog_post', args=[first_post.oid])
-    # )
     if (page + 1) * BATCH_SIZE < max_count:
         context['next_page'] = page + 2
     context['previous_page'] = page
@@ -300,12 +296,14 @@ def search(request, original_q=None):
     strategy = 'match_phrase'
     if original_q:
         strategy = 'match'
+    search_term_boosts = {}
     for i, (score, word) in enumerate(search_terms):
         j = len(search_terms) - i
         # print("WORDj", word, (2 * j * 10 * score, 1 * j * 10 * score))
         # meaning the first search_term should be boosted most
         boost = 1 * j * 10 * score
         boost_title = 2 * boost
+        search_term_boosts[word] = (boost_title, boost)
         # print(i, word, score, (boost_title, boost))
         match = Q(strategy, title={
             'query': word,
@@ -318,6 +316,9 @@ def search(request, original_q=None):
             matcher = match
         else:
             matcher |= match
+
+    context['search_terms'] = search_terms
+    context['search_term_boosts'] = search_term_boosts
 
     search_query = search_query.query(matcher)
 
@@ -452,6 +453,8 @@ def search(request, original_q=None):
         context['non_stopwords_q'] = [
             x for x in q.split() if x.lower() not in STOPWORDS
         ]
+
+    context['debug_search_terms'] = 'debug-search' in request.GET
 
     return render(request, 'homepage/search.html', context)
 

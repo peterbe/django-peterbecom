@@ -36,7 +36,7 @@ mark {
 {% endif %}
 
 {% if q %}
-  <p><small>in {{ floatformat(search_time * 1000, 1) }} milliseconds</small></p>
+  <p><small>in {{ floatformat(search_time, 2) }} seconds</small></p>
 {% endif %}
 
 {% if not q %}
@@ -61,5 +61,40 @@ mark {
     {{ document.summary|safe }}
   </div>
 {% endfor %}
+
+{% if debug_search_terms and search_terms %}
+<table class="ui celled table">
+  <thead>
+    <tr>
+      <th>
+        Search Term
+      </th>
+      <th>
+        Search Term Score
+      </th>
+      <th>Title Boost</th>
+      <th>Text Boost</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for search_term_score, search_term in search_terms %}
+    <tr>
+      <td>
+        <code>{{ search_term }}</code>
+      </td>
+      <td>
+        {{ floatformat(search_term_score, 1) }}
+      </td>
+      <td>
+        {{ floatformat(search_term_boosts[search_term][0], 1) }}
+      </td>
+      <td>
+        {{ floatformat(search_term_boosts[search_term][1], 1) }}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
 
 {% endblock %}
