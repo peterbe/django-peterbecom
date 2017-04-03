@@ -400,6 +400,7 @@ def search(request, original_q=None):
             'title': None,
             'date': result['add_date'],
             'summary': summary,
+            'score': hit._score,
         })
 
     if blogitem_lookups:
