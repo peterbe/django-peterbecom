@@ -247,12 +247,8 @@ def search(request, original_q=None):
             suggester = suggester.suggest('sugg', q, term={'field': key})
         suggestions = suggester.execute_suggest()
         for each in suggestions.sugg:
-            # print('EACH',each['text'])
             if each.options:
                 for option in each.options:
-                    # print('\tOPTION', option['text'], option['score'])
-                    # Instead of doing this, consider chopping of the list
-                    # search_terms to the top 4 terms or something.
                     if option.score >= 0.6:
                         better = q.replace(each['text'], option['text'])
                         if better not in _search_terms:
@@ -261,8 +257,6 @@ def search(request, original_q=None):
                                 better,
                             ))
                             _search_terms.add(better)
-                    # else:
-                    #     print('\tSKIPPING SUGGESTION:', option)
 
     search_query = BlogItemDoc.search()
     search_query.update_from_dict({
@@ -291,20 +285,17 @@ def search(request, original_q=None):
     max_search_terms = 5  # to not send too much stuff to ES
     if len(search_terms) > max_search_terms:
         search_terms = search_terms[:max_search_terms]
-    # print("SEARCH_TERMS:", search_terms)
 
     strategy = 'match_phrase'
     if original_q:
         strategy = 'match'
     search_term_boosts = {}
     for i, (score, word) in enumerate(search_terms):
-        j = len(search_terms) - i
-        # print("WORDj", word, (2 * j * 10 * score, 1 * j * 10 * score))
         # meaning the first search_term should be boosted most
-        boost = 1 * j * 10 * score
+        j = len(search_terms) - i
+        boost = 1 * j * score
         boost_title = 2 * boost
         search_term_boosts[word] = (boost_title, boost)
-        # print(i, word, score, (boost_title, boost))
         match = Q(strategy, title={
             'query': word,
             'boost': boost_title,
