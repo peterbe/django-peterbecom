@@ -6,7 +6,7 @@ from statistics import median
 
 from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse
-from django.template import Context, loader
+from django.template import loader
 from django import http
 from django.core.cache import cache
 from django.db import transaction
@@ -430,7 +430,7 @@ def _get_comment_body(blogitem, blogcomment):
         'delete_url': delete_url,
         'base_url': base_url,
     }
-    return template.render(Context(context)).strip()
+    return template.render(context).strip()
 
 
 def _get_comment_reply_body(blogitem, blogcomment, parent):
@@ -442,7 +442,7 @@ def _get_comment_reply_body(blogitem, blogcomment, parent):
         'parent': parent,
         'base_url': base_url,
     }
-    return template.render(Context(context)).strip()
+    return template.render(context).strip()
 
 
 @login_required

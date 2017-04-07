@@ -5,7 +5,6 @@ from peterbecom.plog.models import BlogItem
 from peterbecom.plog.timesince import smartertimesince
 from peterbecom.plog.utils import utc_now
 from django.conf import settings
-from django.template import Context
 from django.template.loader import get_template
 from peterbecom.plog.models import BlogFile
 from sorl.thumbnail import get_thumbnail
@@ -49,7 +48,7 @@ def timesince(date):
 @library.global_function
 def semanticuiform(form):
     template = get_template("semanticui/form.html")
-    context = Context({'form': form})
+    context = {'form': form}
     return template.render(context)
 
 

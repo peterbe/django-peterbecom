@@ -1,7 +1,7 @@
+/*global CodeMirror */
 var Preview = (function() {
   'use strict';
 
-  var container = $('form[method="post"]');
   var getData = function() {
     var d = {};
     d.oid = $('#id_oid').val();
@@ -34,7 +34,7 @@ var Preview = (function() {
         return false;
       }
       return true;
-    }
+    },
   };
 })();
 
@@ -145,7 +145,7 @@ var Thumbnails = (function() {
             $('#thumbnails-side h4 .count').text('(' + response.images.length + ')');
             $('#thumbnails-side .toggle').show();
           }
-        }
+        },
       });
       $('#thumbnails-side').on('click', 'a.toggle', function() {
         $('#thumbnails-side .inner').toggle();
@@ -155,7 +155,7 @@ var Thumbnails = (function() {
       });
       $('#thumbnails-side').on('click', 'a.delete', function() {
         var data = {
-          csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()
+          csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val(),
         };
         var link = $(this);
         $.post(link.data('url'), data, function() {
@@ -173,6 +173,29 @@ function slugify(s) {
   return $.trim(s).replace(/\s+/gi, '-').toLowerCase();
 }
 
+
+var UNIMPORTANT = 'id_display_format,id_codesyntax,id_disallow_comments,id_hide_comments'.split(',');
+function toggleUnimportant() {
+  UNIMPORTANT.forEach(function(id) {
+    $('#' + id).parents('.field').toggle();
+  });
+}
+
+
+function slickForm() {
+  // Make form really streamlined and space efficient
+  $('div.field').each(function() {
+    var label = $('label', this).text();
+    var input = $('input,textarea', this);
+    if (!input.attr('placeholder')) {
+      input.attr('placeholder', label);
+    }
+    if (!input.attr('title')) {
+      input.attr('title', label);
+    }
+  });
+  $('div.field label').hide();
+}
 
 $(function() {
   $('input, textarea, select', 'form').change(function() {
@@ -204,17 +227,24 @@ $(function() {
     else if (display_format == 'structuredtext')
       mode = 'rst'; // reStructuredText
 
-    var editor = CodeMirror.fromTextArea(document.getElementById("id_text"), {
+    var editor = CodeMirror.fromTextArea(document.getElementById('id_text'), {
       mode: mode,
       lineWrapping: true,
       lineNumbers: true,
       matchBrackets: true,
       onBlur: function() {
-          $('#id_text').val(editor.getValue());
-          Preview.update();
-        } //,
-        //theme: "default"
+        $('#id_text').val(editor.getValue());
+        Preview.update();
+      },
     });
   }
 
+  slickForm();
+  toggleUnimportant();
+  $('#unimportant-toggle').click(function(event) {
+    event.preventDefault();
+    toggleUnimportant();
+    $('div.field label').show();
+    $(this).hide();
+  });
 });

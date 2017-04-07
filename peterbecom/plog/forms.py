@@ -22,8 +22,20 @@ class BlogForm(forms.ModelForm):
 
     class Meta:
         model = BlogItem
-        exclude = ('alias', 'bookmark', 'text_rendered', 'plogrank',
-                   'modify_date', 'keywords', 'screenshot_image')
+        fields = (
+            'oid',
+            'title',
+            'text',
+            'summary',
+            'url',
+            'pub_date',
+            'categories',
+            'proper_keywords',
+            'display_format',
+            'codesyntax',
+            'disallow_comments',
+            'hide_comments',
+        )
 
     def __init__(self, *args, **kwargs):
         super(BlogForm, self).__init__(*args, **kwargs)
@@ -36,6 +48,9 @@ class BlogForm(forms.ModelForm):
         self.fields['url'].required = False
         self.fields['summary'].required = False
         self.fields['proper_keywords'].required = False
+
+        # 10 was default
+        self.fields['text'].widget.attrs['rows'] = 20
 
         all_categories = dict(
             Category.objects.all().values_list('id', 'name')

@@ -3,6 +3,10 @@
 {% block extrahead %}
 <link rel="stylesheet" href="{{ static("libs/codemirror/codemirror.css") }}">
 <style>
+div.ui.borderless.menu,
+div.ui.footer {
+  display: none;
+}
 #id_oid, #id_title { width:50%; }
 #id_text, #id_summary, #id_url { width:100%; }
 #thumbnails-side {
@@ -35,9 +39,12 @@ pre { line-height: 15px; }
 #id_text { height: 600px; }
 #id_summary { height: 85px; }
 /* override CodeMirror */
-.CodeMirror-scroll { height: 400px; }
+.CodeMirror-scroll { height: 700px; }
 .CodeMirror { border-top: 1px solid #999; border-bottom: 1px solid #999; }
 form[method="post"] { clear: left; }
+#preview-container {
+  margin-bottom: 200px;
+}
 </style>
 {% endblock %}
 
@@ -72,6 +79,7 @@ form[method="post"] { clear: left; }
   <div class="form-actions">
     <button type="submit" class="ui button primary">Save changes</button>
     <button class="btn ui button">Cancel</button>
+    <a href="#" id="unimportant-toggle">Show all fields</a>
   </div>
 </form>
 

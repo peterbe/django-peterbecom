@@ -43,23 +43,23 @@ PIPELINE_CSS = {
         ),
         'output_filename': 'css/search.min.css',
     },
-    'podcasttime': {
-        'source_filenames': (
-            'podcasttime/select2/css/select2.min.css',
-            'podcasttime/css/podcasttime.css',
-            'css/statistic.css',
-        ),
-        'output_filename': 'css/podcasttime.min.css',
-    },
-    'podcasttime:podcasts': {
-        'source_filenames': (
-            'css/card.css',
-            'css/label.css',
-            'css/search.css',
-            'podcasttime/css/podcasts.css',
-        ),
-        'output_filename': 'css/podcasttime.podcasts.min.css',
-    },
+    # 'podcasttime': {
+    #     'source_filenames': (
+    #         'podcasttime/select2/css/select2.min.css',
+    #         'podcasttime/css/podcasttime.css',
+    #         'css/statistic.css',
+    #     ),
+    #     'output_filename': 'css/podcasttime.min.css',
+    # },
+    # 'podcasttime:podcasts': {
+    #     'source_filenames': (
+    #         'css/card.css',
+    #         'css/label.css',
+    #         'css/search.css',
+    #         'podcasttime/css/podcasts.css',
+    #     ),
+    #     'output_filename': 'css/podcasttime.podcasts.min.css',
+    # },
 
 }
 
