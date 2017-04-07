@@ -12,13 +12,18 @@ from peterbecom.plog.models import BlogItem, BlogFile, Category
 class MultilineTextarea(Textarea):
     def render(self, name, value, attrs=None):
         if value:
-            # print "VALUE", repr(value)
-            # value = '\n'.join(value)
-            value = value.replace(',', '\n')
+            if isinstance(value, list):
+                value = '\n'.join(value)
+            else:
+                raise NotImplementedError(type(value))
         return super(MultilineTextarea, self).render(name, value, attrs=attrs)
 
 
 class BlogForm(forms.ModelForm):
+
+    proper_keywords = forms.fields.CharField(
+        widget=MultilineTextarea()
+    )
 
     class Meta:
         model = BlogItem
@@ -44,7 +49,6 @@ class BlogForm(forms.ModelForm):
             ('structuredtext', 'structuredtext'),
             ('markdown', 'markdown'),
         ]
-        self.fields['proper_keywords'].widget = MultilineTextarea()
         self.fields['url'].required = False
         self.fields['summary'].required = False
         self.fields['proper_keywords'].required = False
@@ -87,6 +91,10 @@ class BlogForm(forms.ModelForm):
                 (pk, combined)
             )
         self.fields['categories'].choices = category_choices
+
+    def clean_proper_keywords(self):
+        value = self.cleaned_data['proper_keywords']
+        return [x.strip() for x in value.splitlines() if x.strip()]
 
     def clean_oid(self):
         value = self.cleaned_data['oid']

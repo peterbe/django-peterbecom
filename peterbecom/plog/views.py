@@ -565,11 +565,7 @@ def add_post(request):
     if request.method == 'POST':
         form = BlogForm(data=request.POST)
         if form.is_valid():
-            keywords = [
-                x.strip() for x
-                in form.cleaned_data['proper_keywords'][0].splitlines()
-                if x.strip()
-            ]
+            assert isinstance(form.cleaned_data['proper_keywords'], list)
             blogitem = BlogItem.objects.create(
                 oid=form.cleaned_data['oid'],
                 title=form.cleaned_data['title'],
@@ -579,7 +575,7 @@ def add_post(request):
                 codesyntax=form.cleaned_data['codesyntax'],
                 url=form.cleaned_data['url'],
                 pub_date=form.cleaned_data['pub_date'],
-                proper_keywords=keywords,
+                proper_keywords=form.cleaned_data['proper_keywords'],
             )
             for category in form.cleaned_data['categories']:
                 blogitem.categories.add(category)
@@ -617,12 +613,8 @@ def edit_post(request, oid):
             blogitem.display_format = form.cleaned_data['display_format']
             blogitem.codesyntax = form.cleaned_data['codesyntax']
             blogitem.pub_date = form.cleaned_data['pub_date']
-            keywords = [
-                x.strip() for x
-                in form.cleaned_data['proper_keywords'][0].splitlines()
-                if x.strip()
-            ]
-            blogitem.proper_keywords = keywords
+            assert isinstance(form.cleaned_data['proper_keywords'], list)
+            blogitem.proper_keywords = form.cleaned_data['proper_keywords']
             blogitem.categories.clear()
             for category in form.cleaned_data['categories']:
                 blogitem.categories.add(category)
