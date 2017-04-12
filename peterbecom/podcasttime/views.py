@@ -100,6 +100,22 @@ def find(request):
         ids = [int(x) for x in request.GET['ids'].split(',')]
         search = search.filter('terms', id=ids)
         response = search.execute()
+        if not response.hits.total:
+            podcasts_orm = Podcast.objects.filter(id__in=ids)
+            for podcast in podcasts_orm.filter(error__isnull=True):
+                if not podcast.total_seconds or not podcast.last_fetch:
+                    cache_key = 'resubmit:{}'.format(podcast.id)
+                    if not cache.get(cache_key):
+                        print(
+                            "Forcing {!r} (id={}) to download episodes".format(
+                                podcast.name,
+                                podcast.id,
+                            )
+                        )
+                        download_episodes_task.delay(podcast.id)
+                        cache.set(cache_key, True, 60)
+                else:
+                    podcast.save()
         for hit in response.hits:
             podcast = package_podcast(hit.to_dict())
             if (

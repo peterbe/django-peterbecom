@@ -218,6 +218,8 @@ def update_slug(sender, instance, **kwargs):
 @receiver(models.signals.post_save, sender=Podcast)
 def update_es(sender, instance, **kwargs):
     doc = instance.to_search()
+    print(doc)
+    print('last_fetch', instance.last_fetch)
     if instance.error or not instance.last_fetch:
         es_retry(doc.delete, _ignore_not_found=True)
     else:

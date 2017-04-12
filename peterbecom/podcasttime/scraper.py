@@ -281,7 +281,7 @@ def _download_episodes(podcast, verbose=True, timeout=10):
     )['latest']
     print("SETTING latest_episode {!r}".format(latest_episode))
     # print(dir(podcast))
-    podcast = podcast.refresh_from_db()
+    podcast.refresh_from_db()
     # podcast = Podcast.objects.get(id=podcast.id)
     podcast.last_fetch = timezone.now()
     podcast.latest_episode = latest_episode
