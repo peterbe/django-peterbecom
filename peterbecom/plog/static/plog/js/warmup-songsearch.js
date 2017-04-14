@@ -9,7 +9,7 @@ $(function() {
     }
     var container = $('<div>').css('margin-top', '100px').css('margin-bottom', '50px');
     container.append($('<p>Song example lyrics searches...</p>'));
-    var ul = $('<ul>').css('list-style-image', 'url("https://songsear.ch/static/bullet.png")');
+    var ul = $('<ul>').css('list-style-image', 'url("https://songsearch-2916.kxcdn.com/static/bullet.png")');
     $.each(response.examples, function(i, example) {
       var href = 'https://songsear.ch/q/' + encodeURIComponent(example);
       $('<li>')
