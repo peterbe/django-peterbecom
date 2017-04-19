@@ -13,7 +13,8 @@ import xmltodict
 import feedparser
 import requests
 import subprocess
-
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 
 _MEDIA_FILE = os.path.join(
     os.path.dirname(__file__), '.mediacache.json'
@@ -31,6 +32,45 @@ class NotFound(Exception):
 class NotXMLResponse(Exception):
     """happens when you expect an XML feed as a response but get something
     else."""
+
+
+def requests_retry_session(
+    retries=4,
+    backoff_factor=0.4,
+    status_forcelist=(500, 502, 504),
+    session=None,
+):
+    """Opinionated wrapper that creates a requests session with a
+    HTTPAdapter that sets up a Retry policy that includes connection
+    retries.
+
+    If you do the more naive retry by simply setting a number. E.g.::
+
+        adapter = HTTPAdapter(max_retries=3)
+
+    then it will raise immediately on any connection errors.
+    Retrying on connection errors guards better on unpredictable networks.
+    From http://docs.python-requests.org/en/master/api/?highlight=retries#requests.adapters.HTTPAdapter
+    it says: "By default, Requests does not retry failed connections."
+
+    The backoff_factor is documented here:
+    https://urllib3.readthedocs.io/en/latest/reference/urllib3.util.html#urllib3.util.retry.Retry
+    A default of retries=3 and backoff_factor=0.3 means it will sleep like::
+
+        [0.3, 0.6, 1.2]
+    """  # noqa
+    session = session or requests.Session()
+    retry = Retry(
+        total=retries,
+        read=retries,
+        connect=retries,
+        backoff_factor=backoff_factor,
+        status_forcelist=status_forcelist,
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    return session
 
 
 def get_base_url(url):
@@ -92,7 +132,13 @@ def parse_duration_ffmpeg(media_url):
     return _cache[media_url], None
 
 
-def realistic_request(url, verify=True, no_user_agent=False, timeout=None):
+def realistic_request(
+    url,
+    verify=True,
+    no_user_agent=False,
+    timeout=None,
+    session=None,
+):
     headers = {
         'Accept': (
             'text/html,application/xhtml+xml,application/xml,text/xml'
@@ -109,7 +155,8 @@ def realistic_request(url, verify=True, no_user_agent=False, timeout=None):
     }
     if no_user_agent:
         headers.pop('User-Agent')
-    return requests.get(url, headers=headers, verify=verify, timeout=timeout)
+    session = requests_retry_session(session=session)
+    return session.get(url, headers=headers, verify=verify, timeout=timeout)
 
 
 def download(
@@ -119,6 +166,7 @@ def download(
     no_user_agent=False,
     expect_xml=False,
     timeout=None,
+    session=None,
 ):
     if not os.path.isdir(_CACHE):
         os.mkdir(_CACHE)
@@ -132,7 +180,11 @@ def download(
             os.remove(fp)
     if not os.path.isfile(fp) or refresh:
         print("* requesting", url)
-        r = realistic_request(url, no_user_agent=no_user_agent)
+        r = realistic_request(
+            url,
+            no_user_agent=no_user_agent,
+            session=session,
+        )
         if r.status_code == 200:
             if expect_xml and not (
                 'xml' in r.headers.get('Content-Type', '') or '<rss' in r.text

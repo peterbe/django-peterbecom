@@ -30,6 +30,7 @@ from peterbecom.podcasttime.utils import (
     get_base_url,
     NotFound,
     NotXMLResponse,
+    requests_retry_session,
 )
 
 requests_operational_errors = (ConnectionError, ReadTimeout)
@@ -45,7 +46,7 @@ class BadEpisodeDurationError(Exception):
 
 def itunes_lookup(itunes_id):
     url = 'https://itunes.apple.com/lookup'
-    response = requests.get(url, {'id': itunes_id})
+    response = requests_retry_session().get(url, {'id': itunes_id})
     return response.json()
 
 
@@ -53,7 +54,7 @@ def itunes_search(term, **options):
     timeout = options.pop('timeout', None)
     options.update({'term': term, 'entity': 'podcast'})
     url = 'https://itunes.apple.com/search'
-    response = requests.get(url, options, timeout=timeout)
+    response = requests_retry_session().get(url, options, timeout=timeout)
     return response.json()
 
 
