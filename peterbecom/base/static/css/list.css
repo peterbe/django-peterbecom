@@ -170,7 +170,7 @@ ol.ui.list ol li,
 .ui.list > .item .header {
   display: block;
   margin: 0em;
-  font-family: 'Lato', 'Helvetica Neue', Arial, Helvetica, sans-serif;
+  /*font-family: 'Lato', 'Helvetica Neue', Arial, Helvetica, sans-serif;*/
   font-weight: bold;
   color: rgba(0, 0, 0, 0.87);
 }
@@ -931,4 +931,3 @@ ol.ui.horizontal.list li:before,
 /*******************************
     User Variable Overrides
 *******************************/
-

@@ -52,7 +52,7 @@
 /* Header */
 .ui.message .header {
   display: block;
-  font-family: 'Lato', 'Helvetica Neue', Arial, Helvetica, sans-serif;
+  /*font-family: 'Lato', 'Helvetica Neue', Arial, Helvetica, sans-serif;*/
   font-weight: bold;
   margin: -0.14285em 0em 0rem 0em;
 }
@@ -470,4 +470,3 @@
 /*******************************
     User Variable Overrides
 *******************************/
-
