@@ -9,6 +9,6 @@
   "license": "MPL-2.0",
   "dependencies": {
     "cssmin": "0.4.3",
-    "uglify-js": "^3.0.3"
+    "uglify-js": "^3.0.4"
   }
 }
