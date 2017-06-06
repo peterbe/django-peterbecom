@@ -1,0 +1,56 @@
+mark{padding:.2em;background-color:#fcf8e3}
+
+
+.autocomplete {
+  position: absolute;
+  z-index: 2;
+  width: 100%;
+  background-color: white;
+  opacity: 0.97;
+  border-bottom: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+  border-left: 1px solid #ccc;
+  top: 47px;
+  left: 0; /* needed for safari */
+}
+
+.autocomplete mark {
+  font-weight: bold;
+}
+
+.autocomplete ul {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 0;
+}
+.autocomplete ul li {
+  border-bottom: 1px solid #efefef;
+  padding: 6px;
+}
+.autocomplete ul li:hover {
+  background-color: #ececec;
+}
+.autocomplete ul li:last-child {
+  border-bottom: none;
+}
+
+.autocomplete .active {
+  background-color: #efefef;
+}
+
+.autocomplete li {
+  cursor: pointer;
+}
+.autocomplete li .artist-name {
+  margin: 0;
+}
+.autocomplete li .artist-metadata {
+  opacity: 0.7;
+}
+.autocomplete li mark {
+  padding-right: 0;
+}
+
+.autocomplete li img {
+  width: 40px;
+}
