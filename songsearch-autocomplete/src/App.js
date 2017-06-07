@@ -28,8 +28,8 @@ class App extends Component {
   }
 
   _submit = (q) => {
-    console.warn("GOTO!!!", 'https://songsear.ch/q/' + q);
-    // document.location.href = 'https://songsear.ch/q/' + q;
+    // console.warn("GOTO!!!", 'https://songsear.ch/q/' + q);
+    document.location.href = 'https://songsear.ch/q/' + q;
     if (this.state.autocompleteSuggestions) {
       this.setState({
         autocompleteSuggestions: null,
@@ -95,7 +95,6 @@ class App extends Component {
   }
 
   onKeyDownSearch = (event) => {
-    // console.log('keydown search');
     let suggestions = this.state.autocompleteSuggestions
     if (suggestions) {
       let highlight = this.state.autocompleteHighlight
