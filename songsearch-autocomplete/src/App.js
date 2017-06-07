@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-// import logo from './logo.svg';
 import './App.css';
 
 
@@ -22,14 +21,25 @@ class App extends Component {
     showAutocompleteSuggestions: true,
   }
 
+  componentDidMount() {
+    // If the <input> HTML had something typed into it when the React
+    // app started, that would be passed to the App when initialized.
+    // For example if the React app is slow to load. I.e. async slow.
+    if (this.props.initialValue && !this.state.q) {
+      this.setState({q: this.props.initialValue})
+    }
+  }
+
   submitSearch = (event) => {
     event.preventDefault();
     this._submit(this.state.q)
   }
 
-  _submit = (q) => {
+  _submit = (q, submitevent='enter') => {
     // console.warn("GOTO!!!", 'https://songsear.ch/q/' + q);
-    document.location.href = 'https://songsear.ch/q/' + q;
+    q = q.trim()
+    let gotoURL = `https://songsear.ch/q/${q}?autocomplete=${submitevent}`;
+    document.location.href = gotoURL
     if (this.state.autocompleteSuggestions) {
       this.setState({
         autocompleteSuggestions: null,
@@ -127,7 +137,9 @@ class App extends Component {
             q: suggestions[highlight].text,
             autocompleteSuggestions: null,
             autocompleteHighlight: -1,
-          }, () => this._submit(suggestions[highlight].text))
+          }, () => {
+            this._submit(suggestions[highlight].text, 'enterkey')
+          })
         }
       }
     }
@@ -135,7 +147,7 @@ class App extends Component {
 
   onSelectSuggestion = (event, suggestion) => {
     event.preventDefault()
-    this._submit(suggestion.text)
+    this._submit(suggestion.text, 'clicked')
   }
 
   render() {
