@@ -1,5 +1,7 @@
+import shutil
 import os
 import subprocess
+import tempfile
 
 from django.conf import settings
 from django.template.defaultfilters import filesizeformat
@@ -28,6 +30,7 @@ class Command(BaseCommand):
         qs = Podcast.objects.filter(image__isnull=False)
         savings = []
         skips = 0
+        tmp_dir = tempfile.gettempdir()
         for podcast in qs.order_by('?')[:800]:
             try:
                 path = podcast.image.path
@@ -59,12 +62,12 @@ class Command(BaseCommand):
                 podcast.save()
                 continue
 
-            size_before = os.stat(path).st_size
+            tmp_path = os.path.join(tmp_dir, os.path.basename(path))
             print(path)
             cmd = [
                 settings.MOZJPEG_PATH,
                 '-optimize',
-                '-outfile', path,
+                '-outfile', tmp_path,
                 path,
             ]
             try:
@@ -76,7 +79,10 @@ class Command(BaseCommand):
                     raise
             if out:
                 self.warning(out)
-            size_after = os.stat(path).st_size
+            size_before = os.stat(path).st_size
+            size_after = os.stat(tmp_path).st_size
+            if size_after < size_before:
+                shutil.move(tmp_path, path)
             with open(log_file, 'w') as f:
                 f.write(
                     'From {} bytes to {} bytes\n'.format(
