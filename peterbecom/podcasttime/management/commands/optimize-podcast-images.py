@@ -43,7 +43,7 @@ class Command(BaseCommand):
                     }
                     # print()
                     ext = os.path.splitext(path)[1]
-                    if ext == '.jpg':
+                    if ext in ('.jpg', '.jpeg'):
                         options['progressive'] = True
                     # img.save(path + '.optimized' + ext, **options)
                     size_before = os.stat(path).st_size
