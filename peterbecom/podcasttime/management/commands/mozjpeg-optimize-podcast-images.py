@@ -63,7 +63,7 @@ class Command(BaseCommand):
                 continue
 
             tmp_path = os.path.join(tmp_dir, os.path.basename(path))
-            print(path)
+            # print(path)
             cmd = [
                 settings.MOZJPEG_PATH,
                 '-optimize',
@@ -84,12 +84,15 @@ class Command(BaseCommand):
             if size_after < size_before:
                 shutil.move(tmp_path, path)
             with open(log_file, 'w') as f:
-                f.write(
+                msg = (
                     'From {} bytes to {} bytes\n'.format(
                         format(size_before, ','),
                         format(size_after, ','),
                     )
                 )
+                self.out(path)
+                self.out(msg)
+                f.write(msg)
             savings.append(size_before - size_after)
 
         if savings:
