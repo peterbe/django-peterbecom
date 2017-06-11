@@ -39,6 +39,9 @@ class Command(BaseCommand):
                 ext = os.path.splitext(path)[1]
                 if not ext:
                     continue
+                if ext not in ('.jpg', '.jpeg', '.png'):
+                    print('Unrecognized extension {!r}'.format(ext))
+                    continue
 
                 w2 = 1300
                 h2 = int(w2 * h / w)
@@ -50,7 +53,6 @@ class Command(BaseCommand):
                 if ext in ('.jpg', '.jpeg'):
                     options['progressive'] = True
                 size_before = os.stat(path).st_size
-                print('extension', repr(ext))
                 print(path)
                 img.save(path, **options)
                 size_after = os.stat(path).st_size
@@ -63,7 +65,6 @@ class Command(BaseCommand):
                             format(size_after, ','),
                         )
                     )
-                print(path)
                 savings.append(size_before - size_after)
 
         if savings:
