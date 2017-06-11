@@ -22,46 +22,48 @@ class Command(BaseCommand):
                 print("Not a file", path)
                 continue
             log_file = path + '.optimized'
-            if not os.path.isfile(log_file):
-                try:
-                    img = Image.open(path)
-                except OSError:
-                    print("Completely broken image", path)
-                    os.remove(path)
-                    podcast.image = None
-                    podcast.save()
-                    continue
-                w, h = img.size
-                if w * h > 1400 * 1400:
-                    # print(path)
-                    w2 = 1400
-                    h2 = int(w2 * h / w)
-                    # print(img.size, (w2, h2))
-                    img.thumbnail((w2, h2))
-                    options = {
-                        'quality': 95,
-                    }
-                    # print()
-                    ext = os.path.splitext(path)[1]
-                    if ext in ('.jpg', '.jpeg'):
-                        options['progressive'] = True
-                    # img.save(path + '.optimized' + ext, **options)
-                    size_before = os.stat(path).st_size
-                    img.save(path, **options)
-                    size_after = os.stat(path).st_size
-                    with open(log_file, 'w') as f:
-                        f.write(
-                            'From {}, ({} bytes) to {} ({} bytes)\n'.format(
-                                (w, h),
-                                format(size_before, ','),
-                                (w2, h2),
-                                format(size_after, ','),
-                            )
+            if os.path.isfile(log_file):
+                print("skipping already done")
+                continue
+            try:
+                img = Image.open(path)
+            except OSError:
+                print("Completely broken image", path)
+                os.remove(path)
+                podcast.image = None
+                podcast.save()
+                continue
+            w, h = img.size
+            if w * h > 1400 * 1400:
+                # print(path)
+                w2 = 1400
+                h2 = int(w2 * h / w)
+                # print(img.size, (w2, h2))
+                img.thumbnail((w2, h2))
+                options = {
+                    'quality': 95,
+                }
+                # print()
+                ext = os.path.splitext(path)[1]
+                if ext in ('.jpg', '.jpeg'):
+                    options['progressive'] = True
+                # img.save(path + '.optimized' + ext, **options)
+                size_before = os.stat(path).st_size
+                img.save(path, **options)
+                size_after = os.stat(path).st_size
+                with open(log_file, 'w') as f:
+                    f.write(
+                        'From {}, ({} bytes) to {} ({} bytes)\n'.format(
+                            (w, h),
+                            format(size_before, ','),
+                            (w2, h2),
+                            format(size_after, ','),
                         )
-                    print(path)
-                    savings.append(size_before - size_after)
-                    # print(path + '.optimized' + ext)
-                    # break
+                    )
+                print(path)
+                savings.append(size_before - size_after)
+                # print(path + '.optimized' + ext)
+                # break
             # break
         if savings:
             print("SUM savings:", filesizeformat(sum(savings)))
