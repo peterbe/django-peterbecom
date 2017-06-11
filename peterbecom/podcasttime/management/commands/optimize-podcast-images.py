@@ -13,6 +13,7 @@ class Command(BaseCommand):
     def _handle(self, *args, **kwargs):
         qs = Podcast.objects.filter(image__isnull=False)
         savings = []
+        skips = 0
         for podcast in qs.order_by('?')[:1000]:
             try:
                 path = podcast.image.path
@@ -23,7 +24,7 @@ class Command(BaseCommand):
                 continue
             log_file = path + '.optimized'
             if os.path.isfile(log_file):
-                print("skipping already done")
+                skips += 1
                 continue
             try:
                 img = Image.open(path)
@@ -34,21 +35,23 @@ class Command(BaseCommand):
                 podcast.save()
                 continue
             w, h = img.size
-            if w * h > 1400 * 1400:
-                # print(path)
-                w2 = 1400
+            if w * h > 1300 * 1300:
+                ext = os.path.splitext(path)[1]
+                if not ext:
+                    continue
+
+                w2 = 1300
                 h2 = int(w2 * h / w)
-                # print(img.size, (w2, h2))
                 img.thumbnail((w2, h2))
                 options = {
                     'quality': 95,
                 }
-                # print()
-                ext = os.path.splitext(path)[1]
+
                 if ext in ('.jpg', '.jpeg'):
                     options['progressive'] = True
-                # img.save(path + '.optimized' + ext, **options)
                 size_before = os.stat(path).st_size
+                print('extension', repr(ext))
+                print(path)
                 img.save(path, **options)
                 size_after = os.stat(path).st_size
                 with open(log_file, 'w') as f:
@@ -62,10 +65,10 @@ class Command(BaseCommand):
                     )
                 print(path)
                 savings.append(size_before - size_after)
-                # print(path + '.optimized' + ext)
-                # break
-            # break
+
         if savings:
-            print("SUM savings:", filesizeformat(sum(savings)))
+            self.out("SUM savings:", filesizeformat(sum(savings)))
             avg = sum(savings) / len(savings)
-            print("AVG savings:", filesizeformat(avg))
+            self.out("AVG savings:", filesizeformat(avg))
+
+        self.out('{} skips'.format(skips))
