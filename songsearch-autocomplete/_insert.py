@@ -1,8 +1,9 @@
 #!/usr/bin/env python3.5
 
 from glob import glob
+import os
 
-CDN = 'https://cdn-2916.kxcdn.com'
+CDN = os.environ.get('CDN', 'https://cdn-2916.kxcdn.com')
 
 BLOCK = """
 <script>
@@ -18,12 +19,14 @@ BLOCK = """
 <script src="{cdn}/{jspath}" defer></script>
 """
 
+
 def run():
 
-    csspath, = glob('../peterbecom-static-content/songsearch-autocomplete/css/*.css')
-    csspath = csspath.replace('peterbecom-static-content/', '')
-    jspath, = glob('../peterbecom-static-content/songsearch-autocomplete/js/*.js')
-    jspath = jspath.replace('peterbecom-static-content/', '')
+    webroot = os.path.abspath('../peterbecom-static-content')
+    csspath, = glob(os.path.join(webroot, 'songsearch-autocomplete/css/*.css'))
+    jspath, = glob(os.path.join(webroot, 'songsearch-autocomplete/js/*.js'))
+    csspath = csspath.replace(webroot + '/', '')
+    jspath = jspath.replace(webroot + '/', '')
 
     block = BLOCK.replace('{cdn}', CDN).replace('{csspath}', csspath).replace('{jspath}', jspath)
     block = block.strip()
@@ -36,8 +39,10 @@ def run():
     end = content.find(footer)
     if start > -1:
         # replacement
-        content = content[:start] + header + block + "\n" + content[end:]
+        print('Replaced existing block', template)
+        content = content[:start] + header + '\n' + block + '\n' + content[end:]
     else:
+        print('Inserted new block', template)
         content = content.replace('</body>', '{}\n{}\n{}\n</body>'.format(header, block, footer))
     #print(content)
     with open(template, 'w') as f:
