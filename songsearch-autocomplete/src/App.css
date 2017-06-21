@@ -1,4 +1,7 @@
-mark{padding:.2em;background-color:#fcf8e3}
+mark{
+  /*padding:.2em;*/
+  background-color:white;
+}
 
 
 .autocomplete {
@@ -14,14 +17,20 @@ mark{padding:.2em;background-color:#fcf8e3}
   left: 0; /* needed for safari */
 }
 
-.autocomplete mark {
+.autocomplete li p {
   font-weight: bold;
+  font-size: 0.9em;
+}
+
+.autocomplete mark {
+  font-weight: normal;
 }
 
 .autocomplete ul {
   list-style: none;
   padding: 0;
   margin-bottom: 0;
+  margin-top: 4px;
 }
 .autocomplete ul li {
   border-bottom: 1px solid #efefef;

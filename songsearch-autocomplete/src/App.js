@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import './App.css';
+import { throttle } from 'throttle-debounce';
 
 
 const appendSuggestion = (text, append) => {
@@ -21,6 +22,8 @@ class App extends Component {
     showAutocompleteSuggestions: true,
   }
 
+
+
   componentDidMount() {
     // If the <input> HTML had something typed into it when the React
     // app started, that would be passed to the App when initialized.
@@ -38,6 +41,9 @@ class App extends Component {
   _submit = (q, submitevent='enter') => {
     // console.warn("GOTO!!!", 'https://songsear.ch/q/' + q);
     q = q.trim()
+    if (!q) {
+      return
+    }
     let gotoURL = `https://songsear.ch/q/${q}?autocomplete=${submitevent}`;
     document.location.href = gotoURL
     if (this.state.autocompleteSuggestions) {
@@ -74,7 +80,9 @@ class App extends Component {
     // } else if (this.state.searchMaxLength) {
     //   this.setState({searchMaxLength: null})
     // }
-    if (length) {
+    if (length > 5) {
+      this._fetchAutocompleteSuggestionsDebounced(event.target.value.trim())
+    } else if (length) {
       this._fetchAutocompleteSuggestions(event.target.value.trim())
     } else {
         this.setState({
@@ -85,24 +93,36 @@ class App extends Component {
     }
   }
 
+   _last_fetch_term = null
+
   _fetchAutocompleteSuggestions = (q) => {
     let url = `https://songsear.ch/api/search/autocomplete?q=${q}`
+    this._last_fetch_term = q
     fetch(url)
     .then(r => {
       if (r.status === 200) {
-        r.json()
-        .then(results => {
-          this.setState({
-            autocompleteSuggestions: results.matches,
-            autocompleteHighlight: -1,
+        if (q === this._last_fetch_term) {
+          r.json()
+          .then(results => {
+            this.setState({
+              autocompleteSuggestions: results.matches,
+              autocompleteHighlight: -1,
+            })
           })
-        })
+        // } else {
+        //   console.log(`Ignore results from '${q}'`);
+        }
+
       }
     })
     .catch(err => {
       console.error(err);
     })
   }
+
+  _fetchAutocompleteSuggestionsDebounced = throttle(
+    400, this._fetchAutocompleteSuggestions
+  )
 
   onKeyDownSearch = (event) => {
     let suggestions = this.state.autocompleteSuggestions
