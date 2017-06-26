@@ -32,15 +32,29 @@ class Command(BaseCommand):
                     podcast,
                     podcast.image,
                 ))
+                # Instead of a <ImageFieldFile: None> instance, whatever
+                # nonsense that is.
+                podcast.image = None
+                podcast.save()
                 continue
             if not os.path.isfile(path):
                 self.warning("Not a file", path)
                 continue
             log_file = path + '.optimized'
             if os.path.isfile(log_file):
-                print(log_file)
                 skips += 1
+                with open(log_file) as f:
+                    self.out('{} ({}) was already optimized ({})'.format(
+                        path,
+                        filesizeformat(os.stat(path).st_size),
+                        f.read(),
+                    ))
                 continue
+            else:
+                self.out('Opening {} ({})'.format(
+                    path,
+                    filesizeformat(os.stat(path).st_size),
+                ))
             try:
                 img = Image.open(path)
             except OSError:
@@ -94,7 +108,9 @@ class Command(BaseCommand):
                     )
                 savings.append(size_before - size_after)
             else:
-                self.out('Image too little ({}x{})'.format(w, h))
+                self.out('{} too little ({}x{})'.format(
+                    path, w, h,
+                ))
 
         if savings:
             self.out("SUM savings:", filesizeformat(sum(savings)))
