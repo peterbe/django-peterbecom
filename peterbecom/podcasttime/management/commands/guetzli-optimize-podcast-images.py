@@ -5,6 +5,7 @@ import tempfile
 import time
 
 from django.conf import settings
+from django.db.models import Q
 from django.template.defaultfilters import filesizeformat
 
 from peterbecom.base.basecommand import BaseCommand
@@ -20,7 +21,7 @@ def check_output(cmd):
     std_out, std_err = pipes.communicate()
     if pipes.returncode != 0:
         # an error happened!
-        err_msg = '%s. Code: %s' % (std_err.strip(), pipes.returncode)
+        err_msg = "%s. Code: %s" % (std_err.strip(), pipes.returncode)
         raise Exception(err_msg)
     return std_out.strip()
 
@@ -28,11 +29,13 @@ def check_output(cmd):
 class Command(BaseCommand):
 
     def add_arguments(self, parser):
-        parser.add_argument('--limit', default=1000)
+        parser.add_argument('--limit', default=10)
 
     def _handle(self, **options):
         limit = int(options['limit'])
-        qs = Podcast.objects.filter(image__iendswith='.jpg')
+        qs = Podcast.objects.filter(
+            Q(image__iendswith='.jpg') | Q(image__iendswith='.png')
+        )
         savings = []
         times = []
         skips = 0
@@ -43,26 +46,27 @@ class Command(BaseCommand):
             except ValueError:
                 continue
             if not os.path.isfile(path):
-                print('Not a file', path)
+                print("Not a file", path)
                 continue
-            log_file = path + '.mozjpeged'
+            log_file = path + '.guetzlied'
             if os.path.isfile(log_file):
                 skips += 1
                 continue
             ext = os.path.splitext(path)[1]
             if not ext:
                 continue
-            if ext not in ('.jpg', '.jpeg'):
+            # if ext not in ('.jpg', '.jpeg'):
+            if ext not in ('.jpg', '.jpeg', '.png'):
                 # print('Unrecognized extension {!r}'.format(ext))
                 continue
 
             if not os.path.isfile(path):
-                print('Completely missing image path', path)
+                print("Completely missing image path", path)
                 podcast.image = None
                 podcast.save()
                 continue
             if not os.stat(path).st_size:
-                print('Completely empty image', path)
+                print("Completely empty image", path)
                 os.remove(path)
                 podcast.image = None
                 podcast.save()
@@ -71,22 +75,20 @@ class Command(BaseCommand):
             tmp_path = os.path.join(tmp_dir, os.path.basename(path))
             # print(path)
             cmd = [
-                settings.MOZJPEG_PATH,
-                '-optimize',
-                '-outfile', tmp_path,
+                settings.GUETZLI_PATH,
+                '--quality', '90',
                 path,
+                tmp_path,
             ]
             t0 = time.time()
             try:
                 out = check_output(cmd)
             except Exception as exception:
-                if 'Not a JPEG file' in str(exception):
-                    continue
-                else:
-                    raise
+                raise
             if out:
                 self.warning(out)
             t1 = time.time()
+
             size_before = os.stat(path).st_size
             size_after = os.stat(tmp_path).st_size
             if size_after < size_before:
@@ -106,9 +108,9 @@ class Command(BaseCommand):
                 savings.append(size_before - size_after)
             times.append(t1 - t0)
         if savings:
-            self.out('SUM savings:', filesizeformat(sum(savings)))
+            self.out("SUM savings:", filesizeformat(sum(savings)))
             avg = sum(savings) / len(savings)
-            self.out('AVG savings:', filesizeformat(avg))
+            self.out("AVG savings:", filesizeformat(avg))
             self.out('SUM times:', sum(times))
             avg_time = sum(times) / len(times)
             self.out('AVG times:', avg_time)

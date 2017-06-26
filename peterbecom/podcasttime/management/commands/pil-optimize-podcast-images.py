@@ -1,38 +1,27 @@
 import shutil
 import os
-import subprocess
 import tempfile
 import time
 
-from django.conf import settings
+from PIL import Image
+
+from django.db.models import Q
 from django.template.defaultfilters import filesizeformat
 
 from peterbecom.base.basecommand import BaseCommand
 from peterbecom.podcasttime.models import Podcast
 
 
-def check_output(cmd):
-    pipes = subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    )
-    std_out, std_err = pipes.communicate()
-    if pipes.returncode != 0:
-        # an error happened!
-        err_msg = '%s. Code: %s' % (std_err.strip(), pipes.returncode)
-        raise Exception(err_msg)
-    return std_out.strip()
-
-
 class Command(BaseCommand):
 
     def add_arguments(self, parser):
-        parser.add_argument('--limit', default=1000)
+        parser.add_argument('--limit', default=100)
 
     def _handle(self, **options):
         limit = int(options['limit'])
-        qs = Podcast.objects.filter(image__iendswith='.jpg')
+        qs = Podcast.objects.filter(
+            Q(image__iendswith='.jpg') | Q(image__iendswith='.png')
+        )
         savings = []
         times = []
         skips = 0
@@ -43,50 +32,51 @@ class Command(BaseCommand):
             except ValueError:
                 continue
             if not os.path.isfile(path):
-                print('Not a file', path)
+                print("Not a file", path)
                 continue
-            log_file = path + '.mozjpeged'
+            log_file = path + '.pillow'
             if os.path.isfile(log_file):
                 skips += 1
                 continue
             ext = os.path.splitext(path)[1]
             if not ext:
                 continue
-            if ext not in ('.jpg', '.jpeg'):
-                # print('Unrecognized extension {!r}'.format(ext))
+            if ext not in ('.jpg', '.jpeg', '.png'):
+                self.warning('Unrecognized extension {!r}'.format(ext))
                 continue
 
             if not os.path.isfile(path):
-                print('Completely missing image path', path)
+                self.warning("Completely missing image path", path)
                 podcast.image = None
                 podcast.save()
                 continue
             if not os.stat(path).st_size:
-                print('Completely empty image', path)
+                self.warning("Completely empty image", path)
                 os.remove(path)
                 podcast.image = None
                 podcast.save()
                 continue
 
-            tmp_path = os.path.join(tmp_dir, os.path.basename(path))
-            # print(path)
-            cmd = [
-                settings.MOZJPEG_PATH,
-                '-optimize',
-                '-outfile', tmp_path,
-                path,
-            ]
+            was_png = path.lower().endswith('.png')
+            split = os.path.splitext(os.path.basename(path))
+            if was_png:
+                tmp_path = os.path.join(tmp_dir, split[0] + '.jpg')
+            else:
+                tmp_path = os.path.join(tmp_dir, split[0] + '.png')
+
+            print('From {} to {}'.format(
+                os.path.basename(path),
+                os.path.basename(tmp_path),
+            ))
             t0 = time.time()
-            try:
-                out = check_output(cmd)
-            except Exception as exception:
-                if 'Not a JPEG file' in str(exception):
-                    continue
-                else:
-                    raise
-            if out:
-                self.warning(out)
+            img = Image.open(path)
+            if was_png:
+                img = img.convert('RGB')
+                img.save(tmp_path, 'JPEG', quality=90, optimize=True)
+            else:
+                img.save(tmp_path, quality=90, optimize=True)
             t1 = time.time()
+
             size_before = os.stat(path).st_size
             size_after = os.stat(tmp_path).st_size
             if size_after < size_before:
@@ -99,16 +89,18 @@ class Command(BaseCommand):
                         filesizeformat(size_after - size_before),
                     )
                 )
-                self.out(path)
-                self.out(msg)
+                self.out('{} {}'.format(
+                    path,
+                    msg,
+                ))
                 f.write(msg)
             if size_after < size_before:
                 savings.append(size_before - size_after)
             times.append(t1 - t0)
         if savings:
-            self.out('SUM savings:', filesizeformat(sum(savings)))
+            self.out("SUM savings:", filesizeformat(sum(savings)))
             avg = sum(savings) / len(savings)
-            self.out('AVG savings:', filesizeformat(avg))
+            self.out("AVG savings:", filesizeformat(avg))
             self.out('SUM times:', sum(times))
             avg_time = sum(times) / len(times)
             self.out('AVG times:', avg_time)

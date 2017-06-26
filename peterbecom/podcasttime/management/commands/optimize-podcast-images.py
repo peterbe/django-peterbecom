@@ -18,8 +18,8 @@ class Command(BaseCommand):
 
     def _handle(self, **options):
         limit = int(options['limit'])
-        qs = Podcast.objects.exclude(
-            Q(image='') | Q(image__isnull=True)
+        qs = Podcast.objects.filter(
+            Q(image__iendswith='.jpg') | Q(image__iendswith='.png')
         )
         self.out('Podcasts possible: {}'.format(qs.count()))
         iterator = qs.order_by('?')[:limit]
