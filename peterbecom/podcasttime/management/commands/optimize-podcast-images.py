@@ -21,11 +21,11 @@ class Command(BaseCommand):
         qs = Podcast.objects.exclude(
             Q(image='') | Q(image__isnull=True)
         )
-        # self.out('Podcasts possible: {}'.format(qs.count()))
+        self.out('Podcasts possible: {}'.format(qs.count()))
         iterator = qs.order_by('?')[:limit]
         with tempfile.TemporaryDirectory() as tmp_directory:
             self._process(tmp_directory, iterator)
-        # self.out('Podcasts left: {}'.format(qs.count()))
+        self.out('Podcasts left: {}'.format(qs.count()))
 
     @staticmethod
     def _basename(fullpath):
