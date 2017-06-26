@@ -49,7 +49,7 @@ class Command(BaseCommand):
         for ext in savings:
             print(ext)
             length = len(savings[ext])
-            print('\t', length, 'times')
+            print('\t', format(length, ','), 'times')
             sum_ = sum(savings[ext])
             print('\t', filesizeformat(sum_), 'total')
             print('\t', filesizeformat(sum_ / length), 'average')
