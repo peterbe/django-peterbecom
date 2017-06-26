@@ -92,6 +92,8 @@ class Command(BaseCommand):
                     f.write('skipped because it got larger (Code 98)')
                 continue
             except Exception as exception:
+                if 'Not a PNG file' in str(exception):
+                    continue
                 print(repr(exception))
                 print(dir(exception))
                 print('COMMAND USED: {}'.format(' '.join(cmd)))
