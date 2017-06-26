@@ -34,7 +34,7 @@ def check_output(cmd):
 class Command(BaseCommand):
 
     def add_arguments(self, parser):
-        parser.add_argument('--limit', default=10)
+        parser.add_argument('--limit', default=1000)
 
     def _handle(self, **options):
         limit = int(options['limit'])
