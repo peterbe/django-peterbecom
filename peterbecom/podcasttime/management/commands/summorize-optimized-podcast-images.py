@@ -1,5 +1,6 @@
 import re
 import os
+import time
 
 from django.conf import settings
 from django.db.models import Q
@@ -24,6 +25,7 @@ class Command(BaseCommand):
             os.path.abspath(os.path.join(settings.MEDIA_ROOT, 'podcasts')),
         )
         savings = {}
+        most_recent = {}
         for logfile in all_log_files:
             _, ext = os.path.splitext(logfile)
             parser = self.parsers[ext]
@@ -38,6 +40,11 @@ class Command(BaseCommand):
                 if saved is not None and saved > 0:
                     savings[ext].append(saved)
 
+                    previous = most_recent.get(ext)
+                    this_one = os.stat(logfile).st_mtime
+                    if previous is None or this_one > previous:
+                        most_recent[ext] = this_one
+
         qs = Podcast.objects.filter(
             Q(image__iendswith='.jpg') | Q(image__iendswith='.png')
         )
@@ -45,14 +52,27 @@ class Command(BaseCommand):
             format(qs.count(), ','),
             'total Podcast images'
         )
-
+        total = 0
         for ext in savings:
             print(ext)
             length = len(savings[ext])
             print('\t', format(length, ','), 'times')
             sum_ = sum(savings[ext])
+            total += sum_
             print('\t', filesizeformat(sum_), 'total')
             print('\t', filesizeformat(sum_ / length), 'average')
+            age = time.time() - most_recent[ext]
+            if age > 60 * 60 * 24:
+                age = '{:.1f} days'.format(age / (3600 * 24))
+            elif age > 60 * 60:
+                age = '{:.1f} hours'.format(age / 3600)
+            elif age > 60:
+                age = '{:.1f} minutes'.format(age / 60)
+            else:
+                age = '{:.1f} seconds'.format(age)
+            print('\t', 'most recent', age, 'ago')
+
+        print('\nIN TOTAL... {}\n'.format(filesizeformat(total)))
 
     @staticmethod
     def _parse_filesize(number, unit):
@@ -61,6 +81,8 @@ class Command(BaseCommand):
             number *= 1024
         elif unit == 'MB':
             number *= 1024 * 1024
+        elif unit == 'bytes':
+            pass
         else:
             raise NotImplementedError(unit)
         return number

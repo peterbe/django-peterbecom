@@ -55,7 +55,7 @@ class Command(BaseCommand):
             if os.path.isfile(log_file):
                 skips += 1
                 continue
-            ext = os.path.splitext(path)[1]
+            ext = os.path.splitext(path)[1].lower()
             if not ext:
                 continue
             if ext not in ('.png',):

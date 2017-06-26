@@ -74,7 +74,15 @@ class Command(BaseCommand):
                 img = img.convert('RGB')
                 img.save(tmp_path, 'JPEG', quality=90, optimize=True)
             else:
-                img.save(tmp_path, quality=90, optimize=True)
+                try:
+                    img.save(tmp_path, quality=90, optimize=True)
+                except OSError as exception:
+                    if 'cannot write mode CMYK as PNG' in str(exception):
+                        self.notice('OSError on PNG conversion {}'.format(
+                            path,
+                        ))
+                        continue
+                    raise
             t1 = time.time()
 
             size_before = os.stat(path).st_size
