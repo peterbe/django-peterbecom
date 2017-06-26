@@ -27,11 +27,11 @@ class Command(BaseCommand):
         for podcast in iterator:
             try:
                 path = podcast.image.path
+            except ValueError:
                 self.warning("{!r} doesn't have an image ({!r})".format(
                     podcast,
                     podcast.image,
                 ))
-            except ValueError:
                 continue
             if not os.path.isfile(path):
                 self.warning("Not a file", path)
