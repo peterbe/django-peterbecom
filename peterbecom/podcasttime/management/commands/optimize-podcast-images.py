@@ -4,6 +4,7 @@ import tempfile
 from PIL import Image
 
 from django.conf import settings
+from django.db.models import Q
 from django.template.defaultfilters import filesizeformat
 
 from peterbecom.base.basecommand import BaseCommand
@@ -17,10 +18,14 @@ class Command(BaseCommand):
 
     def _handle(self, **options):
         limit = int(options['limit'])
-        qs = Podcast.objects.filter(image__isnull=False)
+        qs = Podcast.objects.exclude(
+            Q(image='') | Q(image__isnull=True)
+        )
+        # self.out('Podcasts possible: {}'.format(qs.count()))
         iterator = qs.order_by('?')[:limit]
         with tempfile.TemporaryDirectory() as tmp_directory:
             self._process(tmp_directory, iterator)
+        # self.out('Podcasts left: {}'.format(qs.count()))
 
     @staticmethod
     def _basename(fullpath):
