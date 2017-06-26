@@ -3,6 +3,7 @@ import tempfile
 
 from PIL import Image
 
+from django.conf import settings
 from django.template.defaultfilters import filesizeformat
 
 from peterbecom.base.basecommand import BaseCommand
@@ -21,6 +22,11 @@ class Command(BaseCommand):
         with tempfile.TemporaryDirectory() as tmp_directory:
             self._process(tmp_directory, iterator)
 
+    @staticmethod
+    def _basename(fullpath):
+        path = fullpath.replace(settings.STATIC_ROOT, '')
+        return path
+
     def _process(self, tmp_directory, iterator):
         savings = []
         skips = 0
@@ -38,27 +44,29 @@ class Command(BaseCommand):
                 podcast.save()
                 continue
             if not os.path.isfile(path):
-                self.warning("Not a file", path)
+                self.warning("Not a file", self._basename(path))
                 continue
             log_file = path + '.optimized'
             if os.path.isfile(log_file):
                 skips += 1
                 with open(log_file) as f:
-                    self.out('{} ({}) was already optimized ({})'.format(
-                        path,
+                    self.out('{} ({}) was already optimized [{}]'.format(
+                        self._basename(path),
                         filesizeformat(os.stat(path).st_size),
-                        f.read(),
+                        f.read().strip(),
                     ))
                 continue
             else:
                 self.out('Opening {} ({})'.format(
-                    path,
+                    self._basename(path),
                     filesizeformat(os.stat(path).st_size),
                 ))
             try:
                 img = Image.open(path)
             except OSError:
-                self.warning("Completely broken image", path)
+                self.warning("Completely broken image {}".format(
+                    self._basename(path)
+                ))
                 os.remove(path)
                 podcast.image = None
                 podcast.save()
@@ -86,13 +94,12 @@ class Command(BaseCommand):
                 self.out('Saving {}'.format(tmp_path))
                 img.save(tmp_path, **options)
                 size_after = os.stat(tmp_path).st_size
-                if size_after > size_before:
+                if size_after >= size_before:
                     self.notice(
-                        '{} became larger after save'.format(
-                            path,
+                        '{} >= after save'.format(
+                            self._basename(path),
                         )
                     )
-
                 else:
                     # Swap the old one for the new one
                     os.rename(tmp_path, path)
@@ -106,10 +113,11 @@ class Command(BaseCommand):
                             format(size_after, ','),
                         )
                     )
-                savings.append(size_before - size_after)
+                if size_after < size_before:
+                    savings.append(size_before - size_after)
             else:
                 self.out('{} too little ({}x{})'.format(
-                    path, w, h,
+                    self._basename(path), w, h,
                 ))
 
         if savings:
