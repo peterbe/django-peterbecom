@@ -29,8 +29,7 @@ class Command(BaseCommand):
 
     @staticmethod
     def _basename(fullpath):
-        path = fullpath.replace(settings.STATIC_ROOT, '')
-        return path
+        return fullpath.replace(settings.MEDIA_ROOT, '')
 
     def _process(self, tmp_directory, iterator):
         savings = []
