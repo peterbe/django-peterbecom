@@ -11,8 +11,12 @@ from peterbecom.base.basecommand import BaseCommand
 from peterbecom.podcasttime.models import Podcast
 
 
-class SkipIfLargerException(Exception):
+class SkipIfLargerError(Exception):
     """happens when you get code 89 from pngquant"""
+
+
+class CannotDecodeImageError(Exception):
+    """happens when you get strange libpng errors"""
 
 
 def check_output(cmd):
@@ -23,7 +27,9 @@ def check_output(cmd):
     )
     std_out, std_err = pipes.communicate()
     if pipes.returncode == 98:
-        raise SkipIfLargerException
+        raise SkipIfLargerError
+    if pipes.returncode == 25:
+        raise CannotDecodeImageError
     if pipes.returncode != 0:
         # an error happened!
         err_msg = '%s. Code: %s' % (std_err.strip(), pipes.returncode)
@@ -86,10 +92,14 @@ class Command(BaseCommand):
             t0 = time.time()
             try:
                 out = check_output(cmd)
-            except SkipIfLargerException:
-                self.notice('SkipIfLargerException happend')
+            except (SkipIfLargerError, CannotDecodeImageError) as exception:
+                self.notice(
+                    '{} happend'.format(exception)
+                )
                 with open(log_file, 'w') as f:
-                    f.write('skipped because it got larger (Code 98)')
+                    f.write('skipped because it got larger ({})'.format(
+                        exception,
+                    ))
                 continue
             except Exception as exception:
                 if 'Not a PNG file' in str(exception):
