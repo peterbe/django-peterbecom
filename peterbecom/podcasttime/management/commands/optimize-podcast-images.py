@@ -104,6 +104,7 @@ class Command(BaseCommand):
                             self._basename(path),
                         )
                     )
+                    os.remove(tmp_path)
                 else:
                     # Swap the old one for the new one
                     os.rename(tmp_path, path)

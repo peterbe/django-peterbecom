@@ -27,11 +27,10 @@ def check_output(cmd):
     )
     std_out, std_err = pipes.communicate()
     if pipes.returncode == 98:
-        raise SkipIfLargerError
+        raise SkipIfLargerError(std_out)
     if pipes.returncode == 25:
-        raise CannotDecodeImageError
+        raise CannotDecodeImageError(std_out)
     if pipes.returncode != 0:
-        # an error happened!
         err_msg = '%s. Code: %s' % (std_err.strip(), pipes.returncode)
         raise Exception(err_msg)
     return std_out.strip()
@@ -94,7 +93,10 @@ class Command(BaseCommand):
                 out = check_output(cmd)
             except (SkipIfLargerError, CannotDecodeImageError) as exception:
                 self.notice(
-                    '{} happend'.format(exception)
+                    '{} {} happend'.format(
+                        exception.__class__.__name__,
+                        exception,
+                    )
                 )
                 with open(log_file, 'w') as f:
                     f.write('skipped because it got larger ({})'.format(
@@ -116,6 +118,8 @@ class Command(BaseCommand):
             size_after = os.stat(tmp_path).st_size
             if size_after < size_before:
                 shutil.move(tmp_path, path)
+            else:
+                os.remove(tmp_path)
             with open(log_file, 'w') as f:
                 msg = (
                     'From {} to {} ({})\n'.format(

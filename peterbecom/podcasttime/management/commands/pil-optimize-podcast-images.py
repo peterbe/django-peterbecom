@@ -89,6 +89,8 @@ class Command(BaseCommand):
             size_after = os.stat(tmp_path).st_size
             if size_after < size_before:
                 shutil.move(tmp_path, path)
+            else:
+                os.remove(tmp_path)
             with open(log_file, 'w') as f:
                 msg = (
                     'From {} to {} ({})\n'.format(
