@@ -12,6 +12,12 @@ from peterbecom.base.basecommand import BaseCommand
 from peterbecom.podcasttime.models import Podcast
 
 
+class YUVColorError(Exception):
+    """When you get the
+    'Only YUV color space input jpeg is supported\nGuetzli processing failed'
+    error."""
+
+
 def check_output(cmd):
     pipes = subprocess.Popen(
         cmd,
@@ -19,6 +25,9 @@ def check_output(cmd):
         stderr=subprocess.PIPE
     )
     std_out, std_err = pipes.communicate()
+    if pipes.returncode == 1:
+        err_msg = "%s. Code: %s" % (std_err.strip(), pipes.returncode)
+        raise YUVColorError(err_msg)
     if pipes.returncode != 0:
         # an error happened!
         err_msg = "%s. Code: %s" % (std_err.strip(), pipes.returncode)
@@ -82,8 +91,14 @@ class Command(BaseCommand):
                 t0 = time.time()
                 try:
                     out = check_output(cmd)
-                except Exception as exception:
-                    raise
+                except YUVColorError as exception:
+                    self.notice(exception)
+                    with open(log_file, 'w') as f:
+                        f.write('{} ({})'.format(
+                            exception.__class__.__name__,
+                            exception,
+                        ))
+                    continue
                 if out:
                     self.warning(out)
                 t1 = time.time()

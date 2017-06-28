@@ -112,7 +112,7 @@ class Command(BaseCommand):
         return before - after
 
     def _pngquanted(self, content):
-        if 'skipped because it got larger (Code 98)' in content:
+        if content.startswith('skipped because it got larger'):
             return
         # print(repr(content))
         found = re.findall(
@@ -139,6 +139,7 @@ class Command(BaseCommand):
         return before - after
 
     def _guetzlied(self, content):
+        # print(repr(content))
         try:
             found = re.findall(
                 'From ([\d\.]+)\s+(\w+) to ([\d\.]+)\s+(\w+)',
