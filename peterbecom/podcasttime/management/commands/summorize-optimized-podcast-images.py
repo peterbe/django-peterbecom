@@ -139,6 +139,8 @@ class Command(BaseCommand):
         return before - after
 
     def _guetzlied(self, content):
+        if content.startswith('YUVColorError'):
+            return
         # print(repr(content))
         try:
             found = re.findall(
