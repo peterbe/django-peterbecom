@@ -31,6 +31,7 @@ from peterbecom.podcasttime.tasks import (
     redownload_podcast_image,
     fetch_itunes_lookup,
     download_podcast_metadata,
+    search_by_itunes,
 )
 
 
@@ -196,6 +197,9 @@ def find(request):
                     # this will force the client-side to re-query for this
                     podcast['last_fetch'] = None
             found.append(podcast)
+        if total < 5:
+            print("NOTHING FOUND!", q, 'SENDING IT TO iTUNES')
+            search_by_itunes.delay(q)
 
     if total is None:
         total = len(found)

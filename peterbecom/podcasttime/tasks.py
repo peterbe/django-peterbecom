@@ -1,5 +1,6 @@
 from __future__ import absolute_import, unicode_literals
 from celery import shared_task
+from requests.exceptions import ReadTimeout, ConnectTimeout
 
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
 from peterbecom.podcasttime.models import Podcast, PodcastError
@@ -57,15 +58,14 @@ def redownload_podcast_image(podcast_id):
 @shared_task
 def fetch_itunes_lookup(podcast_id):
     podcast = Podcast.objects.get(id=podcast_id)
-    print("Fetching itunes lookup", repr(podcast.name))
+    print("Fetching itunes lookup: {!r}".format(podcast.name))
     results = itunes_search(podcast.name)
     if results['resultCount'] == 1:
         lookup = results['results'][0]
         podcast.itunes_lookup = lookup
         podcast.save()
     else:
-        print("Found", results['resultCount'], 'results')
-        print(results['resultCount'])
+        print("Found {} results".format(results['resultCount']))
 
 
 @shared_task
@@ -82,3 +82,41 @@ def download_podcast_metadata(podcast_id):
         if metadata.get('summary'):
             podcast.summary = metadata['summary']
         podcast.save()
+
+
+@shared_task
+def search_by_itunes(q):
+    try:
+        print("ITUNES SEARCHING {!r}".format(q))
+        results = itunes_search(
+            q,
+            attribute='titleTerm',
+            timeout=6,
+        )['results']
+    except (ReadTimeout, ConnectTimeout):
+        results = []
+    print("FOUND {}".format(len(results)))
+
+    count_new = 0
+    for result in results[:10]:
+        try:
+            podcast = Podcast.objects.get(
+                url=result['feedUrl'],
+                name=result['collectionName']
+            )
+        except Podcast.DoesNotExist:
+            assert result['collectionName'], result
+            podcast = Podcast.objects.create(
+                name=result['collectionName'],
+                url=result['feedUrl'],
+                itunes_lookup=result,
+                image_url=result['artworkUrl600'],
+            )
+            try:
+                podcast.download_image(timeout=3)
+            except (ReadTimeout, ConnectTimeout):
+                redownload_podcast_image(podcast.id)
+            download_episodes_task.delay(podcast.id)
+            count_new += 1
+
+    print('Found {} new podcasts by iTunes search'.format(count_new))
