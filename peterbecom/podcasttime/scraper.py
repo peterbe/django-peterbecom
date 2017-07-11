@@ -517,15 +517,10 @@ def _scrape_show(url):
 
 def fix_podcast_images(max_, verbose=False):
     podcasts = Podcast.objects.filter(
-        image__isnull=True,
+        image='',
         image_url__isnull=False,
         itunes_lookup__isnull=False,
     )
 
     for podcast in podcasts.order_by('?')[:max_]:
-        print(repr(podcast.name))
-        print(podcast.image)
-        print(podcast.image_url)
-        print(podcast.itunes_lookup['artworkUrl600'])
-        print()
-        raise NotImplementedError
+        podcast.download_image()

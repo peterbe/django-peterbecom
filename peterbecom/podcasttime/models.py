@@ -6,6 +6,8 @@ import traceback
 import unicodedata
 # import time
 
+from requests.exceptions import TooManyRedirects, ConnectionError
+
 from django.db import models
 from django.db.models import Max, Sum
 from django.core.files import File
@@ -30,6 +32,10 @@ from peterbecom.podcasttime.search import PodcastDoc
 
 class NotAnImageError(Exception):
     """when you try to download an image and it's not actually an image"""
+
+
+class ImageNotFoundError(Exception):
+    """when the image URL you're trying to download can't be found"""
 
 
 def _upload_path_tagged(tag, instance, filename):
@@ -150,14 +156,47 @@ class Podcast(models.Model):
     def get_thumbnail_url(self, *args, **kwargs):
         return self.get_thumbnail(*args, **kwargs).url
 
-    def download_image(self, timeout=20):
-        print("Downloading", repr(self.image_url))
+    def download_image(self, timeout=20, image_url=None):
+        image_url = image_url or self.image_url
+        print("Downloading", repr(image_url))
         img_temp = NamedTemporaryFile(delete=True)
-        r = realistic_request(self.image_url, timeout=timeout)
+        try:
+            r = realistic_request(image_url, timeout=timeout)
+        except (TooManyRedirects, ConnectionError) as exception:
+            if self.itunes_lookup and self.itunes_lookup.get('artworkUrl600'):
+                return self.download_image(
+                    timeout=timeout,
+                    image_url=self.itunes_lookup['artworkUrl600']
+                )
+            else:
+                raise
+        if r.status_code != 200:
+            # try the itunes metadata
+            if (
+                self.itunes_lookup and
+                self.itunes_lookup.get('artworkUrl600') and
+                self.itunes_lookup.get('artworkUrl600') != image_url
+            ):
+                image_url = self.itunes_lookup['artworkUrl600']
+                r = realistic_request(image_url, timeout=timeout)
+                print("Instead, downloading", image_url)
+            else:
+                raise ImageNotFoundError(image_url)
         assert r.status_code == 200, r.status_code
         try:
             if r.headers['content-type'] == 'text/html':
-                raise NotAnImageError('%s is not an image' % self.image_url)
+                if (
+                    self.itunes_lookup and
+                    self.itunes_lookup.get('artworkUrl600') and
+                    self.itunes_lookup.get('artworkUrl600') != image_url
+                ):
+                    image_url = self.itunes_lookup['artworkUrl600']
+                    self.download_image(
+                        timeout=timeout,
+                        image_url=image_url,
+                    )
+                else:
+                    raise NotAnImageError('%s is not an image' % image_url)
             print('Content-Type', r.headers['content-type'])
         except KeyError:
             pass
