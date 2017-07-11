@@ -142,6 +142,8 @@ class Podcast(models.Model):
                     crop='center',
                 )
             except OSError:
+                if self.image.path:
+                    raise
                 print("{!r} lacks a valid image".format(self))
         return doc
 
@@ -158,6 +160,8 @@ class Podcast(models.Model):
 
     def download_image(self, timeout=20, image_url=None):
         image_url = image_url or self.image_url
+        if image_url.startswith('http:https://'):
+            image_url = image_url[5:]
         print("Downloading", repr(image_url))
         img_temp = NamedTemporaryFile(delete=True)
         try:

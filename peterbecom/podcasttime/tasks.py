@@ -67,11 +67,21 @@ def fetch_itunes_lookup(podcast_id):
     elif results['resultCount'] > 1:
         # Pick the first one if it's a slam dunk
         lookup = results['results'][0]
-        if podcast.name == lookup['collectionName']:
+        if podcast.name.lower() == lookup['collectionName'].lower():
+            podcast.itunes_lookup = lookup
+            podcast.save()
+        elif podcast.url in [x['feedUrl'] for x in results['results']]:
+            lookup = [
+                x for x in results['results']
+                if x['feedUrl'] == podcast.url
+            ][0]
             podcast.itunes_lookup = lookup
             podcast.save()
         else:
-            print("Too ambiguous")
+            print("Too ambiguous ({!r} != {!r}, {!r} != {!r})".format(
+                podcast.name, lookup['collectionName'],
+                podcast.url, lookup['feedUrl'],
+            ))
     else:
         print("Found no results")
 
