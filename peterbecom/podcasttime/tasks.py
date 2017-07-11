@@ -64,8 +64,16 @@ def fetch_itunes_lookup(podcast_id):
         lookup = results['results'][0]
         podcast.itunes_lookup = lookup
         podcast.save()
+    elif results['resultCount'] > 1:
+        # Pick the first one if it's a slam dunk
+        lookup = results['results'][0]
+        if podcast.name == lookup['collectionName']:
+            podcast.itunes_lookup = lookup
+            podcast.save()
+        else:
+            print("Too ambiguous")
     else:
-        print("Found {} results".format(results['resultCount']))
+        print("Found no results")
 
 
 @shared_task

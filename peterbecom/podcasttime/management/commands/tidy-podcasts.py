@@ -1,5 +1,6 @@
 import codecs
 import datetime
+import time
 
 import ftfy
 
@@ -8,6 +9,7 @@ from django.utils import timezone
 
 from peterbecom.base.basecommand import BaseCommand
 from peterbecom.podcasttime.models import Podcast, Picked
+from peterbecom.podcasttime.tasks import fetch_itunes_lookup
 
 
 def fix_encoding(s):
@@ -58,3 +60,16 @@ class Command(BaseCommand):
                     continue
                 podcast.name = better
                 podcast.save()
+
+        podcasts = Podcast.objects.filter(
+            image='',
+            image_url__isnull=False,
+            itunes_lookup__isnull=True,
+        )
+        print('{} podcasts without image and without itunes_lookup'.format(
+            podcasts.count(),
+        ))
+        for podcast in podcasts.order_by('?')[:10]:
+            print("Fetching itunes lookup for", repr(podcast))
+            fetch_itunes_lookup.delay(podcast.id)
+            time.sleep(4)

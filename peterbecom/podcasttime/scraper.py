@@ -4,6 +4,7 @@ import datetime
 import random
 from urllib.parse import urljoin, urlparse
 from xml.parsers.expat import ExpatError
+from json.decoder import JSONDecodeError
 
 import requests
 from requests.exceptions import ConnectionError, ReadTimeout
@@ -52,6 +53,7 @@ def itunes_lookup(itunes_id):
 
 def itunes_search(term, **options):
     timeout = options.pop('timeout', None)
+    retry = options.pop('retry', False)
     options.update({'term': term, 'entity': 'podcast'})
     url = 'https://itunes.apple.com/search'
     response = requests_retry_session().get(
@@ -59,7 +61,18 @@ def itunes_search(term, **options):
         params=options,
         timeout=timeout,
     )
-    return response.json()
+    if response.status_code == 403:
+        # most certainly rate limited
+        if not retry:
+            time.sleep(5)
+            options['retry'] = True
+            return itunes_search(term, **options)
+    assert response.status_code == 200, response.status_code
+    try:
+        return response.json()
+    except JSONDecodeError:
+        print(response.content)
+        raise
 
 
 def download_some_episodes(max_=5, verbose=False, timeout=10):
@@ -521,6 +534,5 @@ def fix_podcast_images(max_, verbose=False):
         image_url__isnull=False,
         itunes_lookup__isnull=False,
     )
-
     for podcast in podcasts.order_by('?')[:max_]:
         podcast.download_image()
