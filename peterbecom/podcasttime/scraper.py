@@ -81,10 +81,22 @@ def download_some_episodes(max_=5, verbose=False, timeout=10):
         subcount=Count('episode')
     ).filter(subcount=0)
 
+    def download_episodes_wrap(podcast, timeout):
+        acceptable_exceptions = (
+            BadPodcastEntry,
+        )
+        try:
+            download_episodes(podcast, timeout=timeout)
+        except acceptable_exceptions as exception:
+            print('Download episodes error {!r}: {}'.format(
+                podcast,
+                exception,
+            ))
+
     for podcast in podcasts.order_by('?')[:max_]:
         if verbose:
             print((podcast.name, podcast.last_fetch))
-        download_episodes(podcast, timeout=timeout)
+        download_episodes_wrap(podcast, timeout=timeout)
 
     # secondly, do those whose episodes have never been fetched
     podcasts = Podcast.objects.filter(
@@ -94,7 +106,7 @@ def download_some_episodes(max_=5, verbose=False, timeout=10):
     for podcast in podcasts[:max_]:
         if verbose:
             print((podcast.name, podcast.last_fetch))
-        download_episodes(podcast, timeout=timeout)
+        download_episodes_wrap(podcast, timeout=timeout)
 
     # randomly do some of the old ones
     then = timezone.now() - datetime.timedelta(days=7)
@@ -105,7 +117,7 @@ def download_some_episodes(max_=5, verbose=False, timeout=10):
     for podcast in podcasts[:max_]:
         if verbose:
             print((podcast.name, podcast.last_fetch))
-        download_episodes(podcast, timeout=timeout)
+        download_episodes_wrap(podcast, timeout=timeout)
 
 
 def download_episodes(podcast, verbose=True, timeout=10):
