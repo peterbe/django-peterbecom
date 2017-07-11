@@ -70,7 +70,7 @@ def download_some_episodes(max_=5, verbose=False, timeout=10):
 
     for podcast in podcasts.order_by('?')[:max_]:
         if verbose:
-            print(podcast.name, podcast.last_fetch)
+            print((podcast.name, podcast.last_fetch))
         download_episodes(podcast, timeout=timeout)
 
     # secondly, do those whose episodes have never been fetched
@@ -80,7 +80,7 @@ def download_some_episodes(max_=5, verbose=False, timeout=10):
     ).order_by('?')
     for podcast in podcasts[:max_]:
         if verbose:
-            print(podcast.name, podcast.last_fetch)
+            print((podcast.name, podcast.last_fetch))
         download_episodes(podcast, timeout=timeout)
 
     # randomly do some of the old ones
@@ -91,7 +91,7 @@ def download_some_episodes(max_=5, verbose=False, timeout=10):
     ).order_by('?')
     for podcast in podcasts[:max_]:
         if verbose:
-            print(podcast.name, podcast.last_fetch)
+            print((podcast.name, podcast.last_fetch))
         download_episodes(podcast, timeout=timeout)
 
 
@@ -223,18 +223,18 @@ def _download_episodes(podcast, verbose=True, timeout=10):
                     ).hexdigest()
                 # raise
         try:
-            ep = Episode.objects.get(
+            Episode.objects.get(
                 podcast=podcast,
                 guid=guid
             )
-            if ep.duration != duration:
-                print("DURATION CHANGED!!!")
-            else:
-                print("Duration unchanged")
-            if ep.published != published:
-                print("PUBLISHED CHANGED!!!")
-            else:
-                print("Published unchanged")
+            # if ep.duration != duration:
+            #     print("DURATION CHANGED!!!")
+            # else:
+            #     print("Duration unchanged")
+            # if ep.published != published:
+            #     print("PUBLISHED CHANGED!!!")
+            # else:
+            #     print("Published unchanged")
         except Episode.DoesNotExist:
             pass
 
@@ -255,7 +255,7 @@ def _download_episodes(podcast, verbose=True, timeout=10):
 
             try:
                 episode.save()
-                print("SAVED")
+                # print("SAVED")
             except DataError:
                 print("FROM", podcast.url)
                 print("ENTRY")
@@ -274,12 +274,12 @@ def _download_episodes(podcast, verbose=True, timeout=10):
                 summary=summary,
             )
             print("CREATED episode")
-        print(
+        print((
             episode.podcast.name,
             episode.guid,
             episode.duration,
             episode.published
-        )
+        ))
     print("SETTING last_fetch ON {!r}".format(podcast))
     latest_episode = Episode.objects.filter(podcast=podcast).aggregate(
         latest=Max('published')
@@ -298,7 +298,7 @@ def find_podcasts(url, verbose=False, depth=0, tested_urls=None):
     hash_ = hashlib.md5(
         get_base_url(url).encode('utf-8')
     ).hexdigest()
-    print(url, hash_, depth)
+    print((url, hash_, depth))
     if tested_urls is None:
         tested_urls = []  # a mutable
     if hash_ == '73eb773086aa7f75654f4a2d25ca315b':
