@@ -50,29 +50,38 @@ var Thumbnails = (function() {
       $.ajax('/plog/thumbnails/' + oid, {
         success: function(response) {
           //  $('#thumbnails-side .inner').html(response);
-          var img_tag_small, img_tag_small_html, ahref_tag_small, ahref_tag_small_html;
-          var img_tag_big, img_tag_big_html, ahref_tag_big, ahref_tag_big_html;
           $.each(response.images, function(i, image) {
-            img_tag_small = $('<img>')
+            var img_tag_small = $('<img>')
               .attr('src', image.small.url)
               .attr('alt', image.small.alt)
               .attr('width', image.small.width)
               .attr('height', image.small.height);
-            img_tag_small_html = outerHTML(img_tag_small);
-            ahref_tag_small = $('<a>')
+            var img_tag_small_html = outerHTML(img_tag_small);
+            var ahref_tag_small = $('<a>')
               .attr('href', image.full_url)
               .append(img_tag_small.addClass('floatright'));
-            ahref_tag_small_html = outerHTML(ahref_tag_small);
-            img_tag_big = $('<img>')
+            var ahref_tag_small_html = outerHTML(ahref_tag_small);
+            var img_tag_big = $('<img>')
               .attr('src', image.big.url)
               .attr('alt', image.big.alt)
               .attr('width', image.big.width)
               .attr('height', image.big.height);
-            img_tag_big_html = outerHTML(img_tag_big);
-            ahref_tag_big = $('<a>')
+            var img_tag_big_html = outerHTML(img_tag_big);
+            var ahref_tag_big = $('<a>')
               .attr('href', image.full_url)
               .append(img_tag_big.addClass('floatright'));
-            ahref_tag_big_html = outerHTML(ahref_tag_big);
+            var ahref_tag_big_html = outerHTML(ahref_tag_big);
+            var img_tag_bigger = $('<img>')
+              .attr('src', image.bigger.url)
+              .attr('alt', image.bigger.alt)
+              .attr('width', image.bigger.width)
+              .attr('height', image.bigger.height);
+            var img_tag_bigger_html = outerHTML(img_tag_bigger);
+            var ahref_tag_bigger = $('<a>')
+              .attr('href', image.full_url)
+              .append(img_tag_bigger.addClass('floatright'));
+            var ahref_tag_bigger_html = outerHTML(ahref_tag_bigger);
+
             $('<div>').addClass('thumbnail-wrapper')
             .append(
               $('<a>')
@@ -138,6 +147,34 @@ var Thumbnails = (function() {
             .append(
               $('<input>')
                 .val(ahref_tag_big_html)
+            )
+            .append(
+              $('<img>')
+                .attr('src', image.bigger.url)
+                .attr('alt', image.bigger.alt)
+                .attr('width', image.bigger.width)
+                .attr('height', image.bigger.height)
+            )
+            .append($('<br>'))
+            .append(
+              $('<span>')
+                .text('(' + image.bigger.width + ',' + image.bigger.height + ')')
+            )
+            .append($('<br>'))
+            .append(
+              $('<input>')
+                .attr('title', 'Full size 1000x1000')
+                .val(image.bigger.url)
+            )
+            .append($('<br>'))
+            .append(
+              $('<input>')
+                .val(img_tag_bigger_html)
+            )
+            .append($('<br>'))
+            .append(
+              $('<input>')
+                .val(ahref_tag_bigger_html)
             )
             .appendTo($('#thumbnails-side .inner'));
           });

@@ -729,7 +729,12 @@ def post_thumbnails(request, oid):
             'full_url': full_url,
             'delete_url': delete_url,
         }
-        for key, geometry in (('small', '120x120'), ('big', '230x230')):
+        formats = (
+            ('small', '120x120'),
+            ('big', '230x230'),
+            ('bigger', '380x380'),
+        )
+        for key, geometry in formats:
             im = thumbnail(
                 blogfile.file,
                 geometry,
