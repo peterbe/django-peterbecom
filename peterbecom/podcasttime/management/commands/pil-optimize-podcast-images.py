@@ -71,7 +71,13 @@ class Command(BaseCommand):
             t0 = time.time()
             img = Image.open(path)
             if was_png:
-                img = img.convert('RGB')
+                try:
+                    img = img.convert('RGB')
+                except OSError as exception:
+                    self.error('OSError when converting {} to RGB ({})'.format(
+                        path,
+                        exception,
+                    ))
                 img.save(tmp_path, 'JPEG', quality=90, optimize=True)
             else:
                 try:

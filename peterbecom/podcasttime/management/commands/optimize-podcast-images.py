@@ -96,7 +96,14 @@ class Command(BaseCommand):
                 size_before = os.stat(path).st_size
                 tmp_path = os.path.join(tmp_directory, os.path.basename(path))
                 self.out('Saving {}'.format(tmp_path))
-                img.save(tmp_path, **options)
+                try:
+                    img.save(tmp_path, **options)
+                except OSError as exception:
+                    self.error('OSError when saving {} ({})'.format(
+                        tmp_path,
+                        exception,
+                    ))
+                    continue
                 size_after = os.stat(tmp_path).st_size
                 if size_after >= size_before:
                     self.notice(
