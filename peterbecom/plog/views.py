@@ -732,7 +732,7 @@ def post_thumbnails(request, oid):
         formats = (
             ('small', '120x120'),
             ('big', '230x230'),
-            ('bigger', '380x380'),
+            ('bigger', '370x370'),  # iPhone 6 is 375
         )
         for key, geometry in formats:
             im = thumbnail(
