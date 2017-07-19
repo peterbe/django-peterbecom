@@ -7,7 +7,7 @@ from xml.parsers.expat import ExpatError
 from json.decoder import JSONDecodeError
 
 import requests
-from requests.exceptions import ConnectionError, ReadTimeout
+from requests.exceptions import ConnectionError, ReadTimeout, SSLError
 import pyquery
 import feedparser
 
@@ -56,11 +56,18 @@ def itunes_search(term, **options):
     retry = options.pop('retry', False)
     options.update({'term': term, 'entity': 'podcast'})
     url = 'https://itunes.apple.com/search'
-    response = requests_retry_session().get(
-        url,
-        params=options,
-        timeout=timeout,
-    )
+    try:
+        response = requests_retry_session().get(
+            url,
+            params=options,
+            timeout=timeout,
+        )
+    except SSLError as exception:
+        # Can happen when you get a bad SSL handshake
+        print("SSLError on requests to itunes ({})".format(
+            exception
+        ))
+        return
     if response.status_code == 403:
         # most certainly rate limited
         if not retry:

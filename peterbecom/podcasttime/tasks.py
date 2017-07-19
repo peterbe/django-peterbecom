@@ -60,6 +60,9 @@ def fetch_itunes_lookup(podcast_id):
     podcast = Podcast.objects.get(id=podcast_id)
     print("Fetching itunes lookup: {!r}".format(podcast.name))
     results = itunes_search(podcast.name)
+    if not results:
+        print('Nothing returned on itunes lookup: {!r}'.format(podcast.name))
+        return
     if results['resultCount'] == 1:
         lookup = results['results'][0]
         podcast.itunes_lookup = lookup
