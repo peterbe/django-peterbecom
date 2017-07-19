@@ -62,10 +62,11 @@ def itunes_search(term, **options):
             params=options,
             timeout=timeout,
         )
-    except SSLError as exception:
+    except (SSLError, ConnectionError) as exception:
         # Can happen when you get a bad SSL handshake
-        print("SSLError on requests to itunes ({})".format(
-            exception
+        print("{} on requests to itunes ({})".format(
+            exception.__class__.__name__,
+            exception,
         ))
         return
     if response.status_code == 403:
