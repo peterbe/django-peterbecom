@@ -87,7 +87,7 @@ PIPELINE_JS = {
     },
     'warmup_songsearch': {
         'source_filenames': (
-            'plog/js/warmup-songsearchxxx.js',
+            'plog/js/warmup-songsearch.js',
         ),
         'output_filename': 'js/warmup-songsearch.min.js',
     },
