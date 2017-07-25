@@ -215,6 +215,11 @@ class BlogItemHits(models.Model):
     hits = models.IntegerField(default=0)
 
 
+class BlogItemHit(models.Model):
+    blogitem = models.ForeignKey(BlogItem)
+    add_date = models.DateTimeField(auto_now_add=True)
+
+
 class BlogComment(models.Model):
     """
     Indexes executed for this:

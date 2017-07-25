@@ -26,6 +26,13 @@ from .gfm import gfm
 from .escape import linkify
 
 
+def is_bot(ua='', ip=None):
+    if 'bot' not in ua.lower() and 'download-all-plogs.py' not in ua:
+        return False
+
+    return True
+
+
 def make_prefix(request_dict, max_length=100, hash_request_values=False):
     _get = dict(request_dict)
 

@@ -13,7 +13,7 @@ from django.db import transaction
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
@@ -54,10 +54,10 @@ def _blog_post_key_prefixer(request):
         return None
     prefix = utils.make_prefix(request.GET)
 
-    all_comments = False
+    # all_comments = False
     if request.path.endswith('/all-comments'):
         oid = request.path.split('/')[-2]
-        all_comments = True
+        # all_comments = True
     elif request.path.endswith('/'):
         oid = request.path.split('/')[-2]
     else:
@@ -93,11 +93,11 @@ def _blog_post_key_prefixer(request):
         cache.set(cache_key, latest_date, ONE_MONTH)
     prefix += str(latest_date)
 
-    if not all_comments:
-        # temporary solution because I can't get Google Analytics API to work
-        ua = request.META.get('HTTP_USER_AGENT', '')
-        if 'bot' not in ua.lower() and 'download-all-plogs.py' not in ua:
-            tasks.increment_blogitem_hit.delay(oid)
+    # if not all_comments:
+    #     # temporary solution because I can't get Google Analytics API to work
+    #     ua = request.META.get('HTTP_USER_AGENT', '')
+    #     if not utils.is_bot(ua):
+    #         tasks.increment_blogitem_hit.delay(oid)
 
     # This is a HACK!
     # This prefixer function gets called, first for the request,
@@ -119,6 +119,17 @@ def blog_post(request, oid):
         return redirect(request.path + '/all-comments', permanent=True)
 
     return _render_blog_post(request, oid)
+
+
+@require_http_methods(['PUT'])
+@csrf_exempt
+def blog_post_ping(request, oid):
+    if not utils.is_bot(
+        ua=request.META.get('HTTP_USER_AGENT', ''),
+        ip=request.META.get('REMOTE_ADDR'),
+    ):
+        tasks.increment_blogitem_hit.delay(oid)
+    return http.JsonResponse({'ok': True})
 
 
 def blog_screenshot(request, oid):

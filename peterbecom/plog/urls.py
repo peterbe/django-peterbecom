@@ -31,5 +31,6 @@ urlpatterns = [
         name='all_plog_post_comments'
     ),
     url('^screenshot/(.*)', views.blog_screenshot, name='blog_screenshot'),
+    url('^(.*)/ping$', views.blog_post_ping, name='blog_post_ping'),
     url('^(.*)', views.blog_post, name='blog_post'),
 ]

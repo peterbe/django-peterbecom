@@ -94,6 +94,7 @@ STATICFILES_STORAGE = 'pipeline.storage.PipelineCachedStorage'
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'peterbecom.finders.LeftoverPipelineFinder',
     'pipeline.finders.PipelineFinder',
 )
 

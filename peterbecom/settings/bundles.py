@@ -87,7 +87,7 @@ PIPELINE_JS = {
     },
     'warmup_songsearch': {
         'source_filenames': (
-            'plog/js/warmup-songsearch.js',
+            'plog/js/warmup-songsearchxxx.js',
         ),
         'output_filename': 'js/warmup-songsearch.min.js',
     },
@@ -114,6 +114,15 @@ PIPELINE_JS = {
             'js/blogitem.js',
         ),
         'output_filename': 'js/blogitem.min.js',
+    },
+    'plog:ping': {
+        'source_filenames': (
+            'js/blogitem-ping.js',
+        ),
+        'output_filename': 'js/blogitem-ping.min.js',
+        'extra_context': {
+            'async': True,
+        },
     },
     'calendar': {
         'source_filenames': (

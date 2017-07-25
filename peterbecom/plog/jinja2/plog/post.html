@@ -77,6 +77,8 @@
 
   {% if request.path == '/plog/blogitem-040601-1' %}
   {% javascript 'warmup_songsearch' %}
+  {% else %}
+  {% javascript 'plog:ping' %}
   {% endif %}
 
   {% if show_buttons %}

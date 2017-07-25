@@ -31,19 +31,19 @@ var F = (function() {
       $.getJSON('/plog/prepare.json', function(response) {
         $('input[name="csrfmiddlewaretoken"]', form).val(response.csrf_token);
         if (response.name && !$('input[name="name"]', form).val()) {
-          $('input[name="name"]', form).val(response.name);
+          $('input[name="name"]', form).attr('placeholder', '').val(response.name);
         } else {
           var name = localStorage.getItem('name');
           if (name) {
-            $('input[name="name"]', form).val(name);
+            $('input[name="name"]', form).attr('placeholder', '').val(name);
           }
         }
         if (response.email && !$('input[name="email"]', form).val()) {
-          $('input[name="email"]', form).val(response.email);
+          $('input[name="email"]', form).attr('placeholder', '').val(response.email);
         } else {
           var email = localStorage.getItem('email');
           if (email) {
-            $('input[name="email"]', form).val(email);
+            $('input[name="email"]', form).attr('placeholder', '').val(email);
           }
         }
 
