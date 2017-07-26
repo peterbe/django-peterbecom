@@ -554,5 +554,7 @@ def fix_podcast_images(max_, verbose=False):
         image_url__isnull=False,
         itunes_lookup__isnull=False,
     )
+    if verbose:
+        print(podcasts.count(), 'Podcasts without image we could fix')
     for podcast in podcasts.order_by('?')[:max_]:
         podcast.download_image()
