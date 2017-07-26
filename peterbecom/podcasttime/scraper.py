@@ -548,7 +548,7 @@ def _scrape_show(url):
                 return rss_url
 
 
-def fix_podcast_images(max_, verbose=False):
+def fix_podcast_images(limit, verbose=False):
     podcasts = Podcast.objects.filter(
         image='',
         image_url__isnull=False,
@@ -556,5 +556,5 @@ def fix_podcast_images(max_, verbose=False):
     )
     if verbose:
         print(podcasts.count(), 'Podcasts without image we could fix')
-    for podcast in podcasts.order_by('?')[:max_]:
+    for podcast in podcasts.order_by('?')[:limit]:
         podcast.download_image()
