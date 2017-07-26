@@ -31,6 +31,8 @@ def thumbnail(imagefile, geometry, **options):
             filename = imagefile.name
         if filename.lower().endswith('.png'):
             options['format'] = 'PNG'
+        elif filename.lower().endswith('.gif'):
+            pass
         else:
             options['format'] = 'JPEG'
     try:

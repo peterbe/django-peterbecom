@@ -128,23 +128,18 @@ class Podcast(models.Model):
             'episodes_seconds': duration,
         }
         if self.image:
-            try:
-                doc['thumbnail_160'] = self.get_thumbnail_url(
-                    '160x160',
-                    quality=81,
-                    upscale=False,
-                    crop='center',
-                )
-                doc['thumbnail_348'] = self.get_thumbnail_url(
-                    '348x348',
-                    quality=81,
-                    upscale=False,
-                    crop='center',
-                )
-            except OSError:
-                if self.image.path:
-                    raise
-                print("{!r} lacks a valid image".format(self))
+            doc['thumbnail_160'] = self.get_thumbnail_url(
+                '160x160',
+                quality=81,
+                upscale=False,
+                crop='center',
+            )
+            doc['thumbnail_348'] = self.get_thumbnail_url(
+                '348x348',
+                quality=81,
+                upscale=False,
+                crop='center',
+            )
         return doc
 
     def get_thumbnail(self, *args, **kwargs):
@@ -206,8 +201,12 @@ class Podcast(models.Model):
             pass
         img_temp.write(r.content)
         img_temp.flush()
+        basename = os.path.basename(self.image_url.split('?')[0])
+        if basename.lower().endswith('.gif'):
+            # force it to be saved as a PNG
+            basename = basename[:-4] + '.png'
         self.image.save(
-            os.path.basename(self.image_url.split('?')[0]),
+            basename,
             File(img_temp)
         )
         print("Saved image", self.image.size)

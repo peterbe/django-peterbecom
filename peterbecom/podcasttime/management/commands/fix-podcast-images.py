@@ -11,4 +11,5 @@ class Command(BaseCommand):
     def _handle(self, **options):
         limit = int(options['limit'])
         verbose = int(options['verbosity']) >= 2
+
         fix_podcast_images(limit=limit, verbose=verbose)
