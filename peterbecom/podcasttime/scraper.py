@@ -557,4 +557,9 @@ def fix_podcast_images(limit, verbose=False):
     if verbose:
         print(podcasts.count(), 'Podcasts without image we could fix')
     for podcast in podcasts.order_by('?')[:limit]:
-        podcast.download_image()
+        try:
+            podcast.download_image()
+        except OSError:
+            print("OSError on {!r}".format(podcast))
+            podcast.image = None
+            podcast.save()
