@@ -106,9 +106,9 @@ def _blog_post_key_prefixer(request):
     return prefix
 
 
-@cache_control(public=True, max_age=ONE_MONTH)
+@cache_control(public=True, max_age=ONE_WEEK)
 @cache_page(
-    ONE_MONTH,
+    ONE_WEEK,
     _blog_post_key_prefixer,
 )
 def blog_post(request, oid):
