@@ -11,6 +11,10 @@ from peterbecom.base.basecommand import BaseCommand
 from peterbecom.podcasttime.models import Podcast
 
 
+class ImageError(Exception):
+    """re-wrap when there's something wrong about the image"""
+
+
 class Command(BaseCommand):
 
     def add_arguments(self, parser):
@@ -86,7 +90,13 @@ class Command(BaseCommand):
 
                 w2 = 1300
                 h2 = int(w2 * h / w)
-                img.thumbnail((w2, h2))
+                try:
+                    img.thumbnail((w2, h2))
+                except OSError as exception:
+                    raise ImageError('{!r} CAUSED {}'.format(
+                        podcast,
+                        exception
+                    ))
                 options = {
                     'quality': 95,
                 }
