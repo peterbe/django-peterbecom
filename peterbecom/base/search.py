@@ -15,7 +15,7 @@ index.settings(**settings.ES_INDEX_SETTINGS)
 
 def es_retry(callable, *args, **kwargs):
     sleep_time = kwargs.pop('_sleep_time', 1)
-    attempts = kwargs.pop('_attempts', 5)
+    attempts = kwargs.pop('_attempts', 10)
     verbose = kwargs.pop('_verbose', False)
     ignore_not_found = kwargs.pop('_ignore_not_found', False)
     try:
