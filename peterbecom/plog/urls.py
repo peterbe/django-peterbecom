@@ -22,6 +22,7 @@ urlpatterns = [
     url('^preview.json$', views.preview_json, name='preview'),
     # url('^inbound-email$', views.inbound_email, name='inbound_email'),
     url('^hits$', views.plog_hits, name='plog_hits'),
+    url('^hits/data$', views.plog_hits_data, name='plog_hits_data'),
     url('^(.*)/submit$', views.submit_json, name='submit'),
     url('^(.*)/approve/(.*)', views.approve_comment, name='approve_comment'),
     url('^(.*)/delete/(.*)', views.delete_comment, name='delete_comment'),

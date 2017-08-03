@@ -23,7 +23,7 @@ from django.utils import timezone
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
-from .models import BlogItem, BlogComment, Category, BlogFile
+from .models import BlogItem, BlogComment, Category, BlogFile, BlogItemHit
 from .utils import render_comment_text, valid_email, utc_now
 from fancy_cache import cache_page
 from . import utils
@@ -850,3 +850,39 @@ def plog_hits(request):
     context['summed_category_scores'] = summed_category_scores
     context['page_title'] = 'Hits'
     return render(request, 'plog/plog_hits.html', context)
+
+
+def plog_hits_data(request):
+    hits = {}
+
+    def get_count(start, end):
+        return BlogItemHit.objects.filter(
+            add_date__gte=start,
+            add_date__lt=end,
+        ).count()
+
+    now = timezone.now()
+
+    hits['last_hour'] = get_count(
+        now - datetime.timedelta(hours=1),
+        now
+    )
+    now = now.replace(hour=0, minute=0, second=0)
+    hits['today'] = get_count(
+        now - datetime.timedelta(days=1),
+        now
+    )
+    hits['yesterday'] = get_count(
+        now - datetime.timedelta(days=2),
+        now - datetime.timedelta(days=1)
+    )
+    hits['last_week'] = get_count(
+        now - datetime.timedelta(days=1 + 7),
+        now - datetime.timedelta(days=7)
+    )
+    hits['last_month'] = get_count(
+        now - datetime.timedelta(days=1 + 30),
+        now - datetime.timedelta(days=30)
+    )
+
+    return http.JsonResponse({'hits': hits})
