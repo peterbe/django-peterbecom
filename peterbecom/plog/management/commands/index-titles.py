@@ -28,6 +28,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        raise NotImplementedError
         now = utc_now()
         verbose = int(options['verbosity']) > 1
 

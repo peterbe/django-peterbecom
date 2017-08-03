@@ -210,9 +210,10 @@ class BlogItem(models.Model):
         return doc
 
 
-class BlogItemHits(models.Model):
-    oid = models.CharField(max_length=100, db_index=True, unique=True)
-    hits = models.IntegerField(default=0)
+class BlogItemTotalHits(models.Model):
+    blogitem = models.OneToOneField(BlogItem, db_index=True)
+    total_hits = models.IntegerField(default=0)
+    modify_date = models.DateTimeField(auto_now=True)
 
 
 class BlogItemHit(models.Model):

@@ -519,7 +519,7 @@ def contact(request):
     return render(request, 'homepage/contact.html', context)
 
 
-@cache_page(ONE_WEEK)
+@cache_control(public=True, max_age=ONE_WEEK)
 def sitemap(request):
     base_url = 'https://%s' % RequestSite(request).domain
 
@@ -553,9 +553,14 @@ def sitemap(request):
     add(reverse('about'), changefreq='weekly', priority=0.5)
     add(reverse('contact'), changefreq='weekly', priority=0.5)
 
-    for blogitem in (BlogItem.objects
-                     .filter(pub_date__lt=now)
-                     .order_by('-pub_date')):
+    # TODO: Instead of looping over BlogItem, loop over
+    # BlogItemTotalHits and use the join to build this list.
+    # Then we can sort by a scoring function.
+    # This will only work once ALL blogitems have at least 1 hit.
+    blogitems = BlogItem.objects.filter(
+        pub_date__lt=now
+    )
+    for blogitem in blogitems.order_by('-pub_date'):
         if not blogitem.modify_date:
             # legacy!
             try:
@@ -579,10 +584,11 @@ def sitemap(request):
             changefreq = 'monthly'
         else:
             changefreq = None
-        add(reverse('blog_post', args=[blogitem.oid]),
+        add(
+            reverse('blog_post', args=[blogitem.oid]),
             lastmod=blogitem.modify_date,
             changefreq=changefreq
-            )
+        )
 
     urls.append('</urlset>')
     return http.HttpResponse('\n'.join(urls), content_type="text/xml")
