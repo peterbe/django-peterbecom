@@ -555,7 +555,7 @@ def sitemap(request):
 
     for blogitem in (BlogItem.objects
                      .filter(pub_date__lt=now)
-                     .order_by('-pub_date')[:1000]):
+                     .order_by('-pub_date')):
         if not blogitem.modify_date:
             # legacy!
             try:
