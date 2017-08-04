@@ -35,6 +35,7 @@ class App extends Component {
 
   _submit = (q, submitevent = 'enter') => {
     // console.warn("GOTO!!!", 'https://songsear.ch/q/' + q);
+    // return;
     q = q.trim()
     if (!q) {
       return
@@ -149,16 +150,25 @@ class App extends Component {
       } else if (event.key === 'Enter') {
         if (highlight > -1) {
           event.preventDefault()
-          this.setState(
-            {
-              q: suggestions[highlight].text,
+          let suggestion = highlight > -1 ? suggestions[highlight] : suggestions[0]
+          if (suggestion.append) {
+            this.setState({
+              q: appendSuggestion(this.state.q, suggestion.text) + ' ',
               autocompleteSuggestions: null,
               autocompleteHighlight: -1
-            },
-            () => {
-              this._submit(suggestions[highlight].text, 'enterkey')
-            }
-          )
+            })
+          } else {
+            this.setState(
+              {
+                q: suggestions[highlight].text,
+                autocompleteSuggestions: null,
+                autocompleteHighlight: -1
+              },
+              () => {
+                this._submit(suggestions[highlight].text, 'enterkey')
+              }
+            )
+          }
         }
       }
     }
