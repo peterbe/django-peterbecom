@@ -22,8 +22,6 @@ class App extends Component {
     showAutocompleteSuggestions: true,
   }
 
-
-
   componentDidMount() {
     // If the <input> HTML had something typed into it when the React
     // app started, that would be passed to the App when initialized.
@@ -80,8 +78,10 @@ class App extends Component {
     // } else if (this.state.searchMaxLength) {
     //   this.setState({searchMaxLength: null})
     // }
-    if (length > 5) {
-      this._fetchAutocompleteSuggestionsDebounced(event.target.value.trim())
+    if (length > 12) {
+      this._fetchAutocompleteSuggestionsThrottledLonger(event.target.value.trim())
+    } else if (length > 5) {
+      this._fetchAutocompleteSuggestionsThrottled(event.target.value.trim())
     } else if (length) {
       this._fetchAutocompleteSuggestions(event.target.value.trim())
     } else {
@@ -109,19 +109,17 @@ class App extends Component {
               autocompleteHighlight: -1,
             })
           })
-        // } else {
-        //   console.log(`Ignore results from '${q}'`);
         }
-
       }
-    })
-    .catch(err => {
-      console.error(err);
     })
   }
 
-  _fetchAutocompleteSuggestionsDebounced = throttle(
-    400, this._fetchAutocompleteSuggestions
+  _fetchAutocompleteSuggestionsThrottled = throttle(
+    500, this._fetchAutocompleteSuggestions
+  )
+
+  _fetchAutocompleteSuggestionsThrottledLonger = throttle(
+    1500, this._fetchAutocompleteSuggestions
   )
 
   onKeyDownSearch = (event) => {
