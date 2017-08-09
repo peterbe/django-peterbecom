@@ -128,7 +128,17 @@ def blog_post_ping(request, oid):
         ua=request.META.get('HTTP_USER_AGENT', ''),
         ip=request.META.get('REMOTE_ADDR'),
     ):
-        tasks.increment_blogitem_hit.delay(oid)
+        http_referer = request.GET.get(
+            'referrer',
+            request.META.get('HTTP_REFERER')
+        )
+        tasks.increment_blogitem_hit.delay(
+            oid,
+            http_user_agent=request.META.get('HTTP_USER_AGENT'),
+            http_accept_language=request.META.get('HTTP_ACCEPT_LANGUAGE'),
+            remote_addr=request.META.get('REMOTE_ADDR'),
+            http_referer=http_referer,
+        )
     return http.JsonResponse({'ok': True})
 
 

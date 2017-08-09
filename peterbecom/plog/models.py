@@ -219,6 +219,10 @@ class BlogItemTotalHits(models.Model):
 class BlogItemHit(models.Model):
     blogitem = models.ForeignKey(BlogItem)
     add_date = models.DateTimeField(auto_now_add=True)
+    http_user_agent = models.TextField(null=True)
+    http_accept_language = models.TextField(null=True)
+    remote_addr = models.GenericIPAddressField(null=True)
+    http_referer = models.URLField(max_length=450, null=True)
 
 
 class BlogComment(models.Model):
