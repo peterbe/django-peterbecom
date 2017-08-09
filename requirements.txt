@@ -44,9 +44,9 @@ python-memcached==1.58 \
 celery==4.1.0 \
     --hash=sha256:81a67f0d53a688ec2bc8557bd5d6d7218f925a6f2e6df80e01560de9e28997ec \
     --hash=sha256:77ff3730198d6a17b3c1f05579ebe570b579efb35f6d7e13dba3b1368d068b35
-django-celery-email==1.1.5 \
-    --hash=sha256:7f63c321e7762a4930912fe0db28c6eca81275c1be3367027a26d2c8168c6334 \
-    --hash=sha256:cf092c7020fb29ddd9420fa5bd15890c7265e73e1f3855b55f41dc6e306c06fa
+django-celery-email==2.0.0 \
+    --hash=sha256:29894330d621a0794b2e82e63220ccc5f1dbd539f5cedd9e183616dc2f72f973 \
+    --hash=sha256:1d20120569edd233d7f5a22460b60410b4d8f7c0f1ef66889e1267762aeacbf5
 Markdown==2.6.8 \
     --hash=sha256:0ac8a81e658167da95d063a9279c9c1b2699f37c7c4153256a458b3a43860e33
 sorl-thumbnail==12.3 \
