@@ -19,6 +19,8 @@ class App extends Component {
     showAutocompleteSuggestions: true
   }
 
+  _fetchAutocompleteSuggestionsCache = {}
+
   componentDidMount() {
     // If the <input> HTML had something typed into it when the React
     // app started, that would be passed to the App when initialized.
@@ -76,11 +78,11 @@ class App extends Component {
     // } else if (this.state.searchMaxLength) {
     //   this.setState({searchMaxLength: null})
     // }
-    if (length > 12) {
+    if (length > 10) {
       this._fetchAutocompleteSuggestionsThrottledLonger(
         event.target.value.trim()
       )
-    } else if (length > 5) {
+    } else if (length > 4) {
       this._fetchAutocompleteSuggestionsThrottled(event.target.value.trim())
     } else if (length) {
       this._fetchAutocompleteSuggestions(event.target.value.trim())
@@ -93,21 +95,26 @@ class App extends Component {
     }
   }
 
-  _last_fetch_term = null
-
   _fetchAutocompleteSuggestions = q => {
     let url = `https://songsear.ch/api/search/autocomplete?q=${q}`
-    this._last_fetch_term = q
+    const cached = this._fetchAutocompleteSuggestionsCache[q]
+    if (cached) {
+      return Promise.resolve(cached).then(results => {
+        this.setState({
+          autocompleteSuggestions: results.matches,
+          autocompleteHighlight: -1
+        })
+      })
+    }
     fetch(url).then(r => {
       if (r.status === 200) {
-        if (q === this._last_fetch_term) {
-          r.json().then(results => {
-            this.setState({
-              autocompleteSuggestions: results.matches,
-              autocompleteHighlight: -1
-            })
+        r.json().then(results => {
+          this._fetchAutocompleteSuggestionsCache[q] = results
+          this.setState({
+            autocompleteSuggestions: results.matches,
+            autocompleteHighlight: -1
           })
-        }
+        })
       }
     })
   }
@@ -150,7 +157,8 @@ class App extends Component {
       } else if (event.key === 'Enter') {
         if (highlight > -1) {
           event.preventDefault()
-          let suggestion = highlight > -1 ? suggestions[highlight] : suggestions[0]
+          let suggestion =
+            highlight > -1 ? suggestions[highlight] : suggestions[0]
           if (suggestion.append) {
             this.setState({
               q: appendSuggestion(this.state.q, suggestion.text) + ' ',
