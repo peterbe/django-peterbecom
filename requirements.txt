@@ -131,9 +131,9 @@ nose==1.3.7 \
     --hash=sha256:dadcddc0aefbf99eea214e0f1232b94f2fa9bd98fa8353711dacb112bfcbbb2a \
     --hash=sha256:9ff7c6cc443f8c51994b34a667bbcf45afd6d945be7477b52e97516fd17c53ac \
     --hash=sha256:f1bffef9cbc82628f6e7d7b40d7e255aefaa1adb6a1b1d26c69a8b79e6208a98
-amqp==2.1.4 \
-    --hash=sha256:5e0871a93433f941e444c2b859da095f05034d2ac1b7c084529cfd0b6f8eef18 \
-    --hash=sha256:1378cc14afeb6c2850404f322d03dec0082d11d04bdcb0360e1b10d4e6e77ef9
+amqp==2.2.1 \
+    --hash=sha256:880fced46b2225af6160950c209ddcbdef849a954935c83d61de89ed75f3d3b7 \
+    --hash=sha256:7ababb2c28672c2a48b907095bc79104531217a98807751b51e0d8c0fa831aff
 anyjson==0.3.3 \
     --hash=sha256:37812d863c9ad3e35c0734c42e0bf0320ce8c3bed82cd20ad54cb34d158157ba
 lxml==3.8.0 \
