@@ -41,9 +41,9 @@ Pygments==2.2.0 \
     --hash=sha256:dbae1046def0efb574852fab9e90209b23f556367b5a320c0bcb871c77c3e8cc
 python-memcached==1.58 \
     --hash=sha256:2775829cb54b9e4c5b3bbd8028680f0c0ab695db154b9c46f0f074ff97540eb6
-celery==4.0.2 \
-    --hash=sha256:0e5b7e0d7f03aa02061abfd27aa9da05b6740281ca1f5228a54fbf7fe74d8afa \
-    --hash=sha256:e3d5a6c56a73ff8f2ddd4d06dc37f4c2afe4bb4da7928b884d0725ea865ef54d
+celery==4.1.0 \
+    --hash=sha256:81a67f0d53a688ec2bc8557bd5d6d7218f925a6f2e6df80e01560de9e28997ec \
+    --hash=sha256:77ff3730198d6a17b3c1f05579ebe570b579efb35f6d7e13dba3b1368d068b35
 django-celery-email==1.1.5 \
     --hash=sha256:7f63c321e7762a4930912fe0db28c6eca81275c1be3367027a26d2c8168c6334 \
     --hash=sha256:cf092c7020fb29ddd9420fa5bd15890c7265e73e1f3855b55f41dc6e306c06fa
