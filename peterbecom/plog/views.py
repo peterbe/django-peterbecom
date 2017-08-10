@@ -132,6 +132,10 @@ def blog_post_ping(request, oid):
             'referrer',
             request.META.get('HTTP_REFERER')
         )
+        if http_referer:
+            current_url = request.build_absolute_uri().split('/ping')[0]
+            if current_url == http_referer:
+                http_referer = None
         tasks.increment_blogitem_hit.delay(
             oid,
             http_user_agent=request.META.get('HTTP_USER_AGENT'),
