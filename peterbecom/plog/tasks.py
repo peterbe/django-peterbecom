@@ -20,6 +20,8 @@ def increment_blogitem_hit(
     remote_addr=None,
     http_referer=None,
 ):
+    if http_referer and len(http_referer) > 450:
+        http_referer = http_referer[:450 - 3] + '...'
     try:
         BlogItemHit.objects.create(
             blogitem=BlogItem.objects.get(oid=oid),
