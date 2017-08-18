@@ -47,8 +47,8 @@ celery==4.1.0 \
 django-celery-email==2.0.0 \
     --hash=sha256:1d20120569edd233d7f5a22460b60410b4d8f7c0f1ef66889e1267762aeacbf5 \
     --hash=sha256:29894330d621a0794b2e82e63220ccc5f1dbd539f5cedd9e183616dc2f72f973
-Markdown==2.6.8 \
-    --hash=sha256:0ac8a81e658167da95d063a9279c9c1b2699f37c7c4153256a458b3a43860e33
+Markdown==2.6.9 \
+    --hash=sha256:73af797238b95768b3a9b6fe6270e250e5c09d988b8e5b223fd5efa4e06faf81
 sorl-thumbnail==12.3 \
     --hash=sha256:ce91c5b112a2ef930a09625adbd99682bd62f34be1963c28f3ffc0d0138a07fd \
     --hash=sha256:bb277dc98daa07e892d429b73eed749411f7eff1ee6feef142a19e029582e8cd
