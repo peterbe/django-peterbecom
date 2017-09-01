@@ -199,8 +199,10 @@ xmltodict==0.11.0 \
 pyOpenSSL==17.2.0 \
     --hash=sha256:c8959e441c2d85d646f3d6e9024ec02b2fc8dda92596e44ce3460b3a476bc694 \
     --hash=sha256:5d617ce36b07c51f330aa63b83bf7f25c40a0e95958876d54d1982f8c91b4834
-ndg-httpsclient==0.4.2 \
-    --hash=sha256:580987ef194334c50389e0d7de885fccf15605c13c6eecaabd8d6c43768eb8ac
+ndg-httpsclient==0.4.3 \
+    --hash=sha256:5b1e1b1991990487e28e5b95e062c9d06f8f00e3cd79eaddc448ce06c5e3b776 \
+    --hash=sha256:28d62f2fc93dcd20793ddf2ce9ec1ab9f3458a11a784105a6d67f218ca53de63 \
+    --hash=sha256:7bfd8c5cfcbc241a93ca6a4e45f952650f5c7ecf7c49b1dbcf5f4d390240be0b
 pyasn1==0.3.3 \
     --hash=sha256:36743c78de6541f44b8ee3df4ba6ebc5a379eec6edd940a25961b52bb88342dd \
     --hash=sha256:50d61ebe5a36e65e2bc5658973e42361766ce3ddf9d69954437ce311948e3f73 \
