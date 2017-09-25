@@ -23,7 +23,14 @@ from django.utils import timezone
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
-from .models import BlogItem, BlogComment, Category, BlogFile, BlogItemHit
+from .models import (
+    BlogItem,
+    BlogComment,
+    Category,
+    BlogFile,
+    BlogItemHit,
+    OneTimeAuthKey,
+)
 from .utils import render_comment_text, valid_email, utc_now
 from fancy_cache import cache_page
 from . import utils
@@ -399,10 +406,34 @@ def submit_json(request, oid):
 
 @login_required
 def approve_comment(request, oid, comment_oid):
-    blogitem = get_object_or_404(BlogItem, oid=oid)
-    blogcomment = get_object_or_404(BlogComment, oid=comment_oid)
+    try:
+        blogitem = BlogItem.objects.get(oid=oid)
+    except BlogItem.DoesNotExist:
+        return http.HttpResponse("BlogItem {!r} can't be found".format(
+            oid
+        ), status=404)
+    try:
+        blogcomment = BlogComment.objects.get(oid=comment_oid)
+        if blogcomment.approved:
+            url = blogitem.get_absolute_url()
+            if blogcomment.blogitem:
+                url += '#%s' % blogcomment.oid
+            return http.HttpResponse(
+                '''<html>Comment already approved<br>
+                <a href="{}">{}</a>
+                </html>
+                '''.format(url, blogitem.title)
+            )
+    except BlogComment.DoesNotExist:
+        return http.HttpResponse("BlogComment {!r} can't be found".format(
+            comment_oid
+        ), status=404)
     if blogcomment.blogitem != blogitem:
         raise http.Http404("bad rel")
+
+    forbidden = _check_auth_key(request, blogitem, blogcomment)
+    if forbidden:
+        return forbidden
 
     _approve_comment(blogcomment)
 
@@ -412,10 +443,33 @@ def approve_comment(request, oid, comment_oid):
         url = blogitem.get_absolute_url()
         if blogcomment.blogitem:
             url += '#%s' % blogcomment.oid
-        return http.HttpResponse('''<html>Comment approved<br>
-        <a href="%s">%s</a>
-        </html>
-        ''' % (url, blogitem.title))
+        return http.HttpResponse(
+            '''<html>Comment approved<br>
+            <a href="{}">{}</a>
+            </html>
+            '''.format(url, blogitem.title)
+        )
+
+
+def _check_auth_key(request, blogitem, blogcomment):
+    # Temporary thing. Delete this end of 2017.
+    start_date = timezone.make_aware(datetime.datetime(2017, 9, 24))
+    if blogcomment.add_date < start_date:
+        return
+    key = request.GET.get('key')
+    if not key:
+        return http.HttpResponseForbidden('No key')
+    try:
+        found = OneTimeAuthKey.objects.get(
+            key=key,
+            blogitem=blogitem,
+            blogcomment=blogcomment,
+            used__isnull=True
+        )
+        found.used = timezone.now()
+        found.save()
+    except OneTimeAuthKey.DoesNotExist:
+        return http.HttpResponseForbidden('Key not found or already used')
 
 
 def _approve_comment(blogcomment):
@@ -444,8 +498,20 @@ def _get_comment_body(blogitem, blogcomment):
     approve_url = reverse(
         'approve_comment', args=[blogitem.oid, blogcomment.oid]
     )
+    approve_url += '?key={}'.format(
+        OneTimeAuthKey.objects.create(
+            blogitem=blogitem,
+            blogcomment=blogcomment
+        ).key
+    )
     delete_url = reverse(
         'delete_comment', args=[blogitem.oid, blogcomment.oid]
+    )
+    delete_url += '?key={}'.format(
+        OneTimeAuthKey.objects.create(
+            blogitem=blogitem,
+            blogcomment=blogcomment
+        ).key
     )
     template = loader.get_template('plog/comment_body.txt')
     context = {
@@ -474,14 +540,34 @@ def _get_comment_reply_body(blogitem, blogcomment, parent):
 def delete_comment(request, oid, comment_oid):
     user = request.user
     assert user.is_staff or user.is_superuser
-    blogitem = get_object_or_404(BlogItem, oid=oid)
-    blogcomment = get_object_or_404(BlogComment, oid=comment_oid)
+    try:
+        blogitem = BlogItem.objects.get(oid=oid)
+    except BlogItem.DoesNotExist:
+        return http.HttpResponse("BlogItem {!r} can't be found".format(
+            oid
+        ), status=404)
+    try:
+        blogcomment = BlogComment.objects.get(oid=comment_oid)
+    except BlogComment.DoesNotExist:
+        return http.HttpResponse("BlogComment {!r} can't be found".format(
+            comment_oid
+        ), status=404)
     if blogcomment.blogitem != blogitem:
         raise http.Http404("bad rel")
 
+    forbidden = _check_auth_key(request, blogitem, blogcomment)
+    if forbidden:
+        return forbidden
+
     blogcomment.delete()
 
-    return http.HttpResponse("Comment deleted")
+    url = blogitem.get_absolute_url()
+    return http.HttpResponse(
+        '''<html>Comment deleted<br>
+        <a href="{}">{}</a>
+        </html>
+        '''.format(url, blogitem.title)
+    )
 
 
 def _plog_index_key_prefixer(request):

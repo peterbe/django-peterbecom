@@ -2,8 +2,9 @@ import hashlib
 import time
 import os
 import uuid
-# import urllib2
+import random
 import datetime
+import functools
 import unicodedata
 
 from django.db import models
@@ -317,6 +318,25 @@ class BlogFile(models.Model):
 
     def __repr__(self):
         return '<%s: %r>' % (self.__class__.__name__, self.blogitem.oid)
+
+
+def random_string(length):
+    pool = list('abcdefghijklmnopqrstuvwxyz')
+    pool.extend([x.upper() for x in pool])
+    pool.extend('0123456789')
+    random.shuffle(pool)
+    return ''.join(pool[:length])
+
+
+class OneTimeAuthKey(models.Model):
+    key = models.CharField(
+        max_length=16,
+        default=functools.partial(random_string, 16)
+    )
+    blogitem = models.ForeignKey(BlogItem)
+    blogcomment = models.ForeignKey(BlogComment, null=True)
+    used = models.DateTimeField(null=True)
+    add_date = models.DateTimeField(auto_now_add=True)
 
 
 @receiver(pre_delete, sender=BlogComment)

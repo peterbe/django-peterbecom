@@ -341,3 +341,5 @@ MAX_INITIAL_COMMENTS = 200
 MOZJPEG_PATH = 'mozjpeg'
 GUETZLI_PATH = 'guetzli'
 PNGQUANT_PATH = 'pngquant'
+
+LOGIN_URL = '/signin/'
