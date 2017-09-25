@@ -1,6 +1,6 @@
 (function() {
   window.setTimeout(function() {
-    var url = document.location.href + '/ping';
+    var url = document.location.href.split('#')[0] + '/ping';
     var pathname = document.location.pathname.split('/');
     var oid = pathname[pathname.length - 1];
     if (window.fetch && window.sessionStorage) {
