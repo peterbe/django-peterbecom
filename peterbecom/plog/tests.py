@@ -7,7 +7,12 @@ from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.test import TestCase, Client
 
-from peterbecom.plog.models import BlogItem, BlogComment, Category
+from peterbecom.plog.models import (
+    BlogItem,
+    BlogComment,
+    Category,
+    OneTimeAuthKey,
+)
 from peterbecom.plog.utils import utc_now
 
 
@@ -104,6 +109,15 @@ class PlogTestCase(TestCase):
         approve_url = reverse('approve_comment', args=[blog.oid, comment.oid])
         response = loggedin.post(
             approve_url,
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        self.assertEqual(response.status_code, 403)
+        key = OneTimeAuthKey.objects.create(
+            blogitem=blog,
+            blogcomment=comment,
+        ).key
+        response = loggedin.post(
+            approve_url + '?key={}'.format(key),
             HTTP_X_REQUESTED_WITH='XMLHttpRequest'
         )
         self.assertEqual(response.status_code, 200)
