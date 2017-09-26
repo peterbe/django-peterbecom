@@ -203,16 +203,28 @@
     {% endif %}
   </dl>
 
-  {% if related %}
+  {% if related_by_keyword %}
   <dl>
-    <dt>Related:</dt>
-    {% for each in related %}
+    <dt>Related by Keyword:</dt>
+    {% for each in related_by_keyword %}
     <dd><a href="{{ each.get_absolute_url() }}" data-plogrank="{{ each.plogrank }}">{{ each.title }}</a>
     <small>{{ each.pub_date.strftime('%d %B %Y') }}</small>
     </dd>
     {% endfor %}
   </dl>
   {% endif %}
+
+  {% if related_by_text %}
+  <dl>
+    <dt>Related by Text:</dt>
+    {% for each in related_by_text %}
+    <dd><a href="{{ each.get_absolute_url() }}" data-plogrank="{{ each.plogrank }}">{{ each.title }}</a>
+    <small>{{ each.pub_date.strftime('%d %B %Y') }}</small>
+    </dd>
+    {% endfor %}
+  </dl>
+  {% endif %}
+
 {% endif %}
 
 {% endblock %}

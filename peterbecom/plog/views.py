@@ -31,6 +31,7 @@ from .models import (
     BlogItemHit,
     OneTimeAuthKey,
 )
+from .search import BlogItemDoc
 from .utils import render_comment_text, valid_email, utc_now
 from fancy_cache import cache_page
 from . import utils
@@ -239,7 +240,8 @@ def _render_blog_post(request, oid, screenshot_mode=False):
         all_comments[comment.parent_id].append(comment)
     context['comments_truncated'] = comments_truncated
     context['all_comments'] = all_comments
-    context['related'] = get_related_posts(post)
+    context['related_by_keyword'] = get_related_posts_by_keyword(post, limit=5)
+    context['related_by_text'] = get_related_posts_by_text(post, limit=5)
     context['show_buttons'] = (
         not screenshot_mode and
         not settings.DEBUG and
@@ -289,7 +291,7 @@ def all_blog_post_comments(request, oid):
     return render(request, 'plog/_all_comments.html', data)
 
 
-def get_related_posts(post):
+def get_related_posts_by_keyword(post, limit=5):
     if not post.proper_keywords:
         return BlogItem.objects.none()
     return BlogItem.objects.filter(
@@ -297,7 +299,44 @@ def get_related_posts(post):
         pub_date__lt=timezone.now()
     ).exclude(
         id=post.id,
-    ).order_by('-pub_date')[:10]
+    ).order_by('-pub_date')[:limit]
+
+
+def get_related_posts_by_text(post, limit=5):
+    search = BlogItemDoc.search()
+    search.update_from_dict({
+        'query': {
+            'more_like_this': {
+                'fields': ['title', 'text'],
+                'like': [{
+                    '_index': settings.ES_INDEX,
+                    '_type': 'blog_item_doc',
+                    '_id': post.id,
+                }],
+                'min_term_freq': 2,
+                'min_doc_freq': 5,
+                'min_word_length': 3,
+                'max_query_terms': 25,
+            }
+        }
+    })
+    search = search[:limit]
+    response = search.execute()
+    ids = [int(x._id) for x in response]
+    print('Took {:.1f}ms to find {} related by text'.format(
+        response.took,
+        response.hits.total,
+    ))
+    if not ids:
+        return []
+    objects = BlogItem.objects.filter(
+        pub_date__lt=timezone.now(),
+        id__in=ids
+    )
+    return sorted(
+        objects,
+        key=lambda x: ids.index(x.id)
+    )
 
 
 def _render_comment(comment):
@@ -904,7 +943,7 @@ def calendar_data(request):
 
 def plog_hits(request):
     context = {}
-    limit = int(request.GET.get('limit', 100))
+    limit = int(request.GET.get('limit', 50))
     _category_names = dict(
         (x['id'], x['name'])
         for x in Category.objects.all().values('id', 'name')
