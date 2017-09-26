@@ -920,15 +920,21 @@ def plog_hits(request):
         )
     context['categories'] = categories
     query = BlogItem.objects.raw("""
-        select
-            b.id, b.oid, b.title, h.hits, b.pub_date,
-            extract(days from (now() - b.pub_date))::int AS age,
-            h.hits / extract(days from (now() - b.pub_date)) AS score
-        from plog_blogitem b
-        inner join plog_blogitemhits h using (oid)
-        where (now() - b.pub_date) > interval '1 day'
-        order by score desc
-        limit {limit};
+        WITH counts AS (
+            SELECT
+                blogitem_id, count(blogitem_id) AS count
+                FROM plog_blogitemhit
+                GROUP BY blogitem_id
+        )
+        SELECT
+            b.id, b.oid, b.title, count AS hits, b.pub_date,
+            EXTRACT(DAYS FROM (NOW() - b.pub_date))::INT AS age,
+            count / EXTRACT(DAYS FROM (NOW() - b.pub_date)) AS score
+        FROM counts, plog_blogitem b
+        WHERE
+            blogitem_id = b.id AND (NOW() - b.pub_date) > INTERVAL '1 day'
+        ORDER BY score desc
+        LIMIT {limit}
     """.format(limit=limit))
     context['all_hits'] = query
 
