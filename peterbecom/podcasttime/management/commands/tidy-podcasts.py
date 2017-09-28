@@ -1,9 +1,12 @@
+import os
 import codecs
 import datetime
 import time
 
 import ftfy
+from PIL import Image
 
+from django.conf import settings
 from django.db.models import F
 from django.utils import timezone
 
@@ -21,6 +24,35 @@ def fix_encoding(s):
 class Command(BaseCommand):
 
     def _handle(self, *args, **kwargs):
+
+        # Try to convert .bmp images
+        for podcast in Podcast.objects.filter(image__iendswith='.bmp'):
+            print(podcast.image.path)
+            img = Image.open(podcast.image.path)
+            w, h = img.size
+            if w > 1300 or h > 1300:
+                h = int(1300 * h / w)
+                w = 1300
+            old_path = podcast.image.path
+            img.thumbnail((w, h))
+            options = {
+                'quality': 95,
+            }
+            new_path = os.path.splitext(podcast.image.path)[0] + '.png'
+            img.save(new_path, **options)
+            if settings.MEDIA_ROOT:
+                new_path = new_path.replace(settings.MEDIA_ROOT, '')
+            else:
+                new_path = new_path.replace(settings.BASE_DIR, '')
+            if new_path.startswith('/'):
+                new_path = new_path[1:]
+            print("NEW_PATH", repr(new_path))
+            podcast.image = new_path
+            podcast.save()
+            if os.path.isfile(old_path):
+                self.out("DELETE", old_path)
+                os.remove(old_path)
+
         podcasts = Podcast.objects.filter(name='')
         self.out(podcasts.count(), 'podcasts without a name')
         for podcast in podcasts:

@@ -216,11 +216,13 @@ def get_image_url(rss_url):
 
     try:
         image_url = d.feed.itunes_image
+        print('itunes_image', image_url)
     except AttributeError:
         image_url = None
         if xml.split('<item')[0].find('<itunes:image') > -1:
             try:
                 parsed = xmltodict.parse(xml)
+                print('parsed')
             except ExpatError:
                 print("BAD XML!!")
                 with codecs.open('/tmp/xml.xml', 'w', 'utf-8') as f:
@@ -278,6 +280,11 @@ def get_image_url(rss_url):
                     # doesn't even have a feed.image
                     return
 
+    if image_url:
+        ext = image_url.split('.')[-1].lower()
+        if ext not in ('png', 'jpeg', 'jpg', 'gif', 'bmp'):
+            # Don't want your kind here!
+            return None
     return image_url
 
 
