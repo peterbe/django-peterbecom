@@ -11,6 +11,7 @@ from requests.exceptions import ConnectionError, ReadTimeout, SSLError
 import pyquery
 import feedparser
 
+from django.db.models import Q
 from django.utils import timezone
 from django.db.models import Count, Max
 from django.db.utils import DataError
@@ -550,16 +551,17 @@ def _scrape_show(url):
 
 def fix_podcast_images(limit, verbose=False):
     podcasts = Podcast.objects.filter(
-        image='',
         image_url__isnull=False,
         itunes_lookup__isnull=False,
+    ).filter(
+        Q(image='') | Q(image__isnull=True)
     )
     if verbose:
         print(podcasts.count(), 'Podcasts without image we could fix')
     for podcast in podcasts.order_by('?')[:limit]:
         try:
             podcast.download_image()
-        except OSError:
-            print("OSError on {!r}".format(podcast))
+        except OSError as exception:
+            print("OSError on {!r} ({})".format(podcast, exception))
             podcast.image = None
             podcast.save()

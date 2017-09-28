@@ -205,6 +205,11 @@ class Podcast(models.Model):
         if basename.lower().endswith('.gif'):
             # force it to be saved as a PNG
             basename = basename[:-4] + '.png'
+        ext = os.path.splitext(basename)[1]
+        if not ext:
+            basename += '.png'
+        elif ext not in ('.png', '.jpeg', '.jpg', '.bmp'):
+            basename += '.png'
         self.image.save(
             basename,
             File(img_temp)
