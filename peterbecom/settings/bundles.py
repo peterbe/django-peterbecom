@@ -130,6 +130,12 @@ PIPELINE_JS = {
         ),
         'output_filename': 'js/calendar.min.js',
     },
+    'new_comments': {
+        'source_filenames': (
+            'plog/js/new-comments.js',
+        ),
+        'output_filename': 'js/new-comments.min.js',
+    },
 }
 
 

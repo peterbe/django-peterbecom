@@ -470,9 +470,13 @@ def approve_comment(request, oid, comment_oid):
     if blogcomment.blogitem != blogitem:
         raise http.Http404("bad rel")
 
-    forbidden = _check_auth_key(request, blogitem, blogcomment)
-    if forbidden:
-        return forbidden
+    if request.method == 'POST':
+        if not request.user.is_superuser:
+            return http.HttpResponseForbidden('Not superuser')
+    else:
+        forbidden = _check_auth_key(request, blogitem, blogcomment)
+        if forbidden:
+            return forbidden
 
     _approve_comment(blogcomment)
 
@@ -594,9 +598,13 @@ def delete_comment(request, oid, comment_oid):
     if blogcomment.blogitem != blogitem:
         raise http.Http404("bad rel")
 
-    forbidden = _check_auth_key(request, blogitem, blogcomment)
-    if forbidden:
-        return forbidden
+    if request.method == 'POST':
+        if not request.user.is_superuser:
+            return http.HttpResponseForbidden('Not superuser')
+    else:
+        forbidden = _check_auth_key(request, blogitem, blogcomment)
+        if forbidden:
+            return forbidden
 
     blogcomment.delete()
 
@@ -687,7 +695,7 @@ def _new_comment_key_prefixer(request):
 def new_comments(request):
     context = {}
     comments = BlogComment.objects.all()
-    if not request.user.is_authenticated():
+    if not request.user.is_superuser:
         comments = comments.filter(approved=True)
 
     # legacy stuff that can be removed in march 2012

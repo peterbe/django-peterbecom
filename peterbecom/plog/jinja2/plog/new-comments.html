@@ -9,25 +9,34 @@ div.comment {
 <link rel="stylesheet" href="{{ static("css/label.css") }}">
 {% endblock %}
 
+{% block extrajs %}
+{% javascript 'new_comments' %}
+{% endblock %}
+
+
 {% block content %}
 
-{% for comment in comments %}
-<div class="comment">
-<blockquote>
-  <p>{{ comment.rendered|safe }}</p>
-  {% if not comment.approved %}
-  <a class="ui red small label">Not approved</a>
-  <a class="small ui button primary" href="{{ comment.blogitem.get_absolute_url() }}/approve/{{ comment.oid }}">approve</a>
-  <a class="small ui button primary" href="{{ comment.blogitem.get_absolute_url() }}/delete/{{ comment.oid }}">delete</a>
-  <br>
-  {% endif %}
-  <small>{% if comment.name %}<b>{{ comment.name }}</b>{% else %}<em>Anonymous</em>{% endif %}
-  on <a href="{{ comment.blogitem.get_absolute_url() }}{% if not comment.approved %}?admin=1{% endif %}#{{ comment.oid }}">{{ comment.blogitem.title }}</a>
-  {{ timesince(comment.add_date) }} ago
-  </small>
-</blockquote>
+{% csrf_token %}
+<div class="comments">
+  {% for comment in comments %}
+  <div class="comment">
+    <blockquote>
+      <p>{{ comment.rendered|safe }}</p>
+      <p class="approval">
+        {% if not comment.approved %}
+        <a class="ui red small label">Not approved</a>
+        <button class="small ui button primary delete-button" data-url="{{ comment.blogitem.get_absolute_url() }}/approve/{{ comment.oid }}">approve</button>
+        <button class="small ui button primary delete-button" data-url="{{ comment.blogitem.get_absolute_url() }}/delete/{{ comment.oid }}">delete</button>
+        <br>
+        {% endif %}
+      </p>
+      <small>{% if comment.name %}<b>{{ comment.name }}</b>{% else %}<em>Anonymous</em>{% endif %}
+      on <a href="{{ comment.blogitem.get_absolute_url() }}{% if not comment.approved %}?admin=1{% endif %}#{{ comment.oid }}">{{ comment.blogitem.title }}</a>
+      {{ timesince(comment.add_date) }} ago
+      </small>
+    </blockquote>
+  </div>
+  {% endfor %}
 </div>
-{% endfor %}
-
 
 {% endblock %}
