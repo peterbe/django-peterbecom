@@ -83,7 +83,7 @@ def fetch_itunes_lookup(podcast_id):
         else:
             print("Too ambiguous ({!r} != {!r}, {!r} != {!r})".format(
                 podcast.name, lookup['collectionName'],
-                podcast.url, lookup['feedUrl'],
+                podcast.url, lookup.get('feedUrl'),
             ))
     else:
         print("Found no results")

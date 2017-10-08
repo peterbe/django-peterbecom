@@ -69,7 +69,14 @@ class Command(BaseCommand):
                 os.path.basename(tmp_path),
             ))
             t0 = time.time()
-            img = Image.open(path)
+            try:
+                img = Image.open(path)
+            except IOError as exception:
+                self.warning('IOError trying to open {} ({})'.format(
+                    path,
+                    exception,
+                ))
+                continue
             if was_png:
                 try:
                     img = img.convert('RGB')
