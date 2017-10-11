@@ -116,7 +116,7 @@ class PlogTestCase(TestCase):
             blogitem=blog,
             blogcomment=comment,
         ).key
-        response = loggedin.post(
+        response = loggedin.get(
             approve_url + '?key={}'.format(key),
             HTTP_X_REQUESTED_WITH='XMLHttpRequest'
         )

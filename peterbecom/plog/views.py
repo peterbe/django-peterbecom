@@ -323,10 +323,10 @@ def get_related_posts_by_text(post, limit=5):
     search = search[:limit]
     response = search.execute()
     ids = [int(x._id) for x in response]
-    print('Took {:.1f}ms to find {} related by text'.format(
-        response.took,
-        response.hits.total,
-    ))
+    # print('Took {:.1f}ms to find {} related by text'.format(
+    #     response.took,
+    #     response.hits.total,
+    # ))
     if not ids:
         return []
     objects = BlogItem.objects.filter(
