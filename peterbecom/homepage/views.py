@@ -595,6 +595,8 @@ def sitemap(request):
 
 
 def blog_post_by_alias(request, alias):
+    if alias.startswith('static/'):
+        raise http.Http404('Bad alias for a static URL {!r}'.format(alias))
     blogitem = get_object_or_404(BlogItem, alias=alias)
     url = reverse('blog_post', args=[blogitem.oid])
     return http.HttpResponsePermanentRedirect(url)

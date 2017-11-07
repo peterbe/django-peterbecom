@@ -82,6 +82,8 @@ class Command(BaseCommand):
                 except Exception as exception:
                     if 'Not a JPEG file' in str(exception):
                         continue
+                    elif 'Corrupt JPEG data' in str(exception):
+                        continue
                     else:
                         raise
                 if out:

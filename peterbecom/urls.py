@@ -8,7 +8,9 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 # from django.contrib import admin
 # admin.autodiscover()
 
-urlpatterns = [
+urlpatterns = staticfiles_urlpatterns()
+
+urlpatterns += [
     # url(
     #     r'^admin/',
     #     include(admin.site.urls)
@@ -66,8 +68,6 @@ urlpatterns = [
         include('peterbecom.homepage.urls')
     ),
 ]
-
-urlpatterns += staticfiles_urlpatterns()
 
 
 # djcelery.setup_loader()
