@@ -84,11 +84,6 @@
   {% javascript 'plog:ping' %}
   {% endif %}
 
-  {% if show_buttons %}
-  <script>
-  {% include "plog/twitter_javascript.js" %}
-  </script>
-  {% endif %}
 {% endblock %}
 
 {% block content %}
@@ -110,9 +105,11 @@
 {% include "plog/_post.html" %}
 
 {% if show_buttons %}
-  <section id="buttons" style="display:none">
-    <a href="https://twitter.com/peterbe" class="twitter-follow-button" data-show-count="false">Follow @peterbe</a>
-  </section>
+  <a href="https://twitter.com/peterbe" class="ui tiny twitter button"
+     target="_blank">
+    <i class="twitter icon"></i>
+    Follow <b>@peterbe</b> on Twitter
+  </a>
 {% endif %}
 
 {% if post.hide_comments and post.disallow_comments %}

@@ -114,9 +114,9 @@ def _blog_post_key_prefixer(request):
     return prefix
 
 
-@cache_control(public=True, max_age=ONE_WEEK)
+@cache_control(public=True, max_age=settings.DEBUG and ONE_HOUR or ONE_WEEK)
 @cache_page(
-    ONE_WEEK,
+    settings.DEBUG and ONE_HOUR or ONE_WEEK,
     _blog_post_key_prefixer,
 )
 def blog_post(request, oid):
@@ -244,7 +244,7 @@ def _render_blog_post(request, oid, screenshot_mode=False):
     context['related_by_text'] = get_related_posts_by_text(post, limit=5)
     context['show_buttons'] = (
         not screenshot_mode and
-        not settings.DEBUG and
+        # not settings.DEBUG and
         request.path != '/plog/blogitem-040601-1'
     )
     context['show_fusion_ad'] = (
