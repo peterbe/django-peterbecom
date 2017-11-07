@@ -197,7 +197,6 @@ def mincss_html(html, abs_uri):
     try:
         combined_css = _clean_repeated_license_preambles(combined_css)
     except Exception as exception:
-        raise
         print('Failure calling _clean_repeated_license_preambles: {}'.format(
             exception
         ))
@@ -252,7 +251,7 @@ Saving:               %.fKb
 def _clean_repeated_license_preambles(cssstring):
     # License preambles
     regex = re.compile(
-        r'\/\*\!.*\*\/\s+'
+        r'\/\*\!.*?\*\/\s+'
     )
 
     new_preamble = (
