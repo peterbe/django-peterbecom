@@ -70,7 +70,11 @@ def invalidate_too_old(verbose=False, dry_run=False, revisit=False):
             path = os.path.join(root, file_)
             if os.path.isfile(path + '.metadata'):
                 found.append(os.stat(path).st_size)
-                if too_old(path):
+                seconds = None
+                if os.path.isfile(path + '.cache_control'):
+                    with open(path + '.cache_control') as seconds_f:
+                        seconds = int(seconds_f.read())
+                if too_old(path, seconds=seconds):
                     if verbose:
                         print("INVALIDATE", path)
                     if not dry_run:
@@ -79,6 +83,8 @@ def invalidate_too_old(verbose=False, dry_run=False, revisit=False):
                         delete_empty_directory(path)
                         if revisit:
                             revisit_url(path)
+                elif verbose:
+                    print('NOT TOO OLD', path)
     if verbose:
         print("Found", len(found), "possible files")
         mb = sum(found) / 1024.0 / 1024.0
