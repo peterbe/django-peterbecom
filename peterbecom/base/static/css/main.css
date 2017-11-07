@@ -111,9 +111,10 @@ span.cr {
   font-size:90%;
 }
 span.not-approved { /* no mincss */
-  float:right;
-  font-size:90%;
-  color:red;
+  float: right;
+  font-size: 90%;
+  color: red;
+  padding-left: 10px;
 }
 .sn {
   font-weight:bold;

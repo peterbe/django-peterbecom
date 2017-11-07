@@ -19,14 +19,14 @@ def path_to_fs_path(path):
     return fs_path + '/index.html'
 
 
-def too_old(fs_path):
-    cache_seconds = 60 * 60 * 24  # default
-    uri = fs_path.replace(settings.FSCACHE_ROOT, '')
-    if uri.startswith('/plog'):
-        cache_seconds = 60 * 60 * 24 * 7
+def too_old(fs_path, seconds=None):
+    if seconds is None:
+        seconds = 60 * 60 * 24  # default
+        if '/plog/' in fs_path:
+            seconds = 60 * 60 * 24 * 7
 
     age = time.time() - os.stat(fs_path).st_mtime
-    return age > cache_seconds
+    return age > seconds
 
 
 def invalidate(fs_path):

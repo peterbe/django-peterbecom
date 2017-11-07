@@ -1,1 +1,1 @@
-{{ show_comments(post, user.is_staff, all_comments)|safe }}
+{{ show_comments(post, user.is_staff, all_comments, not post.disallow_comments)|safe }}

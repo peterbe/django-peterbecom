@@ -374,3 +374,17 @@ wcwidth==0.1.7 \
 zope.structuredtext==4.2.0 \
     --hash=sha256:80f581ac374ae23ddb93c5fa2cc5085456f764adff167e1da01145d77fb1e192 \
     --hash=sha256:8e6e1afb712c7a1ce0b0632c68bbd58198a5dcb32fa2b7d9f2af8469531596fa
+redis==2.10.6 \
+    --hash=sha256:8a1900a9f2a0a44ecf6e8b5eb3e967a9909dfed219ad66df094f27f7d6f330fb \
+    --hash=sha256:a22ca993cea2962dbb588f9f30d0015ac4afcc45bee27d3978c0dbe9e97c6c0f
+hashin==0.11.5 \
+    --hash=sha256:d012057f84f4dc685f72bd191f74a8dc5c10b488fc6dffda79f61be2f13dabbd \
+    --hash=sha256:b7b3563aeaa644a81a9b3d03ac5688874434f1720c4a933580bf1d6aa8a5f8a1
+dj-database-url==0.4.2 \
+    --hash=sha256:a6832d8445ee9d788c5baa48aef8130bf61fdc442f7d9a548424d25cd85c9f08 \
+    --hash=sha256:e16d94c382ea0564c48038fa7fe8d9c890ef1ab1a8ec4cb48e732c124b9482fd
+Unipath==1.1 \
+    --hash=sha256:e6257e508d8abbfb6ddd8ec357e33589f1f48b1599127f23b017124d90b0fff7 \
+    --hash=sha256:09839adcc72e8a24d4f76d63656f30b5a1f721fc40c9bcd79d8c67bdd8b47dae
+python-decouple==3.1 \
+    --hash=sha256:1317df14b43efee4337a4aa02914bf004f010cd56d6c4bd894e6474ec8c4fe2d

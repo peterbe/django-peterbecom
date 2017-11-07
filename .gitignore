@@ -18,3 +18,4 @@ node_modules/
 TODO
 tags
 *.commandlock
+.docker-build

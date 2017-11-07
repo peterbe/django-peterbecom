@@ -2,10 +2,15 @@
 
 import os
 
+from decouple import config
+from unipath import Path
+import dj_database_url
+
+
 from .bundles import PIPELINE_CSS, PIPELINE_JS
 
 
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+BASE_DIR = Path(__file__).parent.parent.parent
 
 
 def path(*x):
@@ -25,14 +30,11 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 SITE_ID = 1
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.',
-        'NAME': '',
-        'USER': '',
-        'PASSWORD': '',
-        'HOST': '',
-        'PORT': '',
-    }
+    'default': config(
+        'DATABASE_URL',
+        default='postgres://postgres@db/postgres',
+        cast=dj_database_url.parse
+    )
 }
 
 # Local time zone for this installation. Choices can be found here:
@@ -101,8 +103,7 @@ STATICFILES_FINDERS = (
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = ''  # set in local settings
 
-
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -265,16 +266,13 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
         'KEY_PREFIX': 'peterbecom',
         'TIMEOUT': 5 * 60,
-        'LOCATION': '127.0.0.1:11211'
+        'LOCATION': 'memcached:11211'
     }
 }
 
-# CELERY_RESULT_BACKEND = 'django-db'
-# BROKER_URL = "django://"
-# BROKER_CONNECTION_TIMEOUT = 0.1
-# CELERYD_CONCURRENCY = 2
-# CELERY_ALWAYS_EAGER = False
-# CELERY_IGNORE_RESULT = True
+REDIS_URL = 'redis://redis:6379/0'
+
+CELERY_BROKER_URL = REDIS_URL
 
 SESSION_COOKIE_HTTPONLY = True
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
@@ -330,7 +328,7 @@ ES_INDEX_SETTINGS = {
 
 ES_CONNECTIONS = {
     'default': {
-        # 'hosts': ['localhost:9200'],
+        'hosts': ['elasticsearch:9200'],
     },
 }
 

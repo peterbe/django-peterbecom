@@ -1,14 +1,8 @@
 <div id="{{ comment.oid }}" class="comment">
-  <div class="content">
-    <a class="author">{% if comment.name %}{{ comment.name }}{% else %}<em>Anonymous</em>{% endif %}</a>
+  <div>
+    <b>{% if comment.name %}{{ comment.name }}{% else %}<em>Anonymous</em>{% endif %}</b>
     <div class="metadata">
-      <span class="date">{{ comment.add_date.strftime('%d %B %Y') }}</span>
-      {% if is_staff %}
-        {% if not comment.approved %}
-        <button data-oid="{{ comment.oid }}" name="approve">Approve</button>
-        {% endif %}
-        <button data-oid="{{ comment.oid }}" name="delete">Delete</button>
-      {% endif %}
+      {{ comment.add_date.strftime('%d %B %Y') }}
       {% if not comment.approved %}
       <span class="not-approved">
         <strong>Note:</strong> This comment has not been approved yet
@@ -19,15 +13,19 @@
       {{ comment.rendered|safe }}
     </div>
     {% if not preview %}
+    {% if allow_comments %}
     <div class="actions">
       <a class="reply" rel="nofollow" data-oid="{{ comment.oid }}"
          href="#{{ comment.oid }}">Reply</a>
     </div>
     {% endif %}
+    {% endif %}
   </div>
   {% if not preview %}
+  {% if count_children %}
   <div class="comments">
-    {{ show_comments(comment, is_staff, all_comments)|safe }}
+    {{ show_comments(comment, is_staff, all_comments, allow_comments)|safe }}
   </div>
+  {% endif %}
   {% endif %}
 </div>

@@ -11,7 +11,7 @@ from sorl.thumbnail import get_thumbnail
 
 
 @library.global_function
-def show_comments(parent, is_staff, all_comments):
+def show_comments(parent, is_staff, all_comments, allow_comments):
     if parent.__class__ == BlogItem:
         parent = None
     else:
@@ -24,6 +24,8 @@ def show_comments(parent, is_staff, all_comments):
           'preview': False,
           'is_staff': is_staff,
           'all_comments': all_comments,
+          'count_children': len(all_comments[comment.pk]),
+          'allow_comments': allow_comments,
         }))
     return '\n'.join(html)
 

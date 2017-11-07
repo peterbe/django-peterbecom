@@ -255,7 +255,7 @@ class BlogComment(models.Model):
             '<%s: %r (%sapproved)>' % (
                 self.__class__.__name__,
                 self.oid + ' ' + self.comment[:20],
-                self.approved and '' or 'not '
+                not self.approved and 'not' or ''
             )
         )
 

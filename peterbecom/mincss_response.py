@@ -124,6 +124,7 @@ def _get_mincssed_html(path):
 
 
 def _save_mincssed_html(path, html):
+    print("SAVING MINCSSED HTML", type(html))
     with codecs.open(_mincssed_key(path), 'w', 'utf-8') as f:
         f.write(html)
 
@@ -191,8 +192,16 @@ def mincss_html(html, abs_uri):
     html = _link_regex.sub(link_remover, html)
 
     _total_after = sum(len(x) for x in combined_css)
-    combined_css = [cssmin.cssmin(x) for x in combined_css]
-    _total_after_min = sum(len(x) for x in combined_css)
+    combined_css = '\n'.join([cssmin.cssmin(x) for x in combined_css])
+
+    try:
+        combined_css = _clean_repeated_license_preambles(combined_css)
+    except Exception as exception:
+        raise
+        print('Failure calling _clean_repeated_license_preambles: {}'.format(
+            exception
+        ))
+    _total_after_min = len(combined_css)
     t2 = time.time()
     template = """
 /*
@@ -220,11 +229,12 @@ Saving:               %.fKb
             (t2 - t1) * 1000,
         )
     )
-    # print(stats_css)
-    combined_css.insert(0, stats_css)
+    combined_css = '{}\n{}'.format(
+        stats_css.strip(),
+        combined_css,
+    )
     new_style = (
-        '<style type="text/css">\n%s\n</style>' %
-        ('\n'.join(combined_css)).strip()
+        '<style type="text/css">\n{}\n</style>'.format(combined_css)
     )
     html = html.replace(
         '</head>',
@@ -237,3 +247,19 @@ Saving:               %.fKb
         (t2 - t1) * 1000,
     ))
     return html
+
+
+def _clean_repeated_license_preambles(cssstring):
+    # License preambles
+    regex = re.compile(
+        r'\/\*\!.*\*\/\s+'
+    )
+
+    new_preamble = (
+        '/* License for minified and inlined CSS originally belongs '
+        'to Semantic UI. See individual files in '
+        'https://github.com/peterbe/django-peterbecom/tree/master/peterbecom/base/static/css '  # noqa
+        '*/'
+    )
+    cssstring = regex.sub('', cssstring)
+    return new_preamble + '\n' + cssstring

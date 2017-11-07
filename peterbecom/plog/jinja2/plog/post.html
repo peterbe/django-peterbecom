@@ -31,11 +31,17 @@
     float:right;
     font-size:90%;
     color:red;
+    padding-left:10px;
+  }
+  .ui.comments .comment .metadata { /* no mincss */
+    display: inline-block;
+    margin-left: 0.5em;
+    color: rgba(0, 0, 0, 0.4);
+    font-size: 0.875em;
   }
   </style>
 
   {% if request.path == '/plog/blogitem-040601-1' %}
-  <!-- At the time of writing, only Chrome supports prerender -->
   <link rel="prerender" href="https://songsear.ch/">
   {% endif %}
 {% endblock %}
@@ -71,10 +77,7 @@
 
 {% endblock %}
 
-
 {% block extrajs %}
-  {% javascript 'blogitem' %}
-
   {% if request.path == '/plog/blogitem-040601-1' %}
   {% javascript 'warmup_songsearch' %}
   {% else %}

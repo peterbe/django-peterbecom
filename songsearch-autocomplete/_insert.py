@@ -2,20 +2,12 @@
 
 from glob import glob
 import os
+import re
 
 CDN = os.environ.get('CDN', 'https://cdn-2916.kxcdn.com')
 
 BLOCK = """
-<script>
-(function() {
-  var link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = '{cdn}/{csspath}';
-  link.type = 'text/css';
-  var head = document.head || document.getElementsByTagName("head")[0];
-  head.insertBefore(link, head.lastChild);
-})()
-</script>
+<style type="text/css">{csspayload}</style>
 <script src="{cdn}/{jspath}" defer></script>
 """
 
@@ -25,10 +17,14 @@ def run():
     webroot = os.path.abspath('../peterbecom-static-content')
     csspath, = glob(os.path.join(webroot, 'songsearch-autocomplete/css/*.css'))
     jspath, = glob(os.path.join(webroot, 'songsearch-autocomplete/js/*.js'))
-    csspath = csspath.replace(webroot + '/', '')
     jspath = jspath.replace(webroot + '/', '')
 
-    block = BLOCK.replace('{cdn}', CDN).replace('{csspath}', csspath).replace('{jspath}', jspath)
+    with open(csspath) as f:
+        csspayload = f.read()
+        csspayload = re.sub(r'\/\*# sourceMappingURL=.*?\*\/', '', csspayload)
+        csspayload = csspayload.strip()
+
+    block = BLOCK.replace('{cdn}', CDN).replace('{csspayload}', csspayload).replace('{jspath}', jspath)
     block = block.strip()
     template = '../peterbecom-static-content/_FSCACHE/plog/blogitem-040601-1/index.html'
     with open(template) as f:
@@ -43,8 +39,9 @@ def run():
         content = content[:start] + header + '\n' + block + '\n' + content[end:]
     else:
         print('Inserted new block', template)
-        content = content.replace('</body>', '{}\n{}\n{}\n</body>'.format(header, block, footer))
-    #print(content)
+        content = content.replace(
+            '</body>', '{}\n{}\n{}\n</body>'.format(header, block, footer)
+        )
     with open(template, 'w') as f:
         f.write(content)
 

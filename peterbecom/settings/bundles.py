@@ -43,23 +43,6 @@ PIPELINE_CSS = {
         ),
         'output_filename': 'css/search.min.css',
     },
-    # 'podcasttime': {
-    #     'source_filenames': (
-    #         'podcasttime/select2/css/select2.min.css',
-    #         'podcasttime/css/podcasttime.css',
-    #         'css/statistic.css',
-    #     ),
-    #     'output_filename': 'css/podcasttime.min.css',
-    # },
-    # 'podcasttime:podcasts': {
-    #     'source_filenames': (
-    #         'css/card.css',
-    #         'css/label.css',
-    #         'css/search.css',
-    #         'podcasttime/css/podcasts.css',
-    #     ),
-    #     'output_filename': 'css/podcasttime.podcasts.min.css',
-    # },
 
 }
 
@@ -70,11 +53,14 @@ PIPELINE_JS = {
             'js/jquery-2.2.4.min.js',
             'js/transition.js',
             'js/dropdown.js',
-            # 'js/visibility.js',
             'js/prefetcher.js',
             'js/site.js',
+            'js/blogitem.js',
         ),
         'output_filename': 'js/base.min.js',
+        'extra_context': {
+            'defer': True,
+        },
     },
     'google_analytics': {
         'source_filenames': (
@@ -90,6 +76,9 @@ PIPELINE_JS = {
             'plog/js/warmup-songsearch.js',
         ),
         'output_filename': 'js/warmup-songsearch.min.js',
+        'extra_context': {
+            'defer': True,
+        },
     },
     'autocompeter': {
         'source_filenames': (
@@ -97,7 +86,7 @@ PIPELINE_JS = {
         ),
         'output_filename': 'js/autocompeter.min.js',
         'extra_context': {
-            'async': True,
+            'defer': True,
         },
     },
     'about': {
@@ -109,19 +98,13 @@ PIPELINE_JS = {
             'defer': True,
         },
     },
-    'blogitem': {
-        'source_filenames': (
-            'js/blogitem.js',
-        ),
-        'output_filename': 'js/blogitem.min.js',
-    },
     'plog:ping': {
         'source_filenames': (
             'js/blogitem-ping.js',
         ),
         'output_filename': 'js/blogitem-ping.min.js',
         'extra_context': {
-            'async': True,
+            'defer': True,
         },
     },
     'calendar': {
@@ -129,12 +112,18 @@ PIPELINE_JS = {
             'plog/js/calendar.js',
         ),
         'output_filename': 'js/calendar.min.js',
+        'extra_context': {
+            'defer': True,
+        },
     },
     'new_comments': {
         'source_filenames': (
             'plog/js/new-comments.js',
         ),
         'output_filename': 'js/new-comments.min.js',
+        'extra_context': {
+            'defer': True,
+        },
     },
 }
 

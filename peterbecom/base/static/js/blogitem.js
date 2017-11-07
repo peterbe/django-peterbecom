@@ -130,10 +130,14 @@ var F = (function() {
           var parent;
           if (response.parent) {
             parent = $('.comments', '#' + response.parent).eq(1);
+            if (!parent.length) {
+              // need to create this container
+              parent = $('<div class="comments">')
+              parent.appendTo('#' + response.parent);
+            }
           } else {
             parent = $('#comments-outer');
           }
-
           // Put a slight delay on these updates so it "feels"
           // slightly more realistic if the POST manages to happen
           // too fast.
@@ -141,13 +145,13 @@ var F = (function() {
             parent
               .hide()
                 .append(response.html)
-                  .fadeIn(700);
+                  .fadeIn(500);
             $('textarea', form).val('');
             $('.dimmer', form).removeClass('active');
-          }, 1000);
+          }, 800);
 
           F.reset();
-          $('span.comment-count').fadeOut(600, function() {
+          $('span.comment-count').fadeOut(500, function() {
             var text;
             if (response.comment_count === 1) {
               text = '1 comment';
@@ -181,69 +185,76 @@ var F = (function() {
 $(function() {
   'use strict';
 
+  // This JS might be included on all pages. Even those that are
+  // not blog posts. Hence this careful if statement on form.length.
   var form = $('form#comment');
-
-  form.on('mouseover', function() {
-    $(this).off('mouseover');
-    F.prepare();
-  });
-
-  form.on('mouseover', function() {
-    $(this).off('mouseover');
-    F.prepare();
-  });
-
-  form.on('click', 'button.preview', function() {
-    if ($('textarea', form).val()) {
-      F.preview(function() {
-        $('button.preview', form).removeClass('primary');
-        $('button.post', form).addClass('primary');
+  if (form.length) {
+      form.on('mouseover', function() {
+        $(this).off('mouseover');
+        F.prepare();
       });
-    }
-    return false;
-  });
 
-  $('#comments-outer').on('click', 'a.reply', function() {
-    F.setupReply($('#' + $(this).attr('data-oid')));
-    return false;
-  });
+      form.on('mouseover', function() {
+        $(this).off('mouseover');
+        F.prepare();
+      });
 
-  form.on('submit', F.submit);
+      form.on('click', 'button.preview', function() {
+        if ($('textarea', form).val()) {
+          F.preview(function() {
+            $('button.preview', form).removeClass('primary');
+            $('button.post', form).addClass('primary');
+          });
+        }
+        return false;
+      });
 
-  form.on('click', '.cancel a', F.reset);
+      $('#comments-outer').on('click', 'a.reply', function() {
+        F.setupReply($('#' + $(this).attr('data-oid')));
+        return false;
+      });
 
-  $('#comments-outer').on('click', 'button[name="approve"]', function() {
-    var oid = $(this).data('oid');
-    var url = location.href;
-    url = url.split('#')[0];
-    url = url.split('?')[0];
-    url += '/approve/' + $(this).data('oid');
-    var button = $(this);
-    $.post(url, {csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()}, function() {
-      $('.not-approved', '#' + oid).remove();
-      button.remove();
+      form.on('submit', F.submit);
+
+      form.on('click', '.cancel a', F.reset);
+  }
+
+  var commentsOuter = $('#comments-outer');
+
+  if (commentsOuter.length) {
+    commentsOuter.on('click', 'button[name="approve"]', function() {
+      var oid = $(this).data('oid');
+      var url = location.href;
+      url = url.split('#')[0];
+      url = url.split('?')[0];
+      url += '/approve/' + $(this).data('oid');
+      var button = $(this);
+      $.post(url, {csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()}, function() {
+        $('.not-approved', '#' + oid).remove();
+        button.remove();
+      });
+      return false;
     });
-    return false;
-  });
 
-  $('#comments-outer').on('click', 'button[name="delete"]', function() {
-    var oid = $(this).data('oid');
-    var url = location.pathname;
-    url += '/delete/' + oid;
-    $.post(url, {csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()}, function() {
-      $('#' + oid).remove();
+    commentsOuter.on('click', 'button[name="delete"]', function() {
+      var oid = $(this).data('oid');
+      var url = location.pathname;
+      url += '/delete/' + oid;
+      $.post(url, {csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()}, function() {
+        $('#' + oid).remove();
+      });
+      return false;
     });
-    return false;
-  });
 
-  var loadingAllComments = false;  // for the slow-load lock
-  $('.comments-truncated').on('click', 'button', function() {
-    if (loadingAllComments) return;
-    $('.comments-truncated .dimmer').addClass('active');
-    loadingAllComments = true;
-    $('#comments-outer').load(location.pathname + '/all-comments', function() {
-      $('.comments-truncated').remove();
+    var loadingAllComments = false;  // for the slow-load lock
+    $('.comments-truncated').on('click', 'button', function() {
+      if (loadingAllComments) return;
+      $('.comments-truncated .dimmer').addClass('active');
+      loadingAllComments = true;
+      commentsOuter.load(location.pathname + '/all-comments', function() {
+        $('.comments-truncated').remove();
+      });
     });
-  });
+  }
 
 });
