@@ -15,6 +15,13 @@ DATABASES = {
         'PORT': '',
     },
 }
+ES_CONNECTIONS = {
+    'default': {
+        'hosts': ['localhost:9200'],
+    },
+}
+REDIS_URL = 'redis://localhost:6379/0'
+CELERY_BROKER_URL = REDIS_URL
 HMAC_KEYS = {'some': 'thing'}
 SECRET_KEY = 'something'
 CACHES = {
