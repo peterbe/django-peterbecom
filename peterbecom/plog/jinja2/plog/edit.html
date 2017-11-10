@@ -85,10 +85,11 @@ form[method="post"] { clear: left; }
 
 
 <p style="border-top:1px solid #ccc; margin-top: 20px">
-preview &darr;
+preview ↓
 &nbsp;
 {% if blogitem %}
-<a href="{{ url('blog_post', blogitem.oid) }}">view &rarr;</a>
+<a href="{{ url('plog_awspa', blogitem.oid) }}">Amazon Products →</a>
+<a href="{{ url('blog_post', blogitem.oid) }}">view →</a>
 {% endif %}
 </p>
 

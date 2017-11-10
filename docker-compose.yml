@@ -88,6 +88,20 @@ services:
       - $PWD:/app
     command: worker-purge
 
+  awspa:
+    build:
+      context: .
+      dockerfile: Dockerfile.awspa
+    environment:
+      - NODE_ENV=development
+    ports:
+      - "4000:4000"
+    volumes:
+      - $PWD/awspa:/app
+    command: start
+
+
+
 
 volumes:
   esdata:

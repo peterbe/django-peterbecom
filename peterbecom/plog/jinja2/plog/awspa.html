@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+<style>
+</style>
+{% endblock %}
+
+{% block extrajs %}
+<script defer src="{{ static("js/plog-awspa.js") }}"></script>
+{% endblock %}
+
+{% block content %}
+
+
+
+<form action="" class="ui form" method="post">{% csrf_token %}
+
+{% for keyword in blogitem.proper_keywords %}
+<h3>{{ keyword }}</h3>
+<button type="button" class="loadmore" data-keyword="{{ keyword }}">Load more</button>
+{% endfor %}
+
+{{ semanticuiform(form) }}
+
+  <div class="form-actions">
+    <button type="submit" class="ui button primary">Save changes</button>
+    <button type="button" class="btn ui button">Cancel</button>
+  </div>
+</form>
+
+
+<p style="border-top:1px solid #ccc; margin-top: 20px">
+<a href="{{ url('edit_post', blogitem.oid) }}">← edit</a>
+&nbsp;
+<a href="{{ url('blog_post', blogitem.oid) }}">view →</a>
+</p>
+
+
+{% endblock %}
