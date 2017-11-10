@@ -4,6 +4,8 @@ import datetime
 from collections import defaultdict
 from statistics import median
 
+from fancy_cache import cache_page
+
 from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse
 from django.template import loader
@@ -23,6 +25,7 @@ from django.utils import timezone
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
+from peterbecom.awspa.models import AWSProduct
 from .models import (
     BlogItem,
     BlogComment,
@@ -33,10 +36,9 @@ from .models import (
 )
 from .search import BlogItemDoc
 from .utils import render_comment_text, valid_email, utc_now
-from fancy_cache import cache_page
 from . import utils
 from .utils import json_view
-from .forms import BlogForm, BlogFileUpload, CalendarDataForm
+from .forms import BlogForm, BlogFileUpload, CalendarDataForm, AWSPAForm
 from . import tasks
 
 
@@ -788,6 +790,36 @@ def edit_post(request, oid):
     data['blogitem'] = blogitem
     data['INBOUND_EMAIL_ADDRESS'] = settings.INBOUND_EMAIL_ADDRESS
     return render(request, 'plog/edit.html', data)
+
+
+@login_required
+@transaction.atomic
+def plog_awspa(request, oid):
+    blogitem = get_object_or_404(BlogItem, oid=oid)
+    context = {
+        'blogitem': blogitem,
+    }
+    if request.method == 'POST':
+        form = AWSPAForm(request.POST)
+        if form.is_valid():
+            print(form.cleaned_data)
+            raise NotImplementedError
+    else:
+        form = AWSPAForm()
+    possible_products = []
+    for keyword in blogitem.proper_keywords:
+        possible_products.append((
+            keyword,
+            AWSProduct.objects.filter(
+                keyword__iexact=keyword
+            )
+        ))
+    context['possible_products'] = possible_products
+
+    context['products'] = blogitem.awspa_products.all()
+    context['form'] = form
+    context['page_title'] = 'Amazon Affiliate Products'
+    return render(request, 'plog/awspa.html', context)
 
 
 @csrf_exempt

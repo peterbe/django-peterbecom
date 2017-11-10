@@ -6,6 +6,7 @@ from . import views
 urlpatterns = [
     url('^$', views.plog_index, name='plog_index'),
     url('^edit/(.*)', views.edit_post, name='edit_post'),
+    url('^awspa/(.*)', views.plog_awspa, name='plog_awspa'),
     url(
         '^thumbnails/delete/(?P<pk>\d+)$',
         views.delete_post_thumbnail,

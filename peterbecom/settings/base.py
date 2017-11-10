@@ -198,6 +198,7 @@ INSTALLED_APPS = (
     'peterbecom.localvsxhr',
     'peterbecom.cdnthis',
     'peterbecom.podcasttime',
+    'peterbecom.awspa',
     'fancy_cache',
     'pipeline',
     'django_jinja',

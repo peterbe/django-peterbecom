@@ -207,7 +207,7 @@ var Thumbnails = (function() {
 })();
 
 function slugify(s) {
-  return $.trim(s).replace(/\s+/gi, '-').toLowerCase();
+  return s.trim().replace(/\s+/gi, '-').replace(/\'/g, '').toLowerCase();
 }
 
 

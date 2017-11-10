@@ -132,3 +132,8 @@ class CalendarDataForm(forms.Form):
             if diff > datetime.timedelta(days=50):
                 raise forms.ValidationError('> 50 days')
         return cleaned_data
+
+
+class AWSPAForm(forms.Form):
+
+    products = forms.MultiValueField(required=False)
