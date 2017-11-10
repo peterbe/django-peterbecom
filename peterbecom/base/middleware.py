@@ -59,7 +59,9 @@ class FSCacheMiddleware:
                     seconds,
                     datetime.datetime.utcnow()
                 )
-                # Proceed only if it's a long'ish time to be cached
+                # 'fs_path' is the path to the file, but its parent folder(s)
+                # might need to be created.
+                fscache.create_parents(fs_path)
                 with open(fs_path, 'w') as f:
                     f.write(response.content.decode('utf-8'))
                     if 'text/html' in response['Content-Type']:

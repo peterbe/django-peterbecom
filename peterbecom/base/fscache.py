@@ -12,11 +12,19 @@ def path_to_fs_path(path):
     fs_path = settings.FSCACHE_ROOT
     for directory in path.split('/'):
         if directory:
-            fs_path += '/' + directory
-        if not os.path.isdir(fs_path):
-            os.mkdir(fs_path)
-            os.chmod(fs_path, 0o755)
+            fs_path = os.path.join(fs_path, directory)
     return fs_path + '/index.html'
+
+
+def create_parents(fs_path):
+    directory = os.path.dirname(fs_path)
+    here = settings.FSCACHE_ROOT
+    for part in directory.replace(settings.FSCACHE_ROOT, '').split('/'):
+        here = os.path.join(here, part)
+        if not os.path.isdir(here):
+            print("MKDIR", here)
+            os.mkdir(here)
+            os.chmod(here, 0o755)
 
 
 def too_old(fs_path, seconds=None):
@@ -85,6 +93,11 @@ def invalidate_too_old(verbose=False, dry_run=False, revisit=False):
                             revisit_url(path)
                 elif verbose:
                     print('NOT TOO OLD', path)
+        if not files and not os.listdir(root):
+            if verbose:
+                print("NO FILES IN", root)
+            if not dry_run:
+                os.rmdir(root)
     if verbose:
         print("Found", len(found), "possible files")
         mb = sum(found) / 1024.0 / 1024.0
