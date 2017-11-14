@@ -57,7 +57,7 @@
 </head>
 <body>
 
-  <div class="ui main text container">
+  <div class="ui main container">
     <h1 class="ui header">{% block page_title %}{{ page_title }}{% endblock %}</h1>
     {% block page_header_extra %}
     {% endblock %}
@@ -70,9 +70,9 @@
 
   {% if request.path != '/plog/blogitem-040601-1' %}
   <div class="ui borderless main menu">
-    <div class="ui text container">
+    <div class="ui container">
 
-      <div href="#" class="header item">
+      <div class="header item">
         <a href="/"><img class="logo" src="{{ static('images/favicon-32.png') }}"></a>
         <a href="/">Peterbe.com</a>
         {% if page_title %}
@@ -112,7 +112,7 @@
   </div>
   {% endif %}
 
-  <div class="ui text container content">
+  <div class="ui container content">
     {% block content %}
       {% block content_body %}
       {% endblock %}

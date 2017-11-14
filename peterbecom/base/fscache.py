@@ -41,6 +41,8 @@ def invalidate(fs_path):
     os.remove(fs_path)
     if os.path.isfile(fs_path + '.metadata'):
         os.remove(fs_path + '.metadata')
+    if os.path.isfile(fs_path + '.cache_control'):
+        os.remove(fs_path + '.cache_control')
 
 
 def invalidate_by_url(url):

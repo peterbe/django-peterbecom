@@ -52,6 +52,10 @@ urlpatterns += [
         include('peterbecom.podcasttime.urls', namespace='podcasttime')
     ),
     url(
+        r'^awspa/',
+        include('peterbecom.awspa.urls', namespace='awspa')
+    ),
+    url(
         r'^auth/',
         include('django_auth0.urls')
     ),

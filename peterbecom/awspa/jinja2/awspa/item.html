@@ -1,0 +1,17 @@
+<div class="item">
+  <a href="{{ item.DetailPageURL }}" class="ui tiny image">
+    <img src="{{ item.MediumImage.URL }}" alt="{{ item.ItemAttributes.Title }}">
+  </a>
+  <div class="content">
+    <a href="{{ item.DetailPageURL }}" class="header">{{ item.ItemAttributes.Title }}</a>
+    <div class="meta">
+      <span class="price" style="font-weight:bold;color:#b12704;">
+        {{ item.ItemAttributes.ListPrice.FormattedPrice }}
+      </span>
+      <span class="authors">By <b>{{ item.ItemAttributes.Author|join(', ') }}</b></span>
+    </div>
+    <div class="description">
+      <p>Description...</p>
+    </div>
+  </div>
+</div>

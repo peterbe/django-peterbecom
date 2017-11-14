@@ -16,8 +16,14 @@
 <form action="" class="ui form" method="post">{% csrf_token %}
 
 {% for keyword in blogitem.proper_keywords %}
-<h3>{{ keyword }}</h3>
-<button type="button" class="loadmore" data-keyword="{{ keyword }}">Load more</button>
+<div class="keyword">
+  <h3>{{ keyword }}</h3>
+  <div class="ui items">
+
+  </div>
+  <button type="button" class="loadmore" data-keyword="{{ keyword }}">Load more</button>
+</div>
+
 {% endfor %}
 
 {{ semanticuiform(form) }}

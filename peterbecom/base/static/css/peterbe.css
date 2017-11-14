@@ -2,6 +2,7 @@ body {
     color: #333;
     background-color: #FFFFFF;
 }
+
 .main.container {
     margin-top: 2em;
 }
@@ -11,10 +12,20 @@ body {
     border: none;
     box-shadow: none;
     transition: box-shadow 0.5s ease, padding 0.5s ease;
+
 }
 .main.menu .item img.logo {
     margin-right: 1.5em;
 }
+
+
+body,
+.ui.comments .comment .text,
+.ui.comment,
+.main.menu {
+  font-size: 16px;
+}
+
 
 /* this little trick makes it so the repeated page title
  only appears when you've scrolled down a bit so the header

@@ -13,7 +13,7 @@ def search(keyword, searchindex='All', sleep=0):
     if sleep > 0:
         time.sleep(sleep)
     items = output['Items']
-    errors = items['Request']['Errors']
+    errors = items['Request'].get('Errors')
     if errors:
         return [], errors['Error']
     return items['Item'], None
