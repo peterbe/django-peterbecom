@@ -38,7 +38,7 @@ from .search import BlogItemDoc
 from .utils import render_comment_text, valid_email, utc_now
 from . import utils
 from .utils import json_view
-from .forms import BlogForm, BlogFileUpload, CalendarDataForm, AWSPAForm
+from .forms import BlogForm, BlogFileUpload, CalendarDataForm
 from . import tasks
 
 
@@ -800,12 +800,18 @@ def plog_awspa(request, oid):
         'blogitem': blogitem,
     }
     if request.method == 'POST':
-        form = AWSPAForm(request.POST)
-        if form.is_valid():
-            print(form.cleaned_data)
-            raise NotImplementedError
-    else:
-        form = AWSPAForm()
+        product_ids = request.POST.getlist('products')
+        print('product_ids:', product_ids)
+        for product in blogitem.awspa_products.all():
+            if product.id not in product_ids:
+                blogitem.awspa_products.remove(product)
+        for product_id in product_ids:
+            blogitem.awspa_products.add(
+                AWSProduct.objects.get(id=product_id)
+            )
+        return http.HttpResponse('OK')
+    # else:
+    #     form = AWSPAForm()
     possible_products = []
     for keyword in blogitem.proper_keywords:
         possible_products.append((
@@ -816,8 +822,16 @@ def plog_awspa(request, oid):
         ))
     context['possible_products'] = possible_products
 
+    all_keywords = [str(x) for x in blogitem.categories.all()]
+    # print("BEFORE", all_keywords)
+    for keyword in blogitem.proper_keywords:
+        all_keywords.append(keyword)
+    # print("AFTER", all_keywords)
+
     context['products'] = blogitem.awspa_products.all()
-    context['form'] = form
+    context['product_ids'] = [x.id for x in context['products']]
+    # context['form'] = form
+    context['all_keywords'] = all_keywords
     context['page_title'] = 'Amazon Affiliate Products'
     return render(request, 'plog/awspa.html', context)
 

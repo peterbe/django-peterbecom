@@ -13,25 +13,25 @@
 
 
 
-<form action="" class="ui form" method="post">{% csrf_token %}
+<form action="" class="ui form" method="post"
+  data-products="{{ json_print(product_ids) }}">
+  {% csrf_token %}
 
-{% for keyword in blogitem.proper_keywords %}
-<div class="keyword">
-  <h3>{{ keyword }}</h3>
-  <div class="ui items">
+{% for keyword in all_keywords %}
+<div class="keyword" style="border-bottom:1px solid #efefef;padding:10px">
+  <button style="float:right" type="button" class="loadmore ui button" data-keyword="{{ keyword }}">Load more</button>
+  <h2>{{ keyword }}
+  </h2>
+  <div class="ui divided items">
 
   </div>
-  <button type="button" class="loadmore" data-keyword="{{ keyword }}">Load more</button>
 </div>
-
 {% endfor %}
 
-{{ semanticuiform(form) }}
-
-  <div class="form-actions">
+  <!-- <div class="form-actions">
     <button type="submit" class="ui button primary">Save changes</button>
     <button type="button" class="btn ui button">Cancel</button>
-  </div>
+  </div> -->
 </form>
 
 

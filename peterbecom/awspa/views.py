@@ -17,9 +17,17 @@ def search_new(request):
     else:
         from pprint import pprint
         context['cards'] = []
+        # existing_awsproducts = AWSProduct.objects.filter(
+        #     keyword=keyword,
+        #     searchindex=searchindex,
+        # )
+        # known_asins = set()
+        # for awsproduct in existing_awsproducts:
+        #     known_asins.add(awsproduct.asin)
+
         for item in items:
             item.pop('ImageSets', None)
-            print('=' * 100)
+            # print('=' * 100)
             # pprint(item)
             asin = item['ASIN']
             title = item['ItemAttributes']['Title']
@@ -45,12 +53,23 @@ def search_new(request):
                     keyword=keyword,
                     searchindex=searchindex,
                 )
+
+            # if asin in known_asins:
+            #     continue
+
             # Hacks!
             if item['ItemAttributes'].get('Author'):
                 if isinstance(item['ItemAttributes']['Author'], str):
                     item['ItemAttributes']['Author'] = [
                         item['ItemAttributes']['Author']
                     ]
+
+            if not item.get('MediumImage'):
+                print("SKIPPING")
+                pprint(item)
+                print('...BECAUSE NO MediumImage')
+                continue
+
             html = render_to_string('awspa/item.html', {
                 'awsproduct': awsproduct,
                 'item': item,
@@ -58,6 +77,7 @@ def search_new(request):
                 'asin': asin,
                 'keyword': keyword,
                 'searchindex': searchindex,
+                'show_action_button': True,
             })
             context['cards'].append(html)
 

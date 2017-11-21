@@ -1,4 +1,4 @@
-<div class="item">
+<div class="item" data-id="{{ awsproduct.id }}">
   <a href="{{ item.DetailPageURL }}" class="ui tiny image">
     <img src="{{ item.MediumImage.URL }}" alt="{{ item.ItemAttributes.Title }}">
   </a>
@@ -13,5 +13,12 @@
     <div class="description">
       <p>Description...</p>
     </div>
+    {% if show_action_button %}
+    <div class="extra">
+      <div class="ui right floated button">
+        Pick
+      </div>
+    </div>
+    {% endif %}
   </div>
 </div>
