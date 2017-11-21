@@ -49,9 +49,8 @@ django-celery-email==2.0.0 \
     --hash=sha256:29894330d621a0794b2e82e63220ccc5f1dbd539f5cedd9e183616dc2f72f973
 Markdown==2.6.9 \
     --hash=sha256:73af797238b95768b3a9b6fe6270e250e5c09d988b8e5b223fd5efa4e06faf81
-sorl-thumbnail==12.3 \
-    --hash=sha256:ce91c5b112a2ef930a09625adbd99682bd62f34be1963c28f3ffc0d0138a07fd \
-    --hash=sha256:bb277dc98daa07e892d429b73eed749411f7eff1ee6feef142a19e029582e8cd
+sorl-thumbnail==12.4.1 \
+    --hash=sha256:c5ef989da07d31925754922ce95783fd2b1f8735124c0510884633eb32a4cd3e
 Pillow==4.3.0 \
     --hash=sha256:cc6a5ed5b8f9d2f25e4e42d562e0ec4df3ce838f9e9b9d9d9b65fac6fe93a4cc \
     --hash=sha256:54898190b538a6c8fa4228e866ff2e7609da1ba9fd1d9cc5dc8ca591d37ce0a8 \
