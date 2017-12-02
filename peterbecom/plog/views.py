@@ -822,6 +822,13 @@ def plog_awspa(request, oid):
             except AWSPAError as exception:
                 error = exception.args[0]
                 url += '?' + urlencode({'error': json.dumps(error)})
+
+            lower_keywords = [
+                x.lower() for x in get_blogitem_keywords(blogitem)
+            ]
+            if keyword.lower() not in lower_keywords:
+                blogitem.proper_keywords.append(keyword)
+                blogitem.save()
             return redirect(url)
 
         asins = request.POST.getlist('asins')

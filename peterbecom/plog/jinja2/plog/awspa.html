@@ -86,7 +86,13 @@ window.__product_asins__ = {{ json_print(product_asins) }};
 </div>
 
 
-<form class="custom-keyword" style="margin-top:50px; margin-bottom:50px">
+<form action="" method="post"
+  class="ui form custom-keyword" style="margin-top:50px; margin-bottom:50px">
+  {% csrf_token %}
+  <select name="searchindex">
+    <option value="Books">Books</option>
+    <option value="All">All</option>
+  </select>
   <div class="ui fluid action input">
     <input name="keyword" placeholder="Custom keyword" type="text">
     <button type="submit" class="ui button">Load Custom Keyword</button>
