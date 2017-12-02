@@ -86,6 +86,9 @@ body,
   color: #333;
 }
 
+h2.ui.header {
+  margin-top: 40px;
+}
 h1.ui.header {
     font-size: 3rem;
 }

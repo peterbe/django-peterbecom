@@ -31,6 +31,7 @@ PIPELINE_CSS = {
         'source_filenames': (
             'css/dimmer.css',
             'css/transition.css',
+            'css/item.css',
             'autocompeter/autocompeter.min.css',
         ),
         'extra_context': {
@@ -99,11 +100,12 @@ PIPELINE_JS = {
             'defer': True,
         },
     },
-    'plog:ping': {
+    'plog:post': {
         'source_filenames': (
             'js/blogitem-ping.js',
+            'js/blogitem-awspa.js',
         ),
-        'output_filename': 'js/blogitem-ping.min.js',
+        'output_filename': 'js/blogitem-post.min.js',
         'extra_context': {
             'defer': True,
         },

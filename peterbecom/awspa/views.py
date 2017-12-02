@@ -58,11 +58,7 @@ def search_new(request):
             #     continue
 
             # Hacks!
-            if item['ItemAttributes'].get('Author'):
-                if isinstance(item['ItemAttributes']['Author'], str):
-                    item['ItemAttributes']['Author'] = [
-                        item['ItemAttributes']['Author']
-                    ]
+            _fix_item(item)
 
             if not item.get('MediumImage'):
                 print("SKIPPING")
@@ -82,3 +78,43 @@ def search_new(request):
             context['cards'].append(html)
 
     return http.JsonResponse(context)
+
+
+def _fix_item(item):
+    if item['ItemAttributes'].get('Author'):
+        if isinstance(item['ItemAttributes']['Author'], str):
+            item['ItemAttributes']['Author'] = [
+                item['ItemAttributes']['Author']
+            ]
+
+
+# @login_required
+# def load_by_keyword(request):
+#     context = {}
+#     keyword = request.GET.get('keyword')
+#     assert keyword  # lazy
+#     searchindex = request.GET.get('searchindex')
+#     awsproducts = AWSProduct.objects.filter(keyword=keyword)
+#     if searchindex:
+#         awsproducts = awsproducts.filter(searchindex=searchindex)
+#
+#     context['cards'] = []
+#     for awsproduct in awsproducts:
+#         item = awsproduct.payload
+#         _fix_item(item)
+#         if not item['ItemAttributes'].get('ListPrice'):
+#             print("SKIPPING BECAUSE NO LIST PRICE")
+#             print(item)
+#             continue
+#         html = render_to_string('awspa/item.html', {
+#             'awsproduct': awsproduct,
+#             'item': item,
+#             'title': awsproduct.title,
+#             'asin': awsproduct.asin,
+#             'keyword': keyword,
+#             'searchindex': searchindex,
+#             'show_action_button': True,
+#         })
+#         context['cards'].append(html)
+#
+#     return http.JsonResponse(context)

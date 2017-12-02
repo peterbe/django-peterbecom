@@ -36,6 +36,7 @@ case $1 in
     ;;
   web-dev)
     # echo "STARTING WEB-DEV"
+    python manage.py collectstatic --noinput
     python manage.py migrate --noinput
     exec python manage.py runserver 0.0.0.0:${PORT}
     ;;
@@ -56,7 +57,7 @@ case $1 in
     exec python manage.py superuser "${@:2}"
     ;;
   test)
-    # python manage.py collectstatic --noinput
+    python manage.py collectstatic --noinput
     exec python ./manage.py test
     ;;
   bash)

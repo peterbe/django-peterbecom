@@ -2,6 +2,27 @@
 
 {% block extrahead %}
 <style>
+div.keyword {
+  border-bottom: 1px solid #efefef;
+  padding: 10px;
+}
+div.keyword .loadmore {
+  float: right;
+}
+.keyword h2 small {
+  color: rgb(100, 100, 100);
+  margin-left: 10px;
+}
+.keyword h2 a {
+  margin-left: 10px;
+}
+.loadmore button,
+.loadmore select {
+  display: inline !important;
+}
+.loadmore select {
+  width: 120px !important;
+}
 </style>
 {% endblock %}
 
@@ -11,35 +32,68 @@
 
 {% block content %}
 
+<p style="border-bottom:1px solid #ccc; margin-top: 20px">
+  <a href="{{ url('edit_post', blogitem.oid) }}">← edit</a>
+  &nbsp;
+  <a href="{{ url('blog_post', blogitem.oid) }}">view →</a>
+</p>
 
 
-<form action="" class="ui form" method="post"
-  data-products="{{ json_print(product_ids) }}">
-  {% csrf_token %}
+{% if product_asins %}
+<div>
+  <b>This blog posts asins:</b>
+  {% for asin in product_asins %}
+  <code>{{asin}}</code>
+  {% endfor %}
+</div>
+{% endif %}
 
-{% for keyword in all_keywords %}
-<div class="keyword" style="border-bottom:1px solid #efefef;padding:10px">
-  <button style="float:right" type="button" class="loadmore ui button" data-keyword="{{ keyword }}">Load more</button>
-  <h2>{{ keyword }}
-  </h2>
-  <div class="ui divided items">
+<script>
+window.__product_asins__ = {{ json_print(product_asins) }};
+</script>
+
+
+<div class="ui negative message" style="display:none">
+  <div class="header">
 
   </div>
+  <p>
+  </p>
 </div>
-{% endfor %}
 
-  <!-- <div class="form-actions">
-    <button type="submit" class="ui button primary">Save changes</button>
-    <button type="button" class="btn ui button">Cancel</button>
-  </div> -->
+<div class="all-keywords">
+  {% for keyword in all_keywords %}
+  <form action="" class="ui form" method="post">
+    {% csrf_token %}
+    <input type="hidden" name="keyword" value="{{ keyword }}"/>
+    <div class="keyword">
+      <div class="loadmore">
+        <select name="searchindex">
+          <option value="Books">Books</option>
+          <option value="All">All</option>
+        </select>
+        <button type="submit" class="ui button" data-keyword="{{ keyword }}">Search more</button>
+      </div>
+      <h2>{{ keyword }}</h2>
+      <div class="ui divided items">
+        {% for awsproduct in possible_products[keyword] %}
+          {{ awspa_product(awsproduct, show_action_button=True) }}
+        {% endfor %}
+      </div>
+    </div>
+  </form>
+  {% endfor %}
+</div>
+
+
+<form class="custom-keyword" style="margin-top:50px; margin-bottom:50px">
+  <div class="ui fluid action input">
+    <input name="keyword" placeholder="Custom keyword" type="text">
+    <button type="submit" class="ui button">Load Custom Keyword</button>
+  </div>
 </form>
 
 
-<p style="border-top:1px solid #ccc; margin-top: 20px">
-<a href="{{ url('edit_post', blogitem.oid) }}">← edit</a>
-&nbsp;
-<a href="{{ url('blog_post', blogitem.oid) }}">view →</a>
-</p>
 
 
 {% endblock %}

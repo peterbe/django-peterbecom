@@ -81,7 +81,7 @@
   {% if request.path == '/plog/blogitem-040601-1' %}
   {% javascript 'warmup_songsearch' %}
   {% else %}
-  {% javascript 'plog:ping' %}
+  {% javascript 'plog:post' %}
   {% endif %}
 
 {% endblock %}
@@ -105,12 +105,18 @@
 {% include "plog/_post.html" %}
 
 {% if show_buttons %}
-  <a href="https://twitter.com/peterbe" class="ui tiny twitter button"
-     target="_blank">
-    <i class="twitter icon"></i>
-    Follow <b>@peterbe</b> on Twitter
-  </a>
+  <p>
+    <a href="https://twitter.com/peterbe" class="ui tiny twitter button"
+       target="_blank">
+      <i class="twitter icon"></i>
+      Follow <b>@peterbe</b> on Twitter
+    </a>
+  </p>
 {% endif %}
+
+  <div id="awspa" style="margin-top:30px">
+
+  </div>
 
 {% if post.hide_comments and post.disallow_comments %}
   {% if request.path != '/plog/blogitem-040601-1' %}

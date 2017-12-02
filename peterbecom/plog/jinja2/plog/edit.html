@@ -88,7 +88,7 @@ form[method="post"] { clear: left; }
 preview ↓
 &nbsp;
 {% if blogitem %}
-<a href="{{ url('plog_awspa', blogitem.oid) }}">Amazon Products →</a>
+<a href="{{ url('plog_awspa', blogitem.oid) }}">Amazon Products ({{ awspa_products.count() }}) →</a>
 <a href="{{ url('blog_post', blogitem.oid) }}">view →</a>
 {% endif %}
 </p>

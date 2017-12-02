@@ -1,31 +1,82 @@
+// From https://gist.github.com/kares/956897
+/**
+ * $.parseParams - parse query string paramaters into an object.
+ */
+(function($) {
+var re = /([^&=]+)=?([^&]*)/g;
+var decodeRE = /\+/g;  // Regex for replacing addition symbol with a space
+var decode = function (str) {return decodeURIComponent( str.replace(decodeRE, " ") );};
+$.parseParams = function(query) {
+    var params = {}, e;
+    while ( e = re.exec(query) ) {
+        var k = decode( e[1] ), v = decode( e[2] );
+        if (k.substring(k.length - 2) === '[]') {
+            k = k.substring(0, k.length - 2);
+            (params[k] || (params[k] = [])).push(v);
+        }
+        else params[k] = v;
+    }
+    return params;
+};
+})(jQuery);
+
+
+
 $(function() {
-  var products = $('form[method="post"]').data('products');
-  $('.items').on('click', '.item .extra div.button', function() {
-    // console.log('Products', products);
+  var asins = window.__product_asins__;
+
+
+  var qs = $.parseParams( document.location.search.split('?')[1] || '' );
+  if (qs.focus) {
+    $('input[name="keyword"]').each(function(i, el) {
+      if ($(this).val() === qs.focus) {
+        $(el).parent()[0].scrollIntoView();
+      }
+    });
+  } else if (qs.error) {
+    var error = JSON.parse(qs.error);
+    var container = $('div.ui.negative.message')
+    $('.header', container).text(error.Code);
+    $('p', container).text(error.Message);
+    container.show();
+  }
+
+  // Change all "Pick" buttons to highlight those already associated
+  // with this blog post.
+  function _highlightPickedButtons(asins) {
+    // Reset
+    $('.item div.button.primary').text('Pick').removeClass('primary');
+
+    // Highlight those in 'asins'
+    $.each(asins, function(i, asin) {
+      $(`.item[data-asin="${asin}"] div.button`)
+      .addClass('primary')
+      .text('Picked');
+    });
+  }
+  // Once upon load
+  _highlightPickedButtons(asins);
+
+  $('.all-keywords').on('click', '.item .extra div.button', function() {
     var button = $(this);
-    // console.log(button);
-    // console.log(button.parent());
-    // console.log(button.parent().parent());
     var item = button
       .parent()
       .parent()
       .parent();
-    // console.log('Item', item);
-    var id = item.data('id');
-    // console.log('Toggle', id, typeof id);
-    var button = $('.extra .button', item);
-    button.toggleClass('primary');
-    if (products.includes(id)) {
-      products = products.filter(function(oldId) {
-        return oldId !== id;
+    // If it's an ASIN that is all numbers, jQuery will think it's a number
+    var asin = '' + item.data('asin');
+    if (asins.includes(asin)) {
+      asins = asins.filter(function(oldAsin) {
+        return oldAsin !== asin;
       })
-      button.text('Pick');
     } else {
-      products.push(id);
-      button.text('Picked');
+      asins.push(asin);
     }
     var data = {}
-    data.products = products;
+    _highlightPickedButtons(asins);
+
+    // Save it on the server
+    data.asins = asins;
     data.csrfmiddlewaretoken = $('input[name="csrfmiddlewaretoken"]').val();
     var serializedObj = $.param(data, true);
     $.post(document.location.pathname, serializedObj)
@@ -37,36 +88,37 @@ $(function() {
     })
   });
 
-  $('button.loadmore').on('click', function() {
-    var button = $(this);
-    var container = $('.items', button.parent());
-    var keyword = button.data('keyword');
-    button.addClass('loading');
-    $.get('/awspa/search/new', { keyword: keyword, searchindex: 'Books' })
-      .done(function(response) {
-        if (response.error) {
-          alert(`${response.error.Message}\n${response.error.Code}`);
-          return;
-        }
-        console.log(`${response.cards.length} found`);
-        $.each(response.cards, function(i, card) {
-          container.append(card);
-        });
-        $('.item', container).each(function() {
-          var id = $(this).data('id');
-          var button = $('.extra .button', this);
-          if (products.includes(id)) {
-            button.addClass('primary');
-            button.text('Picked');
-          }
-        });
-      })
-      .fail(function(error) {
-        console.error(error);
-      })
-      .always(function() {
-        button.removeClass('loading');
-        // alert( "finished" );
-      });
+  // $('.all-keywords').on('click', 'h2 a', function(event) {
+  //   event.preventDefault();
+  //   var parent = $(this).parent().parent();
+  //   console.log('PARENT', parent);
+  //   alert('work harder');
+  // });
+
+  $('.all-keywords').on('click', '.loadmore button', function(event) {
+    $(this).addClass('loading');
   });
+
+  // $('form.custom-keyword').on('submit', function(event) {
+  //   event.preventDefault();
+  //   var keyword = $('input[name="keyword"]', this).val().trim();
+  //   console.log('keyword', keyword);
+  //   if (!keyword.length) {
+  //     return;
+  //   }
+  //   return;
+  //   var container = $('<div class="keyword">');
+  //   var button = $('<button type="button" class="loadmore ui button">')
+  //     .data('keyword', keyword)
+  //     .text('Load more');
+  //   container.append(button);
+  //   container.append($('<h2>').text(keyword));
+  //   container.append(
+  //     $('<div class="ui divided items">')
+  //   )
+  //   $('.all-keywords').append(container);
+  //   $('input[name="keyword"]', this).val('');
+  //   _loadMore(button);
+  // });
+
 });

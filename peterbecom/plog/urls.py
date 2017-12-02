@@ -34,5 +34,6 @@ urlpatterns = [
     ),
     url('^screenshot/(.*)', views.blog_screenshot, name='blog_screenshot'),
     url('^(.*)/ping$', views.blog_post_ping, name='blog_post_ping'),
+    url('^(.*)/awspa$', views.blog_post_awspa, name='blog_post_awspa'),
     url('^(.*)', views.blog_post, name='blog_post'),
 ]

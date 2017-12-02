@@ -1,8 +1,10 @@
 import hashlib
 import logging
 import datetime
+import json
 from collections import defaultdict
 from statistics import median
+from urllib.parse import urlencode
 
 from fancy_cache import cache_page
 
@@ -34,6 +36,7 @@ from .models import (
     BlogItemHit,
     OneTimeAuthKey,
 )
+from peterbecom.awspa.search import search as awspa_search
 from .search import BlogItemDoc
 from .utils import render_comment_text, valid_email, utc_now
 from . import utils
@@ -43,6 +46,10 @@ from . import tasks
 
 
 logger = logging.getLogger('plog.views')
+
+
+class AWSPAError(Exception):
+    """happens when we get a Product Links API error"""
 
 
 ONE_HOUR = 60 * 60
@@ -752,6 +759,7 @@ def add_post(request):
     context['form'] = form
     context['page_title'] = 'Add post'
     context['blogitem'] = None
+    context['awspa_products'] = AWSProduct.objects.none()
     return render(request, 'plog/edit.html', context)
 
 
@@ -789,6 +797,7 @@ def edit_post(request, oid):
     data['page_title'] = 'Edit post'
     data['blogitem'] = blogitem
     data['INBOUND_EMAIL_ADDRESS'] = settings.INBOUND_EMAIL_ADDRESS
+    data['awspa_products'] = blogitem.awspa_products.all()
     return render(request, 'plog/edit.html', data)
 
 
@@ -800,40 +809,98 @@ def plog_awspa(request, oid):
         'blogitem': blogitem,
     }
     if request.method == 'POST':
-        product_ids = request.POST.getlist('products')
-        print('product_ids:', product_ids)
-        for product in blogitem.awspa_products.all():
-            if product.id not in product_ids:
-                blogitem.awspa_products.remove(product)
-        for product_id in product_ids:
-            blogitem.awspa_products.add(
-                AWSProduct.objects.get(id=product_id)
-            )
-        return http.HttpResponse('OK')
-    # else:
-    #     form = AWSPAForm()
-    possible_products = []
-    for keyword in blogitem.proper_keywords:
-        possible_products.append((
-            keyword,
-            AWSProduct.objects.filter(
-                keyword__iexact=keyword
-            )
-        ))
-    context['possible_products'] = possible_products
+        keyword = request.POST.get('keyword')
+        if keyword:
+            # Load more!
+            url = reverse('plog_awspa', args=(blogitem.oid,))
+            try:
+                load_more_awsproducts(
+                    keyword,
+                    request.POST.get('searchindex', 'All')
+                )
+                url += '?' + urlencode({'focus': keyword})
+            except AWSPAError as exception:
+                error = exception.args[0]
+                url += '?' + urlencode({'error': json.dumps(error)})
+            return redirect(url)
 
-    all_keywords = [str(x) for x in blogitem.categories.all()]
-    # print("BEFORE", all_keywords)
-    for keyword in blogitem.proper_keywords:
-        all_keywords.append(keyword)
-    # print("AFTER", all_keywords)
+        asins = request.POST.getlist('asins')
+        for product in blogitem.awspa_products.all():
+            if product.asin not in asins:
+                blogitem.awspa_products.remove(product)
+        for asin in asins:
+            for awsproduct in AWSProduct.objects.filter(asin=asin):
+                blogitem.awspa_products.add(awsproduct)
+        return http.HttpResponse('OK')
+
+    all_keywords = get_blogitem_keywords(blogitem)
+
+    possible_products = {}
+    for keyword in all_keywords:
+        possible_products[keyword] = AWSProduct.objects.filter(
+            keyword__iexact=keyword
+        )
+    context['possible_products'] = possible_products
+    # from pprint import pprint
+    # pprint(possible_products)
 
     context['products'] = blogitem.awspa_products.all()
-    context['product_ids'] = [x.id for x in context['products']]
+    context['product_asins'] = [x.asin for x in context['products']]
     # context['form'] = form
     context['all_keywords'] = all_keywords
-    context['page_title'] = 'Amazon Affiliate Products'
+    context['page_title'] = blogitem.title
     return render(request, 'plog/awspa.html', context)
+
+
+def get_blogitem_keywords(blogitem):
+    all_keywords = [x.name for x in blogitem.categories.all()]
+    lower_all_keywords = set([x.lower() for x in all_keywords])
+    for keyword in blogitem.proper_keywords:
+        if keyword.lower() not in lower_all_keywords:
+            all_keywords.append(keyword)
+            lower_all_keywords.add(keyword.lower())
+
+    for awsproduct in blogitem.awspa_products.all():
+        if awsproduct.keyword.lower() not in lower_all_keywords:
+            all_keywords.append(awsproduct.keyword)
+            lower_all_keywords.add(awsproduct.keyword.lower())
+
+    return all_keywords
+
+
+def load_more_awsproducts(keyword, searchindex):
+    items, error = awspa_search(keyword, searchindex=searchindex, sleep=1)
+    if error:
+        raise AWSPAError(error)
+
+    for item in items:
+        item.pop('ImageSets', None)
+        # print('=' * 100)
+        # pprint(item)
+        asin = item['ASIN']
+        title = item['ItemAttributes']['Title']
+        if not item['ItemAttributes'].get('ListPrice'):
+            print("SKIPPING BECAUSE NO LIST PRICE")
+            print(item)
+            continue
+        # print(title)
+        try:
+            awsproduct = AWSProduct.objects.get(
+                asin=asin,
+                keyword=keyword,
+                searchindex=searchindex,
+            )
+            awsproduct.title = title
+            awsproduct.payload = item
+            awsproduct.save()
+        except AWSProduct.DoesNotExist:
+            awsproduct = AWSProduct.objects.create(
+                asin=asin,
+                title=title,
+                payload=item,
+                keyword=keyword,
+                searchindex=searchindex,
+            )
 
 
 @csrf_exempt
@@ -1085,3 +1152,25 @@ def plog_hits_data(request):
     )
 
     return http.JsonResponse({'hits': hits})
+
+
+@cache_page(ONE_HOUR)
+def blog_post_awspa(request, oid):
+    blogitem = get_object_or_404(BlogItem, oid=oid)
+
+    awsproducts = blogitem.awspa_products.all()
+    if not awsproducts.count():
+        # Opportunity here to be smart!
+        # Take this blog post's keywords (plus category) and
+        # randomly selector AWSProducts that match that.
+        print(
+            repr(blogitem.title),
+            'HAS NO AWSPRODUCTS',
+        )
+
+        return http.HttpResponse('')
+
+    context = {
+        'awsproducts': awsproducts.order_by('?')[:3],
+    }
+    return render(request, 'plog/post-awspa.html', context)
