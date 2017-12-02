@@ -9,6 +9,7 @@ from urllib.parse import urlencode
 from fancy_cache import cache_page
 
 from django.contrib.sites.models import Site
+from django.db.models import Q
 from django.core.urlresolvers import reverse
 from django.template import loader
 from django import http
@@ -1165,7 +1166,21 @@ def plog_hits_data(request):
 def blog_post_awspa(request, oid):
     blogitem = get_object_or_404(BlogItem, oid=oid)
 
+    seen = request.GET.getlist('seen')
+
     awsproducts = blogitem.awspa_products.all()
+    if seen and awsproducts.count() > 3:
+        awsproducts = awsproducts.exclude(asin__in=seen)
+    if not awsproducts.count():
+        # Need to dig deeper!
+        keywords = get_blogitem_keywords(blogitem)
+        if keywords:
+            if len(keywords) > 1:
+                q = Q(keyword__iexact=keywords[0])
+                for keyword in keywords[1:]:
+                    q |= Q(keyword__iexact=keyword)
+                awsproducts = AWSProduct.objects.filter(q)
+
     if not awsproducts.count():
         # Opportunity here to be smart!
         # Take this blog post's keywords (plus category) and

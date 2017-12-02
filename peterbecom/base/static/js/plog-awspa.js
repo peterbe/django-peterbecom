@@ -88,37 +88,8 @@ $(function() {
     })
   });
 
-  // $('.all-keywords').on('click', 'h2 a', function(event) {
-  //   event.preventDefault();
-  //   var parent = $(this).parent().parent();
-  //   console.log('PARENT', parent);
-  //   alert('work harder');
-  // });
-
   $('.all-keywords').on('click', '.loadmore button', function(event) {
     $(this).addClass('loading');
   });
-
-  // $('form.custom-keyword').on('submit', function(event) {
-  //   event.preventDefault();
-  //   var keyword = $('input[name="keyword"]', this).val().trim();
-  //   console.log('keyword', keyword);
-  //   if (!keyword.length) {
-  //     return;
-  //   }
-  //   return;
-  //   var container = $('<div class="keyword">');
-  //   var button = $('<button type="button" class="loadmore ui button">')
-  //     .data('keyword', keyword)
-  //     .text('Load more');
-  //   container.append(button);
-  //   container.append($('<h2>').text(keyword));
-  //   container.append(
-  //     $('<div class="ui divided items">')
-  //   )
-  //   $('.all-keywords').append(container);
-  //   $('input[name="keyword"]', this).val('');
-  //   _loadMore(button);
-  // });
 
 });
