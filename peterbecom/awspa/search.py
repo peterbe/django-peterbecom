@@ -7,6 +7,8 @@ import shlex
 
 import delegator
 
+from django.conf import settings
+
 
 def with_tmpdir(f):
     @functools.wraps(f)
@@ -41,7 +43,9 @@ def search(keyword, searchindex='All', sleep=0):
 @with_tmpdir
 def _raw_search(tmpdir, keyword, searchindex):
     filename = os.path.join(tmpdir, 'out.json')
-    command = 'node awspa/cli.js --searchindex={} --out={} "{}"'.format(
+    cli_path = os.path.join(settings.BASE_DIR, 'awspa/cli.js')
+    command = 'node {} --searchindex={} --out={} "{}"'.format(
+        cli_path,
         searchindex,
         filename,
         shlex.quote(keyword),
