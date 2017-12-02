@@ -76,7 +76,7 @@ def fetch_itunes_lookup(podcast_id):
         elif podcast.url in [x.get('feedUrl') for x in results['results']]:
             lookup = [
                 x for x in results['results']
-                if x['feedUrl'] == podcast.url
+                if x.get('feedUrl') == podcast.url
             ][0]
             podcast.itunes_lookup = lookup
             podcast.save()
