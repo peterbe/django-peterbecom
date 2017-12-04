@@ -9,7 +9,6 @@ from urllib.parse import urlencode
 from fancy_cache import cache_page
 
 from django.contrib.sites.models import Site
-from django.db.models import Q
 from django.core.urlresolvers import reverse
 from django.template import loader
 from django import http
@@ -824,21 +823,17 @@ def plog_awspa(request, oid):
                 error = exception.args[0]
                 url += '?' + urlencode({'error': json.dumps(error)})
 
-            lower_keywords = [
-                x.lower() for x in get_blogitem_keywords(blogitem)
-            ]
-            if keyword.lower() not in lower_keywords:
+            keywords = get_blogitem_keywords(blogitem)
+            if keyword.lower() not in keywords:
                 blogitem.proper_keywords.append(keyword)
                 blogitem.save()
             return redirect(url)
 
-        asins = request.POST.getlist('asins')
-        for product in blogitem.awspa_products.all():
-            if product.asin not in asins:
-                blogitem.awspa_products.remove(product)
-        for asin in asins:
-            for awsproduct in AWSProduct.objects.filter(asin=asin):
-                blogitem.awspa_products.add(awsproduct)
+        asin = request.POST.get('asin')
+        awsproduct = AWSProduct.objects.get(asin=asin)
+        awsproduct.disabled = not awsproduct.disabled
+        awsproduct.save()
+
         return http.HttpResponse('OK')
 
     all_keywords = get_blogitem_keywords(blogitem)
@@ -847,31 +842,24 @@ def plog_awspa(request, oid):
     for keyword in all_keywords:
         possible_products[keyword] = AWSProduct.objects.filter(
             keyword__iexact=keyword
-        )
+        ).order_by('disabled', 'modify_date')
     context['possible_products'] = possible_products
-    # from pprint import pprint
-    # pprint(possible_products)
 
-    context['products'] = blogitem.awspa_products.all()
-    context['product_asins'] = [x.asin for x in context['products']]
-    # context['form'] = form
     context['all_keywords'] = all_keywords
     context['page_title'] = blogitem.title
     return render(request, 'plog/awspa.html', context)
 
 
 def get_blogitem_keywords(blogitem):
-    all_keywords = [x.name for x in blogitem.categories.all()]
-    lower_all_keywords = set([x.lower() for x in all_keywords])
+    all_keywords = [x.name.lower() for x in blogitem.categories.all()]
     for keyword in blogitem.proper_keywords:
-        if keyword.lower() not in lower_all_keywords:
-            all_keywords.append(keyword)
-            lower_all_keywords.add(keyword.lower())
+        keyword_lower = keyword.lower()
+        if keyword_lower not in all_keywords:
+            all_keywords.append(keyword_lower)
 
     for awsproduct in blogitem.awspa_products.all():
-        if awsproduct.keyword.lower() not in lower_all_keywords:
-            all_keywords.append(awsproduct.keyword)
-            lower_all_keywords.add(awsproduct.keyword.lower())
+        if awsproduct.keyword.lower() not in all_keywords:
+            all_keywords.append(awsproduct.keyword.lower())
 
     return all_keywords
 
@@ -880,6 +868,8 @@ def load_more_awsproducts(keyword, searchindex):
     items, error = awspa_search(keyword, searchindex=searchindex, sleep=1)
     if error:
         raise AWSPAError(error)
+
+    keyword = keyword.lower()
 
     for item in items:
         item.pop('ImageSets', None)
@@ -908,6 +898,7 @@ def load_more_awsproducts(keyword, searchindex):
                 payload=item,
                 keyword=keyword,
                 searchindex=searchindex,
+                disabled=True,
             )
 
 
@@ -1168,28 +1159,21 @@ def blog_post_awspa(request, oid):
 
     seen = request.GET.getlist('seen')
 
-    awsproducts = blogitem.awspa_products.all()
+    keywords = get_blogitem_keywords(blogitem)
+    assert keywords
+    awsproducts = AWSProduct.objects.exclude(disabled=True).filter(
+        keyword__in=keywords
+    )
     if seen and awsproducts.count() > 3:
         awsproducts = awsproducts.exclude(asin__in=seen)
-    if not awsproducts.count():
-        # Need to dig deeper!
-        keywords = get_blogitem_keywords(blogitem)
-        if keywords:
-            if len(keywords) > 1:
-                q = Q(keyword__iexact=keywords[0])
-                for keyword in keywords[1:]:
-                    q |= Q(keyword__iexact=keyword)
-                awsproducts = AWSProduct.objects.filter(q)
 
-    if not awsproducts.count():
-        # Opportunity here to be smart!
-        # Take this blog post's keywords (plus category) and
-        # randomly selector AWSProducts that match that.
+    if not awsproducts.exists():
         print(
-            repr(blogitem.title),
-            'HAS NO AWSPRODUCTS',
+            'No matching AWSProducts',
+            keywords,
+            'Seen:',
+            seen
         )
-
         return http.HttpResponse('')
 
     context = {

@@ -1,6 +1,10 @@
-<div class="item" data-asin="{{ awsproduct.asin }}">
+<div class="item" data-asin="{{ awsproduct.asin }}" data-disabled="{{ json_print(awsproduct.disabled) }}">
   <a href="{{ item.DetailPageURL }}" class="ui tiny image">
-    <img src="{{ item.MediumImage.URL }}" alt="{{ item.ItemAttributes.Title }}">
+    {% if hide_image %}
+    <img class="placeholder" src="https://via.placeholder.com/130x160" data-src="{{ item.MediumImage.URL }}" alt="{{ item.ItemAttributes.Title }}"/>
+    {% else %}
+    <img src="{{ item.MediumImage.URL }}" alt="{{ item.ItemAttributes.Title }}"/>
+    {% endif %}
   </a>
   <div class="content">
     <a href="{{ item.DetailPageURL }}" class="header">{{ item.ItemAttributes.Title }}</a>
@@ -51,12 +55,5 @@
       </pre>
       {% endif %}
     </div>
-    {% if show_action_button %}
-    <div class="extra">
-      <div class="ui right floated button">
-        Pick
-      </div>
-    </div>
-    {% endif %}
   </div>
 </div>

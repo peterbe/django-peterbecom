@@ -1,8 +1,9 @@
-# from django.conf.urls import url
+from django.conf.urls import url
 
-# from . import views
+from . import views
 
 
-# urlpatterns = [
-#     url('^search/new$', views.search_new, name='search_new'),
-# ]
+urlpatterns = [
+    url('^keywords$', views.all_keywords, name='all_keywords'),
+    url('^delete$', views.delete_awsproduct, name='delete_awsproduct'),
+]

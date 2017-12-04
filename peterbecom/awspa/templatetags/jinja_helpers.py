@@ -3,7 +3,7 @@ from django.template.loader import render_to_string
 
 
 @library.global_function
-def awspa_product(awsproduct, show_action_button=False):
+def awspa_product(awsproduct, show_action_button=False, hide_image=False):
 
     def _fix_item(item):
         for key in ('Feature', 'Author'):
@@ -38,5 +38,6 @@ def awspa_product(awsproduct, show_action_button=False):
         'keyword': awsproduct.keyword,
         'searchindex': awsproduct.searchindex,
         'show_action_button': show_action_button,
+        'hide_image': hide_image,
     })
     return html

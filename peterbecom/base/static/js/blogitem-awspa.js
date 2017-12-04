@@ -20,8 +20,8 @@
         window.sessionStorage.setItem('loadedawspa', JSON.stringify(loaded));
 
         if (asins.length) {
+          url = url.split('?')[0];
           var newURL = url + "?" + $.param({seen: asins}, true);
-          // console.log(newURL);
           $('<button class="mini ui button">')
           .addClass('refresh')
           .data('prefetcher', 'no')

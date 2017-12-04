@@ -2,11 +2,11 @@
 
 {% block extrahead %}
 <style>
-div.keyword {
+.keyword {
   border-bottom: 1px solid #efefef;
   padding: 10px;
 }
-div.keyword .loadmore {
+.keyword .loadmore {
   float: right;
 }
 .keyword h2 small {
@@ -22,6 +22,9 @@ div.keyword .loadmore {
 }
 .loadmore select {
   width: 120px !important;
+}
+.item.disabled {
+  opacity: 0.35;
 }
 </style>
 {% endblock %}
@@ -39,20 +42,6 @@ div.keyword .loadmore {
 </p>
 
 
-{% if product_asins %}
-<div>
-  <b>This blog posts asins:</b>
-  {% for asin in product_asins %}
-  <code>{{asin}}</code>
-  {% endfor %}
-</div>
-{% endif %}
-
-<script>
-window.__product_asins__ = {{ json_print(product_asins) }};
-</script>
-
-
 <div class="ui negative message" style="display:none">
   <div class="header">
 
@@ -63,23 +52,21 @@ window.__product_asins__ = {{ json_print(product_asins) }};
 
 <div class="all-keywords">
   {% for keyword in all_keywords %}
-  <form action="" class="ui form" method="post">
+  <form action="" class="ui form keyword" method="post">
     {% csrf_token %}
     <input type="hidden" name="keyword" value="{{ keyword }}"/>
-    <div class="keyword">
-      <div class="loadmore">
-        <select name="searchindex">
-          <option value="Books">Books</option>
-          <option value="All">All</option>
-        </select>
-        <button type="submit" class="ui button" data-keyword="{{ keyword }}">Search more</button>
-      </div>
-      <h2>{{ keyword }}</h2>
-      <div class="ui divided items">
-        {% for awsproduct in possible_products[keyword] %}
-          {{ awspa_product(awsproduct, show_action_button=True) }}
-        {% endfor %}
-      </div>
+    <div class="loadmore">
+      <select name="searchindex">
+        <option value="Books">Books</option>
+        <option value="All">All</option>
+      </select>
+      <button type="submit" class="ui button" data-keyword="{{ keyword }}">Search more</button>
+    </div>
+    <h2>{{ keyword }}</h2>
+    <div class="ui divided items">
+      {% for awsproduct in possible_products[keyword] %}
+        {{ awspa_product(awsproduct) }}
+      {% endfor %}
     </div>
   </form>
   {% endfor %}

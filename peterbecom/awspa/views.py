@@ -1,120 +1,51 @@
 from django import http
 from django.contrib.auth.decorators import login_required
-from django.template.loader import render_to_string
+from django.views.decorators.http import require_POST
+from django.shortcuts import render
 
 from .models import AWSProduct
-from .search import search
 
 
 @login_required
-def search_new(request):
-    context = {}
-    keyword = request.GET.get('keyword')
-    searchindex = request.GET.get('searchindex', 'All')
-    items, error = search(keyword, searchindex=searchindex, sleep=1)
-    if error:
-        context['error'] = error
-    else:
-        from pprint import pprint
-        context['cards'] = []
-        # existing_awsproducts = AWSProduct.objects.filter(
-        #     keyword=keyword,
-        #     searchindex=searchindex,
-        # )
-        # known_asins = set()
-        # for awsproduct in existing_awsproducts:
-        #     known_asins.add(awsproduct.asin)
+def all_keywords(request):
 
-        for item in items:
-            item.pop('ImageSets', None)
-            # print('=' * 100)
-            # pprint(item)
-            asin = item['ASIN']
-            title = item['ItemAttributes']['Title']
-            if not item['ItemAttributes'].get('ListPrice'):
-                print("SKIPPING BECAUSE NO LIST PRICE")
-                print(item)
-                continue
-            # print(title)
-            try:
-                awsproduct = AWSProduct.objects.get(
-                    asin=asin,
-                    keyword=keyword,
-                    searchindex=searchindex,
-                )
-                awsproduct.title = title
-                awsproduct.payload = item
-                awsproduct.save()
-            except AWSProduct.DoesNotExist:
-                awsproduct = AWSProduct.objects.create(
-                    asin=asin,
-                    title=title,
-                    payload=item,
-                    keyword=keyword,
-                    searchindex=searchindex,
-                )
+    if request.method == 'POST':
+        asin = request.POST['asin']
+        keyword = request.POST['keyword']
+        awsproduct = AWSProduct.objects.get(asin=asin, keyword=keyword)
+        awsproduct.disabled = not awsproduct.disabled
+        awsproduct.save()
+        return http.JsonResponse({'ok': True})
 
-            # if asin in known_asins:
-            #     continue
-
-            # Hacks!
-            _fix_item(item)
-
-            if not item.get('MediumImage'):
-                print("SKIPPING")
-                pprint(item)
-                print('...BECAUSE NO MediumImage')
-                continue
-
-            html = render_to_string('awspa/item.html', {
-                'awsproduct': awsproduct,
-                'item': item,
-                'title': title,
-                'asin': asin,
-                'keyword': keyword,
-                'searchindex': searchindex,
-                'show_action_button': True,
-            })
-            context['cards'].append(html)
-
-    return http.JsonResponse(context)
+    awsproducts = AWSProduct.objects.all().order_by('disabled', 'modify_date')
+    keywords = {}
+    keywords_count = {}
+    keywords_disabled = {}
+    for awsproduct in awsproducts:
+        if awsproduct.keyword not in keywords:
+            keywords[awsproduct.keyword] = []
+            keywords_count[awsproduct.keyword] = 0
+            keywords_disabled[awsproduct.keyword] = 0
+        keywords[awsproduct.keyword].append(awsproduct)
+        keywords_count[awsproduct.keyword] += 1
+        if awsproduct.disabled:
+            keywords_disabled[awsproduct.keyword] += 1
+    context = {
+        'keywords': keywords,
+        'keywords_count': keywords_count,
+        'keywords_disabled': keywords_disabled,
+        'keywords_sorted': sorted(keywords),
+        'page_title': 'All Keywords',
+    }
+    return render(request, 'awspa/keywords.html', context)
 
 
-def _fix_item(item):
-    if item['ItemAttributes'].get('Author'):
-        if isinstance(item['ItemAttributes']['Author'], str):
-            item['ItemAttributes']['Author'] = [
-                item['ItemAttributes']['Author']
-            ]
-
-
-# @login_required
-# def load_by_keyword(request):
-#     context = {}
-#     keyword = request.GET.get('keyword')
-#     assert keyword  # lazy
-#     searchindex = request.GET.get('searchindex')
-#     awsproducts = AWSProduct.objects.filter(keyword=keyword)
-#     if searchindex:
-#         awsproducts = awsproducts.filter(searchindex=searchindex)
-#
-#     context['cards'] = []
-#     for awsproduct in awsproducts:
-#         item = awsproduct.payload
-#         _fix_item(item)
-#         if not item['ItemAttributes'].get('ListPrice'):
-#             print("SKIPPING BECAUSE NO LIST PRICE")
-#             print(item)
-#             continue
-#         html = render_to_string('awspa/item.html', {
-#             'awsproduct': awsproduct,
-#             'item': item,
-#             'title': awsproduct.title,
-#             'asin': awsproduct.asin,
-#             'keyword': keyword,
-#             'searchindex': searchindex,
-#             'show_action_button': True,
-#         })
-#         context['cards'].append(html)
-#
-#     return http.JsonResponse(context)
+@login_required
+@require_POST
+def delete_awsproduct(request):
+    assert request.method == 'POST'
+    asin = request.POST['asin']
+    keyword = request.POST['keyword']
+    awsproduct = AWSProduct.objects.get(asin=asin, keyword=keyword)
+    awsproduct.delete()
+    return http.JsonResponse({'ok': True})
