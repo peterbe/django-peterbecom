@@ -1,16 +1,51 @@
+import os
+
+from django.conf import settings
 from elasticsearch_dsl import (
     DocType,
     Boolean,
     Text,
     Integer,
     Date,
-    # Index,
     analyzer,
     Keyword,
     token_filter,
 )
 
 from peterbecom.base.search import index
+
+synonyms_root = os.path.join(settings.BASE_DIR, 'peterbecom/es-synonyms')
+american_british_syns_fn = os.path.join(synonyms_root, 'be-ae.synonyms')
+all_synonyms = [
+    'go => golang',
+    'react => reactjs',
+    'postgres => postgresql',
+    "dont => don't",
+]
+# The file 'be-ae.synonyms' is a synonym file mapping British to American
+# English. For example 'centre => center'.
+# And also 'lustre, lustreless => luster, lusterless'
+# Because some documents use British English and some use American English
+# AND that people who search sometimes use British and sometimes use American,
+# therefore we want to match all and anything.
+# E.g. "center" should find "...the center of..." and "...the centre for..."
+# But also, should find the same when searching for "centre".
+# So, rearrange the ba-ae.synonyms file for what's called
+# "Simple expansion".
+# https://www.elastic.co/guide/en/elasticsearch/guide/current/synonyms-expand-or-contract.html#synonyms-expansion  # noqa
+#
+with open(american_british_syns_fn) as f:
+    for line in f:
+        if '=>' not in line or line.strip().startswith('#'):
+            continue
+        all_synonyms.append(line.strip())
+
+
+synonym_tokenfilter = token_filter(
+    'synonym_tokenfilter',
+    'synonym',
+    synonyms=all_synonyms,
+)
 
 
 edge_ngram_analyzer = analyzer(
@@ -26,11 +61,16 @@ edge_ngram_analyzer = analyzer(
     ]
 )
 
-
-html_strip = analyzer(
-    'html_strip',
+text_analyzer = analyzer(
+    'text_analyzer',
     tokenizer='standard',
-    filter=['standard', 'lowercase', 'stop', 'snowball'],
+    filter=[
+        'standard',
+        'lowercase',
+        'stop',
+        synonym_tokenfilter,
+        'snowball',
+    ],
     char_filter=['html_strip']
 )
 
@@ -38,12 +78,13 @@ html_strip = analyzer(
 class BlogItemDoc(DocType):
     id = Keyword(required=True)
     oid = Keyword(required=True)
-    title = Text(
+    title_autocomplete = Text(
         required=True,
         analyzer=edge_ngram_analyzer,
         search_analyzer='standard'
     )
-    text = Text(analyzer=html_strip)
+    title = Text(required=True, analyzer=text_analyzer)
+    text = Text(analyzer=text_analyzer)
     pub_date = Date()
     categories = Text(fields={'raw': Keyword()})
     keywords = Text(fields={'raw': Keyword()})
@@ -55,11 +96,8 @@ class BlogCommentDoc(DocType):
     blogitem_id = Integer(required=True)
     approved = Boolean()
     add_date = Date()
-    comment = Text(analyzer=html_strip)
+    comment = Text(analyzer=text_analyzer)
 
 
-# create an index and register the doc types
-# index = Index(settings.ES_INDEX)
-# index.settings(**settings.ES_INDEX_SETTINGS)
 index.doc_type(BlogItemDoc)
 index.doc_type(BlogCommentDoc)

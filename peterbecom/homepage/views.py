@@ -449,6 +449,13 @@ def search(request, original_q=None):
 
     context['debug_search'] = 'debug-search' in request.GET
 
+    print(
+        'Someone Searched For',
+        request.build_absolute_uri() + '&debug-search=1',
+        'and found',
+        context['count_documents'], 'documents'
+    )
+
     return render(request, 'homepage/search.html', context)
 
 
@@ -480,9 +487,9 @@ def autocompete(request):
         }
     })
     # print('TERMS', terms)
-    query = Q('match_phrase', title=terms[0])
+    query = Q('match_phrase', title_autocomplete=terms[0])
     for term in terms[1:]:
-        query |= Q('match_phrase', title=term)
+        query |= Q('match_phrase', title_autocomplete=term)
 
     search_query = search_query.query(query)
     search_query = search_query.sort('-pub_date', '_score')
