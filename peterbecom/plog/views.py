@@ -867,7 +867,10 @@ def load_more_awsproducts(keyword, searchindex):
             print("SKIPPING BECAUSE NO LIST PRICE")
             print(item)
             continue
-        # print(title)
+        if not item.get('MediumImage'):
+            print("SKIPPING BECAUSE NO MEDIUM IMAGE")
+            print(item)
+            continue
         try:
             awsproduct = AWSProduct.objects.get(
                 asin=asin,
