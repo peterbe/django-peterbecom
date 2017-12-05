@@ -449,6 +449,13 @@ def search(request, original_q=None):
 
     context['debug_search'] = 'debug-search' in request.GET
 
+    print(
+        'Someone Searched For',
+        request.build_absolute_uri() + '&debug-search=1',
+        'and found',
+        context['count_documents'], 'documents'
+    )
+
     return render(request, 'homepage/search.html', context)
 
 
