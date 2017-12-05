@@ -38,7 +38,12 @@ from .models import (
 )
 from peterbecom.awspa.search import search as awspa_search
 from .search import BlogItemDoc
-from .utils import render_comment_text, valid_email, utc_now
+from .utils import (
+    render_comment_text,
+    valid_email,
+    utc_now,
+    view_function_timer,
+)
 from . import utils
 from .utils import json_view
 from .forms import BlogForm, BlogFileUpload, CalendarDataForm
@@ -759,7 +764,7 @@ def add_post(request):
     context['form'] = form
     context['page_title'] = 'Add post'
     context['blogitem'] = None
-    context['awspa_products'] = AWSProduct.objects.none()
+    context['awsproducts'] = AWSProduct.objects.none()
     return render(request, 'plog/edit.html', context)
 
 
@@ -797,7 +802,9 @@ def edit_post(request, oid):
     data['page_title'] = 'Edit post'
     data['blogitem'] = blogitem
     data['INBOUND_EMAIL_ADDRESS'] = settings.INBOUND_EMAIL_ADDRESS
-    data['awspa_products'] = blogitem.awspa_products.all()
+    data['awsproducts'] = AWSProduct.objects.exclude(disabled=True).filter(
+        keyword__in=blogitem.get_all_keywords()
+    )
     return render(request, 'plog/edit.html', data)
 
 
@@ -1142,6 +1149,7 @@ def plog_hits_data(request):
     return http.JsonResponse({'hits': hits})
 
 
+@view_function_timer
 @cache_page(ONE_HOUR)
 def blog_post_awspa(request, oid):
     blogitem = get_object_or_404(BlogItem, oid=oid)
@@ -1149,7 +1157,7 @@ def blog_post_awspa(request, oid):
     seen = request.GET.getlist('seen')
 
     keywords = blogitem.get_all_keywords()
-    assert keywords
+    assert keywords, "{} has no keywords".format(oid)
     awsproducts = AWSProduct.objects.exclude(disabled=True).filter(
         keyword__in=keywords
     )

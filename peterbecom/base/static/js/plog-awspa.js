@@ -46,7 +46,6 @@ $(function() {
       } else {
         item.removeClass('disabled');
       }
-      // $('div.button', item).text('Disable');
     });
   }
   _highlightDisabled();

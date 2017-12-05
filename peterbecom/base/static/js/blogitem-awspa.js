@@ -28,7 +28,7 @@
           .text('Refresh products')
           .on('click', function(event) {
             event.preventDefault();
-            $(this).remove();
+            $(this).text('Refreshing...').addClass('disabled');
             loadAwspa(newURL);
           })
           .appendTo($('#awspa'));

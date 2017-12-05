@@ -95,7 +95,6 @@ class BlogItem(models.Model):
     hide_comments = models.BooleanField(default=False)
     modify_date = models.DateTimeField(default=utils.utc_now)
     screenshot_image = ImageField(upload_to=_upload_to_blogitem, null=True)
-    awspa_products = models.ManyToManyField('awspa.AWSProduct')
 
     def __repr__(self):
         return '<%s: %r>' % (self.__class__.__name__, self.oid)
@@ -217,10 +216,6 @@ class BlogItem(models.Model):
             keyword_lower = keyword.lower()
             if keyword_lower not in all_keywords:
                 all_keywords.append(keyword_lower)
-
-        for awsproduct in self.awspa_products.all():
-            if awsproduct.keyword.lower() not in all_keywords:
-                all_keywords.append(awsproduct.keyword.lower())
 
         return all_keywords
 

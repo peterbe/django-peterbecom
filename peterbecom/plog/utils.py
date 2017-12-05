@@ -216,3 +216,22 @@ def json_view(f):
             r.write('\n')
             return r
     return wrapper
+
+
+def view_function_timer(func):
+
+    @functools.wraps(func)
+    def inner(*args, **kwargs):
+        try:
+            t0 = time.time()
+            return func(*args, **kwargs)
+        finally:
+            t1 = time.time()
+            print(
+                'View Function',
+                func.__name__,
+                args[1:],
+                'Took',
+                '{:.2f}ms'.format(1000 * (t1 - t0)),
+            )
+    return inner
