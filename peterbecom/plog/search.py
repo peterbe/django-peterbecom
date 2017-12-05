@@ -19,6 +19,8 @@ american_british_syns_fn = os.path.join(synonyms_root, 'be-ae.synonyms')
 all_synonyms = [
     'go => golang',
     'react => reactjs',
+    'angular => angularjs',
+    'mongo => mongodb',
     'postgres => postgresql',
     "dont => don't",
 ]
