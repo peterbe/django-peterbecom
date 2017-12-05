@@ -203,6 +203,7 @@ class BlogItem(models.Model):
             'id': self.id,
             'oid': self.oid,
             'title': self.title,
+            'title_autocomplete': self.title,
             'text': self.text_rendered or self.text,
             'pub_date': self.pub_date,
             'categories': categories,
