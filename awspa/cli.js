@@ -51,7 +51,7 @@ const args = process.argv.slice(2);
 
 const argv = minimist(args, {
   boolean: ['help'],
-  string: ['out', 'keyword', 'searchindex'],
+  string: ['out', 'keyword', 'searchindex', 'asin'],
   unknown: param => {
     if (param.startsWith('-')) {
       console.warn('Ignored unknown option: ' + param + '\n');
@@ -67,10 +67,16 @@ if (argv['help']) {
 
 const keyword = argv['keyword'] || argv['_'].join(' ');
 
-const params = { keywords: keyword };
-if (argv['searchindex']) {
-  params.searchindex = argv['searchindex'];
+const params = {}
+if (argv['asin']) {
+  params.itemid = argv['asin']
+} else {
+  params.keywords = keyword
+  if (argv['searchindex']) {
+    params.searchindex = argv['searchindex'];
+  }
 }
+
 search(prodAdv, params, (err, result) => {
   if (err) {
     console.error(err);

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+<style>
+td.number {
+  text-align: right;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<table class="table">
+  {% set month = 0 %}
+  {% set year = 0 %}
+  {% for blogitem in blogitems %}
+    <tr>
+      <td>
+        <a href="{{ url('plog_awspa', blogitem.oid) }}">{{ blogitem.title }}</a>
+        {{ blogitem.pub_date.strftime('%B %Y') }}
+      </td>
+      <td class="number">
+        {{ show_keyword_count(blogitem, keyword_count) }}
+      </td>
+    </tr>
+    {% set year = blogitem.pub_date.year %}
+    {% set month = blogitem.pub_date.month %}
+  {% endfor %}
+</table>
+{% endblock %}

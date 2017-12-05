@@ -41,3 +41,15 @@ def awspa_product(awsproduct, show_action_button=False, hide_image=False):
         'hide_image': hide_image,
     })
     return html
+
+
+@library.global_function
+def show_keyword_count(blogitem, keyword_count):
+    counts = []
+    for keyword in blogitem.get_all_keywords():
+        count = keyword_count.get(keyword)
+        if count is not None:
+            counts.append(count)
+    sum_ = sum(counts)
+    first = ' + '.join(str(x) for x in counts)
+    return first + ' = ' + str(sum_)

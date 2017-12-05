@@ -27,7 +27,7 @@ class BadSearchResult(Exception):
 
 
 def search(keyword, searchindex='All', sleep=0):
-    output = _raw_search(keyword, searchindex)
+    output = _raw_search(keyword=keyword, searchindex=searchindex)
     if sleep > 0:
         time.sleep(sleep)
     items = output['Items']
@@ -40,16 +40,37 @@ def search(keyword, searchindex='All', sleep=0):
     return products, None
 
 
+def lookup(asin, sleep=0):
+    output = _raw_search(asin=asin)
+    if sleep > 0:
+        time.sleep(sleep)
+    items = output['Items']
+    errors = items['Request'].get('Errors')
+    if errors:
+        return [], errors['Error']
+    product = items['Item']
+    return product, None
+
+
 @with_tmpdir
-def _raw_search(tmpdir, keyword, searchindex):
+def _raw_search(tmpdir, asin=None, keyword=None, searchindex=None):
     filename = os.path.join(tmpdir, 'out.json')
     cli_path = os.path.join(settings.BASE_DIR, 'awspa/cli.js')
-    command = 'node {} --searchindex={} --out={} "{}"'.format(
-        cli_path,
-        searchindex,
-        filename,
-        shlex.quote(keyword),
-    )
+    if asin:
+        command = 'node {} --asin={} --out={}'.format(
+            cli_path,
+            asin,
+            filename,
+        )
+    else:
+        assert keyword
+        assert searchindex
+        command = 'node {} --searchindex={} --out={} "{}"'.format(
+            cli_path,
+            searchindex,
+            filename,
+            shlex.quote(keyword),
+        )
     # print(command)
     r = delegator.run(command)
     if r.return_code:

@@ -823,7 +823,7 @@ def plog_awspa(request, oid):
                 error = exception.args[0]
                 url += '?' + urlencode({'error': json.dumps(error)})
 
-            keywords = get_blogitem_keywords(blogitem)
+            keywords = blogitem.get_all_keywords()
             if keyword.lower() not in keywords:
                 blogitem.proper_keywords.append(keyword)
                 blogitem.save()
@@ -836,7 +836,7 @@ def plog_awspa(request, oid):
 
         return http.HttpResponse('OK')
 
-    all_keywords = get_blogitem_keywords(blogitem)
+    all_keywords = blogitem.get_all_keywords()
 
     possible_products = {}
     for keyword in all_keywords:
@@ -848,20 +848,6 @@ def plog_awspa(request, oid):
     context['all_keywords'] = all_keywords
     context['page_title'] = blogitem.title
     return render(request, 'plog/awspa.html', context)
-
-
-def get_blogitem_keywords(blogitem):
-    all_keywords = [x.name.lower() for x in blogitem.categories.all()]
-    for keyword in blogitem.proper_keywords:
-        keyword_lower = keyword.lower()
-        if keyword_lower not in all_keywords:
-            all_keywords.append(keyword_lower)
-
-    for awsproduct in blogitem.awspa_products.all():
-        if awsproduct.keyword.lower() not in all_keywords:
-            all_keywords.append(awsproduct.keyword.lower())
-
-    return all_keywords
 
 
 def load_more_awsproducts(keyword, searchindex):
@@ -1159,7 +1145,7 @@ def blog_post_awspa(request, oid):
 
     seen = request.GET.getlist('seen')
 
-    keywords = get_blogitem_keywords(blogitem)
+    keywords = blogitem.get_all_keywords()
     assert keywords
     awsproducts = AWSProduct.objects.exclude(disabled=True).filter(
         keyword__in=keywords

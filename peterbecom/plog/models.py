@@ -211,6 +211,19 @@ class BlogItem(models.Model):
         }
         return doc
 
+    def get_all_keywords(self):
+        all_keywords = [x.name.lower() for x in self.categories.all()]
+        for keyword in self.proper_keywords:
+            keyword_lower = keyword.lower()
+            if keyword_lower not in all_keywords:
+                all_keywords.append(keyword_lower)
+
+        for awsproduct in self.awspa_products.all():
+            if awsproduct.keyword.lower() not in all_keywords:
+                all_keywords.append(awsproduct.keyword.lower())
+
+        return all_keywords
+
 
 class BlogItemTotalHits(models.Model):
     blogitem = models.OneToOneField(BlogItem, db_index=True)

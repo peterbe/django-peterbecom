@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.shortcuts import render
 
+from peterbecom.plog.models import BlogItem
 from .models import AWSProduct
 
 
@@ -49,3 +50,22 @@ def delete_awsproduct(request):
     awsproduct = AWSProduct.objects.get(asin=asin, keyword=keyword)
     awsproduct.delete()
     return http.JsonResponse({'ok': True})
+
+
+@login_required
+def plog_archive(request):
+    keyword_count = {}
+    for each in AWSProduct.objects.values('keyword'):
+        keyword = each['keyword']
+        if keyword not in keyword_count:
+            keyword_count[keyword] = 0
+        keyword_count[keyword] += 1
+
+    blogitems = BlogItem.objects.all().order_by('-pub_date')
+
+    context = {
+        'page_title': 'Blog Archive',
+        'blogitems': blogitems,
+        'keyword_count': keyword_count,
+    }
+    return render(request, 'awspa/archive.html', context)
