@@ -22,7 +22,6 @@ def create_parents(fs_path):
     for part in directory.replace(settings.FSCACHE_ROOT, '').split('/'):
         here = os.path.join(here, part)
         if not os.path.isdir(here):
-            print("MKDIR", here)
             os.mkdir(here)
             os.chmod(here, 0o755)
 

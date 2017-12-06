@@ -233,5 +233,6 @@ def view_function_timer(func):
                 args[1:],
                 'Took',
                 '{:.2f}ms'.format(1000 * (t1 - t0)),
+                args[0].build_absolute_uri(),
             )
     return inner

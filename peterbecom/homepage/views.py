@@ -450,10 +450,12 @@ def search(request, original_q=None):
     context['debug_search'] = 'debug-search' in request.GET
 
     print(
-        'Someone Searched For',
+        'Searched For',
         request.build_absolute_uri() + '&debug-search=1',
         'and found',
-        context['count_documents'], 'documents'
+        context['count_documents'], 'documents',
+        'Took',
+        '{:.1f}ms'.format(context['search_time'] * 1000)
     )
 
     return render(request, 'homepage/search.html', context)
