@@ -234,9 +234,9 @@ cloudinary==1.9.0 \
 elasticsearch==5.5.1 \
     --hash=sha256:d9dac18462375e06a5425730d8aaccb874cc748658b060c0536afb4e296ba9fe \
     --hash=sha256:c4f1abf19e2e79ebc526e6f65838909123da07c2775e2c0660c69b01ebb2001a
-elasticsearch-dsl==5.3.0 \
-    --hash=sha256:de81b2322cde9bf1171c8a41d80596cdadd433b88b93daa09060af3a512523a7 \
-    --hash=sha256:de5fd68901c5b94e51e2ae4e8ad6f618b22665d89794d96f9b6b763986665527
+elasticsearch-dsl==5.4.0 \
+    --hash=sha256:197246ddd556b4b7d2738dfa9e4831068c9b5cb21706f6aca035136d42849109 \
+    --hash=sha256:cbef6467085d7debc870bc450d996c7ba5b8822eb86a6033bba09134ffb01ba8
 ftfy==5.2.0 \
     --hash=sha256:b9f84a1437f68ad0bb964fd9da9f6b88d090113ec9e78f290f6d6d0221468e38
 MarkupSafe==1.0 \
