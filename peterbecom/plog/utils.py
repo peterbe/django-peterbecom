@@ -218,21 +218,25 @@ def json_view(f):
     return wrapper
 
 
-def view_function_timer(func):
+def view_function_timer(prefix='', writeto=print):
 
-    @functools.wraps(func)
-    def inner(*args, **kwargs):
-        try:
-            t0 = time.time()
-            return func(*args, **kwargs)
-        finally:
-            t1 = time.time()
-            print(
-                'View Function',
-                func.__name__,
-                args[1:],
-                'Took',
-                '{:.2f}ms'.format(1000 * (t1 - t0)),
-                args[0].build_absolute_uri(),
-            )
-    return inner
+    def decorator(func):
+        @functools.wraps(func)
+        def inner(*args, **kwargs):
+            try:
+                t0 = time.time()
+                return func(*args, **kwargs)
+            finally:
+                t1 = time.time()
+                writeto(
+                    'View Function',
+                    '({})'.format(prefix) if prefix else '',
+                    func.__name__,
+                    args[1:],
+                    'Took',
+                    '{:.2f}ms'.format(1000 * (t1 - t0)),
+                    args[0].build_absolute_uri(),
+                )
+        return inner
+
+    return decorator

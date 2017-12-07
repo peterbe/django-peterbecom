@@ -58,7 +58,7 @@ class Command(BaseCommand):
             )
             try:
                 diff(awsproduct.payload, payload)
-            except AttributeError:
+            except (AttributeError, KeyError):
                 dumb_diff(awsproduct.payload, payload)
 
             awsproduct.payload = payload

@@ -1149,8 +1149,9 @@ def plog_hits_data(request):
     return http.JsonResponse({'hits': hits})
 
 
-@view_function_timer
+@view_function_timer()
 @cache_page(ONE_HOUR)
+@view_function_timer('aftercache')
 def blog_post_awspa(request, oid):
     blogitem = get_object_or_404(BlogItem, oid=oid)
 
