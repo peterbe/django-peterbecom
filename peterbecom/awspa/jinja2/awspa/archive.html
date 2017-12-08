@@ -10,7 +10,7 @@ td.number {
 
 {% block content %}
 
-<table class="table">
+<table class="ui selectable table">
   {% set month = 0 %}
   {% set year = 0 %}
   {% for blogitem in blogitems %}
@@ -20,7 +20,11 @@ td.number {
         {{ blogitem.pub_date.strftime('%B %Y') }}
       </td>
       <td class="number">
+        {% if blogitem.get_all_keywords() %}
         {{ show_keyword_count(blogitem, keyword_count) }}
+        {% else %}
+        <b style="color:red">No keywords at all!</b>
+        {% endif %}
       </td>
     </tr>
     {% set year = blogitem.pub_date.year %}

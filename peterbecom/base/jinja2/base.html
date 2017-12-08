@@ -141,7 +141,9 @@
     </div>
   </div>
 
+  {% block basejs %}
   {% javascript 'base' %}
+  {% endblock %}
 
   {% block extrajs %}{% endblock %}
   {% if request.path != '/plog/blogitem-040601-1' %}

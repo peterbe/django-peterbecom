@@ -1,6 +1,6 @@
 (function() {
   var script = document.createElement('script');
-  script.src = '//cdn.jsdelivr.net/autocompeter/1/autocompeter.min.js';
+  script.src = 'https://cdn.jsdelivr.net/autocompeter/1/autocompeter.min.js';
   script.onload = function() {
     window.Autocompeter(
       document.querySelectorAll('[name="q"]')[0],
