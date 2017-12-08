@@ -1149,16 +1149,21 @@ def plog_hits_data(request):
     return http.JsonResponse({'hits': hits})
 
 
-@view_function_timer()
 @cache_page(ONE_HOUR)
-@view_function_timer('aftercache')
+@view_function_timer('inner')
 def blog_post_awspa(request, oid):
     blogitem = get_object_or_404(BlogItem, oid=oid)
 
     seen = request.GET.getlist('seen')
 
     keywords = blogitem.get_all_keywords()
-    assert keywords, "{} has no keywords".format(oid)
+    if not keywords:
+        print(
+            'Blog post without any keywords',
+            oid,
+        )
+        return http.HttpResponse('')
+
     awsproducts = AWSProduct.objects.exclude(disabled=True).filter(
         keyword__in=keywords
     )
