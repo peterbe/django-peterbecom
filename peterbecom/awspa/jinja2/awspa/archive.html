@@ -19,6 +19,9 @@ td.number {
         <a href="{{ url('plog_awspa', blogitem.oid) }}">{{ blogitem.title }}</a>
         {{ blogitem.pub_date.strftime('%B %Y') }}
       </td>
+      <td>
+        {{ hits[blogitem.id] or 0 }}
+      </td>
       <td class="number">
         {% if blogitem.get_all_keywords() %}
         {{ show_keyword_count(blogitem, keyword_count) }}

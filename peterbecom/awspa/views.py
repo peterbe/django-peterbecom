@@ -1,9 +1,13 @@
+import datetime
+
 from django import http
+from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.shortcuts import render
+from django.db.models import Count
 
-from peterbecom.plog.models import BlogItem
+from peterbecom.plog.models import BlogItem, BlogItemHit
 from .models import AWSProduct
 
 
@@ -63,9 +67,17 @@ def plog_archive(request):
 
     blogitems = BlogItem.objects.all().order_by('-pub_date')
 
+    recently = timezone.now() - datetime.timedelta(days=30)
+    hits_qs = BlogItemHit.objects.filter(add_date__gte=recently)
+    aggs = hits_qs.values('blogitem_id').annotate(count=Count('blogitem_id'))
+    hits = {}
+    for agg in aggs:
+        hits[agg['blogitem_id']] = agg['count']
+
     context = {
         'page_title': 'Blog Archive',
         'blogitems': blogitems,
         'keyword_count': keyword_count,
+        'hits': hits,
     }
     return render(request, 'awspa/archive.html', context)
