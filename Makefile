@@ -14,7 +14,7 @@ help:
 	@echo "  run              Runs the whole stack, served on http://localhost:8000/"
 	@echo "  stop             Stops the docker containers"
 	@echo "  django-shell     Django integrative shell"
-	@echo "  psql             Open the psql cli\"
+	@echo "  psql             Open the psql cli"
 
 # Dev configuration steps
 .docker-build:
