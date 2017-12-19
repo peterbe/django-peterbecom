@@ -1149,7 +1149,7 @@ def plog_hits_data(request):
     return http.JsonResponse({'hits': hits})
 
 
-@cache_page(ONE_HOUR)
+@cache_page(ONE_DAY)
 @view_function_timer('inner')
 def blog_post_awspa(request, oid):
     blogitem = get_object_or_404(BlogItem, oid=oid)
@@ -1178,6 +1178,12 @@ def blog_post_awspa(request, oid):
             seen
         )
         return http.HttpResponse('')
+
+    # Disable any that don't have a MediumImage any more.
+    for awsproduct in awsproducts:
+        if not awsproduct.payload.get('MediumImage'):
+            awsproduct.disabled = True
+            awsproduct.save()
 
     context = {
         'awsproducts': awsproducts.order_by('?')[:3],
