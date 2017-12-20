@@ -20,7 +20,7 @@ from django.conf import settings
 from django.utils.html import strip_tags
 
 from peterbecom.plog.models import BlogItem, BlogComment
-from peterbecom.plog.utils import utc_now
+from peterbecom.plog.utils import utc_now, view_function_timer
 from .utils import (
     parse_ocs_to_categories,
     make_categories_q,
@@ -215,6 +215,7 @@ def clean_fragment_html(fragment):
     return fragment.replace('</mark> <mark>', ' ')
 
 
+@view_function_timer()
 def search(request, original_q=None):
     context = {}
     q = request.GET.get('q', '')

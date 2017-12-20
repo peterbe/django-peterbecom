@@ -2,11 +2,6 @@ from django import http
 from django.conf.urls import include, url
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
-# import djcelery
-
-# Uncomment the next two lines to enable the admin:
-# from django.contrib import admin
-# admin.autodiscover()
 
 urlpatterns = staticfiles_urlpatterns()
 
@@ -72,6 +67,3 @@ urlpatterns += [
         include('peterbecom.homepage.urls')
     ),
 ]
-
-
-# djcelery.setup_loader()
