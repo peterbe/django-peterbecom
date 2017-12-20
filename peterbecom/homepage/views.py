@@ -245,8 +245,8 @@ def search(request, original_q=None):
         suggester = doc_type.search()
         for key in keys:
             suggester = suggester.suggest('sugg', q, term={'field': key})
-        suggestions = suggester.execute_suggest()
-        for each in suggestions.sugg:
+        suggestions = suggester.execute()
+        for each in suggestions.suggest.sugg:
             if each.options:
                 for option in each.options:
                     if option.score >= 0.6:
@@ -472,8 +472,9 @@ def autocompete(request):
         suggestion = search_query.suggest('suggestions', q, term={
             'field': 'title',
         })
-        suggestions = suggestion.execute_suggest()
-        for suggestion in getattr(suggestions, 'suggestions', []):
+        response = suggestion.execute()
+        suggestions = response.suggest.suggestions
+        for suggestion in suggestions:
             for option in suggestion.options:
                 terms.append(
                     q.replace(suggestion.text, option.text)
@@ -499,7 +500,7 @@ def autocompete(request):
     response = search_query.execute()
     results = []
     for hit in response.hits:
-        # print(hit.pub_date, hit._score)
+        # print('\t', hit.oid, hit.pub_date, hit._score)
         results.append([
             reverse('blog_post', args=(hit.oid,)),
             hit.title,
