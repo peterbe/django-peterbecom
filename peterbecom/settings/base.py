@@ -259,6 +259,12 @@ PIPELINE = {
     # automatically rendering any potentional compilation errors into
     # the rendered HTML, so just let it raise plain python exceptions.
     'SHOW_ERRORS_INLINE': False,
+
+    # If this is set to False, you have to run `collectstatic`
+    # each time. Otherwise set it to True and it will effectively
+    # run collectstatic for you on each and every request and
+    # pipeline jinja tag.
+    'PIPELINE_COLLECTOR_ENABLED': False,
 }
 
 
