@@ -177,3 +177,10 @@ code {
         display: none !important;
     }
 }
+
+
+/* Specifically overriding fonts */
+.ui.header,
+h1, h2, h3, h4 {
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans-serif;
+}
