@@ -77,9 +77,11 @@ text_analyzer = analyzer(
 )
 
 
+@index.doc_type
 class BlogItemDoc(DocType):
     id = Keyword(required=True)
     oid = Keyword(required=True)
+    # title_autocomplete = Completion()
     title_autocomplete = Text(
         required=True,
         analyzer=edge_ngram_analyzer,
@@ -92,6 +94,7 @@ class BlogItemDoc(DocType):
     keywords = Text(fields={'raw': Keyword()})
 
 
+@index.doc_type
 class BlogCommentDoc(DocType):
     id = Keyword(required=True)
     oid = Keyword(required=True)
@@ -99,7 +102,3 @@ class BlogCommentDoc(DocType):
     approved = Boolean()
     add_date = Date()
     comment = Text(analyzer=text_analyzer)
-
-
-index.doc_type(BlogItemDoc)
-index.doc_type(BlogCommentDoc)

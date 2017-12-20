@@ -11,8 +11,6 @@ from elasticsearch_dsl import (
 
 from peterbecom.base.search import index
 
-# from django.conf import settings
-
 
 edge_ngram_analyzer = analyzer(
     'edge_ngram_analyzer',
@@ -28,6 +26,7 @@ edge_ngram_analyzer = analyzer(
 )
 
 
+@index.doc_type
 class PodcastDoc(DocType):
     id = Keyword(required=True)
     thumbnail_348 = Keyword()
@@ -47,9 +46,3 @@ class PodcastDoc(DocType):
     last_fetch = Date()
     latest_episode = Date()
     modified = Date()
-
-
-# create an index and register the doc types
-# index = Index(settings.ES_INDEX)
-# index.settings(**settings.ES_INDEX_SETTINGS)
-index.doc_type(PodcastDoc)
