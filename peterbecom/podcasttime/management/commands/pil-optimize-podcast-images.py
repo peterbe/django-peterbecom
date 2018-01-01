@@ -41,6 +41,7 @@ class Command(BaseCommand):
             ext = os.path.splitext(path)[1]
             if not ext:
                 continue
+            ext = ext.lower()
             if ext not in ('.jpg', '.jpeg', '.png'):
                 self.warning('Unrecognized extension {!r}'.format(ext))
                 continue
