@@ -167,6 +167,9 @@ class Command(BaseCommand):
         # Try to convert .bmp images
         for podcast in Podcast.objects.filter(image__iendswith='.bmp'):
             print(podcast.image.path)
+            if not os.path.exists(podcast.image.path):
+                self.error('{} does not exist!'.format(podcast.image.path))
+                continue
             img = Image.open(podcast.image.path)
             w, h = img.size
             if w > 1300 or h > 1300:

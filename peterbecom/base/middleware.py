@@ -62,6 +62,7 @@ class FSCacheMiddleware:
                 # 'fs_path' is the path to the file, but its parent folder(s)
                 # might need to be created.
                 fscache.create_parents(fs_path)
+                assert os.path.isdir(os.path.dirname(fs_path))
                 with open(fs_path, 'w') as f:
                     f.write(response.content.decode('utf-8'))
                     if 'text/html' in response['Content-Type']:
@@ -83,6 +84,8 @@ class FSCacheMiddleware:
                         '//peterbecom.dev',
                         '//web:8000'
                     )
+                    print("FS_PATH", fs_path, os.path.exists(fs_path))
+                    assert os.path.exists(fs_path), fs_path
                     post_process_cached_html.delay(
                         fs_path,
                         absolute_url,

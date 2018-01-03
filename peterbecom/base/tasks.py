@@ -1,6 +1,5 @@
-# import os
+import os
 import shutil
-# import warnings
 
 from celery import shared_task
 
@@ -12,6 +11,12 @@ def post_process_cached_html(filepath, url):
     if url.startswith('http://testserver'):
         # do nothing. testing.
         return
+    if not os.path.exists(filepath):
+        raise ValueError(
+            "{!r} does not exist and can't be post-processed".format(
+                filepath,
+            )
+        )
     with open(filepath) as f:
         html = f.read()
         optimized_html = mincss_html(html, url)
