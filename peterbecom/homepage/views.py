@@ -18,6 +18,7 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.utils.html import strip_tags
+from django.views import static
 
 from peterbecom.plog.models import BlogItem, BlogComment
 from peterbecom.plog.utils import utc_now, view_function_timer
@@ -607,6 +608,15 @@ def sitemap(request):
 
 def blog_post_by_alias(request, alias):
     if alias.startswith('static/'):
+        # This only really happens when there's no Nginx at play.
+        # For example, when the mincss post process thing runs, it's
+        # forced to download the 'localhost:8000/static/main.©e9fc100fa.css'
+        # file.
+        return static.serve(
+            request,
+            alias.replace('static/', ''),
+            document_root=settings.STATIC_ROOT
+        )
         raise http.Http404('Bad alias for a static URL {!r}'.format(alias))
     blogitem = get_object_or_404(BlogItem, alias=alias)
     url = reverse('blog_post', args=[blogitem.oid])

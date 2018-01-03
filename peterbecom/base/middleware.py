@@ -84,7 +84,7 @@ class FSCacheMiddleware:
                         '//peterbecom.dev',
                         '//web:8000'
                     )
-                    print("FS_PATH", fs_path, os.path.exists(fs_path))
+                    # print("FS_PATH", fs_path, os.path.exists(fs_path))
                     assert os.path.exists(fs_path), fs_path
                     post_process_cached_html.delay(
                         fs_path,

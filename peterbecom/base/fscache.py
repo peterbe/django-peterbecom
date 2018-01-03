@@ -92,8 +92,8 @@ def invalidate_too_old(verbose=False, dry_run=False, revisit=False):
                         delete_empty_directory(path)
                         if revisit:
                             revisit_url(path)
-                elif verbose:
-                    print('NOT TOO OLD', path)
+                # elif verbose:
+                #     print('NOT TOO OLD', path)
         if not files and not os.listdir(root):
             if verbose:
                 print("NO FILES IN", root)

@@ -6,14 +6,13 @@ import hashlib
 import codecs
 import tempfile
 
-try:
-    import ujson as json
-except ImportError:
-    import json
-# from django.core.cache import cache
-# from django.utils import timezone
+# try:
+#     import ujson as json
+# except ImportError:
+#     import json
+from django.core.cache import cache
 
-from mincss.processor import Processor, InlineResult, LinkResult
+from mincss.processor import Processor
 try:
     import cssmin
 except ImportError:
@@ -31,82 +30,121 @@ if not os.path.isdir(cache_save_dir):
     os.mkdir(cache_save_dir)
 
 
+class DownloadCache:
+    def __init__(self, default_expiry=500):
+        self.default_expiry = default_expiry
+
+    @staticmethod
+    def _key(url):
+        return 'downloadcache-{}'.format(
+            hashlib.md5(url.encode('utf-8')).hexdigest()
+        )
+
+    def get(self, url):
+        key = self._key(url)
+        cached = cache.get(key)
+        if cached is not None:
+            return cached
+
+    def set(self, url, payload):
+        cache.set(self._key(url), payload, self.default_expiry)
+
+
+download_cache = DownloadCache()
+
+
 class CachedProcessor(Processor):
 
-    def __init__(self, *args, **kwargs):
-        super(CachedProcessor, self).__init__(*args, **kwargs)
-        self.cache_dir = os.path.join(
-            tempfile.gettempdir(),
-            'cached-mincss-processor'
-        )
-        if not os.path.isdir(self.cache_dir):
-            os.mkdir(self.cache_dir)
-        self.result = None
+    # def __init__(self, *args, **kwargs):
+    #     super(CachedProcessor, self).__init__(*args, **kwargs)
+    #     self.cache_dir = os.path.join(
+    #         tempfile.gettempdir(),
+    #         'cached-mincss-processor'
+    #     )
+    #     if not os.path.isdir(self.cache_dir):
+    #         os.mkdir(self.cache_dir)
+    #     self.result = None
+    #
+    # def process_html(self, html, url):
+    #     print('=' * 80)
+    #     print(html[-60:])
+    #     print('- ' * 40)
+    #     hash_filename = hashlib.md5(
+    #         (html + url).encode('utf-8')
+    #     ).hexdigest() + '.json'
+    #     hash_filepath = os.path.join(
+    #         self.cache_dir,
+    #         hash_filename
+    #     )
+    #     self.hash_filepath = hash_filepath
+    #     print('self.hash_filepath', self.hash_filepath)
+    #     if os.path.isfile(hash_filepath):
+    #         print('\t', self.hash_filepath, 'exists!')
+    #         age = time.time() - os.stat(hash_filepath).st_mtime
+    #         print('\t', self.hash_filepath, 'AGE:', age)
+    #         if age < 60 * 60 * 24 * 7:
+    #             with open(hash_filepath, 'r') as f:
+    #                 self.result = json.load(f)
+    #                 print("CACHE HIT ON PROCESSED HTML {}".format(url))
+    #                 return
+    #         else:
+    #             print("CACHE DELETE ON PROCESSED HTML {}".format(url))
+    #             os.remove(hash_filepath)
+    #
+    #     print("CACHE MISS ON PROCESSED HTML {}".format(url))
+    #     super(CachedProcessor, self).process_html(html, url)
+    #
+    # def process(self, *urls):
+    #     if urls:
+    #         raise NotImplementedError(urls)
+    #     if self.result:
+    #         # print "YAY! Reading from disk cache"
+    #         self.inlines = [
+    #             InlineResult(
+    #                 x['line'],
+    #                 x['url'],
+    #                 x['before'],
+    #                 x['after'],
+    #             )
+    #             for x in self.result['inlines']
+    #         ]
+    #         self.links = [
+    #             LinkResult(
+    #                 x['href'],
+    #                 x['before'],
+    #                 x['after'],
+    #             )
+    #             for x in self.result['links']
+    #         ]
+    #     else:
+    #         super(CachedProcessor, self).process()
+    #         with open(self.hash_filepath, 'w') as f:
+    #             json.dump({
+    #                 'links': [
+    #                     {
+    #                         'href': x.href,
+    #                         'before': x.before,
+    #                         'after': x.after,
+    #                     }
+    #                     for x in self.links
+    #                 ],
+    #                 'inlines': [
+    #                     {
+    #                         'line': x.line,
+    #                         'url': x.url,
+    #                         'before': x.before,
+    #                         'after': x.after
+    #                     }
+    #                     for x in self.inlines
+    #                 ],
+    #             }, f)
 
-    def process_html(self, html, url):
-        hash_filename = hashlib.md5(
-            (html + url).encode('utf-8')
-        ).hexdigest() + '.json'
-        hash_filepath = os.path.join(
-            self.cache_dir,
-            hash_filename
-        )
-        self.hash_filepath = hash_filepath
-        if os.path.isfile(hash_filepath):
-            age = time.time() - os.stat(hash_filepath).st_mtime
-            if age < 60 * 60 * 24 * 7:
-                with open(hash_filepath, 'r') as f:
-                    self.result = json.load(f)
-                    return
-            else:
-                os.remove(hash_filepath)
-
-        super(CachedProcessor, self).process_html(html, url)
-
-    def process(self, *urls):
-        if urls:
-            raise NotImplementedError(urls)
-        if self.result:
-            # print "YAY! Reading from disk cache"
-            self.inlines = [
-                InlineResult(
-                    x['line'],
-                    x['url'],
-                    x['before'],
-                    x['after'],
-                )
-                for x in self.result['inlines']
-            ]
-            self.links = [
-                LinkResult(
-                    x['href'],
-                    x['before'],
-                    x['after'],
-                )
-                for x in self.result['links']
-            ]
-        else:
-            super(CachedProcessor, self).process()
-            with open(self.hash_filepath, 'w') as f:
-                json.dump({
-                    'links': [
-                        {
-                            'href': x.href,
-                            'before': x.before,
-                            'after': x.after,
-                        }
-                        for x in self.links
-                    ],
-                    'inlines': [
-                        {
-                            'line': x.line,
-                            'url': x.url,
-                            'before': x.before,
-                            'after': x.after
-                        }
-                        for x in self.inlines
-                    ],
-                }, f)
+    def download(self, url):
+        downloaded = download_cache.get(url)
+        if downloaded is None:
+            downloaded = super(CachedProcessor, self).download(url)
+            download_cache.set(url, downloaded)
+        return downloaded
 
 
 def _mincssed_key(path):

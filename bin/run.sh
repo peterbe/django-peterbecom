@@ -37,7 +37,7 @@ case $1 in
   web-dev)
     # echo "STARTING WEB-DEV"
     python manage.py collectstatic --noinput
-    python manage.py fscache  # deletes old FS cached files
+    python manage.py fscache -v 2  # deletes old FS cached files
     python manage.py migrate --noinput
     exec python manage.py runserver 0.0.0.0:${PORT}
     ;;
