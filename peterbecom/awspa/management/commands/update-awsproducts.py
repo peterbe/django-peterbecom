@@ -56,6 +56,12 @@ class Command(BaseCommand):
                 awsproduct.asin,
                 sleep=sleep
             )
+            if error:
+                self.error('Error looking up {!r} ({!r})'.format(
+                    awsproduct,
+                    error,
+                ))
+                continue
             try:
                 diff(awsproduct.payload, payload)
             except (AttributeError, KeyError):

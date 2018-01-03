@@ -1181,6 +1181,10 @@ def blog_post_awspa(request, oid):
 
     # Disable any that don't have a MediumImage any more.
     for awsproduct in awsproducts:
+        if isinstance(awsproduct.payload, list):
+            # Something must have gone wrong
+            awsproduct.delete()
+            continue
         if not awsproduct.payload.get('MediumImage'):
             awsproduct.disabled = True
             awsproduct.save()
