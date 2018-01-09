@@ -24,28 +24,14 @@ services:
   redis:
     image: redis:3.2
 
-  # ------------------------------------------------------------------
-  # After this point is dev-related services.
-  # ------------------------------------------------------------------
-
-  # Base container is used for development tasks like tests, linting, coverage
-  # and building docs.
   base:
     build:
       context: .
       dockerfile: Dockerfile
-      # args:
-      #   - FRONTEND_SENTRY_PUBLIC_DSN
-      #   - CI
-    # This builds the tecken:build container
     image: peterbecom:build
-    # environment:
-    #   - DJANGO_CONFIGURATION
     env_file:
       - .env
 
-
-  # Web container is a prod-like fully-functioning container.
   web:
     extends:
       service: base
@@ -65,7 +51,6 @@ services:
       - $PWD:/app
     command: web-dev
 
-  # Container specifically for running tests.
   test:
     extends:
       service: base
