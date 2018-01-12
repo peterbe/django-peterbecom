@@ -37,8 +37,11 @@ $(function() {
                 var url = match[1];
                 if (prefetched.indexOf(url) === -1 && prefetched.length < 5) {
                   if (url.indexOf('cdn-2916.kxcdn.com') > -1) {
+                    // Add it immediately, instead of waiting for the
+                    // async loading.
+                    prefetched.push(url);
                     preFetchImage(url, function(url) {
-                      prefetched.push(url);
+                      // Nothing to do at the moment.
                     });
                   }
                 }
