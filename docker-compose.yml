@@ -1,8 +1,8 @@
 version: '2'
 
 services:
-  db:
-    image: postgres:9.5
+  #db:
+  #  image: postgres:9.5
   memcached:
     image: memcached:1.5
   elasticsearch:
@@ -36,14 +36,14 @@ services:
     extends:
       service: base
     depends_on:
-      - db
+      #- db
       - memcached
       - redis
       - elasticsearch
     ports:
       - "8000:8000"
     links:
-      - db
+      #- db
       - memcached
       - redis
       - elasticsearch
@@ -57,7 +57,7 @@ services:
     extends:
       service: base
     links:
-      - db
+      #- db
       - memcached
     command: test
 
@@ -67,10 +67,12 @@ services:
     depends_on:
       - base
     links:
-      - db
+      #- db
       - memcached
       - redis
       - elasticsearch
+    environment:
+      - DATABASE_URL=postgresql://peterbe@docker.for.mac.host.internal/peterbecom
     volumes:
       - $PWD:/app
     command: worker-purge
