@@ -55,7 +55,7 @@ var F = (function() {
     },
     setupReply: function(parent) {
       preparing = false;
-      if (parent.size() !== 1) {
+      if (parent.length !== 1) {
         throw new Error('Must be exactly 1 parent');
       }
       form.detach().insertAfter($('.text:eq(0)', parent));
