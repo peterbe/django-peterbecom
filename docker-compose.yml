@@ -47,6 +47,8 @@ services:
       - memcached
       - redis
       - elasticsearch
+    environment:
+      - DATABASE_URL=postgresql://peterbe@docker.for.mac.host.internal/peterbecom
     volumes:
       - $PWD:/app
     command: web-dev

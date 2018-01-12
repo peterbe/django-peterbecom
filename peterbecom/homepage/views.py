@@ -11,6 +11,7 @@ from django import http
 from django.core.cache import cache
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST
+from django.db.models import Count
 from django.core.urlresolvers import reverse
 from django.contrib.sites.requests import RequestSite
 from django.views.decorators.cache import cache_control
@@ -69,10 +70,6 @@ def _home_key_prefixer(request):
 
 
 @cache_control(public=True, max_age=ONE_HOUR * 1)
-# @cache_page(
-#     ONE_HOUR * 3,
-#     key_prefix=_home_key_prefixer,
-# )
 def home(request, oc=None, page=1):
     context = {}
     qs = BlogItem.objects.filter(pub_date__lt=utc_now())
@@ -150,6 +147,14 @@ def home(request, oc=None, page=1):
 
     if page > 0:  # page starts on 0
         context['page_title'] = 'Page {}'.format(page + 1)
+
+    approved_comments_count = {}
+    blog_comments_count_qs = BlogComment.objects.filter(
+        blogitem__in=context['blogitems']
+    ).values('blogitem_id').annotate(count=Count('blogitem_id'))
+    for count in blog_comments_count_qs:
+        approved_comments_count[count['blogitem_id']] = count['count']
+    context['approved_comments_count'] = approved_comments_count
 
     return render(request, 'homepage/home.html', context)
 

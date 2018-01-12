@@ -6,8 +6,8 @@
 
   <p style="font-weight: bold">
     <span style="float:right">{{ post.pub_date.strftime('%d %B %Y') }}</span>
-    {% set count = post.count_comments() %}
-    {{ count }} comment{% if count != 1 %}s{% endif %}
+    {% set count = approved_comments_count[post.id] %}
+    {{ count or 0 }} comment{% if count != 1 %}s{% endif %}
     &nbsp;
     {% for category in post.categories.all() %}
       <a rel="nofollow" href="{{ url('only_category', category.name.replace(' ','+')) }}"
