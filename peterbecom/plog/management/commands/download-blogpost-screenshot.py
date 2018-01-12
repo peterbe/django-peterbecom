@@ -19,6 +19,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         for oid in args:
             blogitem = BlogItem.objects.get(oid=oid)
-            print blogitem.update_screenshot_image(options['base_url'])
-            print blogitem.screenshot_image
-            print
+            print(blogitem.update_screenshot_image(options['base_url']))
+            print(blogitem.screenshot_image)
+            print()
