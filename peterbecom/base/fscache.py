@@ -19,7 +19,6 @@ def path_to_fs_path(path):
 def create_parents(fs_path):
     directory = os.path.dirname(fs_path)
     here = settings.FSCACHE_ROOT
-    assert os.path.isdir(here)
     for part in directory.replace(settings.FSCACHE_ROOT, '').split('/'):
         here = os.path.join(here, part)
         if not os.path.isdir(here):
