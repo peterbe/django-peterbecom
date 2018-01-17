@@ -267,19 +267,20 @@ PIPELINE = {
     'PIPELINE_COLLECTOR_ENABLED': False,
 }
 
+# REDIS_URL = 'redis://redis:6379/0'
+REDIS_URL = config('REDIS_URL', 'redis://localhost:6379/0')
+
+CELERY_BROKER_URL = REDIS_URL
 
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
         'KEY_PREFIX': 'peterbecom',
         'TIMEOUT': 5 * 60,
-        'LOCATION': 'memcached:11211'
+        'LOCATION': config('CACHE_LOCATION', 'localhost:11211'),
     }
 }
 
-REDIS_URL = 'redis://redis:6379/0'
-
-CELERY_BROKER_URL = REDIS_URL
 
 SESSION_COOKIE_HTTPONLY = True
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
