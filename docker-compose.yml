@@ -49,6 +49,8 @@ services:
       - elasticsearch
     environment:
       - DATABASE_URL=postgresql://peterbe@docker.for.mac.host.internal/peterbecom
+      - REDIS_URL=redis://redis:6379/0
+      - MEMCACHE_LOCATION=memcached:11211
     volumes:
       - $PWD:/app
     command: web-dev
