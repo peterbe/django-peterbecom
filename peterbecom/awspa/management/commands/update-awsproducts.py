@@ -35,7 +35,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--limit', default=10)
-        parser.add_argument('--sleep', default=1.1)
+        parser.add_argument('--sleep', default=2.1)
 
     def _handle(self, **options):
         limit = int(options['limit'])
