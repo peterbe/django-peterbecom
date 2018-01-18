@@ -23,7 +23,7 @@ PIPELINE_CSS = {
             'css/highlight.css',
             # 'css/table.css',
             'css/peterbe.css',
-            'css/carbonads.css',
+            # 'css/carbonads.css',
         ),
         'output_filename': 'css/base.min.css',
     },
