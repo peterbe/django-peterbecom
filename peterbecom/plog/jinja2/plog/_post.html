@@ -1,8 +1,10 @@
-
+{% macro show_carbon_ad() -%}
+<script async type="text/javascript" src="//cdn.carbonads.com/carbon.js?zoneid=1673&serve=C6AILKT&placement=peterbecom" id="_carbonads_js"></script>
+{%- endmacro %}
 
 {% if not post.has_carousel_tag() %}
   {% if show_fusion_ad and request.path != '/plog/blogitem-040601-1' %}
-    {% include "plog/_fusion.html" %}
+    {{ show_carbon_ad() }}
   {% endif %}
 {% endif %}
 
@@ -15,5 +17,5 @@
 
 
 {% if show_fusion_ad and request.path == '/plog/blogitem-040601-1' %}
-  {% include "plog/_fusion.html" %}
+  {{ show_carbon_ad() }}
 {% endif %}
