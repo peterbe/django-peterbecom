@@ -261,10 +261,11 @@ def _render_blog_post(request, oid, screenshot_mode=False):
         # not settings.DEBUG and
         request.path != '/plog/blogitem-040601-1'
     )
-    context['show_fusion_ad'] = (
-        not screenshot_mode and
-        not settings.DEBUG
-    )
+    # context['show_fusion_ad'] = (
+    #     not screenshot_mode and
+    #     not settings.DEBUG
+    # )
+    context['show_fusion_ad'] = not screenshot_mode
     context['home_url'] = request.build_absolute_uri('/')
     context['page_title'] = post.title
     context['pub_date_years'] = THIS_YEAR - post.pub_date.year

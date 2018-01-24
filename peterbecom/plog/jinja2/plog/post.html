@@ -26,20 +26,95 @@
 
 
   {% endif %}
-  <style>
-  span.not-approved { /* no mincss */
+  <style data-mincss="ignore">
+  span.not-approved {
     float:right;
     font-size:90%;
     color:red;
     padding-left:10px;
   }
-  .ui.comments .comment .metadata { /* no mincss */
+  .ui.comments .comment .metadata {
     display: inline-block;
     margin-left: 0.5em;
     color: rgba(0, 0, 0, 0.4);
     font-size: 0.875em;
   }
   </style>
+
+  {% if show_fusion_ad %}
+  <style type="text/css" data-mincss="ignore">
+  #carbonads {
+    display: block;
+    float: right;
+    overflow: hidden;
+    /* margin-top: 50px; */
+    margin-left: 40px;
+    padding: 14px 10px;
+    max-width: 160px;
+    border: solid 1px #5a85c9;
+    border-radius: 3px;
+    background: hsl(0, 0%, 98%);
+    text-align: center;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  #carbonads span {
+    display: block;
+    overflow: hidden;
+  }
+
+  .carbon-img {
+    display: block;
+    margin: 0 auto 8px;
+    line-height: 1;
+  }
+
+  .carbon-text {
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .carbon-poweredby {
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 9px;
+    line-height: 1;
+  }
+
+  @media only screen and (min-width: 320px) and (max-width: 759px) {
+    #carbonads {
+      float: none;
+      margin: 0 auto;
+      margin-bottom: 20px;
+      max-width: 330px;
+    }
+    #carbonads span {
+      position: relative;
+    }
+    #carbonads > span {
+      max-width: none;
+    }
+    .carbon-img {
+      float: left;
+      margin: 0 1em 0 0;
+    }
+    .carbon-text {
+      float: left;
+      margin-bottom: 0;
+      max-width: calc(100% - 130px - 1em);
+      text-align: left;
+    }
+    .carbon-poweredby {
+      position: absolute;
+      bottom: 0;
+      left: 144px;
+      display: block;
+    }
+  }
+  </style>
+  {% endif %}
 
   {% if request.path == '/plog/blogitem-040601-1' %}
   <link rel="prerender" href="https://songsear.ch/">

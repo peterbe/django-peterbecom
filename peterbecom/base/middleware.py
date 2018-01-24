@@ -81,7 +81,7 @@ class FSCacheMiddleware:
                         '//web:8000'
                     )
                     absolute_url = absolute_url.replace(
-                        '//peterbecom.dev',
+                        '//peterbecom.local',
                         '//web:8000'
                     )
                     # print("FS_PATH", fs_path, os.path.exists(fs_path))
