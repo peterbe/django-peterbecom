@@ -22,7 +22,11 @@
 
   <br>
 
+  {% if loop.index < 2 %}
   {{ post.rendered|safe }}
+  {% else %}
+  {{ make_images_lazy(post.rendered, static("img/placeholder.png"))|safe }}
+  {% endif %}
 
 </div>
 {% endfor %}

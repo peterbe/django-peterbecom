@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
 
   <title>{% block title %}{% block title_prefix %}{{ page_title }}{% endblock %} - Peterbe.com{% endblock %}</title>
 
@@ -71,8 +71,8 @@
     <div class="ui container">
 
       <div class="header item">
-        <a href="/"><img class="logo" src="{{ static('images/favicon-32.png') }}"></a>
-        <a href="/">Peterbe.com</a>
+        <a href="/" title="Go back the home page"><img class="logo" alt="My face" src="{{ static('images/favicon-32.png') }}"></a>
+        <a href="/" title="Go back the home page">Peterbe.com</a>
         {% if page_title %}
         <a class="page-title-repeated">{{ page_title }}</a>
         {% endif %}
