@@ -1,4 +1,4 @@
-.PHONY: build clean migrate revision shell currentshell stop test run django-shell docs psql build-frontend
+.PHONY: build clean migrate redis-cli shell currentshell stop test run django-shell docs psql build-frontend
 
 help:
 	@echo "Welcome to the django-peterbe\n"
@@ -7,7 +7,7 @@ help:
 	@echo "  ci               Run the test with the CI specific Docker setup"
 	@echo "  clean            Stops and removes all docker containers"
 	@echo "  migrate          Runs the Django database migrations"
-	@echo "  redis-cache-cli  Opens a Redis CLI to the cache Redis server"
+	@echo "  redis-cli        Opens a Redis CLI to the cache Redis server"
 	@echo "  shell            Opens a Bash shell"
 	@echo "  currentshell     Opens a Bash shell into existing running 'web' container"
 	@echo "  test             Runs the Python test suite"
@@ -40,8 +40,8 @@ currentshell: .docker-build
 	# Use `-u 0` to automatically become root in the shell
 	docker-compose exec --user 0 web bash
 
-# redis-cache-cli: .docker-build
-	# docker-compose run redis-cache redis-cli -h redis-cache
+redis-cli: .docker-build
+	docker-compose run redis redis-cli -h redis
 
 psql: .docker-build
 	docker-compose run db psql -h db -U postgres

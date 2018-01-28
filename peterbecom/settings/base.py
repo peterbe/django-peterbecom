@@ -274,11 +274,14 @@ CELERY_BROKER_URL = REDIS_URL
 
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'KEY_PREFIX': 'peterbecom',
-        'TIMEOUT': 5 * 60,
-        'LOCATION': config('CACHE_LOCATION', 'localhost:11211'),
-    }
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': REDIS_URL,
+        'OPTIONS': {
+            'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor',  # noqa
+            # Not using the msgpack serializer because msgpack can't
+            # serialize a HttpResponse object.
+        },
+    },
 }
 
 
