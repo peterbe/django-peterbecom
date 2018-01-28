@@ -165,9 +165,9 @@ django-semanticui-form==0.0.1 \
 futures==3.1.1 \
     --hash=sha256:c4884a65654a7c45435063e14ae85280eb1f111d94e542396717ba9828c4337f \
     --hash=sha256:51ecb45f0add83c806c68e4b06106f90db260585b25ef2abfcda0bd95c0132fd
-django-pipeline==1.6.13 \
-    --hash=sha256:81d8dd2db4c582bdfd0dc1df875c6b538c0a5ee233e954a52ae17f3ce904f604 \
-    --hash=sha256:d67ac0fc2556e3c5b5080ee96f8e661bda9a1e4b46b8fffbef3fb5524b6ef11e
+django-pipeline==1.6.14 \
+    --hash=sha256:b56f2cfdb113dc1cb05257d8eb8d145fc0ade6f0d1236fb425df15bd059dce15 \
+    --hash=sha256:ef67aaf58959a2959e13fc114001cee5beec05ac18a81cc700ea9f1c8e3f40a8
 feedparser==5.2.1 \
     --hash=sha256:ce875495c90ebd74b179855449040003a1beb40cd13d5f037a0654251e260b02 \
     --hash=sha256:bd030652c2d08532c034c27fcd7c85868e7fa3cb2b17f230a44a6bbc92519bf9 \
