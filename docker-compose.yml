@@ -3,8 +3,8 @@ version: '2'
 services:
   #db:
   #  image: postgres:9.5
-  memcached:
-    image: memcached:1.5
+  # memcached:
+  #   image: memcached:1.5
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:5.6.3
     environment:
@@ -37,20 +37,20 @@ services:
       service: base
     depends_on:
       #- db
-      - memcached
+      # - memcached
       - redis
       - elasticsearch
     ports:
       - "8000:8000"
     links:
       #- db
-      - memcached
+      # - memcached
       - redis
       - elasticsearch
     environment:
       - DATABASE_URL=postgresql://peterbe@docker.for.mac.host.internal/peterbecom
       - REDIS_URL=redis://redis:6379/0
-      - MEMCACHE_LOCATION=memcached:11211
+      # - MEMCACHE_LOCATION=memcached:11211
     volumes:
       - $PWD:/app
     command: web-dev
@@ -60,7 +60,8 @@ services:
       service: base
     links:
       #- db
-      - memcached
+      - redis
+      # - memcached
     command: test
 
   worker:
@@ -70,13 +71,13 @@ services:
       - base
     links:
       #- db
-      - memcached
+      # - memcached
       - redis
       - elasticsearch
     environment:
       - DATABASE_URL=postgresql://peterbe@docker.for.mac.host.internal/peterbecom
       - REDIS_URL=redis://redis:6379/0
-      - MEMCACHE_LOCATION=memcached:11211
+      # - MEMCACHE_LOCATION=memcached:11211
     volumes:
       - $PWD:/app
     command: worker-purge
