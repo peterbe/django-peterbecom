@@ -6,10 +6,9 @@ import hashlib
 import codecs
 import tempfile
 
-# try:
-#     import ujson as json
-# except ImportError:
-#     import json
+import delegator
+
+from django.conf import settings
 from django.core.cache import cache
 
 from mincss.processor import Processor
@@ -54,90 +53,6 @@ download_cache = DownloadCache()
 
 
 class CachedProcessor(Processor):
-
-    # def __init__(self, *args, **kwargs):
-    #     super(CachedProcessor, self).__init__(*args, **kwargs)
-    #     self.cache_dir = os.path.join(
-    #         tempfile.gettempdir(),
-    #         'cached-mincss-processor'
-    #     )
-    #     if not os.path.isdir(self.cache_dir):
-    #         os.mkdir(self.cache_dir)
-    #     self.result = None
-    #
-    # def process_html(self, html, url):
-    #     print('=' * 80)
-    #     print(html[-60:])
-    #     print('- ' * 40)
-    #     hash_filename = hashlib.md5(
-    #         (html + url).encode('utf-8')
-    #     ).hexdigest() + '.json'
-    #     hash_filepath = os.path.join(
-    #         self.cache_dir,
-    #         hash_filename
-    #     )
-    #     self.hash_filepath = hash_filepath
-    #     print('self.hash_filepath', self.hash_filepath)
-    #     if os.path.isfile(hash_filepath):
-    #         print('\t', self.hash_filepath, 'exists!')
-    #         age = time.time() - os.stat(hash_filepath).st_mtime
-    #         print('\t', self.hash_filepath, 'AGE:', age)
-    #         if age < 60 * 60 * 24 * 7:
-    #             with open(hash_filepath, 'r') as f:
-    #                 self.result = json.load(f)
-    #                 print("CACHE HIT ON PROCESSED HTML {}".format(url))
-    #                 return
-    #         else:
-    #             print("CACHE DELETE ON PROCESSED HTML {}".format(url))
-    #             os.remove(hash_filepath)
-    #
-    #     print("CACHE MISS ON PROCESSED HTML {}".format(url))
-    #     super(CachedProcessor, self).process_html(html, url)
-    #
-    # def process(self, *urls):
-    #     if urls:
-    #         raise NotImplementedError(urls)
-    #     if self.result:
-    #         # print "YAY! Reading from disk cache"
-    #         self.inlines = [
-    #             InlineResult(
-    #                 x['line'],
-    #                 x['url'],
-    #                 x['before'],
-    #                 x['after'],
-    #             )
-    #             for x in self.result['inlines']
-    #         ]
-    #         self.links = [
-    #             LinkResult(
-    #                 x['href'],
-    #                 x['before'],
-    #                 x['after'],
-    #             )
-    #             for x in self.result['links']
-    #         ]
-    #     else:
-    #         super(CachedProcessor, self).process()
-    #         with open(self.hash_filepath, 'w') as f:
-    #             json.dump({
-    #                 'links': [
-    #                     {
-    #                         'href': x.href,
-    #                         'before': x.before,
-    #                         'after': x.after,
-    #                     }
-    #                     for x in self.links
-    #                 ],
-    #                 'inlines': [
-    #                     {
-    #                         'line': x.line,
-    #                         'url': x.url,
-    #                         'before': x.before,
-    #                         'after': x.after
-    #                     }
-    #                     for x in self.inlines
-    #                 ],
-    #             }, f)
 
     def download(self, url):
         downloaded = download_cache.get(url)
@@ -239,7 +154,28 @@ def mincss_html(html, abs_uri):
             exception
         ))
     _total_after_min = len(combined_css)
+
     t2 = time.time()
+
+    try:
+        combined_css = _clean_with_csso(combined_css)
+        # _total_after_csso = len(combined_css)
+        # print(
+        #     "SAVED",
+        #     format(_total_after_min - _total_after_csso, ','),
+        #     "bytes with CSSO",
+        #     "(before {}B, now {}B)".format(
+        #         format(_total_after_min, ','),
+        #         format(_total_after_csso, ','),
+        #     )
+        # )
+    except Exception as exception:
+        # raise
+        print('Failure calling _clean_with_csso: {}'.format(
+            exception
+        ))
+
+    t3 = time.time()
     template = """
 /*
 Stats from using github.com/peterbe/mincss
@@ -263,7 +199,7 @@ Saving:               %.fKb
         'Time to post-process: %.2fms\n'
         '*/' % (
             (t1 - t0) * 1000,
-            (t2 - t1) * 1000,
+            (t3 - t1) * 1000,
         )
     )
     combined_css = '{}\n{}'.format(
@@ -293,10 +229,33 @@ def _clean_repeated_license_preambles(cssstring):
     )
 
     new_preamble = (
-        '/* License for minified and inlined CSS originally belongs '
+        '/*! License for minified and inlined CSS originally belongs '
         'to Semantic UI. See individual files in '
         'https://github.com/peterbe/django-peterbecom/tree/master/peterbecom/base/static/css '  # noqa
         '*/'
     )
     cssstring = regex.sub('', cssstring)
     return new_preamble + '\n' + cssstring
+
+
+def _clean_with_csso(cssstring):
+    with tempfile.TemporaryDirectory() as dir_:
+        input_fn = os.path.join(dir_, 'input.css')
+        output_fn = os.path.join(dir_, 'output.css')
+        with open(input_fn, 'w') as f:
+            f.write(cssstring)
+        command = 'node {} -i {} -o {}'.format(
+            settings.CSSO_CLI_BINARY,
+            input_fn,
+            output_fn,
+        )
+        r = delegator.run(command)
+        if r.return_code:
+            raise RuntimeError('Return code: {}\tError: {}'.format(
+                r.return_code,
+                r.err
+            ))
+        with open(output_fn) as f:
+            output = f.read()
+
+    return output
