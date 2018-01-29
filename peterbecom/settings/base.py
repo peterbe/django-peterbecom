@@ -328,6 +328,8 @@ FSCACHE_ROOT = path('peterbecom-static-content/_FSCACHE')
 assert not FSCACHE_ROOT.endswith('/')
 
 
+CSSO_CLI_BINARY = path('node_modules/.bin/csso')
+
 # ElasticSearch
 
 ES_INDEX = 'peterbecom'

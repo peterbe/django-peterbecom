@@ -39,6 +39,8 @@
   }
   window.setTimeout(function() {
     var url = document.location.pathname + '/awspa';
-    loadAwspa(url, true);
+    if ($) { // only if jQuery has loaded
+      loadAwspa(url, true);
+    }
   }, 200);
 })();
