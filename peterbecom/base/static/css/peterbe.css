@@ -1,23 +1,21 @@
 body {
-    color: #333;
-    background-color: #FFFFFF;
+  color: #333;
+  background-color: #ffffff;
 }
 
 .main.container {
-    margin-top: 2em;
+  margin-top: 2em;
 }
 .main.menu {
-    margin-top: 4em;
-    border-radius: 0;
-    border: none;
-    box-shadow: none;
-    transition: box-shadow 0.5s ease, padding 0.5s ease;
-
+  margin-top: 4em;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+  transition: box-shadow 0.5s ease, padding 0.5s ease;
 }
 .main.menu .item img.logo {
-    margin-right: 1.5em;
+  margin-right: 1.5em;
 }
-
 
 body,
 .ui.comments .comment .text,
@@ -26,58 +24,62 @@ body,
   font-size: 16px;
 }
 
-
 /* this little trick makes it so the repeated page title
  only appears when you've scrolled down a bit so the header
  because fixed */
 
 .main.menu .page-title-repeated {
-    display: none;
+  display: none;
 }
-.main.menu.fixed .page-title-repeated { /* no mincss */
-    display: inline;
-    /*padding-left: 10px;*/
-    text-overflow: ellipsis;
+.main.menu.fixed .page-title-repeated {
+  /* no mincss */
+  display: inline;
+  /*padding-left: 10px;*/
+  text-overflow: ellipsis;
 }
-.main.menu.fixed .item { /* no mincss */
-    padding-left: 17px;
+.main.menu.fixed .item {
+  /* no mincss */
+  padding-left: 17px;
 }
-.main.menu.fixed .header a[href] { /* no mincss */
+.main.menu.fixed .header a[href] {
+  /* no mincss */
   display: none;
 }
 @media (max-width: 414px) {
-  .main.menu.fixed .page-title-repeated { /* no mincss */
+  .main.menu.fixed .page-title-repeated {
+    /* no mincss */
     font-size: 1rem;
   }
-
 }
 
 .overlay {
-    float: left;
-    margin: 0em 3em 1em 0em;
+  float: left;
+  margin: 0em 3em 1em 0em;
 }
 .overlay .menu {
-    position: relative;
-    left: 0;
-    transition: left 0.5s ease;
+  position: relative;
+  left: 0;
+  transition: left 0.5s ease;
 }
-.main.menu.fixed { /* no mincss */
-    background-color: #FFFFFF;
-    border: 1px solid #DDD;
-    box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.2);
+.main.menu.fixed {
+  /* no mincss */
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.2);
 }
-.overlay.fixed .menu { /* no mincss */
-    left: 800px;
+.overlay.fixed .menu {
+  /* no mincss */
+  left: 800px;
 }
 .text.container .left.floated.image {
-    margin: 2em 2em 2em -4em;
+  margin: 2em 2em 2em -4em;
 }
 .text.container .right.floated.image {
-    margin: 2em -4em 2em 2em;
+  margin: 2em -4em 2em 2em;
 }
 .ui.footer.segment {
-    margin: 5em 0em 0em;
-    padding: 5em 0em;
+  margin: 5em 0em 0em;
+  padding: 5em 0em;
 }
 
 /* my overrides */
@@ -90,97 +92,101 @@ h2.ui.header {
   margin-top: 40px;
 }
 h1.ui.header {
-    font-size: 3rem;
+  font-size: 3rem;
 }
 @media (max-width: 414px) {
-    h1.ui.header {
-        font-size: 2.5rem;
-    }
+  h1.ui.header {
+    font-size: 2.5rem;
+  }
 }
 img.floatright {
-    float: right;
-    margin: 0 0 7px 7px;
+  float: right;
+  margin: 0 0 7px 7px;
 }
 img.floatleft {
-    float: left;
-    margin: 7px 7px 0 0;
+  float: left;
+  margin: 7px 7px 0 0;
 }
 .highlight {
-    /* override so the color comes from the pre tag within instead */
-    background: transparent;
+  /* override so the color comes from the pre tag within instead */
+  background: transparent;
 }
 a.page-title-repeated {
-    color: #333;
-    cursor: pointer;
+  color: #333;
+  cursor: pointer;
 }
 
 /* CSS for pre copied from bootstrap */
 
 pre {
-    display: block;
-    padding: 9.5px;
-    margin: 0px 0px 10px;
-    font-size: 13px;
-    line-height: 1.42857;
-    color: #333;
-    word-break: break-all;
-    word-wrap: break-word;
-    background-color: #F5F5F5;
-    border: 1px solid #CCC;
-    border-radius: 4px;
+  padding: 5px;
+  margin: 0px 0px 10px;
+  line-height: 1.42857;
+  color: #333;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  overflow: auto;
 }
-code, pre {
-    font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
-    font-size: 0.9em;
+
+/* Desktop or bigger tables */
+@media (min-width: 700px) {
+  pre {
+    padding: 10px;
+  }
 }
+code,
 pre {
-    overflow: auto;
+  font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
+  font-size: 0.8em;
 }
 
 /* custom code override */
 code {
-    padding: 0.2em 0.2em;
-    background-color: rgba(0, 0, 0, 0.05);
-    border-radius: 3px;
+  padding: 0.2em 0.2em;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
 }
 
 /* Specifically for fusion_ad */
 
 #fusion_ad {
-    float: right;
-    width: 130px;
-    background-color: white;
-    padding-left: 15px;
-    padding-bottom: 15px;
+  float: right;
+  width: 130px;
+  background-color: white;
+  padding-left: 15px;
+  padding-bottom: 15px;
 }
 #fusion_ad .fusionentire {
-    display: block;
+  display: block;
 }
 @media (max-width: 900px) {
-    #fusion_ad {
-        display: none;
-    }
+  #fusion_ad {
+    display: none;
+  }
 }
 @media (min-width: 767px) {
-    .main.menu .right.dropdown {
-        display: none !important;
-    }
-    .main.menu .right.menu {
-        display: flex;
-    }
+  .main.menu .right.dropdown {
+    display: none !important;
+  }
+  .main.menu .right.menu {
+    display: flex;
+  }
 }
 @media (max-width: 768px) {
-    .main.menu .right.dropdown {
-        display: flex !important;
-    }
-    .main.menu .right.menu {
-        display: none !important;
-    }
+  .main.menu .right.dropdown {
+    display: flex !important;
+  }
+  .main.menu .right.menu {
+    display: none !important;
+  }
 }
-
 
 /* Specifically overriding fonts */
 .ui.header,
-h1, h2, h3, h4 {
+h1,
+h2,
+h3,
+h4 {
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans-serif;
 }
