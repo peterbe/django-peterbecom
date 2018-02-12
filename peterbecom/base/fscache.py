@@ -134,6 +134,11 @@ def cache_request(request, response):
             if request.path.startswith(s):
                 return False
 
+        if getattr(request, '_fscache_disable', None):
+            # For some reason, the request decided this page should not
+            # be FS cached.
+            return False
+
         return True
 
     return False
