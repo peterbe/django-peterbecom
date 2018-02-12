@@ -2,6 +2,7 @@ import hashlib
 import logging
 import datetime
 import json
+import random
 from collections import defaultdict
 from statistics import median
 from urllib.parse import urlencode
@@ -1190,7 +1191,14 @@ def blog_post_awspa(request, oid):
             awsproduct.disabled = True
             awsproduct.save()
 
+    instances = []
+    seen = set()
+    for awsproduct in awsproducts:
+        if awsproduct.asin not in seen:
+            instances.append(awsproduct)
+            seen.add(awsproduct.asin)
+    random.shuffle(instances)
     context = {
-        'awsproducts': awsproducts.order_by('?')[:3],
+        'awsproducts': instances[:3],
     }
     return render(request, 'plog/post-awspa.html', context)

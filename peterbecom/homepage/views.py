@@ -98,6 +98,14 @@ def home(request, oc=None, page=1):
         context['next_page'] = page + 2
     context['previous_page'] = page
 
+    # If you're going deep into the pagination with some really old
+    # pages, it's not worth using the fs cache because if you have to
+    # store a fs cache version for every single page from p5 to p55
+    # it's too likely to get stale and old and it's too much work
+    # on the mincss postprocess.
+    if page > 5 or (context.get('categories') and page > 2):
+        request._fscache_disable = True
+
     if context.get('categories'):
         oc_path = '/'.join(
             ['oc-{}'.format(c.name) for c in context['categories']]
