@@ -369,12 +369,10 @@ def search(request, original_q=None):
             'date': result['pub_date'],
             'summary': summary,
             'score': hit._score,
+            'comment': False,
         })
 
     context['count_documents'] = response.hits.total
-    if not original_q and not response.hits.total and ' ' in q:
-        # recurse
-        return search(request, original_q=q)
 
     # Now append the search results based on blog comments
     search_query = BlogCommentDoc.search()
@@ -398,9 +396,14 @@ def search(request, original_q=None):
 
     context['count_documents'] += response.hits.total
 
+    if not original_q and not context['count_documents'] and ' ' in q:
+        # recurse
+        return search(request, original_q=q)
+
     blogitem_lookups = set()
     for hit in response:
         result = hit.to_dict()
+        print(result)
         texts = []
         try:
             for fragment in hit.meta.highlight.comment:
@@ -416,25 +419,31 @@ def search(request, original_q=None):
             'date': result['add_date'],
             'summary': summary,
             'score': hit._score,
+            'comment': True,
+            'oid': result['oid'],
         })
 
     if blogitem_lookups:
         blogitems = {}
         blogitem_qs = BlogItem.objects.filter(id__in=blogitem_lookups)
         for blog_item in blogitem_qs.only('title', 'oid'):
+            blog_item_url = reverse('blog_post', args=(blog_item.oid,))
             blogitems[blog_item.id] = {
                 'title': (
                     'Comment on <i>{}</i>'.format(
                         clean_fragment_html(blog_item.title)
                     )
                 ),
-                'url': reverse('blog_post', args=(blog_item.oid,)),
+                'url': blog_item_url,
             }
         for doc in documents:
+            # print(doc)
             _id = doc.pop('_id', None)
             if _id:
                 doc['url'] = blogitems[_id]['url']
                 doc['title'] = blogitems[_id]['title']
+                if doc['comment']:
+                    doc['url'] += '#{}'.format(doc['oid'])
 
     context['documents'] = documents
     context['count_documents_shown'] = len(documents)
@@ -504,7 +513,6 @@ def autocompete(request):
             }
         }
     })
-    # print('TERMS', terms)
     query = Q('match_phrase', title_autocomplete=terms[0])
     for term in terms[1:]:
         query |= Q('match_phrase', title_autocomplete=term)

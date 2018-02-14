@@ -8,7 +8,7 @@ from elasticsearch.helpers import streaming_bulk
 
 from peterbecom.base.basecommand import BaseCommand
 from peterbecom.podcasttime.models import Podcast, Episode
-from peterbecom.podcasttime.search import index
+from peterbecom.podcasttime.search import podcast_index
 
 
 class Command(BaseCommand):
@@ -51,8 +51,8 @@ class Command(BaseCommand):
                 iterator = iterator.order_by('-modified')[:limit]
 
         if kwargs['create_index']:  # or not limit:
-            index.delete(ignore=404)
-            index.create()
+            podcast_index.delete(ignore=404)
+            podcast_index.create()
 
         # Compute a big map of every podcast's total episode count
         episode_counts = {}
@@ -88,7 +88,7 @@ class Command(BaseCommand):
                 ).to_dict(True)
                 for m in iterator
             ),
-            index=settings.ES_INDEX,
+            index=settings.ES_PODCAST_INDEX,
             doc_type=doc_type,
         ):
             if not success:

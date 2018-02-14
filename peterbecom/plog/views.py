@@ -325,14 +325,23 @@ def get_related_posts_by_text(post, limit=5):
             'more_like_this': {
                 'fields': ['title', 'text'],
                 'like': [{
-                    '_index': settings.ES_INDEX,
-                    '_type': 'blog_item_doc',
+                    '_index': settings.ES_BLOG_ITEM_INDEX,
+                    '_type': 'doc',
                     '_id': post.id,
                 }],
                 'min_term_freq': 2,
                 'min_doc_freq': 5,
                 'min_word_length': 3,
                 'max_query_terms': 25,
+            },
+        }
+    })
+    search.update_from_dict({
+        'query': {
+            'range': {
+                'pub_date': {
+                    'lt': 'now'
+                }
             }
         }
     })

@@ -9,7 +9,7 @@ from elasticsearch_dsl import (
     token_filter,
 )
 
-from peterbecom.base.search import index
+from peterbecom.base.search import podcast_index
 
 
 edge_ngram_analyzer = analyzer(
@@ -26,7 +26,7 @@ edge_ngram_analyzer = analyzer(
 )
 
 
-@index.doc_type
+@podcast_index.doc_type
 class PodcastDoc(DocType):
     id = Keyword(required=True)
     thumbnail_348 = Keyword()

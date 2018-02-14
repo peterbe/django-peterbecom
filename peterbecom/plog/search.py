@@ -12,7 +12,7 @@ from elasticsearch_dsl import (
     token_filter,
 )
 
-from peterbecom.base.search import index
+from peterbecom.base.search import blog_item_index, blog_comment_index
 
 synonyms_root = os.path.join(settings.BASE_DIR, 'peterbecom/es-synonyms')
 american_british_syns_fn = os.path.join(synonyms_root, 'be-ae.synonyms')
@@ -77,11 +77,10 @@ text_analyzer = analyzer(
 )
 
 
-@index.doc_type
+@blog_item_index.doc_type
 class BlogItemDoc(DocType):
     id = Keyword(required=True)
     oid = Keyword(required=True)
-    # title_autocomplete = Completion()
     title_autocomplete = Text(
         required=True,
         analyzer=edge_ngram_analyzer,
@@ -94,7 +93,7 @@ class BlogItemDoc(DocType):
     keywords = Text(fields={'raw': Keyword()})
 
 
-@index.doc_type
+@blog_comment_index.doc_type
 class BlogCommentDoc(DocType):
     id = Keyword(required=True)
     oid = Keyword(required=True)

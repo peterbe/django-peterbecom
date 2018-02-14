@@ -8,7 +8,11 @@ from elasticsearch.helpers import streaming_bulk
 
 from peterbecom.base.basecommand import BaseCommand
 from peterbecom.plog.models import BlogItem, Category, BlogComment
-from peterbecom.plog.search import index
+from peterbecom.plog.search import blog_item_index, blog_comment_index
+
+
+def _get_doc_type_name(model):
+    return model._meta.verbose_name.lower().replace(' ', '_')
 
 
 class Command(BaseCommand):
@@ -23,8 +27,10 @@ class Command(BaseCommand):
 
     def _handle(self, *args, **kwargs):
         if kwargs['create_index']:
-            index.delete(ignore=404)
-            index.create()
+            blog_item_index.delete(ignore=404)
+            blog_item_index.create()
+            blog_comment_index.delete(ignore=404)
+            blog_comment_index.create()
 
         self._index_all_blogitems()
         self._index_all_blogcomments()
@@ -41,7 +47,7 @@ class Command(BaseCommand):
         es = connections.get_connection()
         report_every = 100
         count = 0
-        doc_type = BlogItem._meta.verbose_name.lower().replace(' ', '_')
+        doc_type_name = _get_doc_type_name(BlogItem)
         t0 = time.time()
         for success, doc in streaming_bulk(
             es,
@@ -51,8 +57,8 @@ class Command(BaseCommand):
                 ).to_dict(True)
                 for m in iterator
             ),
-            index=settings.ES_INDEX,
-            doc_type=doc_type,
+            index=settings.ES_BLOG_ITEM_INDEX,
+            doc_type=doc_type_name,
         ):
             if not success:
                 print("NOT SUCCESS!", doc)
@@ -72,7 +78,7 @@ class Command(BaseCommand):
         es = connections.get_connection()
         report_every = 100
         count = 0
-        doc_type = BlogComment._meta.verbose_name.lower().replace(' ', '_')
+        doc_type_name = _get_doc_type_name(BlogComment)
         t0 = time.time()
         for success, doc in streaming_bulk(
             es,
@@ -80,8 +86,8 @@ class Command(BaseCommand):
                 m.to_search().to_dict(True)
                 for m in iterator
             ),
-            index=settings.ES_INDEX,
-            doc_type=doc_type,
+            index=settings.ES_BLOG_COMMENT_INDEX,
+            doc_type=doc_type_name,
         ):
             if not success:
                 print("NOT SUCCESS!", doc)

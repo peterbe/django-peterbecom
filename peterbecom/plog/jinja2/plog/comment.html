@@ -2,7 +2,7 @@
   <div>
     <b>{% if comment.name %}{{ comment.name }}{% else %}<em>Anonymous</em>{% endif %}</b>
     <div class="metadata">
-      {{ comment.add_date.strftime('%d %B %Y') }}
+      <a href="#{{comment.oid}}" title="Permalink to this comment">{{ comment.add_date.strftime('%d %B %Y') }}</a>
       {% if not comment.approved %}
       <span class="not-approved">
         <strong>Note:</strong> This comment has not been approved yet

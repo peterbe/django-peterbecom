@@ -9,8 +9,14 @@ from elasticsearch.exceptions import (
 from django.conf import settings
 
 
-index = Index(settings.ES_INDEX)
-index.settings(**settings.ES_INDEX_SETTINGS)
+blog_item_index = Index(settings.ES_BLOG_ITEM_INDEX)
+blog_item_index.settings(**settings.ES_BLOG_ITEM_INDEX_SETTINGS)
+
+blog_comment_index = Index(settings.ES_BLOG_COMMENT_INDEX)
+blog_comment_index.settings(**settings.ES_BLOG_COMMENT_INDEX_SETTINGS)
+
+podcast_index = Index(settings.ES_PODCAST_INDEX)
+podcast_index.settings(**settings.ES_PODCAST_INDEX_SETTINGS)
 
 
 def es_retry(callable, *args, **kwargs):

@@ -332,12 +332,17 @@ CSSO_CLI_BINARY = path('node_modules/.bin/csso')
 
 # ElasticSearch
 
-ES_INDEX = 'peterbecom'
+ES_BLOG_ITEM_INDEX = 'blog_item'
+ES_BLOG_COMMENT_INDEX = 'blog_comment'
+ES_PODCAST_INDEX = 'podcast'
 
-ES_INDEX_SETTINGS = {
+_ES_INDEX_SETTINGS = {
     'number_of_shards': 1,
     'number_of_replicas': 0,
 }
+ES_BLOG_ITEM_INDEX_SETTINGS = _ES_INDEX_SETTINGS
+ES_BLOG_COMMENT_INDEX_SETTINGS = _ES_INDEX_SETTINGS
+ES_PODCAST_INDEX_SETTINGS = _ES_INDEX_SETTINGS
 
 ES_CONNECTIONS = {
     'default': {
