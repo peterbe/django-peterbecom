@@ -1,8 +1,7 @@
-mark{
+mark {
   /*padding:.2em;*/
-  background-color:white;
+  background-color: white;
 }
-
 
 .autocomplete {
   position: absolute;
@@ -24,6 +23,7 @@ mark{
 
 .autocomplete mark {
   font-weight: normal;
+  background-color: #fcf8e3;
 }
 
 .autocomplete ul {
@@ -62,4 +62,25 @@ mark{
 
 .autocomplete li img {
   width: 40px;
+}
+
+.autocomplete .autocomplete-suggestion-song p {
+  font-weight: normal;
+  font-size: 80%;
+  margin-bottom: 5px;
+}
+
+.autocomplete .media-left {
+  float: left;
+  padding-top: 4px;
+}
+.autocomplete .media-body {
+  margin-left: 50px;
+}
+.autocomplete .media-body p {
+  line-height: 1em;
+}
+
+.autocomplete li.search-suggestion {
+  padding: 12px;
 }
