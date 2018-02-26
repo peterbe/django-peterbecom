@@ -50,8 +50,6 @@ class App extends React.Component {
     super(props);
     this.state = {
       q: '',
-      // searching: false,
-      // searchMaxLength: null,
       autocompleteSuggestions: null,
       autocompleteHighlight: -1,
       showAutocompleteSuggestions: true,
@@ -62,7 +60,7 @@ class App extends React.Component {
       this.fetchAutocompleteSuggestions
     );
     this.fetchAutocompleteSuggestionsThrottled = throttle(
-      1500,
+      500,
       this.fetchAutocompleteSuggestions
     );
 
@@ -117,10 +115,10 @@ class App extends React.Component {
     const q = event.target.value.trim();
     this.setState({ q: event.target.value }, () => {
       const length = q.length;
-      if (length > 5 || /\s/.test(q)) {
-        this.fetchAutocompleteSuggestionsThrottled(q, true);
+      if (length > 10 || (/\s/.test(q) && length > 5)) {
+        this.fetchAutocompleteSuggestionsDebounced(q, true);
       } else if (length) {
-        this.fetchAutocompleteSuggestionsDebounced(q);
+        this.fetchAutocompleteSuggestionsThrottled(q);
       } else {
         this.setState({
           autocompleteSuggestions: null,
@@ -217,26 +215,6 @@ class App extends React.Component {
               () => this._submit(this.state.q)
             );
           }
-          // let suggestion =
-          //   highlight > -1 ? suggestions[highlight] : suggestions[0];
-          // if (suggestion.append) {
-          //   this.setState({
-          //     q: appendSuggestion(this.state.q, suggestion.text) + ' ',
-          //     autocompleteSuggestions: null,
-          //     autocompleteHighlight: -1,
-          //   });
-          // } else {
-          //   this.setState(
-          //     {
-          //       q: suggestions[highlight].text,
-          //       autocompleteSuggestions: null,
-          //       autocompleteHighlight: -1,
-          //     },
-          //     () => {
-          //       this._submit(suggestions[highlight].text, 'enterkey');
-          //     }
-          //   );
-          // }
         }
       }
     }
