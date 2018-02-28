@@ -253,7 +253,11 @@ PIPELINE = {
     'JS_COMPRESSOR': 'pipeline.compressors.uglifyjs.UglifyJSCompressor',
     'UGLIFYJS_BINARY': path('node_modules/.bin/uglifyjs'),
     'UGLIFYJS_ARGUMENTS': '--mangle',
-    'CSS_COMPRESSOR': 'pipeline.compressors.NoopCompressor',
+    # 'CSS_COMPRESSOR': 'pipeline.compressors.NoopCompressor',
+    # 'CSSMIN_BINARY': path('node_modules/.bin/cssmin'),
+    # 'CSS_COMPRESSOR': 'pipeline.compressors.cssmin.CSSMinCompressor',
+    'CSSO_BINARY': path('node_modules/.bin/csso'),
+    'CSS_COMPRESSOR': 'peterbecom.compressors.CSSOCompressor',
     'DISABLE_WRAPPER': True,
     # The pipeline.jinja2.PipelineExtension extension doesn't support
     # automatically rendering any potentional compilation errors into
