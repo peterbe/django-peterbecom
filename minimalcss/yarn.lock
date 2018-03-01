@@ -2,6 +2,10 @@
 # yarn lockfile v1
 
 
+"@moebius/http-graceful-shutdown@1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@moebius/http-graceful-shutdown/-/http-graceful-shutdown-1.0.1.tgz#3e1a501c504cf77b58dacbcf599fc07e8bb8469f"
+
 "@types/node@*":
   version "9.4.6"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-9.4.6.tgz#d8176d864ee48753d053783e4e463aec86b8d82e"
@@ -606,10 +610,11 @@ mime@^1.3.4:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/mime/-/mime-1.6.0.tgz#32cd9e5c64553bd58d19a568af452acff04981b1"
 
-minimalcss-server@0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/minimalcss-server/-/minimalcss-server-0.2.0.tgz#7f1f2f6e2eddb5d8708dfb28305eb5eb5ca87a56"
+minimalcss-server@0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/minimalcss-server/-/minimalcss-server-0.3.0.tgz#e8e62ed27977207b38fafe39ef9684e26593da1a"
   dependencies:
+    "@moebius/http-graceful-shutdown" "1.0.1"
     express "4.16.2"
     generic-pool "3.4.2"
     lru-cache "4.1.1"

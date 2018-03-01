@@ -20,3 +20,4 @@ tags
 *.commandlock
 .docker-build
 podcasts
+minimalcss/yarn-error.log

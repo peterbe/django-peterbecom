@@ -5,6 +5,7 @@ import logging
 import hashlib
 import codecs
 import tempfile
+from urllib.parse import urlparse
 
 import requests
 import delegator
@@ -102,177 +103,23 @@ def mincss_response(response, request):
     response.content = html.encode('utf-8')
     return response
 
-#
-# def mincss_html(html, abs_uri):
-#     t0 = time.time()
-#     p = CachedProcessor(
-#         preserve_remote_urls=True,
-#     )
-#     p.process_html(html, abs_uri)
-#     p.process()
-#     t1 = time.time()
-#     combined_css = []
-#     _total_before = 0
-#     _requests_before = 0
-#
-#     for link in p.links:
-#         _total_before += len(link.before)
-#         _requests_before += 1
-#         combined_css.append(link.after)
-#
-#     for inline in p.inlines:
-#         _total_before += len(inline.before)
-#         combined_css.append(inline.after)
-#
-#     if p.inlines:
-#
-#         def inline_remover(m):
-#             bail = m.group()
-#             if 'data-mincss="ignore"' in bail:
-#                 return bail
-#             return ''
-#
-#         html = _style_regex.sub(inline_remover, html)
-#
-#     found_link_hrefs = [x.href for x in p.links]
-#
-#     def link_remover(m):
-#         bail = m.group()
-#         for each in found_link_hrefs:
-#             if each in bail:
-#                 return ''
-#         return bail
-#
-#     html = _link_regex.sub(link_remover, html)
-#
-#     _total_after = sum(len(x) for x in combined_css)
-#     combined_css = '\n'.join([cssmin.cssmin(x) for x in combined_css])
-#
-#     try:
-#         combined_css = _clean_repeated_license_preambles(combined_css)
-#     except Exception as exception:
-#         print('Failure calling _clean_repeated_license_preambles: {}'.format(
-#             exception
-#         ))
-#     _total_after_min = len(combined_css)
-#
-#     t2 = time.time()
-#
-#     try:
-#         combined_css = _clean_with_csso(combined_css)
-#         # _total_after_csso = len(combined_css)
-#         # print(
-#         #     "SAVED",
-#         #     format(_total_after_min - _total_after_csso, ','),
-#         #     "bytes with CSSO",
-#         #     "(before {}B, now {}B)".format(
-#         #         format(_total_after_min, ','),
-#         #         format(_total_after_csso, ','),
-#         #     )
-#         # )
-#     except Exception as exception:
-#         # raise
-#         print('Failure calling _clean_with_csso: {}'.format(
-#             exception
-#         ))
-#
-#     t3 = time.time()
-#     template = """
-# /*
-# Stats from using github.com/peterbe/mincss
-# ------------------------------------------
-# Requests:             %s (now: 0)
-# Before:               %.fKb
-# After:                %.fKb
-# After (minified):     %.fKb
-# Saving:               %.fKb
-# */"""
-#     stats_css = template % (
-#         _requests_before,
-#         _total_before / 1024.,
-#         _total_after / 1024.,
-#         _total_after_min / 1024.,
-#         (_total_before - _total_after) / 1024.
-#     )
-#     stats_css = stats_css.replace(
-#         '*/',
-#         'Time to process:      %.2fms\n'
-#         'Time to post-process: %.2fms\n'
-#         '*/' % (
-#             (t1 - t0) * 1000,
-#             (t3 - t1) * 1000,
-#         )
-#     )
-#     combined_css = '{}\n{}'.format(
-#         stats_css.strip(),
-#         combined_css,
-#     )
-#     new_style = (
-#         '<style type="text/css">\n{}\n</style>'.format(combined_css)
-#     )
-#     html = html.replace(
-#         '</head>',
-#         new_style + '\n</head>'
-#     )
-#     logger.info('Took %.2fms to process with mincss' % (
-#         (t1 - t0) * 1000,
-#     ))
-#     logger.info('Took %.2fms to post-process remaining CSS' % (
-#         (t2 - t1) * 1000,
-#     ))
-#     return html
-
 
 def mincss_html(html, abs_uri):
-    print("MINCSS_HTML", abs_uri)
-    print("PING: {}".format(
-        requests.get('http://docker.for.mac.host.internal:5000').status_code
-    ))
+    # print("PING: {}".format(
+    #     requests.get(settings.MINIMALCSS_SERVER_URL + '/').status_code
+    # ))
     t0 = time.time()
-    abs_uri = abs_uri.replace('http://web:8000', 'http://localhost:8000')
     r = requests.post(
-        'http://docker.for.mac.host.internal:5000/minimize',
+        settings.MINIMALCSS_SERVER_URL + '/minimize',
         json={
             'url': abs_uri,
-            # 'preflight': True,
         },
-        timeout=10
     )
     r.raise_for_status()
 
-    # p = CachedProcessor(
-    #     preserve_remote_urls=True,
-    # )
-    # p.process_html(html, abs_uri)
-    # p.process()
     result = r.json()['result']
-    print(list(result.keys()))
     t1 = time.time()
-    # combined_css = []
-    # _total_before = 0
-    # _requests_before = 0
-    #
-    # for link in p.links:
-    #     _total_before += len(link.before)
-    #     _requests_before += 1
-    #     combined_css.append(link.after)
-    #
-    # for inline in p.inlines:
-    #     _total_before += len(inline.before)
-    #     combined_css.append(inline.after)
-    #
-    # if p.inlines:
-    #
-    #     def inline_remover(m):
-    #         bail = m.group()
-    #         if 'data-mincss="ignore"' in bail:
-    #             return bail
-    #         return ''
-    #
-    #     html = _style_regex.sub(inline_remover, html)
-    #
-    # found_link_hrefs = [x.href for x in p.links]
-    #
+
     found_link_hrefs = list(result['stylesheetContents'].keys())
 
     template = (
@@ -281,12 +128,32 @@ def mincss_html(html, abs_uri):
         '<noscript><link rel="stylesheet" href="{url}"></noscript>'
     )
 
+    def equal_uris(uri1, uri2):
+        # If any one of them is relative, compare their paths
+        if uri1.startswith('//'):
+            uri1 = 'https:' + uri1
+        if uri2.startswith('//'):
+            uri2 = 'https:' + uri2
+
+        if '://' in uri1:
+            uri1 = urlparse(uri1).path
+        if '://' in uri2:
+            uri2 = urlparse(uri2).path
+
+        return uri1 == uri2
+
     def link_remover(m):
         bail = m.group()
+        try:
+            href = re.findall(r'href="([^"]+)"', bail)[0]
+        except IndexError:
+            return bail
         for each in found_link_hrefs:
-            if each in bail:
-                # return ''
-                return template.format(url=bail)
+            # 'each' is always a full absolute URL, but the
+            # link tag might be something like "/static/foo.css"
+            # print('\tEACH {!r}'.format(each))
+            if equal_uris(each, href):
+                return template.format(url=each)
         return bail
 
     html = _link_regex.sub(link_remover, html)
@@ -306,23 +173,22 @@ def mincss_html(html, abs_uri):
 
     # t2 = time.time()
 
-    # try:
-    #     combined_css = _clean_with_csso(combined_css)
-    #     # _total_after_csso = len(combined_css)
-    #     # print(
-    #     #     "SAVED",
-    #     #     format(_total_after_min - _total_after_csso, ','),
-    #     #     "bytes with CSSO",
-    #     #     "(before {}B, now {}B)".format(
-    #     #         format(_total_after_min, ','),
-    #     #         format(_total_after_csso, ','),
-    #     #     )
-    #     # )
-    # except Exception as exception:
-    #     # raise
-    #     print('Failure calling _clean_with_csso: {}'.format(
-    #         exception
-    #     ))
+    style_tags_regex = re.compile(r'<style>(.*?)</style>', re.DOTALL)
+
+    def style_rewriter(match):
+        whole = match.group()
+        css = match.groups()[0]
+        try:
+            new_css = _clean_with_csso(css)
+            return whole.replace(css, new_css)
+        except Exception as exception:
+            raise
+            print('Failure calling _clean_with_csso: {}'.format(
+                exception
+            ))
+            return whole
+
+    html = style_tags_regex.sub(style_rewriter, html)
 
     _requests_before = len(result['stylesheetContents'])
     _total_before = sum(len(v) for v in result['stylesheetContents'].values())
@@ -330,8 +196,8 @@ def mincss_html(html, abs_uri):
     t3 = time.time()
     template = """
 /*
-Stats from using github.com/peterbe/mincss
-------------------------------------------
+Stats from using github.com/peterbe/minimalcss
+----------------------------------------------
 Requests:             %s (now: 0)
 Before:               %.fKb
 After:                %.fKb
@@ -366,7 +232,6 @@ Saving:               %.fKb
         new_style + '\n</head>'
     )
 
-    # XXX NEED loadCSS
     logger.info('Took %.2fms to process with minimalcss' % (
         (t1 - t0) * 1000,
     ))
@@ -377,11 +242,7 @@ Saving:               %.fKb
 
 
 def _clean_repeated_license_preambles(cssstring):
-    # License preambles
-    regex = re.compile(
-        r'\/\*\!.*?\*\/\s+'
-    )
-
+    regex = re.compile(r'\/\*\!.*?\*\/\s+', re.DOTALL)
     new_preamble = (
         '/*! License for minified and inlined CSS originally belongs '
         'to Semantic UI. See individual files in '

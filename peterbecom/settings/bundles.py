@@ -1,29 +1,9 @@
 PIPELINE_CSS = {
     'base': {
         'source_filenames': (
-            # 'css/reset.css',
-            # 'css/site.css',
-            # 'css/container.css',
-            # 'css/grid.css',
-            # 'css/header.css',
-            # 'css/image.css',
-            # 'css/menu.css',
-            # 'css/divider.css',
-            # 'css/list.css',
-            # 'css/segment.css',
-            # 'css/dropdown.css',
-            # 'css/icon.css',
-            # 'css/input.css',
-            # 'css/comment.css',
-            # 'css/message.css',
-            # 'css/loader.css',
-            # 'css/form.css',
-            # 'css/button.css',
             'css/semantic.css',
             'css/highlight.css',
-            # 'css/table.css',
             'css/peterbe.css',
-            # 'css/carbonads.css',
         ),
         'output_filename': 'css/base.min.css',
     },
@@ -34,14 +14,12 @@ PIPELINE_CSS = {
             'css/item.css',
             'autocompeter/autocompeter.min.css',
         ),
-        'extra_context': {
-            'no_mincss': True,
-        },
         'output_filename': 'css/base-dynamic.min.css',
     },
     'homepage:search': {
         'source_filenames': (
             'css/label.css',
+            'css/peterbe-search.css',
         ),
         'output_filename': 'css/search.min.css',
     },
@@ -69,6 +47,15 @@ PIPELINE_JS = {
             'js/google-analytics.js',
         ),
         'output_filename': 'js/google-analytics.min.js',
+        'extra_context': {
+            'async': True,
+        },
+    },
+    'cssrelpreload': {
+        'source_filenames': (
+            'js/cssrelpreload.js',
+        ),
+        'output_filename': 'js/cssrelpreload.min.js',
         'extra_context': {
             'async': True,
         },

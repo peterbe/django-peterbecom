@@ -32,7 +32,7 @@ SITE_ID = 1
 DATABASES = {
     'default': config(
         'DATABASE_URL',
-        default='postgres://postgres@db/postgres',
+        default='postgresql://peterbe@localhost/peterbecom',
         cast=dj_database_url.parse
     )
 }
@@ -350,7 +350,7 @@ ES_PODCAST_INDEX_SETTINGS = _ES_INDEX_SETTINGS
 
 ES_CONNECTIONS = {
     'default': {
-        'hosts': ['elasticsearch:9200'],
+        'hosts': ['localhost:9200'],
     },
 }
 
@@ -363,3 +363,5 @@ GUETZLI_PATH = 'guetzli'
 PNGQUANT_PATH = 'pngquant'
 
 LOGIN_URL = '/signin/'
+
+MINIMALCSS_SERVER_URL = 'http://localhost:5000'
