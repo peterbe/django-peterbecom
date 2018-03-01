@@ -90,7 +90,17 @@ services:
       - $PWD/awspa:/app
     command: start
 
-
+  minimalcss:
+    build:
+      context: .
+      dockerfile: Dockerfile.minimalcss
+    environment:
+      - NODE_ENV=development
+    ports:
+      - "5000:5000"
+    volumes:
+      - $PWD/minimalcss:/app
+    command: start
 
 
 volumes:

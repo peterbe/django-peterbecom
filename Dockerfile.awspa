@@ -3,7 +3,7 @@
 #
 
 # This should match what we have in the Node section of the main Dockerfile.
-FROM node:6
+FROM node:8
 
 ADD awspa/package.json /package.json
 RUN yarn

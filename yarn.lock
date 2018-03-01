@@ -200,10 +200,6 @@ css-tree@1.0.0-alpha.27:
     mdn-data "^1.0.0"
     source-map "^0.5.3"
 
-cssmin@0.4.3:
-  version "0.4.3"
-  resolved "https://registry.yarnpkg.com/cssmin/-/cssmin-0.4.3.tgz#c9194077e0ebdacd691d5f59015b9d819f38d015"
-
 csso-cli@1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/csso-cli/-/csso-cli-1.1.0.tgz#c787557612fae522875788bfb6e69594fe79b3c7"
