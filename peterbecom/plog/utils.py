@@ -29,6 +29,8 @@ from .escape import linkify
 def is_bot(ua='', ip=None):
     if 'bot' not in ua.lower() and 'download-all-plogs.py' not in ua:
         return False
+    if 'HeadlessChrome/' in ua:
+        return True
 
     return True
 
@@ -121,11 +123,13 @@ def _get_lexer(codesyntax):
         return lexers.PythonLexer()
     elif codesyntax == 'xml' or codesyntax == 'html':
         return lexers.HtmlLexer()
+    elif codesyntax == 'yml' or codesyntax == 'yaml':
+        return lexers.YamlLexer()
     elif codesyntax == 'css':
         return lexers.CssLexer()
     elif codesyntax == 'sql':
         return lexers.SqlLexer()
-    elif codesyntax == 'bash':
+    elif codesyntax == 'bash' or codesyntax == 'sh':
         return lexers.BashLexer()
     elif codesyntax == 'go':
         return lexers.GoLexer()
@@ -138,7 +142,7 @@ def _get_lexer(codesyntax):
 
 
 _codesyntax_regex = re.compile(
-    '```(python|cpp|javascript|xml|html|css|sql|bash|go|jsx)'
+    '```(python|cpp|javascript|xml|html|yml|yaml|css|sql|sh|bash|go|jsx)'
 )
 _markdown_pre_regex = re.compile('```([^`]+)```')
 

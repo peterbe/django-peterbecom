@@ -332,11 +332,13 @@ def search(request, original_q=None):
         'text',
         fragment_size=80,
         number_of_fragments=2,
+        type='plain',
     )
     search_query = search_query.highlight(
         'title',
         fragment_size=120,
         number_of_fragments=1,
+        type='plain',
     )
     search_query = search_query.highlight_options(
         pre_tags=['<mark>'],
@@ -383,6 +385,7 @@ def search(request, original_q=None):
         'comment',
         fragment_size=80,
         number_of_fragments=2,
+        type='plain',
     )
     search_query = search_query.highlight_options(
         pre_tags=['<mark>'],
