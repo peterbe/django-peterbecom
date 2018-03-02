@@ -337,9 +337,9 @@ redis==2.10.6 \
 hashin==0.11.5 \
     --hash=sha256:d012057f84f4dc685f72bd191f74a8dc5c10b488fc6dffda79f61be2f13dabbd \
     --hash=sha256:b7b3563aeaa644a81a9b3d03ac5688874434f1720c4a933580bf1d6aa8a5f8a1
-dj-database-url==0.4.2 \
-    --hash=sha256:a6832d8445ee9d788c5baa48aef8130bf61fdc442f7d9a548424d25cd85c9f08 \
-    --hash=sha256:e16d94c382ea0564c48038fa7fe8d9c890ef1ab1a8ec4cb48e732c124b9482fd
+dj-database-url==0.5.0 \
+    --hash=sha256:851785365761ebe4994a921b433062309eb882fedd318e1b0fcecc607ed02da9 \
+    --hash=sha256:4aeaeb1f573c74835b0686a2b46b85990571159ffc21aa57ecd4d1e1cb334163
 Unipath==1.1 \
     --hash=sha256:e6257e508d8abbfb6ddd8ec357e33589f1f48b1599127f23b017124d90b0fff7 \
     --hash=sha256:09839adcc72e8a24d4f76d63656f30b5a1f721fc40c9bcd79d8c67bdd8b47dae
