@@ -32,24 +32,23 @@ body,
   display: none;
 }
 .main.menu.fixed .page-title-repeated {
-  /* no mincss */
   display: inline;
-  /*padding-left: 10px;*/
   text-overflow: ellipsis;
 }
 .main.menu.fixed .item {
-  /* no mincss */
   padding-left: 17px;
 }
 .main.menu.fixed .header a[href] {
-  /* no mincss */
   display: none;
 }
 @media (max-width: 414px) {
   .main.menu.fixed .page-title-repeated {
-    /* no mincss */
     font-size: 1rem;
   }
+}
+
+.menu i.dropdown {
+  font-size: 80%;
 }
 
 .overlay {
