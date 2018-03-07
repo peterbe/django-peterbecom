@@ -115,7 +115,15 @@ def mincss_html(html, abs_uri):
             'url': abs_uri,
         },
     )
-    r.raise_for_status()
+    if r.status_code != 200:
+        print(
+            "WARNING! "
+            "{} status code trying to minimize {}".format(
+                r.status_code,
+                abs_uri
+            )
+        )
+        return
 
     result = r.json()['result']
     t1 = time.time()

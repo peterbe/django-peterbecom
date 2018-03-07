@@ -135,6 +135,12 @@ def _blog_post_key_prefixer(request):
     _blog_post_key_prefixer,
 )
 def blog_post(request, oid):
+    if request.path.endswith('/ping'):
+        # Sometimes this can happen when the URL parsing by Django
+        # isn't working out.
+        # E.g.
+        # http://localhost:8000/plog/dont-forget-your-sets-in-python%0A/ping
+        return blog_post_ping(request)
     # legacy fix
     if request.GET.get('comments') == 'all':
         if '/all-comments' in request.path:
@@ -147,6 +153,7 @@ def blog_post(request, oid):
 @require_http_methods(['PUT'])
 @csrf_exempt
 def blog_post_ping(request, oid):
+    print("blog_post_ping!")
     if not utils.is_bot(
         ua=request.META.get('HTTP_USER_AGENT', ''),
         ip=request.META.get('REMOTE_ADDR'),
@@ -1163,7 +1170,13 @@ def plog_hits_data(request):
 @cache_page(ONE_DAY)
 @view_function_timer('inner')
 def blog_post_awspa(request, oid):
-    blogitem = get_object_or_404(BlogItem, oid=oid)
+    try:
+        blogitem = BlogItem.objects.get(oid=oid)
+    except BlogItem.DoesNotExist:
+        try:
+            blogitem = BlogItem.objects.get(oid__iexact=oid)
+        except BlogItem.DoesNotExist:
+            raise http.Http404()
 
     seen = request.GET.getlist('seen')
 

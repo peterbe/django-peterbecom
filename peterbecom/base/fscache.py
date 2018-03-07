@@ -134,6 +134,14 @@ def cache_request(request, response):
             if request.path.startswith(s):
                 return False
 
+        not_ends = (
+            '/awspa',
+            '/ping',
+        )
+        for s in not_ends:
+            if request.path.endswith(s):
+                return False
+
         if getattr(request, '_fscache_disable', None):
             # For some reason, the request decided this page should not
             # be FS cached.
