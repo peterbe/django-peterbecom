@@ -25,25 +25,33 @@ var F = (function() {
   return {
     prepare: function(callback) {
       if (preparing) {
-        return;  // to avoid excessive calls
+        return; // to avoid excessive calls
       }
       preparing = true;
       $.getJSON('/plog/prepare.json', function(response) {
         $('input[name="csrfmiddlewaretoken"]', form).val(response.csrf_token);
         if (response.name && !$('input[name="name"]', form).val()) {
-          $('input[name="name"]', form).attr('placeholder', '').val(response.name);
+          $('input[name="name"]', form)
+            .attr('placeholder', '')
+            .val(response.name);
         } else {
           var name = localStorage.getItem('name');
           if (name) {
-            $('input[name="name"]', form).attr('placeholder', '').val(name);
+            $('input[name="name"]', form)
+              .attr('placeholder', '')
+              .val(name);
           }
         }
         if (response.email && !$('input[name="email"]', form).val()) {
-          $('input[name="email"]', form).attr('placeholder', '').val(response.email);
+          $('input[name="email"]', form)
+            .attr('placeholder', '')
+            .val(response.email);
         } else {
           var email = localStorage.getItem('email');
           if (email) {
-            $('input[name="email"]', form).attr('placeholder', '').val(email);
+            $('input[name="email"]', form)
+              .attr('placeholder', '')
+              .val(email);
           }
         }
 
@@ -63,7 +71,6 @@ var F = (function() {
       $('input[name="parent"]', form).val(parent.attr('id'));
       $('p.cancel:hidden', form).show();
       F.prepare();
-
     },
     reset: function() {
       form.css('opacity', 1);
@@ -71,7 +78,10 @@ var F = (function() {
       $('textarea', form).val('');
       $('input[name="parent"]', form).val('');
       $('#comments-outer').append(form.detach());
-      preview.detach().insertBefore(form).hide();
+      preview
+        .detach()
+        .insertBefore(form)
+        .hide();
       $('button.preview').addClass('primary');
       $('button.post').removeClass('primary');
       submitting = false;
@@ -93,13 +103,11 @@ var F = (function() {
         type: 'POST',
         dataType: 'json',
         success: function(response) {
-          preview
-            .html(response.html)
-            .fadeIn(300);
+          preview.html(response.html).fadeIn(300);
 
           callback();
         },
-        error: function (jqXHR, textStatus, errorThrown) {
+        error: function(jqXHR, textStatus, errorThrown) {
           alert('Error: ' + errorThrown);
         },
       });
@@ -119,8 +127,17 @@ var F = (function() {
         return false;
       }
       submitting = true;
+      if (!$('.dimmer', form).length) {
+        // Need to add this to the DOM before we can activate the dimmer.
+        $('<div class="ui inverted dimmer">')
+          .append(
+            $(
+              '<div class="ui text loader">Thank you for posting a comment</div>'
+            )
+          )
+          .prependTo(form);
+      }
       $('.dimmer', form).addClass('active');
-      // form.css('opacity', 0.3);
       $.ajax({
         url: form.attr('action'),
         data: data,
@@ -132,7 +149,7 @@ var F = (function() {
             parent = $('.comments', '#' + response.parent).eq(1);
             if (!parent.length) {
               // need to create this container
-              parent = $('<div class="comments">')
+              parent = $('<div class="comments">');
               parent.appendTo('#' + response.parent);
             }
           } else {
@@ -144,8 +161,8 @@ var F = (function() {
           setTimeout(function() {
             parent
               .hide()
-                .append(response.html)
-                  .fadeIn(500);
+              .append(response.html)
+              .fadeIn(500);
             $('textarea', form).val('');
             $('.dimmer', form).removeClass('active');
           }, 800);
@@ -160,7 +177,7 @@ var F = (function() {
             }
             $(this)
               .text(text)
-                .fadeIn(1000);
+              .fadeIn(1000);
           });
           // save the name and email if possible
           if (data.name) {
@@ -170,7 +187,7 @@ var F = (function() {
             localStorage.setItem('email', data.email);
           }
         },
-        error: function (jqXHR, textStatus, errorThrown) {
+        error: function(jqXHR, textStatus, errorThrown) {
           $('.dimmer', form).removeClass('active');
           alert('Error: ' + errorThrown);
           submitting = false;
@@ -181,7 +198,6 @@ var F = (function() {
   };
 })();
 
-
 $(function() {
   'use strict';
 
@@ -189,34 +205,34 @@ $(function() {
   // not blog posts. Hence this careful if statement on form.length.
   var form = $('form#comment');
   if (form.length) {
-      form.on('mouseover', function() {
-        $(this).off('mouseover');
-        F.prepare();
-      });
+    form.on('mouseover', function() {
+      $(this).off('mouseover');
+      F.prepare();
+    });
 
-      form.on('mouseover', function() {
-        $(this).off('mouseover');
-        F.prepare();
-      });
+    form.on('mouseover', function() {
+      $(this).off('mouseover');
+      F.prepare();
+    });
 
-      form.on('click', 'button.preview', function() {
-        if ($('textarea', form).val()) {
-          F.preview(function() {
-            $('button.preview', form).removeClass('primary');
-            $('button.post', form).addClass('primary');
-          });
-        }
-        return false;
-      });
+    form.on('click', 'button.preview', function() {
+      if ($('textarea', form).val()) {
+        F.preview(function() {
+          $('button.preview', form).removeClass('primary');
+          $('button.post', form).addClass('primary');
+        });
+      }
+      return false;
+    });
 
-      $('#comments-outer').on('click', 'a.reply', function() {
-        F.setupReply($('#' + $(this).attr('data-oid')));
-        return false;
-      });
+    $('#comments-outer').on('click', 'a.reply', function() {
+      F.setupReply($('#' + $(this).attr('data-oid')));
+      return false;
+    });
 
-      form.on('submit', F.submit);
+    form.on('submit', F.submit);
 
-      form.on('click', '.cancel a', F.reset);
+    form.on('click', '.cancel a', F.reset);
   }
 
   var commentsOuter = $('#comments-outer');
@@ -229,10 +245,14 @@ $(function() {
       url = url.split('?')[0];
       url += '/approve/' + $(this).data('oid');
       var button = $(this);
-      $.post(url, {csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()}, function() {
-        $('.not-approved', '#' + oid).remove();
-        button.remove();
-      });
+      $.post(
+        url,
+        { csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val() },
+        function() {
+          $('.not-approved', '#' + oid).remove();
+          button.remove();
+        }
+      );
       return false;
     });
 
@@ -240,21 +260,35 @@ $(function() {
       var oid = $(this).data('oid');
       var url = location.pathname;
       url += '/delete/' + oid;
-      $.post(url, {csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()}, function() {
-        $('#' + oid).remove();
-      });
+      $.post(
+        url,
+        { csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val() },
+        function() {
+          $('#' + oid).remove();
+        }
+      );
       return false;
     });
 
-    var loadingAllComments = false;  // for the slow-load lock
+    var loadingAllComments = false; // for the slow-load lock
     $('.comments-truncated').on('click', 'button', function() {
       if (loadingAllComments) return;
-      $('.comments-truncated .dimmer').addClass('active');
       loadingAllComments = true;
+
+      if (!$('.comments-truncated .dimmer').length) {
+        // Inject it into the DOM now
+        $('<div class="ui inverted dimmer">')
+          .append(
+            $(
+              '<div class="ui text loader">Loading all the other comments</div>'
+            )
+          )
+          .prependTo($('.comments-truncated'));
+      }
+      $('.comments-truncated .dimmer').addClass('active');
       commentsOuter.load(location.pathname + '/all-comments', function() {
         $('.comments-truncated').remove();
       });
     });
   }
-
 });

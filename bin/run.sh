@@ -25,21 +25,17 @@ wait_for() {
 # Only wait for backend services in development
 # http://stackoverflow.com/a/13864829
 # For example, bin/test.sh sets 'DEVELOPMENT' to something
-[ ! -z ${DEVELOPMENT+check} ] && wait_for db 5432 && wait_for elasticsearch 9200 && wait_for redis 6379
+# [ ! -z ${DEVELOPMENT+check} ] && wait_for db 5432 && wait_for elasticsearch 9200 && wait_for redis 6379
+# [ ! -z ${DEVELOPMENT+check} ] && wait_for db 5432 && wait_for elasticsearch 9200 && wait_for redis 6379
 
 
 case $1 in
   web)
-    ${CMD_PREFIX_PYTHON:-python} manage.py migrate --noinput
-    # ${CMD_PREFIX} gunicorn tecken.wsgi:application -b 0.0.0.0:${PORT} --timeout ${GUNICORN_TIMEOUT} --workers ${GUNICORN_WORKERS} --access-logfile -
-    echo "START UWSGI MAYBE"
-    ;;
-  web-dev)
     # echo "STARTING WEB-DEV"
     python manage.py collectstatic --noinput
     python manage.py fscache -v 2  # deletes old FS cached files
     python manage.py migrate --noinput
-    exec python manage.py runserver 0.0.0.0:${PORT}
+    exec python manage.py runserver 0.0.0.0:8000
     ;;
   worker)
     # echo "STARTING WORKER WITHOUT PURGE"

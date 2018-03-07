@@ -1,10 +1,13 @@
 import os
+import hashlib
 import datetime
 import re
 import time
 
 from django import http
 from django.conf import settings
+from django.core.cache import cache
+from django.utils.encoding import force_bytes
 
 from peterbecom.base import fscache
 from peterbecom.base.tasks import post_process_cached_html
@@ -76,19 +79,24 @@ class FSCacheMiddleware:
                     absolute_url = request.build_absolute_uri()
                     # If you're in docker, the right hostname is actually
                     # 'web', not 'localhost'.
-                    absolute_url = absolute_url.replace(
-                        '//localhost:8000',
-                        '//web:8000'
-                    )
-                    absolute_url = absolute_url.replace(
-                        '//peterbecom.local',
-                        '//web:8000'
-                    )
-                    # print("FS_PATH", fs_path, os.path.exists(fs_path))
+                    # absolute_url = absolute_url.replace(
+                    #     '//localhost:8000',
+                    #     '//web:8000'
+                    # )
+                    # absolute_url = absolute_url.replace(
+                    #     '//peterbecom.local',
+                    #     '//web:8000'
+                    # )
                     assert os.path.exists(fs_path), fs_path
-                    post_process_cached_html.delay(
-                        fs_path,
-                        absolute_url,
+                    cache_key = 'post_process_cached_html:{}:{}'.format(
+                        hashlib.md5(force_bytes(fs_path)).hexdigest(),
+                        hashlib.md5(force_bytes(absolute_url)).hexdigest(),
                     )
+                    if not cache.get(cache_key):
+                        cache.set(cache_key, True, 10)
+                        post_process_cached_html.delay(
+                            fs_path,
+                            absolute_url,
+                        )
 
         return response

@@ -17,13 +17,8 @@
     CDN, I instead just copied the current output of this here URL and
     put it into the _googlefonts.css template.
   #}
-  <!--<link
-    href="//fonts.googleapis.com/css?family=Lato:400,700,400italic&amp;subset=latin"
-    rel="stylesheet"
-    type="text/css"
-    data-mincss="ignore">-->
   <link rel="preload" href="https://fonts.gstatic.com/s/lato/v14/MDadn8DQ_3oT6kvnUq_2r_esZW2xOQ-xsNqO47m55DA.woff2" as="font" type="font/woff2" crossorigin>
-  <style type="text/css" data-mincss="ignore">
+  <style type="text/css">
   {% include "_googlefonts.css" %}
   body { font-family: Lato, "Helvetica Neue", Helvetica, Arial, sans-serif; }
   </style>
@@ -97,7 +92,7 @@
       </div>
 
       <div href="#" class="ui right floated dropdown item">
-        Menu<i class="dropdown icon"></i>
+        Menu <i class="dropdown">▼</i>
         <div class="menu">
           <a class="item" href="/">Home</a>
           <a class="item" href="{{ url('plog_index') }}">Archive</a>
@@ -143,6 +138,7 @@
 
   {% block basejs %}
   {% javascript 'base' %}
+  {% javascript 'cssrelpreload' %}
   {% endblock %}
 
   {% block extrajs %}{% endblock %}

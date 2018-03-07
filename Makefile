@@ -53,7 +53,10 @@ test: .docker-build
 	@bin/test.sh
 
 run: .docker-build
-	docker-compose up web worker
+	# docker-compose up web worker minimalcss
+	#docker-compose up web worker
+	honcho start
 
 django-shell: .docker-build
-	docker-compose run web python manage.py shell
+	#docker-compose run web python manage.py shell
+	./manage.py shell

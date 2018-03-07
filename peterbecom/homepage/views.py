@@ -332,11 +332,13 @@ def search(request, original_q=None):
         'text',
         fragment_size=80,
         number_of_fragments=2,
+        type='plain',
     )
     search_query = search_query.highlight(
         'title',
         fragment_size=120,
         number_of_fragments=1,
+        type='plain',
     )
     search_query = search_query.highlight_options(
         pre_tags=['<mark>'],
@@ -383,6 +385,7 @@ def search(request, original_q=None):
         'comment',
         fragment_size=80,
         number_of_fragments=2,
+        type='plain',
     )
     search_query = search_query.highlight_options(
         pre_tags=['<mark>'],
@@ -403,7 +406,6 @@ def search(request, original_q=None):
     blogitem_lookups = set()
     for hit in response:
         result = hit.to_dict()
-        print(result)
         texts = []
         try:
             for fragment in hit.meta.highlight.comment:
@@ -437,7 +439,6 @@ def search(request, original_q=None):
                 'url': blog_item_url,
             }
         for doc in documents:
-            # print(doc)
             _id = doc.pop('_id', None)
             if _id:
                 doc['url'] = blogitems[_id]['url']

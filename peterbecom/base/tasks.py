@@ -17,6 +17,7 @@ def post_process_cached_html(filepath, url):
                 filepath,
             )
         )
+
     with open(filepath) as f:
         html = f.read()
         optimized_html = mincss_html(html, url)

@@ -1,0 +1,15 @@
+{
+  "name": "minimalcss",
+  "version": "1.0.0",
+  "description": "",
+  "main": "search.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./node_modules/minimalcss-server/server.js"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "minimalcss-server": "0.3.0"
+  }
+}
