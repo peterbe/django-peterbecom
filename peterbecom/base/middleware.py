@@ -94,7 +94,6 @@ class FSCacheMiddleware:
                     )
                     if not cache.get(cache_key):
                         cache.set(cache_key, True, 10)
-                        print("POST_PROCESS", absolute_url)
                         post_process_cached_html.delay(
                             fs_path,
                             absolute_url,
