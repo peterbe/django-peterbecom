@@ -21,6 +21,12 @@ def post_process_cached_html(filepath, url):
     with open(filepath) as f:
         html = f.read()
         optimized_html = mincss_html(html, url)
+    if optimized_html is None:
+        print("WARNING! mincss_html returned None for {} ({})".format(
+            filepath,
+            url,
+        ))
+        return
     # if os.path.isfile(filepath + '.original'):
     #     warnings.warn('{} was already optimized'.format(filepath))
     shutil.move(filepath, filepath + '.original')
