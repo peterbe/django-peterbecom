@@ -223,7 +223,13 @@ class App extends React.Component {
   onSelectSuggestion = (event, suggestion) => {
     event.preventDefault();
     if (suggestion._url) {
-      document.location.href = suggestion._url;
+      this.setState({
+        // XXX perhaps there should be something that updates
+        // the state to say we're redirecting.
+        autocompleteSuggestions: null,
+        autocompleteHighlight: -1,
+      });
+      document.location.href = absolutifyUrl(suggestion._url);
       return;
     }
     let newText = suggestion.text;
