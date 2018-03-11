@@ -1,6 +1,6 @@
 import re
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.template import defaultfilters
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django_jinja import library

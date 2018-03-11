@@ -1,7 +1,10 @@
 from django.conf.urls import url
 
-
 from . import views
+
+
+app_name = 'ajaxornot'
+
 urlpatterns = [
     url('^$', views.index, name='index'),
     url('^view1$', views.view1, name='view1'),

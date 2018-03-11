@@ -1,7 +1,10 @@
 from django.conf.urls import url
 
-
 from . import views
+
+
+app_name = 'nodomains'
+
 urlpatterns = [
     url('^$', views.index, name='index'),
     url('^domains$', views.domains, name='domains'),

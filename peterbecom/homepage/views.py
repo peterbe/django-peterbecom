@@ -12,7 +12,7 @@ from django.core.cache import cache
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST
 from django.db.models import Count
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.sites.requests import RequestSite
 from django.views.decorators.cache import cache_control
 from django.contrib.auth import logout

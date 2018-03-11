@@ -280,7 +280,7 @@ def delete_from_es(sender, instance, **kwargs):
 
 
 class PodcastError(models.Model):
-    podcast = models.ForeignKey(Podcast)
+    podcast = models.ForeignKey(Podcast, on_delete=models.CASCADE)
     error = JSONField()
     created = models.DateTimeField(auto_now_add=True)
 
@@ -300,7 +300,7 @@ class PodcastError(models.Model):
 
 
 class Episode(models.Model):
-    podcast = models.ForeignKey(Podcast)
+    podcast = models.ForeignKey(Podcast, on_delete=models.CASCADE)
     duration = models.PositiveIntegerField()
     published = models.DateTimeField()
     guid = models.CharField(max_length=400)

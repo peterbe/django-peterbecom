@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models.signals import post_save, pre_save, pre_delete
+from django.db.models.signals import post_save
 from django.core.cache import cache
 from django.dispatch import receiver
 
@@ -16,7 +16,7 @@ class Result(models.Model):
 
 
 class ResultDomain(models.Model):
-    result = models.ForeignKey(Result)
+    result = models.ForeignKey(Result, on_delete=models.CASCADE)
     domain = models.CharField(max_length=100)
     count = models.PositiveIntegerField(null=True, default=1)
 
