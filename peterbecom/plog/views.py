@@ -10,7 +10,7 @@ from urllib.parse import urlencode
 from fancy_cache import cache_page
 
 from django.contrib.sites.models import Site
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.template import loader
 from django import http
 from django.core.cache import cache
@@ -73,7 +73,7 @@ def _blog_post_key_prefixer(request):
     # print("PREFIXED?", getattr(request, '_prefixed', None))
     if request.method != 'GET':
         return None
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         return None
     prefix = utils.make_prefix(request.GET)
 
@@ -153,7 +153,6 @@ def blog_post(request, oid):
 @require_http_methods(['PUT'])
 @csrf_exempt
 def blog_post_ping(request, oid):
-    print("blog_post_ping!")
     if not utils.is_bot(
         ua=request.META.get('HTTP_USER_AGENT', ''),
         ip=request.META.get('REMOTE_ADDR'),
@@ -449,7 +448,7 @@ def submit_json(request, oid):
             user_agent=request.META.get('HTTP_USER_AGENT')
         )
 
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             _approve_comment(blog_comment)
             assert blog_comment.approved
         else:
@@ -652,7 +651,7 @@ def delete_comment(request, oid, comment_oid):
 def _plog_index_key_prefixer(request):
     if request.method != 'GET':
         return None
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         return None
     prefix = utils.make_prefix(request.GET)
     cache_key = 'latest_post_modify_date'
@@ -708,7 +707,7 @@ def plog_index(request):
 def _new_comment_key_prefixer(request):
     if request.method != 'GET':
         return None
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         return None
     prefix = utils.make_prefix(request.GET)
     cache_key = 'latest_comment_add_date'
@@ -1056,7 +1055,7 @@ def calendar_data(request):
         return http.HttpResponseBadRequest(form.errors)
     start = form.cleaned_data['start']
     end = form.cleaned_data['end']
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         end = min(end, timezone.now())
         if end < start:
             return []

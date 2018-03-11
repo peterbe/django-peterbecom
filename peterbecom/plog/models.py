@@ -11,10 +11,8 @@ from django.db import models
 from django.core.cache import cache
 from django.db.models.signals import post_save, pre_save, pre_delete
 from django.dispatch import receiver
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.postgres.fields import ArrayField
-# from django.core.files import File
-# from django.core.files.temp import NamedTemporaryFile
 
 from sorl.thumbnail import ImageField
 
@@ -99,9 +97,8 @@ class BlogItem(models.Model):
     def __repr__(self):
         return '<%s: %r>' % (self.__class__.__name__, self.oid)
 
-    @models.permalink
     def get_absolute_url(self):
-        return ('blog_post', [self.oid])
+        return reverse('blog_post', args=(self.oid,))
 
     @property
     def rendered(self):
@@ -222,13 +219,17 @@ class BlogItem(models.Model):
 
 
 class BlogItemTotalHits(models.Model):
-    blogitem = models.OneToOneField(BlogItem, db_index=True)
+    blogitem = models.OneToOneField(
+        BlogItem,
+        db_index=True,
+        on_delete=models.CASCADE
+    )
     total_hits = models.IntegerField(default=0)
     modify_date = models.DateTimeField(auto_now=True)
 
 
 class BlogItemHit(models.Model):
-    blogitem = models.ForeignKey(BlogItem)
+    blogitem = models.ForeignKey(BlogItem, on_delete=models.CASCADE)
     add_date = models.DateTimeField(auto_now_add=True)
     http_user_agent = models.TextField(null=True)
     http_accept_language = models.TextField(null=True)
@@ -248,8 +249,12 @@ class BlogComment(models.Model):
     """
 
     oid = models.CharField(max_length=100, db_index=True, unique=True)
-    blogitem = models.ForeignKey(BlogItem, null=True)
-    parent = models.ForeignKey('BlogComment', null=True)
+    blogitem = models.ForeignKey(BlogItem, null=True, on_delete=models.CASCADE)
+    parent = models.ForeignKey(
+        'BlogComment',
+        null=True,
+        on_delete=models.CASCADE
+    )
     approved = models.BooleanField(default=False)
     comment = models.TextField()
     comment_rendered = models.TextField(blank=True, null=True)
@@ -320,7 +325,7 @@ def _uploader_dir(instance, filename):
 
 
 class BlogFile(models.Model):
-    blogitem = models.ForeignKey(BlogItem)
+    blogitem = models.ForeignKey(BlogItem, on_delete=models.CASCADE)
     file = models.FileField(upload_to=_uploader_dir)
     title = models.CharField(max_length=300, null=True, blank=True)
     add_date = models.DateTimeField(default=utils.utc_now)
@@ -343,8 +348,10 @@ class OneTimeAuthKey(models.Model):
         max_length=16,
         default=functools.partial(random_string, 16)
     )
-    blogitem = models.ForeignKey(BlogItem)
-    blogcomment = models.ForeignKey(BlogComment, null=True)
+    blogitem = models.ForeignKey(BlogItem, on_delete=models.CASCADE)
+    blogcomment = models.ForeignKey(
+        BlogComment, null=True, on_delete=models.CASCADE
+    )
     used = models.DateTimeField(null=True)
     add_date = models.DateTimeField(auto_now_add=True)
 

@@ -12,7 +12,7 @@ def hash_email(email):
 class AuthBackend(object):
     """inspired by django_auth0.auth_backend.Auth0Backend"""
 
-    def authenticate(self, **kwargs):
+    def authenticate(self, request, **kwargs):
         try:
             email = kwargs.pop('email', None)
             username = kwargs.pop('nickname', None)

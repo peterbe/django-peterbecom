@@ -4,7 +4,7 @@
 
 {% block content %}
 
-{% if request.user.is_authenticated() %}
+{% if request.user.is_authenticated %}
 <h3>
   You are currently signed in as
   {% if request.user.username %}
@@ -40,29 +40,32 @@
 function signin(passwordless, method) {
   var lock;
   if (passwordless) {
-    lock = new Auth0LockPasswordless('{{ AUTH0_CLIENT_ID }}', '{{ AUTH0_DOMAIN }}');
+    lock = new Auth0LockPasswordless(
+      '{{ AUTH0_CLIENT_ID }}',
+      '{{ AUTH0_DOMAIN }}'
+    );
     if (method === 'email') {
       // lock.emailcode(function(error, profile, id_token, access_token, state, refresh_token) {
       //   if (!error) {
       //     alert("User has logged in");
       //   }
       // });
-      lock.emailcode({callbackURL: '{{ AUTH0_CALLBACK_URL }}'});
+      lock.emailcode({ callbackURL: '{{ AUTH0_CALLBACK_URL }}' });
     } else if (method === 'magiclink') {
-      lock.magiclink({closable: false});
+      lock.magiclink({ closable: false });
     } else if (method === 'sms') {
-      lock.sms({callbackURL: '{{ AUTH0_CALLBACK_URL }}'});
+      lock.sms({ callbackURL: '{{ AUTH0_CALLBACK_URL }}' });
     } else {
       throw new Error(method);
     }
   } else {
     lock = new Auth0Lock('{{ AUTH0_CLIENT_ID }}', '{{ AUTH0_DOMAIN }}');
     lock.show({
-        callbackURL: '{{ AUTH0_CALLBACK_URL }}',
-        responseType: 'code',
-        authParams: {
-            scope: 'openid profile'
-        }
+      callbackURL: '{{ AUTH0_CALLBACK_URL }}',
+      responseType: 'code',
+      authParams: {
+        scope: 'openid profile',
+      },
     });
   }
 }

@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('error', jsonfield.fields.JSONField()),
                 ('created', models.DateTimeField(auto_now_add=True)),
-                ('podcast', models.ForeignKey(to='podcasttime.Podcast')),
+                ('podcast', models.ForeignKey(to='podcasttime.Podcast', on_delete=models.CASCADE)),
             ],
             options={
             },

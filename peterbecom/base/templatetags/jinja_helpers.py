@@ -4,7 +4,7 @@ import json
 import jinja2
 
 from django.db.utils import IntegrityError
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from django_jinja import library
 from sorl.thumbnail import get_thumbnail

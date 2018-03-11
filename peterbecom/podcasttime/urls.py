@@ -3,6 +3,8 @@ from django.conf.urls import url
 from . import views
 
 
+app_name = 'podcasttime'
+
 urlpatterns = [
     url('^$', views.index, name='index'),
     url('^podcasts/$', views.legacy_podcasts, name='podcasts'),

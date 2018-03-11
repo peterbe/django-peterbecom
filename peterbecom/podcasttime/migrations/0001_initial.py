@@ -44,7 +44,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='episode',
             name='podcast',
-            field=models.ForeignKey(to='podcasttime.Podcast'),
+            field=models.ForeignKey(to='podcasttime.Podcast', on_delete=models.CASCADE),
             preserve_default=True,
         ),
     ]

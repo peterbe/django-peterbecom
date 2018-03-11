@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('domain', models.CharField(max_length=100)),
                 ('count', models.PositiveIntegerField(default=1, null=True)),
-                ('result', models.ForeignKey(to='nodomains.Result')),
+                ('result', models.ForeignKey(to='nodomains.Result', on_delete=models.CASCADE)),
             ],
             options={
             },

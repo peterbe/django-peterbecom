@@ -99,19 +99,19 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='blogfile',
             name='blogitem',
-            field=models.ForeignKey(to='plog.BlogItem'),
+            field=models.ForeignKey(to='plog.BlogItem', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='blogcomment',
             name='blogitem',
-            field=models.ForeignKey(to='plog.BlogItem', null=True),
+            field=models.ForeignKey(to='plog.BlogItem', null=True, on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='blogcomment',
             name='parent',
-            field=models.ForeignKey(to='plog.BlogComment', null=True),
+            field=models.ForeignKey(to='plog.BlogComment', null=True, on_delete=models.CASCADE),
             preserve_default=True,
         ),
     ]
