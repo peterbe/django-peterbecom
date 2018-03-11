@@ -7,6 +7,7 @@ import hashlib
 import re
 from urllib.parse import urlencode
 
+import bleach
 import zope.structuredtext
 from pygments import highlight
 from pygments import lexers
@@ -18,12 +19,6 @@ from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from .gfm import gfm
-
-# XXX this escape.py is copied from
-# https://github.com/tornadoweb/tornado/blob/master/tornado/escape.py
-# and it works but it's an ugly copy and perhaps better done
-# with using bleach.
-from .escape import linkify
 
 
 def is_bot(ua='', ip=None):
@@ -78,11 +73,17 @@ whitespace_start_regex = re.compile(r'^\n*(\s+)', re.M)
 
 
 def render_comment_text(text):
-    html = linkify(text, extra_params=' rel="nofollow"')
+    text = text.replace(
+        '<', '&lt;'
+    ).replace(
+        '>', '&gt;'
+    )
+    # Note, `bleach.linkify` automatically sets rel="nofollow"
+    html = bleach.linkify(text)
 
     # So you can write comments with code with left indentation whitespace
     def subber(m):
-        return m.group().replace(' ', u'&nbsp;')
+        return m.group().replace(' ', '&nbsp;')
     html = whitespace_start_regex.sub(subber, html)
 
     html = html.replace('\n', '<br>')
