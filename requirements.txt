@@ -194,8 +194,8 @@ django-auth0==0.0.3 \
     --hash=sha256:029e1ea2d3a1696ec34aecb8d730af0a7960f734a6382768119452e1f783c50b
 ujson==1.35 \
     --hash=sha256:f66073e5506e91d204ab0c614a148d5aa938bdbf104751be66f8ad7a222f5f86
-cloudinary==1.10.0 \
-    --hash=sha256:fd878eb8505857bcda5434eb6cf3254f50d019361e2dac5640e8d16dd90b0e3f
+cloudinary==1.11.0 \
+    --hash=sha256:dc638a5c7431b766bde55fc6d5c2e6cae8e9fb69f7e5555b4ed01bba1aada1bb
 elasticsearch==6.1.1 \
     --hash=sha256:307055861d0290b830bd1ec4b82d41ce0f19f6a4899635956bd16bc61e3e90b1 \
     --hash=sha256:8d91a3fce12123a187b673f18c23bcffa6e7b49ba057555d59eeeded0ba15dce
