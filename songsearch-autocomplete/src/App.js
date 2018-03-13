@@ -56,11 +56,11 @@ class App extends React.Component {
     };
 
     this.fetchAutocompleteSuggestionsDebounced = debounce(
-      400,
+      500,
       this.fetchAutocompleteSuggestions
     );
     this.fetchAutocompleteSuggestionsThrottled = throttle(
-      500,
+      700,
       this.fetchAutocompleteSuggestions
     );
 
@@ -112,13 +112,16 @@ class App extends React.Component {
   };
 
   onChangeSearch = event => {
-    const q = event.target.value.trim();
-    this.setState({ q: event.target.value }, () => {
+    const qUntrimmed = event.target.value;
+    const q = qUntrimmed.trim();
+    this.setState({ q: qUntrimmed }, () => {
       const length = q.length;
-      if (length > 10 || (/\s/.test(q) && length > 5)) {
-        this.fetchAutocompleteSuggestionsDebounced(q, true);
-      } else if (length) {
+      if (length < 6 || qUntrimmed.endsWith(' ')) {
+        // The impatient one.
         this.fetchAutocompleteSuggestionsThrottled(q);
+      } else if (length) {
+        // The patient one.
+        this.fetchAutocompleteSuggestionsDebounced(q);
       } else {
         this.setState({
           autocompleteSuggestions: null,
@@ -130,11 +133,8 @@ class App extends React.Component {
     });
   };
 
-  fetchAutocompleteSuggestions = (q, throttled = false) => {
+  fetchAutocompleteSuggestions = q => {
     let url = `${SERVER}/api/search/autocomplete?q=${q}`;
-    if (throttled) {
-      url += '&throttled';
-    }
     const cached = this._fetchAutocompleteSuggestionsCache[q];
     if (cached) {
       return Promise.resolve(cached).then(results => {
