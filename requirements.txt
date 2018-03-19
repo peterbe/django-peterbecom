@@ -328,9 +328,9 @@ zope.structuredtext==4.2.0 \
 redis==2.10.6 \
     --hash=sha256:8a1900a9f2a0a44ecf6e8b5eb3e967a9909dfed219ad66df094f27f7d6f330fb \
     --hash=sha256:a22ca993cea2962dbb588f9f30d0015ac4afcc45bee27d3978c0dbe9e97c6c0f
-hashin==0.11.5 \
-    --hash=sha256:d012057f84f4dc685f72bd191f74a8dc5c10b488fc6dffda79f61be2f13dabbd \
-    --hash=sha256:b7b3563aeaa644a81a9b3d03ac5688874434f1720c4a933580bf1d6aa8a5f8a1
+hashin==0.12.0 \
+    --hash=sha256:016aa9adfdf3a6e18e52a13fa48f577bf5f6d6ddb4f41fc163dad2b818d62677 \
+    --hash=sha256:5857e4b4b129b931c544308f9f40752f10d25d54034e42bebb664ac7ffa763d2
 dj-database-url==0.5.0 \
     --hash=sha256:851785365761ebe4994a921b433062309eb882fedd318e1b0fcecc607ed02da9 \
     --hash=sha256:4aeaeb1f573c74835b0686a2b46b85990571159ffc21aa57ecd4d1e1cb334163
