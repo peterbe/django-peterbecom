@@ -194,6 +194,7 @@ INSTALLED_APPS = (
     "peterbecom.podcasttime",
     "peterbecom.awspa",
     "peterbecom.minimalcss",
+    'peterbecom.plogadmin',
     "peterbecom.bayes",
     "fancy_cache",
     "pipeline",
@@ -260,6 +261,11 @@ PIPELINE = {
     # run collectstatic for you on each and every request and
     # pipeline jinja tag.
     "PIPELINE_COLLECTOR_ENABLED": False,
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',  # noqa
+    'PAGE_SIZE': 500,
 }
 
 # REDIS_URL = 'redis://redis:6379/0'

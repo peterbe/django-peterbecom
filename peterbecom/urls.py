@@ -6,10 +6,6 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 urlpatterns = staticfiles_urlpatterns()
 
 urlpatterns += [
-    # url(
-    #     r'^admin/',
-    #     include(admin.site.urls)
-    # ),
     url(r"^nodomains$", lambda x: http.HttpResponseRedirect("/nodomains/")),
     url(r"^nodomains/", include("peterbecom.nodomains.urls", namespace="nodomains")),
     url(r"^ajaxornot/", include("peterbecom.ajaxornot.urls", namespace="ajaxornot")),
@@ -24,6 +20,10 @@ urlpatterns += [
     ),
     url(r"^awspa/", include("peterbecom.awspa.urls", namespace="awspa")),
     url(r"^auth/", include("django_auth0.urls")),
+    url(
+        r'^api/',
+        include('peterbecom.api.urls')
+    ),
     url(r"^plog/", include("peterbecom.plog.urls")),
     url(r"^plog$", lambda x: http.HttpResponseRedirect("/plog/")),
     url(r"^minimalcss/", include("peterbecom.minimalcss.urls")),

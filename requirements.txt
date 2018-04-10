@@ -381,3 +381,6 @@ webencodings==0.5.1 \
     --hash=sha256:b36a1c245f2d304965eb4e0a82848379241dc04b865afcc4aab16748587e1923
 rollbar==0.14.1 \
     --hash=sha256:a629babe937869c6ca0386edca96b3e434e6f40cbc169aca0578ca72fb694734
+djangorestframework==3.8.2 \
+    --hash=sha256:c375e4f95a3a64fccac412e36fb42ba36881e52313ec021ef410b40f67cddca4 \
+    --hash=sha256:b6714c3e4b0f8d524f193c91ecf5f5450092c2145439ac2769711f7eba89a9d9
