@@ -53,6 +53,7 @@ class App extends React.Component {
       autocompleteSuggestions: null,
       autocompleteHighlight: -1,
       showAutocompleteSuggestions: true,
+      redirectingSearch: false,
     };
 
     this.fetchAutocompleteSuggestionsDebounced = debounce(
@@ -60,7 +61,7 @@ class App extends React.Component {
       this.fetchAutocompleteSuggestions
     );
     this.fetchAutocompleteSuggestionsThrottled = throttle(
-      700,
+      1000,
       this.fetchAutocompleteSuggestions
     );
 
@@ -82,19 +83,23 @@ class App extends React.Component {
   };
 
   _submit = (q, submitevent = 'enter') => {
-    q = q.trim();
-    if (!q) {
+    if (!q.trim()) {
       return;
     }
-    let gotoURL = `${SERVER}/q/${q}?autocomplete=${submitevent}`;
-    document.location.href = gotoURL;
-    if (this.state.autocompleteSuggestions) {
-      this.setState({
+    let gotoURL = `${SERVER}/q/${encodeURIComponent(
+      q
+    )}?autocomplete=${submitevent}`;
+    this.setState(
+      {
+        redirectingSearch: true,
         autocompleteSuggestions: null,
         autocompleteHighlight: -1,
         showAutocompleteSuggestions: true,
-      });
-    }
+      },
+      () => {
+        document.location.href = gotoURL;
+      }
+    );
   };
 
   onFocusSearch = event => {
@@ -112,11 +117,10 @@ class App extends React.Component {
   };
 
   onChangeSearch = event => {
-    const qUntrimmed = event.target.value;
-    const q = qUntrimmed.trim();
-    this.setState({ q: qUntrimmed }, () => {
+    const q = event.target.value;
+    this.setState({ q }, () => {
       const length = q.length;
-      if (length < 6 || qUntrimmed.endsWith(' ')) {
+      if (length < 6 || q.endsWith(' ')) {
         // The impatient one.
         this.fetchAutocompleteSuggestionsThrottled(q);
       } else if (length) {
@@ -134,7 +138,7 @@ class App extends React.Component {
   };
 
   fetchAutocompleteSuggestions = q => {
-    let url = `${SERVER}/api/search/autocomplete?q=${q}`;
+    let url = `${SERVER}/api/search/autocomplete?q=${encodeURIComponent(q)}`;
     const cached = this._fetchAutocompleteSuggestionsCache[q];
     if (cached) {
       return Promise.resolve(cached).then(results => {
@@ -198,8 +202,7 @@ class App extends React.Component {
           highlight--;
           if (suggestions[highlight]._url) {
             this.setState({
-              // XXX perhaps there should be something that updates
-              // the state to say we're redirecting.
+              redirectingSearch: true,
               autocompleteSuggestions: null,
               autocompleteHighlight: -1,
             });
@@ -223,13 +226,16 @@ class App extends React.Component {
   onSelectSuggestion = (event, suggestion) => {
     event.preventDefault();
     if (suggestion._url) {
-      this.setState({
-        // XXX perhaps there should be something that updates
-        // the state to say we're redirecting.
-        autocompleteSuggestions: null,
-        autocompleteHighlight: -1,
-      });
-      document.location.href = absolutifyUrl(suggestion._url);
+      this.setState(
+        {
+          redirectingSearch: true,
+          autocompleteSuggestions: null,
+          autocompleteHighlight: -1,
+        },
+        () => {
+          document.location.href = absolutifyUrl(suggestion._url);
+        }
+      );
       return;
     }
     let newText = suggestion.text;
@@ -288,6 +294,15 @@ class App extends React.Component {
             />
           ) : null}
         </div>
+        {this.state.redirectingSearch ? (
+          <p>
+            Sending search to{' '}
+            <a href={`${SERVER}/q/${encodeURIComponent(this.state.q)}`}>
+              SongSearch
+            </a>{' '}
+            now...
+          </p>
+        ) : null}
       </form>
     );
   }
