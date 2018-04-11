@@ -77,6 +77,10 @@ class App extends React.Component {
     }
   }
 
+  componentWillUnmount() {
+    this.dismounted = true;
+  }
+
   submitSearch = event => {
     event.preventDefault();
     this._submit(this.state.q);
@@ -97,6 +101,11 @@ class App extends React.Component {
         showAutocompleteSuggestions: true,
       },
       () => {
+        setTimeout(() => {
+          if (!this.dismounted) {
+            this.setState({ redirectingSearch: false });
+          }
+        }, 3000);
         document.location.href = gotoURL;
       }
     );
@@ -104,7 +113,10 @@ class App extends React.Component {
 
   onFocusSearch = event => {
     if (!this.state.showAutocompleteSuggestions) {
-      this.setState({ showAutocompleteSuggestions: true });
+      this.setState({
+        showAutocompleteSuggestions: true,
+        redirectingSearch: false,
+      });
     }
   };
 
@@ -132,6 +144,7 @@ class App extends React.Component {
           autocompleteSearchSuggestions: null,
           autocompleteHighlight: -1,
           showAutocompleteSuggestions: true,
+          redirectingSearch: false,
         });
       }
     });
@@ -201,12 +214,24 @@ class App extends React.Component {
           }
           highlight--;
           if (suggestions[highlight]._url) {
-            this.setState({
-              redirectingSearch: true,
-              autocompleteSuggestions: null,
-              autocompleteHighlight: -1,
-            });
-            document.location.href = absolutifyUrl(suggestions[highlight]._url);
+            this.setState(
+              {
+                redirectingSearch: true,
+                autocompleteSuggestions: null,
+                autocompleteHighlight: -1,
+              },
+              () => {
+                setTimeout(() => {
+                  if (!this.dismounted) {
+                    this.setState({ redirectingSearch: false });
+                  }
+                }, 3000);
+                document.location.href = absolutifyUrl(
+                  suggestions[highlight]._url
+                );
+              }
+            );
+
             return;
           } else {
             this.setState(
