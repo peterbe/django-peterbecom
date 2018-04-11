@@ -152,7 +152,7 @@ class App extends React.Component {
 
   fetchAutocompleteSuggestions = q => {
     let url = `${SERVER}/api/search/autocomplete?q=${encodeURIComponent(q)}`;
-    const cached = this._fetchAutocompleteSuggestionsCache[q];
+    const cached = this._fetchAutocompleteSuggestionsCache[q.trim()];
     if (cached) {
       return Promise.resolve(cached).then(results => {
         this.setState({
@@ -162,12 +162,20 @@ class App extends React.Component {
         });
       });
     }
+    if (this.waitingFor) {
+      // Perhaps we sent a fetch request for 'my search' already,
+      // which we're still waiting for, and now the search it 'my search '.
+      // If this the case, bail.
+      if (this.waitingFor.trim() === q.trim()) {
+        return;
+      }
+    }
     this.waitingFor = q;
     fetch(url).then(r => {
       if (r.status === 200) {
         if (q.startsWith(this.waitingFor)) {
           r.json().then(results => {
-            this._fetchAutocompleteSuggestionsCache[q] = results;
+            this._fetchAutocompleteSuggestionsCache[q.trim()] = results;
             this.setState({
               autocompleteSuggestions: results.matches,
               autocompleteSearchSuggestions: results.search_suggestions,
