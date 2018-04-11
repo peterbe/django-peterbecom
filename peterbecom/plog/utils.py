@@ -122,6 +122,8 @@ def _get_lexer(codesyntax):
         return lexers.JavascriptLexer()
     elif codesyntax == 'python':
         return lexers.PythonLexer()
+    elif codesyntax == 'json':
+        return lexers.JsonLexer()
     elif codesyntax == 'xml' or codesyntax == 'html':
         return lexers.HtmlLexer()
     elif codesyntax == 'yml' or codesyntax == 'yaml':
@@ -143,7 +145,7 @@ def _get_lexer(codesyntax):
 
 
 _codesyntax_regex = re.compile(
-    '```(python|cpp|javascript|xml|html|yml|yaml|css|sql|sh|bash|go|jsx)'
+    '```(python|cpp|javascript|json|xml|html|yml|yaml|css|sql|sh|bash|go|jsx)'
 )
 _markdown_pre_regex = re.compile('```([^`]+)```')
 
