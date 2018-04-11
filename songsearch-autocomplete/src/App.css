@@ -84,3 +84,10 @@ mark {
 .autocomplete li.search-suggestion {
   padding: 12px;
 }
+.maxlength {
+  text-align: right;
+  color: #737373;
+}
+.maxlength.danger {
+  color: #a94442;
+}

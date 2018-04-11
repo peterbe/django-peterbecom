@@ -54,6 +54,7 @@ class App extends React.Component {
       autocompleteHighlight: -1,
       showAutocompleteSuggestions: true,
       redirectingSearch: false,
+      searchMaxLength: null,
     };
 
     this.fetchAutocompleteSuggestionsDebounced = debounce(
@@ -131,13 +132,44 @@ class App extends React.Component {
   onChangeSearch = event => {
     const q = event.target.value;
     this.setState({ q }, () => {
+      const q = this.state.q;
       const length = q.length;
-      if (length < 6 || q.endsWith(' ')) {
-        // The impatient one.
-        this.fetchAutocompleteSuggestionsThrottled(q);
-      } else if (length) {
-        // The patient one.
-        this.fetchAutocompleteSuggestionsDebounced(q);
+
+      // searchMaxLength: [length, this.refs.q.maxLength],
+      if (length > this.refs.q.maxLength - 10) {
+        this.setState({
+          searchMaxLength: [length, this.refs.q.maxLength],
+          showAutocompleteSuggestions: false,
+        });
+      } else if (this.state.searchMaxLength) {
+        this.setState({
+          searchMaxLength: null,
+          showAutocompleteSuggestions: true,
+        });
+      }
+
+      if (q.trim()) {
+        if (this.waitingFor) {
+          if (q.trim() === this.waitingFor.trim()) {
+            // Don't bother, only whitespace has changed.
+            return;
+          }
+        }
+        if (length < 6 || q.endsWith(' ')) {
+          // The impatient one.
+          this.fetchAutocompleteSuggestionsThrottled(q);
+        } else if (length) {
+          // The patient one.
+          this.fetchAutocompleteSuggestionsDebounced(q);
+        } else {
+          this.setState({
+            autocompleteSuggestions: null,
+            autocompleteSearchSuggestions: null,
+            autocompleteHighlight: -1,
+            showAutocompleteSuggestions: true,
+            redirectingSearch: false,
+          });
+        }
       } else {
         this.setState({
           autocompleteSuggestions: null,
@@ -161,14 +193,6 @@ class App extends React.Component {
           autocompleteHighlight: -1,
         });
       });
-    }
-    if (this.waitingFor) {
-      // Perhaps we sent a fetch request for 'my search' already,
-      // which we're still waiting for, and now the search it 'my search '.
-      // If this the case, bail.
-      if (this.waitingFor.trim() === q.trim()) {
-        return;
-      }
     }
     this.waitingFor = q;
     fetch(url).then(r => {
@@ -306,6 +330,8 @@ class App extends React.Component {
           <input
             type="search"
             name="term"
+            ref="q"
+            maxLength={150}
             value={this.state.q}
             onFocus={this.onFocusSearch}
             onBlur={this.onBlurSearch}
@@ -327,6 +353,12 @@ class App extends React.Component {
             />
           ) : null}
         </div>
+        {this.state.searchMaxLength ? (
+          <ShowMaxlengthWarning
+            length={this.state.searchMaxLength[0]}
+            maxLength={this.state.searchMaxLength[1]}
+          />
+        ) : null}
         {this.state.redirectingSearch ? (
           <p>
             Sending search to{' '}
@@ -342,6 +374,18 @@ class App extends React.Component {
 }
 
 export default App;
+
+const ShowMaxlengthWarning = ({ length, maxLength }) => {
+  let className = 'help-block maxlength';
+  if (length === maxLength) {
+    className += ' danger';
+  }
+  return (
+    <p className={className}>
+      {length} of max {maxLength} characters!
+    </p>
+  );
+};
 
 class ShowAutocompleteSuggestions extends React.PureComponent {
   componentDidMount() {
