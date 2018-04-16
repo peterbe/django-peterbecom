@@ -58,19 +58,6 @@ def _upload_to_blogitem(instance, filename):
 
 
 class BlogItem(models.Model):
-    """
-    Indexes executed for this:
-
-        CREATE INDEX plog_blogitem_text_eng_idx ON plog_blogitem
-        USING gin(to_tsvector('english', text));
-
-        CREATE INDEX plog_blogitem_title_eng_idx ON plog_blogitem
-        USING gin(to_tsvector('english', title));
-
-        REINDEX TABLE plog_blogitem;
-
-
-    """
     oid = models.CharField(max_length=100, db_index=True, unique=True)
     title = models.CharField(max_length=200)
     alias = models.CharField(max_length=200, null=True)
