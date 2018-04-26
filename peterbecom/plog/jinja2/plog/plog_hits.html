@@ -16,13 +16,25 @@ td a.category {
 {% block content %}
 
 
+<p>
+  <b>Toggle: </b>
+  {% if today %}
+  <a href="?today=false">All Days</a> •
+  Today
+  {% else %}
+  All Days •
+  <a href="?today=true">Today</a>
+  {% endif %}
+
+</p>
+
 <table class="ui celled table selectable">
   <thead>
     <tr>
       <th style="text-align:left">Title</th>
-      <th>Score</th>
+      {% if not today %}<th>Score</th>{% endif %}
       <th>Hits</th>
-      <th>Age</th>
+      <th>Age (days)</th>
     </tr>
   </thead>
   <tbody>
@@ -39,7 +51,7 @@ td a.category {
           </a>
         {% endfor %}
       </td>
-      <td>{{ hit.score | round }}</td>
+      {% if not today %}<td>{{ hit.score | round }}</td>{% endif %}
       <td>{{ thousands(hit.hits) }}</td>
       <td>{{ hit.age }}</td>
     </tr>

@@ -1077,6 +1077,9 @@ def calendar_data(request):
 def plog_hits(request):
     context = {}
     limit = int(request.GET.get('limit', 50))
+    today = request.GET.get('today', False)
+    if today == 'false':
+        today = False
     _category_names = dict(
         (x['id'], x['name'])
         for x in Category.objects.all().values('id', 'name')
@@ -1091,23 +1094,44 @@ def plog_hits(request):
             _category_names[each['category_id']]
         )
     context['categories'] = categories
-    query = BlogItem.objects.raw("""
-        WITH counts AS (
+    if today:
+        query = BlogItem.objects.raw("""
+            WITH counts AS (
+                SELECT
+                    blogitem_id, count(blogitem_id) AS count
+                    FROM plog_blogitemhit
+                    WHERE add_date > NOW() - INTERVAL '1 day'
+                    GROUP BY blogitem_id
+
+            )
             SELECT
-                blogitem_id, count(blogitem_id) AS count
-                FROM plog_blogitemhit
-                GROUP BY blogitem_id
-        )
-        SELECT
-            b.id, b.oid, b.title, count AS hits, b.pub_date,
-            EXTRACT(DAYS FROM (NOW() - b.pub_date))::INT AS age,
-            count / EXTRACT(DAYS FROM (NOW() - b.pub_date)) AS score
-        FROM counts, plog_blogitem b
-        WHERE
-            blogitem_id = b.id AND (NOW() - b.pub_date) > INTERVAL '1 day'
-        ORDER BY score desc
-        LIMIT {limit}
-    """.format(limit=limit))
+                b.id, b.oid, b.title, count AS hits, b.pub_date,
+                EXTRACT(DAYS FROM (NOW() - b.pub_date))::INT AS age,
+                count AS score
+            FROM counts, plog_blogitem b
+            WHERE
+                blogitem_id = b.id AND (NOW() - b.pub_date) > INTERVAL '1 day'
+            ORDER BY score desc
+            LIMIT {limit}
+        """.format(limit=limit))
+    else:
+        query = BlogItem.objects.raw("""
+            WITH counts AS (
+                SELECT
+                    blogitem_id, count(blogitem_id) AS count
+                    FROM plog_blogitemhit
+                    GROUP BY blogitem_id
+            )
+            SELECT
+                b.id, b.oid, b.title, count AS hits, b.pub_date,
+                EXTRACT(DAYS FROM (NOW() - b.pub_date))::INT AS age,
+                count / EXTRACT(DAYS FROM (NOW() - b.pub_date)) AS score
+            FROM counts, plog_blogitem b
+            WHERE
+                blogitem_id = b.id AND (NOW() - b.pub_date) > INTERVAL '1 day'
+            ORDER BY score desc
+            LIMIT {limit}
+        """.format(limit=limit))
     context['all_hits'] = query
 
     category_scores = defaultdict(list)
@@ -1127,6 +1151,7 @@ def plog_hits(request):
         })
     context['summed_category_scores'] = summed_category_scores
     context['page_title'] = 'Hits'
+    context['today'] = today
     return render(request, 'plog/plog_hits.html', context)
 
 
