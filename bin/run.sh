@@ -32,6 +32,7 @@ wait_for() {
 case $1 in
   web)
     # echo "STARTING WEB-DEV"
+    python manage.py clear-django-cache
     python manage.py collectstatic --noinput
     python manage.py fscache -v 2  # deletes old FS cached files
     python manage.py migrate --noinput
