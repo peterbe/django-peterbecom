@@ -4,17 +4,10 @@ PIPELINE_CSS = {
             'css/semantic.css',
             'css/highlight.css',
             'css/peterbe.css',
-        ),
-        'output_filename': 'css/base.min.css',
-    },
-    'base_dynamic': {
-        'source_filenames': (
-            'css/dimmer.css',
-            'css/transition.css',
-            'css/item.css',
+            'css/plog-awspa.css',
             'autocompeter/autocompeter.min.css',
         ),
-        'output_filename': 'css/base-dynamic.min.css',
+        'output_filename': 'css/base.min.css',
     },
     'homepage:search': {
         'source_filenames': (

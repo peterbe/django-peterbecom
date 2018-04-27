@@ -7,28 +7,7 @@
 
   <title>{% block title %}{% block title_prefix %}{{ page_title }}{% endblock %} - Peterbe.com{% endblock %}</title>
 
-  {# don't bother with fonts on this page because people don't stick around so no need to use pretty fonts #}
-  {% if request.path != '/plog/blogitem-040601-1' %}
-
-
-  {#
-    To avoid an extra network request, instead of relying on fonts.googleapis.com
-    to just define the font-families and then point to .woff files on their
-    CDN, I instead just copied the current output of this here URL and
-    put it into the _googlefonts.css template.
-  #}
-  <link rel="preload" href="https://fonts.gstatic.com/s/lato/v14/S6uyw4BMUTPHjx4wXiWtFCc.woff2" as="font" type="font/woff2" crossorigin>
-  <style type="text/css">
-  {% include "_googlefonts.css" %}
-  body { font-family: Lato, "Helvetica Neue", Helvetica, Arial, sans-serif; }
-  </style>
-  {% endif %}
-
   {% stylesheet 'base' %}
-
-  {# these are supposed to have the attribute data-mincss="no" #}
-  {% stylesheet 'base_dynamic' %}
-
 
   <meta name="description" content="Stuff in Peter's head">
   <link rel="shortcut icon" href="{{ static("images/favicon-32.png") }}">
