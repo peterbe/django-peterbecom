@@ -299,7 +299,7 @@ form#comment .cancel a {
 .comments-truncated {
   border: 6px solid #efefef;
   padding: 20px;
-  margin: 10px;
+  margin: 20px;
   text-align: center;
   font-size: 120%;
 }

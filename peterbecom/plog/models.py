@@ -225,16 +225,6 @@ class BlogItemHit(models.Model):
 
 
 class BlogComment(models.Model):
-    """
-    Indexes executed for this:
-
-        CREATE INDEX plog_blogcomment_comment_eng_idx ON plog_blogcomment
-        USING gin(to_tsvector('english', comment));
-
-        REINDEX TABLE plog_blogcomment;
-
-    """
-
     oid = models.CharField(max_length=100, db_index=True, unique=True)
     blogitem = models.ForeignKey(BlogItem, null=True, on_delete=models.CASCADE)
     parent = models.ForeignKey(

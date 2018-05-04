@@ -190,3 +190,9 @@ h3,
 h4 {
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans-serif;
 }
+
+/* For comments */
+.ui.message.comments-truncated {
+  margin: 4em 0;
+  padding: 2.5em 1.5em;
+}

@@ -1,3 +1,5 @@
+import re
+
 from pipeline.finders import PipelineFinder
 
 from django.conf import settings
@@ -15,7 +17,7 @@ class LeftoverPipelineFinder(PipelineFinder):
         # staticfiles finders. Before we raise an error, try to find out where,
         # in the bundles, this was defined. This will make it easier to correct
         # the mistake.
-        print("PATH", path)
+        # print("PATH", path)
         for config_name in 'STYLESHEETS', 'JAVASCRIPT':
             config = settings.PIPELINE[config_name]
             for key, directive in config.items():
@@ -28,6 +30,10 @@ class LeftoverPipelineFinder(PipelineFinder):
                             key,
                         )
                     )
+
+        if settings.DEBUG and re.findall('\.[a-f0-9]{12}\.', path):
+            # E.g. images/favicon-32.2f7785a88cef.png
+            return
         # If the file can't be found AND it's not in bundles, there's
         # got to be something else really wrong.
         raise NotImplementedError(path)

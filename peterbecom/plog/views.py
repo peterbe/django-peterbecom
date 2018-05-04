@@ -251,16 +251,29 @@ def _render_blog_post(request, oid, screenshot_mode=False):
         comments = comments.filter(approved=True)
 
     comments_truncated = False
+    count_comments = post.count_comments()
+    new_comments = []
+    initial_comments = []
     if request.GET.get('comments') != 'all':
-        comments = comments[:settings.MAX_INITIAL_COMMENTS]
-        if post.count_comments() > settings.MAX_INITIAL_COMMENTS:
+        initial_comments = comments[:settings.MAX_INITIAL_COMMENTS]
+        if count_comments > settings.MAX_INITIAL_COMMENTS:
             comments_truncated = settings.MAX_INITIAL_COMMENTS
+            new_comments = comments[
+                count_comments - settings.MAX_RECENT_COMMENTS:count_comments
+            ]
 
-    all_comments = defaultdict(list)
-    for comment in comments:
-        all_comments[comment.parent_id].append(comment)
+    all_initial_comments = defaultdict(list)
+    for comment in initial_comments:
+        all_initial_comments[comment.parent_id].append(comment)
+
+    all_recent_comments = defaultdict(list)
+    for comment in new_comments:
+        all_recent_comments[comment.parent_id].append(comment)
+
     context['comments_truncated'] = comments_truncated
-    context['all_comments'] = all_comments
+    context['comments_recent_count'] = len(new_comments)
+    context['all_initial_comments'] = all_initial_comments
+    context['all_recent_comments'] = all_recent_comments
     context['related_by_keyword'] = get_related_posts_by_keyword(post, limit=5)
     context['related_by_text'] = get_related_posts_by_text(post, limit=5)
     context['show_buttons'] = (

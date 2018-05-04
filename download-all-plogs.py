@@ -16,7 +16,7 @@ def get_urls(base_url):
     return urls
 
 
-def download(urls, max=100, sleeptime=1):
+def download(urls, base_url, max=100, sleeptime=1):
     headers = {
         'User-Agent': 'download-all-plogs.py/requests 1.0',
     }
@@ -29,8 +29,8 @@ def download(urls, max=100, sleeptime=1):
         time.sleep(sleeptime)
 
     # also download a bunch of pages of the home page
-    url_start = 'https://www.peterbe.com/?page='
-    for i in range(2, max):
+    url_start = base_url + '?page='
+    for i in range(2, 10):
         url = url_start + str(i)
         print(url.ljust(80))
         t0 = time.time()
@@ -43,15 +43,20 @@ def download(urls, max=100, sleeptime=1):
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("--max", default=100)
-    parser.add_argument("--sleeptime", default=1)
-    parser.add_argument("--base-url", default='https://www.peterbe.com')
+    parser.add_argument("--max", default=100, help="Default 100")
+    parser.add_argument("--sleeptime", default=1, help="Default 1")
+    parser.add_argument(
+        "--base-url",
+        default='https://www.peterbe.com',
+        help="Default https://www.peterbe.com"
+    )
     args = parser.parse_args()
 
     urls = get_urls(args.base_url)
     random.shuffle(urls)
     download(
         urls,
+        args.base_url,
         max=int(args.max),
         sleeptime=float(args.sleeptime),
     )

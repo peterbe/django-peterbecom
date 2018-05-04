@@ -212,26 +212,25 @@
     {% endif %}
   {% else %}
     <div id="comments-outer" class="ui comments">
-      {% include "plog/_all_comments.html" %}
-    </div>
-    {% if comments_truncated %}
-    <div class="ui message comments-truncated">
-      {#
-      <div class="ui inverted dimmer">
-        <div class="ui text loader">Loading all the other comments</div>
+      {{ show_comments(post, user.is_staff, all_initial_comments, not post.disallow_comments)|safe }}
+      {% if comments_truncated %}
+      <div class="ui message floating warning comments-truncated">
+        <div class="header">
+          Comments truncated
+        </div>
+        <p>
+          Only showing the first {{ comments_truncated }} and the last {{ comments_recent_count }} comments
+          ({{ thousands(post.count_comments()) }} in total).
+          <br>
+          <button class="ui button fluid">Load them all!</button>
+        </p>
       </div>
-      #}
-      <div class="header">
-        Comments truncated
-      </div>
-      <p>
-        Only showing the first {{ comments_truncated }} comments
-        ({{ thousands(post.count_comments()) }} in total).
-        <br>
-        <button class="ui button">Load them all!</button>
-      </p>
+      {% endif %}
+      {% if comments_truncated and all_recent_comments %}
+      <h4>More Recent Comments...</h4>
+      {% endif %}
+      {{ show_comments(post, user.is_staff, all_recent_comments, not post.disallow_comments)|safe }}
     </div>
-    {% endif %}
 
   {% endif %}
 
