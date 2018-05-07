@@ -131,8 +131,8 @@ def _blog_post_key_prefixer(request):
 
 @cache_control(public=True, max_age=settings.DEBUG and ONE_HOUR or ONE_WEEK)
 @cache_page(
-    settings.DEBUG and ONE_HOUR or ONE_WEEK,
-    _blog_post_key_prefixer,
+   settings.DEBUG and ONE_HOUR or ONE_WEEK,
+   _blog_post_key_prefixer,
 )
 def blog_post(request, oid):
     if request.path.endswith('/ping'):
@@ -256,11 +256,15 @@ def _render_blog_post(request, oid, screenshot_mode=False):
     initial_comments = []
     if request.GET.get('comments') != 'all':
         initial_comments = comments[:settings.MAX_INITIAL_COMMENTS]
-        if count_comments > settings.MAX_INITIAL_COMMENTS:
+        if count_comments > (
+            settings.MAX_INITIAL_COMMENTS + settings.MAX_RECENT_COMMENTS
+        ):
             comments_truncated = settings.MAX_INITIAL_COMMENTS
-            new_comments = comments[
-                count_comments - settings.MAX_RECENT_COMMENTS:count_comments
-            ]
+            slice_m, slice_n = (
+                max(0, count_comments - settings.MAX_RECENT_COMMENTS),
+                count_comments
+            )
+            new_comments = comments[slice_m:slice_n]
 
     all_initial_comments = defaultdict(list)
     for comment in initial_comments:
@@ -272,6 +276,7 @@ def _render_blog_post(request, oid, screenshot_mode=False):
 
     context['comments_truncated'] = comments_truncated
     context['comments_recent_count'] = len(new_comments)
+    context['count_comments'] = count_comments
     context['all_initial_comments'] = all_initial_comments
     context['all_recent_comments'] = all_recent_comments
     context['related_by_keyword'] = get_related_posts_by_keyword(post, limit=5)
