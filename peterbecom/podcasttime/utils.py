@@ -288,12 +288,17 @@ def get_image_url(rss_url):
     return image_url
 
 
-def get_podcast_metadata(rss_url):
+def get_podcast_metadata(rss_url, swallow_requests_exceptions=False):
     metadata = {}
     try:
-        xml = download(rss_url, expect_xml=True)
-    except NotXMLResponse:
-        xml = download(rss_url, expect_xml=True, no_user_agent=True)
+        try:
+            xml = download(rss_url, expect_xml=True)
+        except NotXMLResponse:
+            xml = download(rss_url, expect_xml=True, no_user_agent=True)
+    except requests.exceptions.RequestException:
+        if swallow_requests_exceptions:
+            return
+        raise
 
     d = feedparser.parse(xml)
 

@@ -34,7 +34,6 @@ def download_episodes_task(podcast_id, verbose=True):
 @shared_task
 def redownload_podcast_image(podcast_id):
     podcast = Podcast.objects.get(id=podcast_id)
-    print("REDOWNLOAD_PODCAST_IMAGE!!")
     try:
         podcast.download_image()
         # If it worked, it should be possible to make a thumbnail out of
@@ -92,7 +91,8 @@ def fetch_itunes_lookup(podcast_id):
 @shared_task
 def download_podcast_metadata(podcast_id):
     metadata = get_podcast_metadata(
-        Podcast.objects.get(id=podcast_id).url
+        Podcast.objects.get(id=podcast_id).url,
+        swallow_requests_exceptions=True,
     )
     if metadata:
         podcast = Podcast.objects.get(id=podcast_id)
