@@ -30,15 +30,18 @@ if (
     settings.MIDDLEWARE
 ):
     import rollbar
-    rollbar.init(**settings.ROLLBAR)
+    if not getattr(settings, 'ROLLBAR', None):
+        print("ROLLBAR not enabled for Celery")
+    else:
+        rollbar.init(**settings.ROLLBAR)
 
-    def celery_base_data_hook(request, data):
-        data['framework'] = 'celery'
+        def celery_base_data_hook(request, data):
+            data['framework'] = 'celery'
 
-    rollbar.BASE_DATA_HOOK = celery_base_data_hook
+        rollbar.BASE_DATA_HOOK = celery_base_data_hook
 
-    from celery.signals import task_failure
+        from celery.signals import task_failure
 
-    @task_failure.connect
-    def handle_task_failure(**kw):
-        rollbar.report_exc_info(extra_data=kw)
+        @task_failure.connect
+        def handle_task_failure(**kw):
+            rollbar.report_exc_info(extra_data=kw)
