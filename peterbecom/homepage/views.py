@@ -76,7 +76,7 @@ def home(request, oc=None, page=1):
     if oc is not None:
         if not oc:  # empty string
             return redirect('/', permanent=True)
-        categories = parse_ocs_to_categories(oc, strict=True)
+        categories = parse_ocs_to_categories(oc, strict_matching=True)
         cat_q = make_categories_q(categories)
         qs = qs.filter(cat_q)
         context['categories'] = categories

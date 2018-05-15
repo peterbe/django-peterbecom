@@ -17,6 +17,7 @@ ES_INDEX = 'test_peterbecom'
 
 
 ROLLBAR = {
+    'enabled': False,
     'access_token': 'willneverwork',
     'environment': 'production',
     'branch': 'master',
