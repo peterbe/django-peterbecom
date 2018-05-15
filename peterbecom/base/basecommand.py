@@ -6,26 +6,14 @@ import traceback
 from io import StringIO
 import datetime
 
+import rollbar
+
 from django.conf import settings
 from django.core.management.base import BaseCommand as DjangoBaseCommand
 
 from peterbecom.base.models import CommandRun
 
-try:
-    import opbeat
-    if not getattr(settings, 'OPBEAT', None):
-        raise ImportError('opbeat not in use')
-
-    def get_opbeat_client():
-        client = opbeat.Client(
-            organization_id=settings.OPBEAT['ORGANIZATION_ID'],
-            app_id=settings.OPBEAT['APP_ID'],
-            secret_token=settings.OPBEAT['SECRET_TOKEN'],
-        )
-        return client
-except ImportError:
-    def get_opbeat_client():
-        pass
+rollbar.init(settings.ROLLBAR['access_token'], settings.ROLLBAR['environment'])
 
 
 class BaseCommand(DjangoBaseCommand):
@@ -56,12 +44,11 @@ class BaseCommand(DjangoBaseCommand):
         return copied
 
     def handle(self, **options):
-        client = get_opbeat_client()
         try:
             self._handle(**options)
         except Exception:
-            if not settings.DEBUG and client:
-                client.capture_exception()
+            if not settings.DEBUG:
+                rollbar.report_exc_info()
             raise
 
     def execute(self, *args, **kwargs):
