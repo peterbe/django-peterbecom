@@ -288,7 +288,11 @@ def get_image_url(rss_url):
     return image_url
 
 
-def get_podcast_metadata(rss_url, swallow_requests_exceptions=False):
+def get_podcast_metadata(
+    rss_url,
+    swallow_requests_exceptions=False,
+    swallow_notfound=False,
+):
     metadata = {}
     try:
         try:
@@ -299,7 +303,10 @@ def get_podcast_metadata(rss_url, swallow_requests_exceptions=False):
         if swallow_requests_exceptions:
             return
         raise
-
+    except NotFound:
+        if swallow_notfound:
+            return
+        raise
     d = feedparser.parse(xml)
 
     for key in ('link', 'subtitle', 'summary'):
