@@ -33,7 +33,6 @@
     <h2>
       {{ keyword }}
     </h2>
-
     <div class="ui divided items" style="display:none">
       {% for awsproduct in keywords[keyword] %}
         {{ awspa_product(awsproduct, show_action_button=True, hide_image=True) }}

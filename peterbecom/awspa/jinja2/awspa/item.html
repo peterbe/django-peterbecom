@@ -1,7 +1,12 @@
-<div class="item" data-asin="{{ awsproduct.asin }}" data-disabled="{{ json_print(awsproduct.disabled) }}">
+<div class="item"
+     data-asin="{{ awsproduct.asin }}"
+     data-disabled="{{ json_print(awsproduct.disabled) }}">
   <a href="{{ item.DetailPageURL }}" class="ui tiny image">
     {% if hide_image %}
-    <img class="placeholder" src="https://via.placeholder.com/130x160" data-src="{{ item.MediumImage.URL }}" alt="{{ item.ItemAttributes.Title }}"/>
+    <img class="placeholder"
+         src="https://via.placeholder.com/130x160"
+         data-src="{{ item.MediumImage.URL }}"
+         alt="{{ item.ItemAttributes.Title }}"/>
     {% else %}
     <img src="{{ item.MediumImage.URL }}" alt="{{ item.ItemAttributes.Title }}"/>
     {% endif %}
