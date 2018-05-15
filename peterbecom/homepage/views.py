@@ -639,6 +639,12 @@ def blog_post_by_alias(request, alias):
             alias.replace('static/', ''),
             document_root=settings.STATIC_ROOT
         )
+    if alias.startswith('q/') and alias.count('/') == 1:
+        # E.g. www.peterbe.com/q/have%20to%20learn
+        url = 'https://songsear.ch/' + urllib.parse.quote(alias, safe='')
+        print("URL:", repr(url))
+        return http.HttpResponsePermanentRedirect(url)
+    print("ALIAS:", repr(alias))
     try:
         blogitem = BlogItem.objects.get(alias__iexact=alias)
         url = reverse('blog_post', args=[blogitem.oid])
