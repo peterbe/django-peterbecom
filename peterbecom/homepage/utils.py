@@ -42,13 +42,13 @@ def split_search(q, keywords):
     return ' '.join(s), params
 
 
-def parse_ocs_to_categories(oc):
+def parse_ocs_to_categories(oc, strict_matching=False):
     oc = re.sub('/p\d+$', '', oc)
     ocs = [x.strip().replace('/', '').replace('+', ' ')
            for x
            in re.split('oc-(.*?)', oc) if x.strip()]
     categories = Category.objects.filter(name__in=ocs)
-    if len(categories) != len(ocs):
+    if strict_matching and len(categories) != len(ocs):
         raise http.Http404("Unrecognized categories")
 
     return categories

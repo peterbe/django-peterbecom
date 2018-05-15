@@ -1,9 +1,9 @@
-import datetime
 import re
+
 from django.contrib.syndication.views import Feed
+from django.utils import timezone
 from peterbecom.plog.models import BlogItem
 from .utils import parse_ocs_to_categories, make_categories_q
-from peterbecom.plog.utils import utc_now
 
 
 smart_static_urls = re.compile('src="//')
@@ -11,11 +11,10 @@ smart_static_urls = re.compile('src="//')
 
 class PlogFeed(Feed):
     title = "Peterbe.com"
-    description = "Peter Bengtssons's personal homepage about little things that concern him."
+    description = "Stuff in Peter's head"
     link = "/rss.xml"
 
     def get_object(self, request, oc):
-
         if request.GET.get('oc'):
             if not oc:
                 oc = ''
@@ -25,8 +24,7 @@ class PlogFeed(Feed):
         return parse_ocs_to_categories(oc)
 
     def items(self, categories):
-        qs = (BlogItem.objects
-                .filter(pub_date__lt=utc_now()))
+        qs = BlogItem.objects.filter(pub_date__lt=timezone.now())
         if categories:
             qs = qs.filter(make_categories_q(categories))
         return qs.order_by('-pub_date')[:10]
