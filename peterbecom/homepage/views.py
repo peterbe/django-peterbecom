@@ -639,10 +639,12 @@ def blog_post_by_alias(request, alias):
             alias.replace('static/', ''),
             document_root=settings.STATIC_ROOT
         )
-    raise http.Http404('Page not found')
-    # blogitem = get_object_or_404(BlogItem, alias=alias)
-    # url = reverse('blog_post', args=[blogitem.oid])
-    # return http.HttpResponsePermanentRedirect(url)
+    try:
+        blogitem = BlogItem.objects.get(alias__iexact=alias)
+        url = reverse('blog_post', args=[blogitem.oid])
+        return http.HttpResponsePermanentRedirect(url)
+    except BlogItem.DoesNotExist:
+        raise http.Http404(alias)
 
 
 @cache_page(ONE_MONTH)
