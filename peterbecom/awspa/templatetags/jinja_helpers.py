@@ -24,6 +24,11 @@ def awspa_product(awsproduct, show_action_button=False, hide_image=False):
         # awsproduct.delete()
         return ''
 
+    if not item.get('MediumImage'):
+        print("SKIPPIING BECAUSE NO MediumImage")
+        print(item)
+        return ''
+
     # if not item['ItemAttributes'].get('Binding'):
     #     from pprint import pprint
     #     print("ITEM")

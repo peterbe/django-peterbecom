@@ -856,14 +856,17 @@ def plog_awspa(request, oid):
             # Load more!
             url = reverse('plog_awspa', args=(blogitem.oid,))
             try:
-                load_more_awsproducts(
+                new = load_more_awsproducts(
                     keyword,
                     request.POST.get('searchindex', 'All')
                 )
-                url += '?' + urlencode({'focus': keyword})
+                params = {'focus': keyword}
+                if new:
+                    params['new'] = [x.title for x in new]
             except AWSPAError as exception:
                 error = exception.args[0]
-                url += '?' + urlencode({'error': json.dumps(error)})
+                params = {'error': json.dumps(error)}
+            url += '?' + urlencode(params, True)
 
             keywords = blogitem.get_all_keywords()
             if keyword.lower() not in keywords:
@@ -899,6 +902,8 @@ def load_more_awsproducts(keyword, searchindex):
 
     keyword = keyword.lower()
 
+    new = []
+
     for item in items:
         item.pop('ImageSets', None)
         # print('=' * 100)
@@ -931,6 +936,9 @@ def load_more_awsproducts(keyword, searchindex):
                 searchindex=searchindex,
                 disabled=True,
             )
+            new.append(awsproduct)
+
+    return new
 
 
 @csrf_exempt
