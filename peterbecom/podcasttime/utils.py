@@ -177,7 +177,7 @@ def download(
     if os.path.isfile(fp):
         age = time.time() - os.stat(fp).st_mtime
         if age > 60 * 60 * 24:
-            os.remove(fp)
+            os.path.isfile(fp) and os.remove(fp)
     if not os.path.isfile(fp) or refresh:
         print("* requesting", url)
         r = realistic_request(

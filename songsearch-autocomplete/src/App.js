@@ -195,20 +195,25 @@ class App extends React.Component {
       });
     }
     this.waitingFor = q;
-    fetch(url).then(r => {
-      if (r.status === 200) {
-        if (q.startsWith(this.waitingFor)) {
-          r.json().then(results => {
-            this._fetchAutocompleteSuggestionsCache[q.trim()] = results;
-            this.setState({
-              autocompleteSuggestions: results.matches,
-              autocompleteSearchSuggestions: results.search_suggestions,
-              autocompleteHighlight: -1,
+    try {
+      fetch(url).then(r => {
+        if (r.status === 200) {
+          if (q.startsWith(this.waitingFor)) {
+            r.json().then(results => {
+              this._fetchAutocompleteSuggestionsCache[q.trim()] = results;
+              this.setState({
+                autocompleteSuggestions: results.matches,
+                autocompleteSearchSuggestions: results.search_suggestions,
+                autocompleteHighlight: -1,
+              });
             });
-          });
+          }
         }
-      }
-    });
+      });
+    } catch(ex) {
+      console.warn(`Error fetching ${url}: ${ex.toString()}`);
+    }
+
   };
 
   onKeyDownSearch = event => {
