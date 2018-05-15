@@ -292,6 +292,7 @@ def get_podcast_metadata(
     rss_url,
     swallow_requests_exceptions=False,
     swallow_notfound=False,
+    swallow_notxmlresponse=False,
 ):
     metadata = {}
     try:
@@ -305,6 +306,10 @@ def get_podcast_metadata(
         raise
     except NotFound:
         if swallow_notfound:
+            return
+        raise
+    except NotXMLResponse:
+        if swallow_notxmlresponse:
             return
         raise
     d = feedparser.parse(xml)

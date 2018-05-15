@@ -94,6 +94,7 @@ def download_podcast_metadata(podcast_id):
         Podcast.objects.get(id=podcast_id).url,
         swallow_requests_exceptions=True,
         swallow_notfound=True,
+        swallow_notxmlresponse=True,
     )
     if metadata:
         podcast = Podcast.objects.get(id=podcast_id)
