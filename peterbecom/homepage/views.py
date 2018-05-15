@@ -9,7 +9,7 @@ from elasticsearch_dsl import Q
 
 from django import http
 from django.core.cache import cache
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, redirect
 from django.views.decorators.http import require_POST
 from django.db.models import Count
 from django.urls import reverse
@@ -639,10 +639,10 @@ def blog_post_by_alias(request, alias):
             alias.replace('static/', ''),
             document_root=settings.STATIC_ROOT
         )
-        raise http.Http404('Bad alias for a static URL {!r}'.format(alias))
-    blogitem = get_object_or_404(BlogItem, alias=alias)
-    url = reverse('blog_post', args=[blogitem.oid])
-    return http.HttpResponsePermanentRedirect(url)
+    raise http.Http404('Page not found')
+    # blogitem = get_object_or_404(BlogItem, alias=alias)
+    # url = reverse('blog_post', args=[blogitem.oid])
+    # return http.HttpResponsePermanentRedirect(url)
 
 
 @cache_page(ONE_MONTH)

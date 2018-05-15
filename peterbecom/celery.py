@@ -21,20 +21,27 @@ app.autodiscover_tasks()
 def debug_task(self):
     print('Request: {0!r}'.format(self.request))
 
-# app = Celery('peterbecom')
-# app.config_from_object('django.conf:settings')
-# app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
-from django.conf import settings
+from django.conf import settings  # noqa
 
-if 'opbeat.contrib.django' in settings.INSTALLED_APPS:
 
-    from opbeat.contrib.django.models import client, logger, register_handlers
-    from opbeat.contrib.celery import register_signal
+if (
+    'rollbar.contrib.django.middleware.RollbarNotifierMiddleware' in
+    settings.MIDDLEWARE
+):
+    import rollbar
+    if not getattr(settings, 'ROLLBAR', None):
+        print("ROLLBAR not enabled for Celery")
+    else:
+        rollbar.init(**settings.ROLLBAR)
 
-    try:
-        register_signal(client)
-    except Exception as e:
-        logger.exception('Failed installing celery hook: %s' % e)
+        def celery_base_data_hook(request, data):
+            data['framework'] = 'celery'
 
-    register_handlers()
+        rollbar.BASE_DATA_HOOK = celery_base_data_hook
+
+        from celery.signals import task_failure
+
+        @task_failure.connect
+        def handle_task_failure(**kw):
+            rollbar.report_exc_info(extra_data=kw)
