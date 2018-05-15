@@ -236,13 +236,12 @@
   {% javascript 'plog:post' %}
   {% endif %}
 
-<script src="https://m.servedby-buysellads.com/monetization.js" async></script>
+{#<script src="https://m.servedby-buysellads.com/monetization.js" async></script>#}
 <script>
 (function() {
   var attempts = 0;
   var loop = function() {
     if (typeof _bsa !== 'undefined' && _bsa) {
-      // console.log('IT WORKED');
       _bsa.init('default', 'CKYD52JJ', 'placement:peterbecom', {
         target: '.bsa-cpc',
         align: 'horizontal',
@@ -250,14 +249,23 @@
       });
     } else {
       attempts++;
-      // console.log('ATTEMPT', attempts);
       if (attempts < 10) {
         setTimeout(loop, 500);
       }
     }
   };
-  if (document.querySelector('div.bsa-cpc')) {
-    loop();
+  var inject = function(cb) {
+    var script = document.createElement('script');
+    script.src = 'https://m.servedby-buysellads.com/monetization.js';
+    script.async = true;
+    script.onload = cb;
+    document.head.appendChild(script);
+  }
+  function isMobileDevice() {
+    return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+  };
+  if (document.querySelector('div.bsa-cpc') && !isMobileDevice()) {
+    inject(loop);
   }
 })();
 </script>
@@ -265,6 +273,10 @@
 {% endblock %}
 
 {% block content %}
+
+{% if request.path != '/plog/blogitem-040601-1' %}
+<div class="bsa-cpc"></div>
+{% endif %}
 
   {% if pub_date_years > 3 and request.path != '/plog/blogitem-040601-1' %}
   <div class="ui {% if pub_date_years > 6 %}warning{% else %}info{% endif %} message"
@@ -281,11 +293,6 @@
   {% endif %}
 
 {% include "plog/_post.html" %}
-
-
-{% if request.path != '/plog/blogitem-040601-1' %}
-<div class="bsa-cpc"></div>
-{% endif %}
 
 
 {% if show_buttons %}
