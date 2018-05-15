@@ -641,7 +641,7 @@ def blog_post_by_alias(request, alias):
         )
     if alias.startswith('q/') and alias.count('/') == 1:
         # E.g. www.peterbe.com/q/have%20to%20learn
-        url = 'https://songsear.ch/' + urllib.parse.quote(alias, safe='')
+        url = 'https://songsear.ch/' + alias
         print("URL:", repr(url))
         return http.HttpResponsePermanentRedirect(url)
     print("ALIAS:", repr(alias))
