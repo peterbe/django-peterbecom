@@ -8,6 +8,8 @@ from pyquery import PyQuery
 
 
 def get_urls(base_url):
+    if base_url.endswith('/'):
+        base_url = base_url[:-1]
     doc = PyQuery(base_url + '/plog/')
     doc.make_links_absolute(base_url=base_url)
     urls = []
