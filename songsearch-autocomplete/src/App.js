@@ -211,8 +211,8 @@ class App extends React.Component {
         }
       })
       .catch(ex => {
-        //console.warn(`Catch fetching ${url} ('${q}'): ${ex.toString()}`);
-        throw new Error(`Catch fetching ${url} ('${q}'): ${ex.toString()}`);
+        console.warn(`Catch fetching ${url} ('${q}'): ${ex.toString()}`);
+        // throw new Error(`Catch fetching ${url} ('${q}'): ${ex.toString()}`);
       });
   };
 
