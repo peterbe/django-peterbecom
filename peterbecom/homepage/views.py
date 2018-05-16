@@ -644,12 +644,21 @@ def blog_post_by_alias(request, alias):
         url = 'https://songsear.ch/' + alias
         print("URL:", repr(url))
         return http.HttpResponsePermanentRedirect(url)
-    print("ALIAS:", repr(alias))
+    if (
+        alias.lower().endswith('.asp') or
+        alias.lower().endswith('.aspx') or
+        alias.lower().endswith('.xml') or
+        alias.lower().endswith('.php')
+    ):
+        return http.HttpResponse('Not found', status=404)
+    if alias == '...':
+        return redirect('/')
     try:
         blogitem = BlogItem.objects.get(alias__iexact=alias)
         url = reverse('blog_post', args=[blogitem.oid])
         return http.HttpResponsePermanentRedirect(url)
     except BlogItem.DoesNotExist:
+        print("UNDEALTH WITH ALIAS:", repr(alias))
         raise http.Http404(alias)
 
 

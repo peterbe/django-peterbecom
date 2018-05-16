@@ -195,8 +195,8 @@ class App extends React.Component {
       });
     }
     this.waitingFor = q;
-    try {
-      fetch(url).then(r => {
+    fetch(url)
+      .then(r => {
         if (r.status === 200) {
           if (q.startsWith(this.waitingFor)) {
             r.json().then(results => {
@@ -209,11 +209,10 @@ class App extends React.Component {
             });
           }
         }
+      })
+      .catch(ex => {
+        console.warn(`Catch fetching ${url} ('${q}'): ${ex.toString()}`);
       });
-    } catch(ex) {
-      console.warn(`Error fetching ${url}: ${ex.toString()}`);
-    }
-
   };
 
   onKeyDownSearch = event => {
