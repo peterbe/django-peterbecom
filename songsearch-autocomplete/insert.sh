@@ -7,3 +7,6 @@ rm -fr ../peterbecom-static-content/songsearch-autocomplete
 aunpack -X ../peterbecom-static-content/ songsearch-autocomplete.zip
 
 ./_insert.py
+echo "Finished at..."
+echo `date`
+echo ""

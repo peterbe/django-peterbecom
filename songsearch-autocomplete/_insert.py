@@ -28,7 +28,7 @@ def run():
     block = block.strip()
     template = '../peterbecom-static-content/_FSCACHE/plog/blogitem-040601-1/index.html'
     with open(template) as f:
-        content = f.read()
+        original_content = content = f.read()
     header = '<!-- https://github.com/peterbe/django-peterbecom/tree/master/songsearch-autocomplete -->'
     start = content.find(header)
     footer = '<!-- /songsearch-autocomplete -->'
@@ -42,8 +42,12 @@ def run():
         content = content.replace(
             '</body>', '{}\n{}\n{}\n</body>'.format(header, block, footer)
         )
-    with open(template, 'w') as f:
-        f.write(content)
+    if original_content != content:
+        with open(template, 'w') as f:
+            f.write(content)
+        print('Updated {} with new content.'.format(template))
+    else:
+        print('Nothing changed in the content. No write.')
 
     return 0
 
