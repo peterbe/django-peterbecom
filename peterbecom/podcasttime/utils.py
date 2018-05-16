@@ -170,15 +170,31 @@ def download(
 ):
     if not os.path.isdir(_CACHE):
         os.mkdir(_CACHE)
+    else:
+        # Delete ancient files
+        for fn in os.listdir(_CACHE):
+            file_path = os.path.join(_CACHE, fn)
+            age = time.time() - os.stat(file_path).st_mtime
+            if age > 60 * 60 * 24 * 30:
+                print("{} was ancient! (age={})".format(file_path, age))
+                try:
+                    os.remove(file_path)
+                except FileNotFoundError:
+                    print("WARNING! Unable to remove file {}".format(
+                        file_path
+                    ))
     key = hashlib.md5(url.encode('utf-8')).hexdigest()
     if no_user_agent:
         key += 'nouseragent'
-    fp = os.path.join(_CACHE, key)
-    if os.path.isfile(fp):
-        age = time.time() - os.stat(fp).st_mtime
+    file_path = os.path.join(_CACHE, key)
+    if os.path.isfile(file_path):
+        age = time.time() - os.stat(file_path).st_mtime
         if age > 60 * 60 * 24:
-            os.path.isfile(fp) and os.remove(fp)
-    if not os.path.isfile(fp) or refresh:
+            try:
+                os.remove(file_path)
+            except FileNotFoundError:
+                print("WARNING! Unable to remove file {}".format(file_path))
+    if not os.path.isfile(file_path) or refresh:
         print("* requesting", url)
         r = realistic_request(
             url,
@@ -190,7 +206,7 @@ def download(
                 'xml' in r.headers.get('Content-Type', '') or '<rss' in r.text
             ):
                 raise NotXMLResponse(r.headers['Content-Type'])
-            with codecs.open(fp, 'w', 'utf8') as f:
+            with codecs.open(file_path, 'w', 'utf8') as f:
                 f.write(r.text)
             if gently:
                 time.sleep(random.randint(1, 4))
@@ -199,7 +215,7 @@ def download(
                 r.status_code, url
             ))
 
-    with codecs.open(fp, 'r', 'utf8') as f:
+    with codecs.open(file_path, 'r', 'utf8') as f:
         return f.read()
 
 
