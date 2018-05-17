@@ -670,7 +670,10 @@ def blog_post_by_alias(request, alias):
         return http.HttpResponsePermanentRedirect(url)
     except BlogItem.DoesNotExist:
         print("UNDEALTH WITH ALIAS:", repr(alias))
-        raise http.Http404(alias)
+        # Use 'return http.HttpResponse' instead, so as to not trigger
+        # a Rollbar event.
+        return http.HttpResponse(alias, status=404)
+        # raise http.Http404(alias)
 
 
 @cache_page(ONE_MONTH)
