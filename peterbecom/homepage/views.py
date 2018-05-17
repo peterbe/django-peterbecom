@@ -3,7 +3,7 @@ import os
 import tempfile
 import time
 import logging
-import urllib
+from urllib.parse import urlencode
 
 from elasticsearch_dsl import Q
 
@@ -712,7 +712,7 @@ def signin(request):
 def signout(request):
     logout(request)
     url = 'https://' + settings.AUTH0_DOMAIN + '/v2/logout'
-    url += '?' + urllib.urlencode({
+    url += '?' + urlencode({
         'returnTo': settings.AUTH_SIGNOUT_URL,
     })
     return redirect(url)
