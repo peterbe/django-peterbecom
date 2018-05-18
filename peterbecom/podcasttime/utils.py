@@ -168,6 +168,9 @@ def download(
     timeout=None,
     session=None,
 ):
+    # Putting this here to figure out if sometimes the same URL is
+    # requested almost exactly at the same time.
+    print("DOWNLOADING URL {}\t{}".format(url, time.time()))
     if not os.path.isdir(_CACHE):
         os.mkdir(_CACHE)
     else:
