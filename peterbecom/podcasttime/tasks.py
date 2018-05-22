@@ -122,6 +122,8 @@ def search_by_itunes(q):
 
     count_new = 0
     for result in results[:10]:
+        if not result.get('feedUrl'):
+            continue
         try:
             podcast = Podcast.objects.get(
                 url=result['feedUrl'],
