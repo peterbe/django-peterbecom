@@ -80,6 +80,7 @@ class BlogItem(models.Model):
     hide_comments = models.BooleanField(default=False)
     modify_date = models.DateTimeField(default=utils.utc_now)
     screenshot_image = ImageField(upload_to=_upload_to_blogitem, null=True)
+    open_graph_image = models.CharField(max_length=400, null=True)
 
     def __repr__(self):
         return '<%s: %r>' % (self.__class__.__name__, self.oid)

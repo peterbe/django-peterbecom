@@ -8,6 +8,11 @@ urlpatterns = [
     url('^edit/(.*)', views.edit_post, name='edit_post'),
     url('^awspa/(.*)', views.plog_awspa, name='plog_awspa'),
     url(
+        '^open-graph-image/(.*)',
+        views.plog_open_graph_image,
+        name='plog_open_graph_image'
+    ),
+    url(
         '^thumbnails/delete/(?P<pk>\d+)$',
         views.delete_post_thumbnail,
         name='delete_post_thumbnail'

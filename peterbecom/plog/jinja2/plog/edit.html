@@ -88,7 +88,11 @@ form[method="post"] { clear: left; }
 preview ↓
 &nbsp;
 {% if blogitem %}
+&nbsp;
 <a href="{{ url('plog_awspa', blogitem.oid) }}">Amazon Products ({{ awsproducts.count() }}) →</a>
+&nbsp;
+<a href="{{ url('plog_open_graph_image', blogitem.oid) }}">Open Graph Image ({% if blogitem and blogitem.open_graph_image %}picked{% else %}none{% endif %}) →</a>
+&nbsp;
 <a href="{{ url('blog_post', blogitem.oid) }}">view →</a>
 {% endif %}
 </p>

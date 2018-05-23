@@ -3,9 +3,10 @@ import logging
 import datetime
 import json
 import random
+import re
 from collections import defaultdict
 from statistics import median
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 
 from fancy_cache import cache_page
 
@@ -283,13 +284,8 @@ def _render_blog_post(request, oid, screenshot_mode=False):
     context['related_by_text'] = get_related_posts_by_text(post, limit=5)
     context['show_buttons'] = (
         not screenshot_mode and
-        # not settings.DEBUG and
         request.path != '/plog/blogitem-040601-1'
     )
-    # context['show_carbon_ad'] = (
-    #     not screenshot_mode and
-    #     not settings.DEBUG
-    # )
     context['show_carbon_ad'] = not screenshot_mode
     context['home_url'] = request.build_absolute_uri('/')
     context['page_title'] = post.title
@@ -941,6 +937,67 @@ def load_more_awsproducts(keyword, searchindex):
     return new
 
 
+@login_required
+@transaction.atomic
+def plog_open_graph_image(request, oid):
+    blogitem = get_object_or_404(BlogItem, oid=oid)
+    context = {
+        'blogitem': blogitem,
+    }
+    options = []
+
+    images_used = re.findall(
+        r'<a href="(.*?)"',
+        blogitem.text,
+    )
+    images_used = [
+        x for x in images_used
+        if x.lower().endswith('.png') or x.lower().endswith('.jpg')
+    ]
+    images_used.extend(re.findall(
+        r'<img src="(.*?)"',
+        blogitem.text,
+    ))
+    images_used_paths = [urlparse(x).path for x in images_used]
+    # print("IMAGES USED")
+    # print(images_used)
+    # print("IMAGES_USED_PATHS")
+    # print(images_used_paths)
+    for i, image in enumerate(_post_thumbnails(blogitem)):
+        # from pprint import pprint
+        # pprint(image)
+        full_url_path = image['full_url']
+        if '://' in full_url_path:
+            full_url_path = urlparse(full_url_path).path
+
+        options.append({
+            'label': 'Thumbnail #{}'.format(i + 1),
+            'src': image['full_url'],
+            'size': image['full_size'],
+            'current': (
+                blogitem.open_graph_image and
+                image['full_url'] == blogitem.open_graph_image
+            ),
+            'used_in_text': full_url_path in images_used_paths,
+        })
+
+    if request.method == 'POST':
+        src = request.POST.get('src')
+        if not src or src not in [x['src'] for x in options]:
+            return http.HttpResponseBadRequest('No src')
+        if blogitem.open_graph_image and blogitem.open_graph_image == src:
+            blogitem.open_graph_image = None
+        else:
+            blogitem.open_graph_image = src
+        blogitem.save()
+        url = reverse('edit_post', args=[blogitem.oid])
+        return redirect(url)
+
+    context['options'] = options
+    context['page_title'] = blogitem.title
+    return render(request, 'plog/open-graph-image.html', context)
+
+
 @csrf_exempt
 @login_required
 @require_POST
@@ -1020,6 +1077,11 @@ def add_file(request):
 @login_required
 def post_thumbnails(request, oid):
     blogitem = get_object_or_404(BlogItem, oid=oid)
+    images = _post_thumbnails(blogitem)
+    return http.JsonResponse({'images': images})
+
+
+def _post_thumbnails(blogitem):
     blogfiles = (
         BlogFile.objects
         .filter(blogitem=blogitem)
@@ -1039,6 +1101,7 @@ def post_thumbnails(request, oid):
         delete_url = reverse('delete_post_thumbnail', args=(blogfile.pk,))
         image = {
             'full_url': full_url,
+            'full_size': full_im.size,
             'delete_url': delete_url,
         }
         formats = (
@@ -1060,7 +1123,7 @@ def post_thumbnails(request, oid):
                 'height': im.height,
             }
         images.append(image)
-    return http.JsonResponse({'images': images})
+    return images
 
 
 @login_required
