@@ -985,7 +985,10 @@ def preview_post(request):
         pk__in=form.cleaned_data['categories']
     )
     template = get_template("plog/_post.html")
-    context = Context({'post': post})
+    context = Context({
+        'post': post,
+        'request': request,
+    })
     return http.HttpResponse(template.render(context))
 
 
