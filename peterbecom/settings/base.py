@@ -201,6 +201,7 @@ INSTALLED_APPS = (
     'peterbecom.cdnthis',
     'peterbecom.podcasttime',
     'peterbecom.awspa',
+    'peterbecom.minimalcss',
     'fancy_cache',
     'pipeline',
     'django_jinja',

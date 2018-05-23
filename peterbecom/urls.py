@@ -63,6 +63,10 @@ urlpatterns += [
         lambda x: http.HttpResponseRedirect('/plog/')
     ),
     url(
+        r'^minimalcss/',
+        include('peterbecom.minimalcss.urls')
+    ),
+    url(
         r'',
         include('peterbecom.homepage.urls')
     ),
