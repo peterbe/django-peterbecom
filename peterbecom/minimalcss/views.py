@@ -59,6 +59,11 @@ def minimize(request):
         json={'url': url},
     )
     if r.status_code != 200:
+        try:
+            error = r.json()['error']
+        except Exception:
+            error = None
+        t1 = time.time()
         print(
             "WARNING! "
             "{} status code trying to minimize {}".format(
@@ -66,19 +71,28 @@ def minimize(request):
                 url
             )
         )
-        return http.JsonResponse({
+
+        error = {
             'status_code': r.status_code,
-        }, status_code=500)
+            'error': error,
+        }
+        Minimization.objects.create(
+            url=url,
+            time_took=t1 - t0,
+            error=error,
+        )
 
-    result = r.json()['result']
-    t1 = time.time()
+        response = http.JsonResponse(error)
+    else:
+        result = r.json()['result']
+        t1 = time.time()
 
-    Minimization.objects.create(
-        url=url,
-        time_took=t1 - t0,
-        result=result,
-    )
+        Minimization.objects.create(
+            url=url,
+            time_took=t1 - t0,
+            result=result,
+        )
+        response = http.JsonResponse({'result': result})
 
-    response = http.JsonResponse({'result': result})
     response['Access-Control-Allow-Origin'] = '*'
     return response
