@@ -5,6 +5,8 @@ PIPELINE_CSS = {
             'css/highlight.css',
             'css/peterbe.css',
             'css/plog-awspa.css',
+            'css/carbon-ads.css',
+            'css/carbon-campaign.css',
             'autocompeter/autocompeter.min.css',
         ),
         'output_filename': 'css/base.min.css',
