@@ -243,6 +243,12 @@ def _render_blog_post(request, oid, screenshot_mode=False):
     else:
         context['screenshot_image'] = None
 
+    # Cheat a little and make the open graph image absolute if need be.
+    if post.open_graph_image and '://' not in post.open_graph_image:
+        post.open_graph_image = request.build_absolute_uri(
+            post.open_graph_image
+        )
+
     comments = (
         BlogComment.objects
         .filter(blogitem=post)
