@@ -45,8 +45,13 @@ def minimize(request):
     if not url:
         return http.HttpResponseBadRequest('No url')
     parsed = urlparse(url)
+
     if not (parsed.scheme and parsed.netloc and parsed.path):
-        return http.HttpResponseBadRequest('Not a valid URL')
+        return http.HttpResponseBadRequest(
+            'url={!r} parsed={}'.format(
+                url, parsed
+            )
+        )
 
     t0 = time.time()
     r = requests.post(
