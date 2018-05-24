@@ -104,7 +104,7 @@ class BlogItem(models.Model):
                     self.text,
                     self.codesyntax
                 )
-            self.text_rendered = utils.cache_prefix_files(self.text_rendered)
+            # self.text_rendered = utils.cache_prefix_files(self.text_rendered)
             self.save()
         return self.text_rendered
 

@@ -1,10 +1,8 @@
-import re
 import datetime
 from urllib.parse import urlparse
 
 from django.contrib.auth.models import User
 from django.urls import reverse
-from django.conf import settings
 from django.test import TestCase, Client
 
 from peterbecom.plog.models import (
@@ -126,43 +124,6 @@ class PlogTestCase(TestCase):
         response = anonymous.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTrue('COMMENTX' in str(response.content))
-
-    def test_text_rendering_with_images(self):
-        blog = BlogItem.objects.create(
-            oid='myoid',
-            title='TITLEX',
-            text="""
-            "image.png":/plog/myoid/image.png
-            and *this*
-            """,
-            display_format='structuredtext',
-            pub_date=utc_now() - datetime.timedelta(seconds=10),
-        )
-        url = reverse('blog_post', args=[blog.oid])
-        response = self.client.get(url)
-        content = response.content.decode('utf-8')
-        self.assertTrue('<em>this</em>' in content)
-        regex_str = (
-            '/CONTENTCACHE-\d+%s' % (re.escape('/plog/myoid/image.png'),)
-        )
-        self.assertTrue(re.findall(regex_str, content))
-
-        old = settings.STATIC_URL
-        settings.STATIC_URL = '//some.cdn.com/'
-        try:
-            blog.text_rendered = ''
-            blog.save()
-            response = self.client.get(url)
-            content = response.content.decode('utf-8')
-            regex_str = (
-                '%sCONTENTCACHE-\d+%s' % (
-                    settings.STATIC_URL,
-                    re.escape('/plog/myoid/image.png')
-                )
-            )
-            self.assertTrue(re.findall(regex_str, content))
-        finally:
-            settings.STATIC_URL = old
 
     def test_preview_post(self):
         cat = Category.objects.create(name="MyCategory")
