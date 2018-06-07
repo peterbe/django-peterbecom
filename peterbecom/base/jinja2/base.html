@@ -27,7 +27,7 @@
   </style>
   {% endif %}
 
-  {% if not DEBUG and request.path != '/plog/blogitem-040601-1' %}
+  {% if not DEBUG and request.path != '/plog/blogitem-040601-1' and ENABLE_CLIENT_SIDE_ROLLBAR %}
 <script>
 var _rollbarConfig = {
     accessToken: "af619cf784e54953b04ceeb7006c6c1e",

@@ -369,3 +369,5 @@ PNGQUANT_PATH = 'pngquant'
 LOGIN_URL = '/signin/'
 
 MINIMALCSS_SERVER_URL = 'http://localhost:5000'
+
+ENABLE_CLIENT_SIDE_ROLLBAR = False
