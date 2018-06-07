@@ -26,8 +26,8 @@ PIPELINE_JS = {
     'base': {
         'source_filenames': (
             'libs/jquery-3.3.1.min.js',
-            'js/transition.js',
-            'js/dropdown.js',
+            # 'js/transition.js',
+            # 'js/dropdown.js',
             'js/prefetcher.js',
             'js/site.js',
             'js/blogitem.js',
