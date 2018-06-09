@@ -1,7 +1,32 @@
 PIPELINE_CSS = {
     'base': {
         'source_filenames': (
-            'css/semantic.css',
+            # 'css/semantic.css',
+            'css/semantic/reset.css',
+            'css/semantic/site.css',
+            'css/semantic/button.css',
+            'css/semantic/container.css',
+            'css/semantic/divider.css',
+            'css/semantic/header.css',
+            # 'css/semantic/icon.css',
+            # 'css/semantic/image.css',
+            'css/semantic/input.css',
+            'css/semantic/label.css',
+            'css/semantic/list.css',
+            'css/semantic/loader.css',
+            'css/semantic/segment.css',
+            # 'css/semantic/breadcrumb.css',
+            'css/semantic/form.css',
+            'css/semantic/grid.css',
+            'css/semantic/menu.css',
+            'css/semantic/message.css',
+            'css/semantic/table.css',
+            'css/semantic/item.css',
+            'css/semantic/comment.css',
+            'css/semantic/dimmer.css',
+            'css/semantic/dropdown.css',
+            'css/semantic/search.css',
+
             'css/highlight.css',
             'css/peterbe.css',
             'css/plog-awspa.css',
@@ -13,7 +38,7 @@ PIPELINE_CSS = {
     },
     'homepage:search': {
         'source_filenames': (
-            'css/label.css',
+            # 'css/label.css',
             'css/peterbe-search.css',
         ),
         'output_filename': 'css/search.min.css',
