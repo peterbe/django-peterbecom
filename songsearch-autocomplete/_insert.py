@@ -4,7 +4,7 @@ from glob import glob
 import os
 import re
 
-CDN = os.environ.get('CDN', 'https://cdn-2916.kxcdn.com')
+CDN = os.environ.get('CDN', '')
 
 BLOCK = """
 <style type="text/css">{csspayload}</style>
