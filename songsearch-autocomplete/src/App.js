@@ -54,15 +54,19 @@ class App extends React.Component {
       autocompleteHighlight: -1,
       showAutocompleteSuggestions: true,
       redirectingSearch: false,
-      searchMaxLength: null,
+      searchMaxLength: null
     };
 
     this.fetchAutocompleteSuggestionsDebounced = debounce(
-      500,
+      800,
+      this.fetchAutocompleteSuggestions
+    );
+    this.fetchAutocompleteSuggestionsDebouncedLong = debounce(
+      1800,
       this.fetchAutocompleteSuggestions
     );
     this.fetchAutocompleteSuggestionsThrottled = throttle(
-      1000,
+      1100,
       this.fetchAutocompleteSuggestions
     );
 
@@ -99,7 +103,7 @@ class App extends React.Component {
         redirectingSearch: true,
         autocompleteSuggestions: null,
         autocompleteHighlight: -1,
-        showAutocompleteSuggestions: true,
+        showAutocompleteSuggestions: true
       },
       () => {
         setTimeout(() => {
@@ -116,7 +120,7 @@ class App extends React.Component {
     if (!this.state.showAutocompleteSuggestions) {
       this.setState({
         showAutocompleteSuggestions: true,
-        redirectingSearch: false,
+        redirectingSearch: false
       });
     }
   };
@@ -124,7 +128,7 @@ class App extends React.Component {
   onBlurSearch = event => {
     setTimeout(() => {
       this.setState({
-        showAutocompleteSuggestions: false,
+        showAutocompleteSuggestions: false
       });
     }, 300);
   };
@@ -139,12 +143,12 @@ class App extends React.Component {
       if (length > this.refs.q.maxLength - 10) {
         this.setState({
           searchMaxLength: [length, this.refs.q.maxLength],
-          showAutocompleteSuggestions: false,
+          showAutocompleteSuggestions: false
         });
       } else if (this.state.searchMaxLength) {
         this.setState({
           searchMaxLength: null,
-          showAutocompleteSuggestions: true,
+          showAutocompleteSuggestions: true
         });
       }
 
@@ -155,9 +159,12 @@ class App extends React.Component {
             return;
           }
         }
-        if (length < 6 || q.endsWith(' ')) {
+        if ((length < 4 || q.endsWith(' ')) && length < 24) {
           // The impatient one.
           this.fetchAutocompleteSuggestionsThrottled(q);
+        } else if (length > 24) {
+          // The patient one.
+          this.fetchAutocompleteSuggestionsDebouncedLong(q);
         } else if (length) {
           // The patient one.
           this.fetchAutocompleteSuggestionsDebounced(q);
@@ -167,7 +174,7 @@ class App extends React.Component {
             autocompleteSearchSuggestions: null,
             autocompleteHighlight: -1,
             showAutocompleteSuggestions: true,
-            redirectingSearch: false,
+            redirectingSearch: false
           });
         }
       } else {
@@ -176,7 +183,7 @@ class App extends React.Component {
           autocompleteSearchSuggestions: null,
           autocompleteHighlight: -1,
           showAutocompleteSuggestions: true,
-          redirectingSearch: false,
+          redirectingSearch: false
         });
       }
     });
@@ -190,7 +197,7 @@ class App extends React.Component {
         this.setState({
           autocompleteSuggestions: results.matches,
           autocompleteSearchSuggestions: results.search_suggestions,
-          autocompleteHighlight: -1,
+          autocompleteHighlight: -1
         });
       });
     }
@@ -204,7 +211,7 @@ class App extends React.Component {
               this.setState({
                 autocompleteSuggestions: results.matches,
                 autocompleteSearchSuggestions: results.search_suggestions,
-                autocompleteHighlight: -1,
+                autocompleteHighlight: -1
               });
             });
           }
@@ -228,11 +235,11 @@ class App extends React.Component {
           this.setState({
             q: appendSuggestion(this.state.q, suggestion.text) + ' ',
             autocompleteSuggestions: null,
-            autocompleteHighlight: -1,
+            autocompleteHighlight: -1
           });
         } else {
           this.setState({
-            q: suggestion.text + ' ',
+            q: suggestion.text + ' '
           });
           this.fetchAutocompleteSuggestions(suggestion.text);
         }
@@ -255,7 +262,7 @@ class App extends React.Component {
               {
                 redirectingSearch: true,
                 autocompleteSuggestions: null,
-                autocompleteHighlight: -1,
+                autocompleteHighlight: -1
               },
               () => {
                 setTimeout(() => {
@@ -275,7 +282,7 @@ class App extends React.Component {
               {
                 q: suggestions[highlight].text,
                 autocompleteSuggestions: null,
-                autocompleteHighlight: -1,
+                autocompleteHighlight: -1
               },
               () => this._submit(this.state.q)
             );
@@ -292,7 +299,7 @@ class App extends React.Component {
         {
           redirectingSearch: true,
           autocompleteSuggestions: null,
-          autocompleteHighlight: -1,
+          autocompleteHighlight: -1
         },
         () => {
           document.location.href = absolutifyUrl(suggestion._url);
@@ -308,7 +315,7 @@ class App extends React.Component {
       {
         q: newText,
         autocompleteSuggestions: null,
-        autocompleteHighlight: -1,
+        autocompleteHighlight: -1
       },
       () => {
         this._submit(suggestion.text, 'clicked');
@@ -414,7 +421,7 @@ class ShowAutocompleteSuggestions extends React.PureComponent {
       suggestions,
       searchSuggestions,
       onSelectSuggestion,
-      onSelectSuggestionAll,
+      onSelectSuggestionAll
     } = this.props;
     if (!suggestions.length) {
       return null;
