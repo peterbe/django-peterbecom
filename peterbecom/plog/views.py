@@ -494,6 +494,32 @@ def submit_json(request, oid):
     return response
 
 
+@require_POST
+@login_required
+def approve_delete_blog_post_comments(request, action):
+    assert action in ('approve', 'delete'), action
+    blogcomments = []
+    for id in request.POST['ids'].split(','):
+        blogcomments.append(
+            get_object_or_404(BlogComment, id=id)
+        )
+    approved = []
+    deleted = []
+    for blogcomment in blogcomments:
+        if action == 'approve':
+            _approve_comment(blogcomment)
+            approved.append(blogcomment.id)
+        elif action == 'delete':
+            deleted.append(blogcomment.id)
+            blogcomment.delete()
+
+    response = http.JsonResponse({
+        'approved': approved,
+        'delete': deleted,
+    })
+    return response
+
+
 @login_required
 def approve_comment(request, oid, comment_oid):
     try:
