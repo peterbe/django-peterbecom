@@ -1,41 +1,87 @@
 import React from 'react';
 import { observer } from 'mobx-react';
-import { Header } from 'semantic-ui-react';
-// import { Link } from 'react-router-dom';
 import {
   Button,
-  Dimmer,
+  Message,
   Container,
   Loader,
   Input,
   Form,
   Checkbox,
   TextArea,
-  Select,
+  Select
 } from 'semantic-ui-react';
-// import { DisplayDate } from './Common';
+import { DisplayDate, Breadcrumbs } from './Common';
 import store from './Store';
 
 export default observer(
   class EditDashboard extends React.Component {
+    state = {};
     componentDidMount() {
-      store.fetchBlogitem(this.props.match.params.id);
-      store.fetchAllCategories();
+      document.title = 'Edit blog post';
     }
+
+    componentDidUpdate() {
+      if (store.user.accessToken) {
+        if (!store.blogitems.blogitem) {
+          store.blogitems.fetchBlogitem(
+            this.props.match.params.id,
+            store.user.accessToken
+          );
+          store.blogitems.fetchAllCategories(store.user.accessToken);
+        }
+      }
+    }
+
     render() {
+      // Using store.user.accessToken forces mobx to re-render which
+      // will trigger componentDidUpdate()
+      if (!store.user.accessToken) {
+        return null;
+      }
       return (
         <Container>
-          <Header as="h1">Edit</Header>
-          {!store.blogitem ? (
-            <Dimmer active inverted>
-              <Loader size="massive">Loading</Loader>
-            </Dimmer>
-          ) : (
+          <Breadcrumbs
+            tos={[{ to: '/blogitems', name: 'Blogitems' }]}
+            active="Edit Blog Post"
+          />
+
+          {store.blogitems.serverError ? (
+            <Message negative>
+              <Message.Header>Server Error</Message.Header>
+              <p>
+                <code>{store.blogitems.serverError}</code>
+              </p>
+            </Message>
+          ) : null}
+
+          {store.blogitems.updated ? (
+            <Message
+              positive
+              onDismiss={() => {
+                store.blogitems.setUpdated(null);
+              }}
+            >
+              <Message.Header>Updated</Message.Header>
+              <p>
+                <b>
+                  <DisplayDate date={store.blogitems.updated} />
+                </b>
+              </p>
+            </Message>
+          ) : null}
+
+          {!store.blogitems.loaded ? <Loader active inline="centered" /> : null}
+
+          {store.blogitems.loaded &&
+          !store.blogitems.serverError &&
+          store.blogitems.blogitem ? (
             <EditForm
-              blogitem={store.blogitem}
-              allCategories={store.allCategories}
+              blogitem={store.blogitems.blogitem}
+              allCategories={store.blogitems.allCategories}
+              accessToken={store.user.accessToken}
             />
-          )}
+          ) : null}
         </Container>
       );
     }
@@ -45,10 +91,13 @@ export default observer(
 class EditForm extends React.PureComponent {
   state = {
     hideLabels: JSON.parse(localStorage.getItem('hideLabels') || 'false'),
+    showUnimportantFields: false,
+    saving: false
   };
 
   submitForm = event => {
     event.preventDefault();
+    const { blogitem } = this.props;
     const data = {};
     const simpleKeys = ['oid', 'title', 'url', 'pub_date'];
     simpleKeys.forEach(key => {
@@ -60,31 +109,51 @@ class EditForm extends React.PureComponent {
     if (this.categories) {
       data.categories = this.categories;
     } else {
-      data.categories = this.props.blogitem.categories.map(c => c.id);
+      data.categories = blogitem.categories.map(c => c.id);
     }
     data.keywords = this.refs.keywords.ref.value.trim().split(/\s*[\r\n]+\s*/g);
-    console.log('DATA', data);
+    data.display_format = this.displayFormat
+      ? this.displayFormat.value
+      : blogitem.display_format;
+    data.codesyntax = this.codesyntax
+      ? this.codesyntax.value
+      : blogitem.codesyntax;
+    data.disallow_comments = this.disallowComments
+      ? this.disallowComments.checked
+      : blogitem.disallow_comments;
+    data.hide_comments = this.hideComments
+      ? this.hideComments.checked
+      : blogitem.hide_comments;
+
+    store.blogitems.setUpdated(null);
+    store.blogitems.updateBlogitem(blogitem.id, data, this.props.accessToken);
   };
   render() {
     const { blogitem, allCategories } = this.props;
-    const hideLabels = this.state.hideLabels;
+    const { hideLabels, showUnimportantFields } = this.state;
 
     const categoryOptions = allCategories.map(cat => ({
       key: cat.id,
       text: `${cat.name} (${cat.count})`,
       name: cat.name,
-      value: cat.id,
+      value: cat.id
     }));
     // console.log('blogitem.keywords', blogitem.keywords.length);
     const keywords = blogitem.keywords.map(keyword => keyword);
     // console.log('keywords', keywords);
     const categories = blogitem.categories.map(category => category.id);
+    const displayFormat = blogitem.display_format;
+    const displayFormatOptions = ['markdown', 'structuredtext'].map(o => {
+      return { key: o, text: o, name: o, value: o };
+    });
     return (
       <Form onSubmit={this.submitForm}>
         <p style={{ textAlign: 'right' }}>
           <Button
-            size="tiny"
+            size="mini"
+            secondary={!this.state.hideLabels}
             onClick={event => {
+              event.preventDefault();
               this.setState({ hideLabels: !this.state.hideLabels }, () => {
                 localStorage.setItem(
                   'hideLabels',
@@ -94,6 +163,18 @@ class EditForm extends React.PureComponent {
             }}
           >
             {hideLabels ? 'Show labels' : 'Hide labels'}
+          </Button>
+          <Button
+            size="mini"
+            secondary={showUnimportantFields}
+            onClick={event => {
+              event.preventDefault();
+              this.setState({
+                showUnimportantFields: !showUnimportantFields
+              });
+            }}
+          >
+            {showUnimportantFields ? 'Hide some fields' : 'Show all fields'}
           </Button>
         </p>
         <Form.Field>
@@ -161,10 +242,73 @@ class EditForm extends React.PureComponent {
             defaultValue={keywords.join('\n')}
           />
         </Form.Field>
-        <Form.Field>
-          <Checkbox label="I agree to the Terms and Conditions" />
-        </Form.Field>
-        <Button type="submit">Save Changes</Button>
+        {showUnimportantFields ? (
+          <Form.Field>
+            {!hideLabels ? <label>Display Format</label> : null}
+            <Select
+              options={displayFormatOptions}
+              selection
+              onChange={(event, data) => {
+                this.displayFormat = data;
+                // console.log('DATA:', data);
+              }}
+              renderLabel={item => item.name}
+              defaultValue={displayFormat}
+            />
+          </Form.Field>
+        ) : null}
+        {showUnimportantFields ? (
+          <Form.Field>
+            {!hideLabels ? <label>Code Syntax</label> : null}
+            <Input
+              placeholder="Code Syntax"
+              onChange={(event, data) => {
+                this.codesyntax = data;
+              }}
+              defaultValue={blogitem.codesyntax}
+            />
+          </Form.Field>
+        ) : null}
+        {showUnimportantFields ? (
+          <Form.Field>
+            <Checkbox
+              label="Disallow comments"
+              ref="disallow_comments"
+              onChange={(event, data) => {
+                this.disallowComments = data;
+              }}
+              defaultChecked={!!blogitem.disallow_comments}
+            />
+          </Form.Field>
+        ) : null}
+        {showUnimportantFields ? (
+          <Form.Field>
+            <Checkbox
+              label="Hide comments"
+              ref="hide_comments"
+              onChange={(event, data) => {
+                this.hideComments = data;
+              }}
+              defaultChecked={!!blogitem.hide_comments}
+            />
+          </Form.Field>
+        ) : null}
+        <Button
+          type="submit"
+          primary={true}
+          loading={this.state.saving}
+          onClick={() => {
+            this.setState({ saving: true }, () => {
+              window.setTimeout(() => {
+                if (!this.dismounted) {
+                  this.setState({ saving: false });
+                }
+              }, 2000);
+            });
+          }}
+        >
+          Save Changes
+        </Button>
       </Form>
     );
   }

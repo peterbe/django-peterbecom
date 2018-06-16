@@ -194,6 +194,7 @@ INSTALLED_APPS = (
     "peterbecom.podcasttime",
     "peterbecom.awspa",
     "peterbecom.minimalcss",
+    'peterbecom.api',
     'peterbecom.plogadmin',
     "peterbecom.bayes",
     "fancy_cache",

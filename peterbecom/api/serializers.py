@@ -63,25 +63,34 @@ class CategorySerializer(serializers.Serializer):
 
 
 class BlogitemSerializer(serializers.HyperlinkedModelSerializer):
-    # categories = CategoriesField(source='*')
     _url = serializers.HyperlinkedIdentityField(
         view_name='api:blogitem-detail',
         lookup_field='pk'
     )
-    categories = SimpleCategorySerializer(many=True)
+    categories = SimpleCategorySerializer(many=True, read_only=True)
     keywords = serializers.ListSerializer(
         source='proper_keywords',
-        child=serializers.CharField(min_length=200)
+        child=serializers.CharField(max_length=200),
+        read_only=True,
     )
 
     def __init__(self, *args, **kwargs):
         super(BlogitemSerializer, self).__init__(*args, **kwargs)
         if isinstance(self.instance, BlogItem):
-            # Detail !
+            # Individual blogitem endpoint!
             pass
         else:
             self.fields.pop('text')
             self.fields.pop('text_rendered')
+
+        optionals = (
+            'url',
+            'summary',
+            'codesyntax',
+        )
+        for key in optionals:
+            self.fields[key].required = False
+            self.fields[key].allow_blank = True
 
     class Meta:
         model = BlogItem

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "auth0-js": "9.6.1",
     "date-fns": "2.0.0-alpha.7",
     "mobx": "5.0.2",
     "mobx-react": "5.2.3",

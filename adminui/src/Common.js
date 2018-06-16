@@ -1,13 +1,6 @@
 import React from 'react';
-
-import {
-  toDate,
-  isBefore,
-  formatDistance,
-  // formatDistanceStrict,
-  // differenceInSeconds,
-  // differenceInMilliseconds,
-} from 'date-fns/esm';
+import { Link } from 'react-router-dom';
+import { toDate, isBefore, formatDistance } from 'date-fns/esm';
 
 export const DisplayDate = ({ date }) => {
   if (date === null) {
@@ -20,4 +13,26 @@ export const DisplayDate = ({ date }) => {
   } else {
     return <span title={date}>in {formatDistance(date, now)}</span>;
   }
+};
+
+export const Breadcrumbs = ({ active, tos = [] }) => {
+  return (
+    <div className="ui breadcrumb">
+      <Link to="/" className="section">
+        Home
+      </Link>
+      <span className="divider">/</span>
+      {tos.map(each => {
+        return [
+          <Link key={each.to} to={each.to}>
+            {each.name}
+          </Link>,
+          <span key={each.to + 'divider'} className="divider">
+            /
+          </span>
+        ];
+      })}
+      <div className="active section">{active}</div>
+    </div>
+  );
 };

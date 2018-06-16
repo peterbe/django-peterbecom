@@ -4,6 +4,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from django.utils import timezone
 from django.db.models import Count, Max
+from django.shortcuts import get_object_or_404
 from peterbecom.plog.models import BlogItem, Category
 
 from . import serializers
@@ -109,6 +110,38 @@ class BlogitemViewSet(viewsets.ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         response = super().retrieve(request, *args, **kwargs)
+        response.data = {
+            'blogitem': response.data,
+        }
+        return response
+
+    def update(self, request, pk=None):
+        categories = [
+            get_object_or_404(Category, id=x)
+            for x in request.data['categories']
+        ]
+        # This is necessary so that you can send in a list of IDs
+        # without the validation failing.
+        request.data['categories'] = [
+            {'id': category.id, 'name': category.name}
+            for category in categories
+        ]
+        # self.fields['categories'].read_only=True
+        response = super().update(request, pk=pk)
+
+        # Manually update the read_only fields
+        instance = self.get_object()
+
+        existing = list(instance.categories.all())
+        for category in set(categories) - set(existing):
+            instance.categories.add(category)
+        for category in set(existing) - set(categories):
+            instance.categories.remove(category)
+
+        keywords = [x.strip() for x in request.data['keywords'] if x.strip()]
+        if instance.proper_keywords != keywords:
+            instance.proper_keywords = keywords
+            instance.save()
         response.data = {
             'blogitem': response.data,
         }
