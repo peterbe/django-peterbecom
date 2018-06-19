@@ -267,7 +267,14 @@ PIPELINE = {
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',  # noqa
     'PAGE_SIZE': 500,
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'peterbecom.api.authentication.BearerTokenAuthentication',
+        # 'rest_framework.authentication.BasicAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication',
+    )
 }
+
+OIDC_USER_ENDPOINT = 'https://peterbecom.auth0.com/userinfo'
 
 # REDIS_URL = 'redis://redis:6379/0'
 REDIS_URL = config("REDIS_URL", "redis://localhost:6379/0")

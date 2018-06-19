@@ -172,17 +172,18 @@ class BlogitemStore {
       },
       blogitem: null,
       fetchBlogitem: async (id, accessToken) => {
-        if (!accessToken) {
-          throw new Error('No accessToken');
-        }
+        // if (!accessToken) {
+        //   throw new Error('No accessToken');
+        // }
         const response = await fetch(`/api/v1/blogitems/${id}/`, {
           headers: {
-            Authorization: `Bearer ${accessToken}`
+            // Authorization: `Bearer ${accessToken}`
           }
         });
         if (response.ok) {
           const data = await response.json();
           runInAction(() => {
+            // console.log('fetched', data.blogitem.title);
             this.blogitem = data.blogitem;
             this.serverError = null;
             this.loaded = true;

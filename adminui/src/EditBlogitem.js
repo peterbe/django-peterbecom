@@ -16,29 +16,72 @@ import store from './Store';
 
 export default observer(
   class EditDashboard extends React.Component {
-    state = {};
+    // state = {
+    //   id: null
+    // };
     componentDidMount() {
       document.title = 'Edit blog post';
-    }
 
-    componentDidUpdate() {
-      if (store.user.accessToken) {
-        if (!store.blogitems.blogitem) {
-          store.blogitems.fetchBlogitem(
-            this.props.match.params.id,
-            store.user.accessToken
-          );
-          store.blogitems.fetchAllCategories(store.user.accessToken);
-        }
+      if (store.blogitems.updated) {
+        store.blogitems.setUpdated(null);
+      }
+      // console.log('MOUNT', this.props.match.params.id);
+      store.blogitems.fetchBlogitem(this.props.match.params.id);
+      if (!store.blogitems.allCategories.size) {
+        store.blogitems.fetchAllCategories(store.user.accessToken);
       }
     }
+
+    // static getDerivedStateFromProps(props, state) {
+    //   console.log('DERIVED', props);
+    //   console.log('COMPARE', props.match.params.id, state.id);
+    //   if (props.match.params.id !== state.id) {
+    //     store.blogitems.fetchBlogitem(
+    //       props.match.params.id,
+    //       store.user.accessToken
+    //     );
+    //     store.blogitems.fetchAllCategories(store.user.accessToken);
+    //     return { state: props.match.params.id };
+    //   }
+    //   return null;
+    // }
+
+    // componentDidUpdate(prevProps) {
+    //   console.log(
+    //     'prevProps',
+    //     prevProps.match.params.id,
+    //     'Current',
+    //     this.props.match.params.id
+    //   );
+    //   //   if (store.user.accessToken) {
+    //   //     if (!store.blogitems.blogitem) {
+    //   //       store.blogitems.fetchBlogitem(
+    //   //         this.props.match.params.id,
+    //   //         store.user.accessToken
+    //   //       );
+    //   //       store.blogitems.fetchAllCategories(store.user.accessToken);
+    //   //     }
+    //   //   }
+    // }
 
     render() {
       // Using store.user.accessToken forces mobx to re-render which
       // will trigger componentDidUpdate()
-      if (!store.user.accessToken) {
+      // if (!store.user.accessToken) {
+      //   return null;
+      // }
+      // console.log('RENDER ID', this.props.match.params.id);
+      // store.blogitems.fetchBlogitem(
+      //   this.props.match.params.id,
+      //   store.user.accessToken
+      // );
+      // store.blogitems.fetchAllCategories(store.user.accessToken);
+
+      // console.log('RENDER ID', this.props.match.params.id);
+      if (!store.blogitems.blogitem) {
         return null;
       }
+      // console.log('RENDER', store.blogitems.blogitem.title);
       return (
         <Container>
           <Breadcrumbs
@@ -73,9 +116,7 @@ export default observer(
 
           {!store.blogitems.loaded ? <Loader active inline="centered" /> : null}
 
-          {store.blogitems.loaded &&
-          !store.blogitems.serverError &&
-          store.blogitems.blogitem ? (
+          {store.blogitems.loaded && !store.blogitems.serverError ? (
             <EditForm
               blogitem={store.blogitems.blogitem}
               allCategories={store.blogitems.allCategories}
@@ -95,10 +136,34 @@ class EditForm extends React.PureComponent {
     saving: false
   };
 
+  componentDidMount() {
+    this.setRefs(this.props.blogitem);
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.blogitem !== this.props.blogitem) {
+      this.setRefs(this.props.blogitem);
+    }
+  }
+  setRefs = blogitem => {
+    console.log('setRefs', blogitem.title);
+    const simpleKeys = ['oid', 'title', 'url', 'pub_date'];
+    simpleKeys.forEach(key => {
+      this.refs[key].inputRef.value = blogitem[key];
+    });
+    this.refs.text.ref.value = blogitem.text;
+    this.refs.summary.ref.value = blogitem.summary;
+    const categories = blogitem.categories.map(category => category.id);
+    this.categories = categories;
+    this.refs.keywords.ref.value = blogitem.keywords.join('\n');
+  };
+
   submitForm = event => {
     event.preventDefault();
     const { blogitem } = this.props;
     const data = {};
+    // data.title = this.state.title;
+    // const simpleKeys = ['oid', 'title', 'url', 'pub_date'];
     const simpleKeys = ['oid', 'title', 'url', 'pub_date'];
     simpleKeys.forEach(key => {
       data[key] = this.refs[key].inputRef.value;
@@ -129,6 +194,7 @@ class EditForm extends React.PureComponent {
     store.blogitems.updateBlogitem(blogitem.id, data, this.props.accessToken);
   };
   render() {
+    // console.log('RENDER EditForm', this.props.blogitem.title);
     const { blogitem, allCategories } = this.props;
     const { hideLabels, showUnimportantFields } = this.state;
 
@@ -141,13 +207,15 @@ class EditForm extends React.PureComponent {
     // console.log('blogitem.keywords', blogitem.keywords.length);
     const keywords = blogitem.keywords.map(keyword => keyword);
     // console.log('keywords', keywords);
-    const categories = blogitem.categories.map(category => category.id);
+    // const categories = blogitem.categories.map(category => category.id);
+    this.categories = blogitem.categories.map(category => category.id);
     const displayFormat = blogitem.display_format;
     const displayFormatOptions = ['markdown', 'structuredtext'].map(o => {
       return { key: o, text: o, name: o, value: o };
     });
     return (
       <Form onSubmit={this.submitForm}>
+        <h3>{blogitem.title}</h3>
         <p style={{ textAlign: 'right' }}>
           <Button
             size="mini"
@@ -179,58 +247,45 @@ class EditForm extends React.PureComponent {
         </p>
         <Form.Field>
           {!hideLabels ? <label>OID</label> : null}
-          <Input ref="oid" defaultValue={blogitem.oid} />
+          <Input ref="oid" />
         </Form.Field>
         <Form.Field>
           {!hideLabels ? <label>Title</label> : null}
-          <Input ref="title" defaultValue={blogitem.title} />
+          <Input ref="title" />
         </Form.Field>
         <Form.Field>
           {!hideLabels ? <label>Text</label> : null}
           <TextArea
             ref="text"
             rows={25}
-            defaultValue={blogitem.text}
             style={{ overscrollBehaviorY: 'contain' }}
           />
         </Form.Field>
         <Form.Field>
           {!hideLabels ? <label>Summary</label> : null}
-          <TextArea
-            ref="summary"
-            placeholder="Summary"
-            rows={4}
-            defaultValue={blogitem.summary}
-          />
+          <TextArea ref="summary" rows={4} />
         </Form.Field>
         <Form.Field>
           {!hideLabels ? <label>URL</label> : null}
-          <Input
-            ref="url"
-            placeholder="URL"
-            defaultValue={blogitem.url || ''}
-          />
+          <Input ref="url" placeholder="URL" />
         </Form.Field>
         <Form.Field>
           {!hideLabels ? <label>Pub Date</label> : null}
-          <Input
-            ref="pub_date"
-            placeholder="Pub date"
-            defaultValue={blogitem.pub_date}
-          />
+          <Input ref="pub_date" placeholder="Pub date" />
         </Form.Field>
         <Form.Field>
           {!hideLabels ? <label>Categories</label> : null}
           <Select
+            value={this.categories}
             options={categoryOptions}
             selection
             multiple
             onChange={(event, data) => {
               this.categories = data.value;
-              // console.log('DATA:', data);
+              console.log('DATA:', data);
+              console.log('DATA.value:', data.value);
             }}
             renderLabel={item => item.name}
-            defaultValue={categories}
           />
         </Form.Field>
         <Form.Field>

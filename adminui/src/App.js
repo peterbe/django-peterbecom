@@ -195,7 +195,7 @@ export default observer(
               </Container>
             </Menu>
 
-            <Container style={{ marginTop: '7em' }}>
+            <Container style={{ marginTop: '5em' }}>
               <Switch>
                 <Route
                   path="/"
@@ -208,12 +208,19 @@ export default observer(
                 <Route path="/blogitems/:id" component={EditBlogitem} />
                 {/* <Route
                   path="/blogitems/:id"
-                  render={props => (
-                    <EditBlogitem
-                      {...props}
-                      accessToken={store.user.accessToken}
-                    />
-                  )}
+                  render={props => {
+                    if (
+                      !store.blogitems.blogitem ||
+                      store.blogitems.blogitem.id !== props.match.params.id
+                    ) {
+                      console.warn('FETCH', props.match.params.id);
+                    }
+                    return null;
+                    // <EditBlogitem
+                    //   {...props}
+                    //   accessToken={store.user.accessToken}
+                    // />
+                  }}
                 /> */}
                 {/* <Redirect from="/old-match" to="/will-match" /> */}
                 {/* <Route path="/will-match" component={WillMatch} /> */}

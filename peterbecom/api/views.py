@@ -2,6 +2,7 @@ import datetime
 
 from rest_framework import viewsets
 from rest_framework.response import Response
+from rest_framework.permissions import BasePermission
 from django.utils import timezone
 from django.db.models import Count, Max
 from django.shortcuts import get_object_or_404
@@ -65,9 +66,20 @@ class CategoryViewSet(viewsets.ViewSet):
             # return Response(serializer.data)
 
 
+class IsStaff(BasePermission):
+
+    def has_permission(self, request, view):
+        if request.method == 'GET':
+            return True
+        return (
+            request.user and request.user.is_authenticated and
+            request.user.is_staff
+        )
+
+
 class BlogitemViewSet(viewsets.ModelViewSet):
-    # queryset = BlogItem.objects.all().order_by('-pub_date')
     serializer_class = serializers.BlogitemSerializer
+    permission_classes = (IsStaff,)
 
     def get_queryset(self):
         qs = BlogItem.objects.all()

@@ -384,3 +384,5 @@ rollbar==0.14.1 \
 djangorestframework==3.8.2 \
     --hash=sha256:c375e4f95a3a64fccac412e36fb42ba36881e52313ec021ef410b40f67cddca4 \
     --hash=sha256:b6714c3e4b0f8d524f193c91ecf5f5450092c2145439ac2769711f7eba89a9d9
+backoff==1.5.0 \
+    --hash=sha256:c1402291d7faca70ac3f2f7241e8942eb527f94945c7b2293030cfb6ce5a7805
