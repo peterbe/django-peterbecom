@@ -91,7 +91,7 @@
   {% javascript 'plog:post' %}
   {% endif %}
 
-
+  {% if request.path != '/plog/blogitem-040601-1' %}
 <script>
 (function() {
   var attempts = 0;
@@ -127,6 +127,7 @@
   }
 })();
 </script>
+{% endif %}
 
 {% endblock %}
 
