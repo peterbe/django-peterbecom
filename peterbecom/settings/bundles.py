@@ -78,15 +78,15 @@ PIPELINE_JS = {
             'async': True,
         },
     },
-    'warmup_songsearch': {
-        'source_filenames': (
-            'plog/js/warmup-songsearch.js',
-        ),
-        'output_filename': 'js/warmup-songsearch.min.js',
-        'extra_context': {
-            'defer': True,
-        },
-    },
+    # 'warmup_songsearch': {
+    #     'source_filenames': (
+    #         'plog/js/warmup-songsearch.js',
+    #     ),
+    #     'output_filename': 'js/warmup-songsearch.min.js',
+    #     'extra_context': {
+    #         'defer': True,
+    #     },
+    # },
     'autocompeter': {
         'source_filenames': (
             'js/autocompeter.js',

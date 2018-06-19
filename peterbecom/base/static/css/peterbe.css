@@ -196,3 +196,9 @@ h4 {
   margin: 4em 0;
   padding: 2.5em 1.5em;
 }
+.ui.comments .comment > b {
+  margin-right: 0.5em;
+}
+.ui.comments .comment .metadata {
+  margin-left: 0;
+}

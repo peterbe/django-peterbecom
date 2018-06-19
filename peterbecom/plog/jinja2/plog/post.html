@@ -83,22 +83,15 @@
   <h4><a href="{{ post.url }}">{{ post.url }}</a></h4>
   {% endif %}
 
-  {#
-  {% if request.path != '/plog/blogitem-040601-1' %}
-  <div class="bsa-cpc"></div>
-  {% endif %}
-  #}
-
 {% endblock %}
 
 {% block extrajs %}
   {% if request.path == '/plog/blogitem-040601-1' %}
-  {% javascript 'warmup_songsearch' %}
   {% else %}
   {% javascript 'plog:post' %}
   {% endif %}
 
-{#<script src="https://m.servedby-buysellads.com/monetization.js" async></script>#}
+
 <script>
 (function() {
   var attempts = 0;
@@ -139,6 +132,7 @@
 
 {% block content %}
 
+<!-- request.path="{{request.path}}" -->
 {% if request.path != '/plog/blogitem-040601-1' %}
 <div class="bsa-cpc"></div>
 {% endif %}
