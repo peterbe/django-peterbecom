@@ -153,6 +153,9 @@ def find(request):
             results = []
 
         for result in results[:max_]:
+            if not result.get('feedUrl'):
+                print("Weird result", result)
+                continue
             try:
                 podcast = Podcast.objects.get(
                     url=result['feedUrl'],
