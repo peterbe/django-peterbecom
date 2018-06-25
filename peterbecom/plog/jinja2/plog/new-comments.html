@@ -20,9 +20,13 @@ div.comment {
   data-approve-all-url="{{ url("approve_delete_blog_post_comments", "approve") }}"
   data-delete-all-url="{{ url("approve_delete_blog_post_comments", "delete") }}"
   >
+
+  {% if request.user.is_superuser %}
   <button type="button" class="ui button primary approve-all-button">Approve All Selected</button>
   <button type="button" class="ui button yellow delete-all-button">Delete All Selected</button>
   <hr/>
+  {% endif %}
+
   {% for comment in comments %}
   <div class="comment">
     <blockquote>
@@ -43,9 +47,12 @@ div.comment {
     </blockquote>
   </div>
   {% endfor %}
+
+  {% if request.user.is_superuser %}
   <hr/>
   <button type="button" class="ui button primary approve-all-button">Approve All Selected</button>
   <button type="button" class="ui button yellow delete-all-button">Delete All Selected</button>
+  {% endif %}
 
 </div>
 
