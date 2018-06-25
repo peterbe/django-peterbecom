@@ -1,9 +1,8 @@
 import textwrap
 from django_jinja import library
 from django.template.loader import render_to_string
+from django.utils.timesince import timesince as django_timesince
 from peterbecom.plog.models import BlogItem
-from peterbecom.plog.timesince import smartertimesince
-from peterbecom.plog.utils import utc_now
 from django.conf import settings
 from django.template.loader import get_template
 from peterbecom.plog.models import BlogFile
@@ -41,10 +40,7 @@ def line_indent(text, indent=' ' * 4):
 
 @library.global_function
 def timesince(date):
-    if date.tzinfo:
-        return smartertimesince(date, utc_now())
-    else:
-        return smartertimesince(date)
+    return django_timesince(date)
 
 
 @library.global_function
