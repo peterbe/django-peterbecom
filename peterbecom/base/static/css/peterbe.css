@@ -193,6 +193,7 @@ h4 {
 
 /* For comments */
 .ui.comments {
+  /* Default from Semantic-ui is 650px */
   max-width: 750px;
 }
 .ui.message.comments-truncated {
