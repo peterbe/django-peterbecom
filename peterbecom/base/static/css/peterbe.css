@@ -192,6 +192,9 @@ h4 {
 }
 
 /* For comments */
+.ui.comments {
+  max-width: 750px;
+}
 .ui.message.comments-truncated {
   margin: 4em 0;
   padding: 2.5em 1.5em;
