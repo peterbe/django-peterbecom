@@ -296,14 +296,6 @@ form#comment .cancel a {
   margin: 5px;
 }
 
-.comments-truncated {
-  border: 6px solid #efefef;
-  padding: 20px;
-  margin: 20px;
-  text-align: center;
-  font-size: 120%;
-}
-
 dd small {
   color: rgb(153, 153, 153);
 }

@@ -33,6 +33,11 @@
   {% endif %}
 
   <style>
+  span.not-approved {
+    font-size:90%;
+    color:red;
+    padding-left:10px;
+  }
   .ui.comments .comment .metadata {
     display: inline-block;
     margin-left: 0.5em;
@@ -185,30 +190,20 @@
     {% endif %}
   {% else %}
     <div id="comments-outer" class="ui comments">
-      {{ show_comments(post, user.is_staff, all_initial_comments, not post.disallow_comments)|safe }}
-      {#
+      {% if request.path != '/plog/blogitem-040601-1' %}
       {% if comments_truncated %}
-      <div class="ui message floating warning comments-truncated">
-        <div class="header">
-          Comments truncated
-        </div>
+      <div class="ui message compact comments-truncated">
         <p>
-          Only showing the first {{ comments_truncated }} and the last {{ comments_recent_count }} comments
+          Only showing the {{ comments_truncated }} most recent comments.
           ({{ thousands(count_comments) }} in total).
-          <br>
-          <button class="ui button fluid">Load them all!</button>
+          <button class="mini ui button">Load them all</button>
         </p>
       </div>
       {% endif %}
-      #}
-
-      {#
-      {% if comments_truncated and all_recent_comments %}
-      <h4>More Recent Comments...</h4>
       {% endif %}
-      #}
 
-      {{ show_comments(post, user.is_staff, all_recent_comments, not post.disallow_comments)|safe }}
+      {% include "plog/_all_comments.html" %}
+
     </div>
 
   {% endif %}
