@@ -11,13 +11,17 @@
     {% endif %}
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ post.title }}">
+    {% if post.summary %}
     <meta name="twitter:description" content="{{ post.summary }}">
+    {% endif %}
     <meta name="twitter:creator" content="@peterbe">
 
     <meta property="og:url" content="{{ post._absolute_url }}">
     <meta property="og:type" content="article">
     <meta property="og:title" content="{{ post.title }}">
+    {% if post.summary %}
     <meta property="og:description" content="{{ post.summary }}" />
+    {% endif %}
 
     {% if screenshot_image %}
     <meta name="twitter:image" content="{{ screenshot_image }}">
@@ -29,12 +33,6 @@
   {% endif %}
 
   <style>
-  span.not-approved {
-    float:right;
-    font-size:90%;
-    color:red;
-    padding-left:10px;
-  }
   .ui.comments .comment .metadata {
     display: inline-block;
     margin-left: 0.5em;
@@ -79,7 +77,7 @@
   </p>
   {% endif %}
 
-  {% if post.url %}
+  {% if post.url and request.path != '/plog/blogitem-040601-1' %}
   <h4><a href="{{ post.url }}">{{ post.url }}</a></h4>
   {% endif %}
 
@@ -159,7 +157,6 @@
   <p>
     <a href="https://twitter.com/peterbe" class="ui tiny twitter button"
        target="_blank" rel="noopener">
-      <!-- <i class="twitter"></i> -->
       Follow <b>@peterbe</b> on Twitter
     </a>
   </p>
@@ -174,7 +171,13 @@
   <p><em>Comments closed for this page</em></p>
   {% endif %}
 {% else %}
-  <h2 class="ui dividing header">Comments</h2>
+  <h2 class="ui dividing header">
+    {% if comments_truncated %}
+    Recent Comments
+    {% else %}
+    Comments
+    {% endif %}
+  </h2>
 
   {% if post.hide_comments %}
     {% if count %}
@@ -183,6 +186,7 @@
   {% else %}
     <div id="comments-outer" class="ui comments">
       {{ show_comments(post, user.is_staff, all_initial_comments, not post.disallow_comments)|safe }}
+      {#
       {% if comments_truncated %}
       <div class="ui message floating warning comments-truncated">
         <div class="header">
@@ -196,9 +200,14 @@
         </p>
       </div>
       {% endif %}
+      #}
+
+      {#
       {% if comments_truncated and all_recent_comments %}
       <h4>More Recent Comments...</h4>
       {% endif %}
+      #}
+
       {{ show_comments(post, user.is_staff, all_recent_comments, not post.disallow_comments)|safe }}
     </div>
 
@@ -239,6 +248,21 @@
       <p class="cancel" style="display:none"><a href="./" title="Abandon ship!">Cancel</a></p>
 
     </form>
+
+    {% if request.path == '/plog/blogitem-040601-1' %}
+    <div class="ui message floating warning" style="margin-top:20px;display:block">
+      <div class="header">
+          Before you post a comment...
+      </div>
+      <p>
+        <b>Go to
+          <a href="https://songsear.ch/" title="Search for songs by the lyrics">songsear.ch</a>
+          and do your search</b>,
+          then copy the link to the search results
+        together with your comment.
+      </p>
+    </div>
+    {% endif %}
   {% endif %}
 
 {% endif %}

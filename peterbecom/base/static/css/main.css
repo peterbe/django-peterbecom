@@ -255,7 +255,7 @@ span.cr {
   font-size: 90%;
 }
 span.not-approved {
-  float: right;
+  /* float: right; */
   font-size: 90%;
   color: red;
   padding-left: 10px;
