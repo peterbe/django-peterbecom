@@ -12,7 +12,7 @@ mark {
   border-bottom: 1px solid #ccc;
   border-right: 1px solid #ccc;
   border-left: 1px solid #ccc;
-  top: 47px;
+  top: 33px;
   left: 0; /* needed for safari */
 }
 
@@ -70,6 +70,9 @@ mark {
   margin-bottom: 5px;
 }
 
+.autocomplete .autocomplete-suggestion-song {
+  clear: left;
+}
 .autocomplete .media-left {
   float: left;
   padding-top: 4px;
@@ -81,8 +84,8 @@ mark {
   line-height: 1em;
 }
 
-.autocomplete li.search-suggestion {
-  padding: 12px;
+.autocomplete li.search-suggestion p {
+    font-weight: normal;
 }
 .maxlength {
   text-align: right;
@@ -90,4 +93,17 @@ mark {
 }
 .maxlength.danger {
   color: #a94442;
+}
+
+.autocomplete .search-suggestion a.total {
+  /* Too little room for mobile */
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .autocomplete .search-suggestion a.total {
+    /* Too little room for mobile */
+    display: inline;
+    float: right;
+  }
 }

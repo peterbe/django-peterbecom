@@ -335,10 +335,7 @@ class App extends React.Component {
         action={`${SERVER}/q/`}
         onSubmit={this.submitSearch}
       >
-        <div
-          className="ui big icon input fluid"
-          style={{ display: 'relative' }}
-        >
+        <div className="ui icon input fluid" style={{ display: 'relative' }}>
           <input
             type="search"
             name="term"
@@ -352,7 +349,7 @@ class App extends React.Component {
             className="form-control x-large"
             placeholder="Type your search here..."
           />
-          <i className="search icon" />
+          <i className="search icon" onClick={this.onSelectSuggestionAll} />
           {this.state.autocompleteSuggestions &&
           this.state.showAutocompleteSuggestions ? (
             <ShowAutocompleteSuggestions
@@ -429,9 +426,7 @@ class ShowAutocompleteSuggestions extends React.PureComponent {
     return (
       <div className="autocomplete">
         <ul>
-          {searchSuggestions &&
-          searchSuggestions.total &&
-          searchSuggestions.capped ? (
+          {searchSuggestions ? (
             <li
               onClick={onSelectSuggestionAll}
               className={
@@ -440,25 +435,27 @@ class ShowAutocompleteSuggestions extends React.PureComponent {
                   : 'search-suggestion'
               }
             >
-              {searchSuggestions.capped ? (
-                <a
-                  style={{ float: 'right' }}
-                  href={'/q/' + encodeURIComponent(searchSuggestions.term)}
-                >
-                  {numberWithCommas(searchSuggestions.total)}{' '}
-                  {searchSuggestions.desperate
-                    ? 'approximate matches'
-                    : 'good matches'}
+              <p>
+                {searchSuggestions.capped ? (
+                  <a
+                    className="total"
+                    href={'/q/' + encodeURIComponent(searchSuggestions.term)}
+                  >
+                    {numberWithCommas(searchSuggestions.total)}{' '}
+                    {searchSuggestions.desperate
+                      ? 'approximate matches'
+                      : 'good matches'}
+                  </a>
+                ) : null}
+                <a href={'/q/' + encodeURIComponent(searchSuggestions.term)}>
+                  Search for <b>{q}</b>
                 </a>
-              ) : null}
-              <a href={'/q/' + encodeURIComponent(searchSuggestions.term)}>
-                Search for <i>{q}</i>
-              </a>
+              </p>
             </li>
           ) : null}
 
           {suggestions.map((s, index) => {
-            let className = index + 1 === highlight ? 'active' : '';
+            let className = index + 1 === highlight ? 'active' : null;
             return (
               <li
                 key={index}
