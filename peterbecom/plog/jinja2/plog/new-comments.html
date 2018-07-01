@@ -4,6 +4,14 @@
 <style>
 div.comment {
     border-bottom: 1px solid #ccc;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+}
+div.comment p {
+  margin-bottom: 5px;
+}
+div.comment input[type="checkbox"] {
+  margin: 0 20px;
 }
 </style>
 {% endblock %}
@@ -22,36 +30,34 @@ div.comment {
   >
 
   {% if request.user.is_superuser %}
-  <button type="button" class="ui button primary approve-all-button">Approve All Selected</button>
-  <button type="button" class="ui button yellow delete-all-button">Delete All Selected</button>
+  <button type="button" class="ui button primary approve-all-button">Approve All</button>
+  <button type="button" class="ui button yellow delete-all-button">Delete All</button>
   <hr/>
   {% endif %}
 
   {% for comment in comments %}
   <div class="comment">
-    <blockquote>
-      <p>{{ comment.rendered|safe }}</p>
-      <p class="approval">
-        {% if not comment.approved %}
-        <input type="checkbox" name="ids" value="{{ comment.id }}"/>
-        <a class="ui red small label">Not approved</a>
-        <button class="small ui button primary approve-button" data-url="{{ comment.blogitem.get_absolute_url() }}/approve/{{ comment.oid }}">approve</button>
-        <button class="small ui button yellow delete-button" data-url="{{ comment.blogitem.get_absolute_url() }}/delete/{{ comment.oid }}">delete</button>
-        <br>
-        {% endif %}
-      </p>
-      <small>{% if comment.name %}<b>{{ comment.name }}</b>{% else %}<em>Anonymous</em>{% endif %}
-      on <a href="{{ comment.blogitem.get_absolute_url() }}{% if not comment.approved %}?admin=1{% endif %}#{{ comment.oid }}">{{ comment.blogitem.title }}</a>
-      {{ timesince(comment.add_date) }} ago
-      </small>
-    </blockquote>
+    <p>{{ comment.rendered|safe }}</p>
+    <p class="approval">
+      {% if not comment.approved %}
+      <input type="checkbox" name="ids" value="{{ comment.id }}"/>
+      <!-- <a class="ui red small label">Not approved</a> -->
+      <button class="small ui button primary approve-button" data-url="{{ comment.blogitem.get_absolute_url() }}/approve/{{ comment.oid }}">approve</button>
+      <button class="small ui button yellow delete-button" data-url="{{ comment.blogitem.get_absolute_url() }}/delete/{{ comment.oid }}">delete</button>
+      <br>
+      {% endif %}
+    </p>
+    <small>{% if comment.name %}<b>{{ comment.name }}</b>{% else %}<em>Anonymous</em>{% endif %}
+    on <a href="{{ comment.blogitem.get_absolute_url() }}{% if not comment.approved %}?admin=1{% endif %}#{{ comment.oid }}">{{ comment.blogitem.title }}</a>
+    {{ timesince(comment.add_date) }} ago
+    </small>
   </div>
   {% endfor %}
 
   {% if request.user.is_superuser %}
   <hr/>
-  <button type="button" class="ui button primary approve-all-button">Approve All Selected</button>
-  <button type="button" class="ui button yellow delete-all-button">Delete All Selected</button>
+  <button type="button" class="ui button primary approve-all-button">Approve All</button>
+  <button type="button" class="ui button yellow delete-all-button">Delete All</button>
   {% endif %}
 
 </div>
