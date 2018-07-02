@@ -82,8 +82,12 @@
   </p>
   {% endif %}
 
-  {% if post.url and request.path != '/plog/blogitem-040601-1' %}
-  <h4><a href="{{ post.url }}">{{ post.url }}</a></h4>
+  {% if request.path == '/plog/blogitem-040601-1' %}
+    <h3 class="ui header">Looking for a song you heard, but don't know the name?</h3>
+  {% else %}
+    {% if post.url %}
+    <h4><a href="{{ post.url }}">{{ post.url }}</a></h4>
+    {% endif %}
   {% endif %}
 
 {% endblock %}
