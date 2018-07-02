@@ -347,7 +347,7 @@ class App extends React.Component {
             onChange={this.onChangeSearch}
             onKeyDown={this.onKeyDownSearch}
             className="form-control x-large"
-            placeholder="Type your search here..."
+            placeholder="Type your lyrics search here..."
           />
           <i className="search icon" onClick={this.onSelectSuggestionAll} />
           {this.state.autocompleteSuggestions &&
