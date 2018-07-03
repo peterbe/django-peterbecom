@@ -1,6 +1,14 @@
 <div id="{{ comment.oid }}" class="comment">
   <b>{% if comment.name %}{{ comment.name }}{% else %}<em>Anonymous</em>{% endif %}</b>
   <a class="metadata" href="#{{comment.oid}}" title="Permalink to this comment">{{ comment.add_date.strftime('%d %B %Y') }}</a>
+
+  {% if not preview %}
+  {% if allow_comments %}
+    <a class="metadata reply" rel="nofollow" data-oid="{{ comment.oid }}"
+        href="#{{ comment.oid }}">Reply</a>
+  {% endif %}
+  {% endif %}
+
     {% if not comment.approved %}
     <span class="not-approved">
       <b>Note:</b> This comment has not been approved yet
@@ -10,18 +18,6 @@
   <div class="text">
     {{ comment.rendered|safe }}
   </div>
-  {% if not preview %}
-  {% if allow_comments %}
-  {#
-  <div class="actions">
-    <a class="reply" rel="nofollow" data-oid="{{ comment.oid }}"
-        href="#{{ comment.oid }}">Reply</a>
-  </div>
-  #}
-    <a class="metadata reply" rel="nofollow" data-oid="{{ comment.oid }}"
-        href="#{{ comment.oid }}">Reply</a>
-  {% endif %}
-  {% endif %}
 
   {% if not preview %}
   {% if count_children %}
