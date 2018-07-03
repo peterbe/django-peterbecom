@@ -3,4 +3,4 @@ This is the code for my personal website https://www.peterbe.com
 
 ## Whatsdeployed?
 
-[https://whatsdeployed.io/s-2Ts](https://whatsdeployed.io/s-2Ts)
+[![What's Deployed](https://img.shields.io/badge/whatsdeployed-prod-green.svg)](https://whatsdeployed.io/s-2Ts)
