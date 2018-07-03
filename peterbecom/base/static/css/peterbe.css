@@ -194,15 +194,23 @@ h4 {
 /* For comments */
 .ui.comments {
   /* Default from Semantic-ui is 650px */
-  max-width: 750px;
+  max-width: 800px;
 }
-/* .ui.message.comments-truncated {
-  margin: 4em 0;
-  padding: 2.5em 1.5em;
-} */
-.ui.comments .comment > b {
+/* .ui.comments .comment > b {
   margin-right: 0.5em;
+} */
+.ui.comments .comment {
+  margin-top: 0.8em;
 }
 .ui.comments .comment .metadata {
-  margin-left: 0;
+  margin-left: 0.5em;
+}
+.ui.comments .comment a.metadata:hover {
+  color: #1e70bf;
+}
+.ui.comments .comment a.metadata.reply {
+  color: #4183c4;
+}
+.ui.comments .comment a.metadata.reply:hover {
+  color: #1e70bf;
 }
