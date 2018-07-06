@@ -7,11 +7,11 @@ from peterbecom.nodomains.tasks import run_url
 
 class Command(BaseCommand):
 
-    help = 'http://example.com'
+    help = "http://example.com"
 
     def handle(self, *args, **options):
         if len(args) != 1:
-            raise CommandError('Must provide exactly one URL')
+            raise CommandError("Must provide exactly one URL")
 
         url, = args
         pprint(run_url(url, dry_run=True))

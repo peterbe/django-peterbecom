@@ -7,15 +7,13 @@ import jsonfield.fields
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('podcasttime', '0011_podcasterror'),
-    ]
+    dependencies = [("podcasttime", "0011_podcasterror")]
 
     operations = [
         migrations.AddField(
-            model_name='podcast',
-            name='itunes_lookup',
+            model_name="podcast",
+            name="itunes_lookup",
             field=jsonfield.fields.JSONField(null=True),
             preserve_default=True,
-        ),
+        )
     ]

@@ -7,21 +7,31 @@ import jsonfield.fields
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('podcasttime', '0010_auto_20160225_0755'),
-    ]
+    dependencies = [("podcasttime", "0010_auto_20160225_0755")]
 
     operations = [
         migrations.CreateModel(
-            name='PodcastError',
+            name="PodcastError",
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('error', jsonfield.fields.JSONField()),
-                ('created', models.DateTimeField(auto_now_add=True)),
-                ('podcast', models.ForeignKey(to='podcasttime.Podcast', on_delete=models.CASCADE)),
+                (
+                    "id",
+                    models.AutoField(
+                        verbose_name="ID",
+                        serialize=False,
+                        auto_created=True,
+                        primary_key=True,
+                    ),
+                ),
+                ("error", jsonfield.fields.JSONField()),
+                ("created", models.DateTimeField(auto_now_add=True)),
+                (
+                    "podcast",
+                    models.ForeignKey(
+                        to="podcasttime.Podcast", on_delete=models.CASCADE
+                    ),
+                ),
             ],
-            options={
-            },
+            options={},
             bases=(models.Model,),
-        ),
+        )
     ]

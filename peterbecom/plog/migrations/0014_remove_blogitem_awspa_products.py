@@ -7,13 +7,6 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('plog', '0013_blogitem_awspa_products'),
-    ]
+    dependencies = [("plog", "0013_blogitem_awspa_products")]
 
-    operations = [
-        migrations.RemoveField(
-            model_name='blogitem',
-            name='awspa_products',
-        ),
-    ]
+    operations = [migrations.RemoveField(model_name="blogitem", name="awspa_products")]

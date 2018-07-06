@@ -6,19 +6,17 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('minimalcss', '0001_initial'),
-    ]
+    dependencies = [("minimalcss", "0001_initial")]
 
     operations = [
         migrations.AddField(
-            model_name='minimization',
-            name='error',
+            model_name="minimization",
+            name="error",
             field=django.contrib.postgres.fields.jsonb.JSONField(null=True),
         ),
         migrations.AlterField(
-            model_name='minimization',
-            name='result',
+            model_name="minimization",
+            name="result",
             field=django.contrib.postgres.fields.jsonb.JSONField(null=True),
         ),
     ]

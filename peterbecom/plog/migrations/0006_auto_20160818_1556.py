@@ -6,13 +6,13 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('plog', '0005_remove_blogitem_keywords'),
-    ]
+    dependencies = [("plog", "0005_remove_blogitem_keywords")]
 
     operations = [
-        migrations.RunSQL("""
+        migrations.RunSQL(
+            """
             CREATE INDEX plog_blogitem_keywords_idx
             ON plog_blogitem USING GIN(proper_keywords);
-        """),
+        """
+        )
     ]

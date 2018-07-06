@@ -12,45 +12,39 @@ from peterbecom.podcasttime.search import podcast_index
 
 
 class Command(BaseCommand):
-
     def add_arguments(self, parser):
+        parser.add_argument("--limit", default=0, help="Number of podcasts to index")
         parser.add_argument(
-            '--limit',
-            default=0,
-            help='Number of podcasts to index'
+            "--random",
+            action="store_true",
+            default=False,
+            help="Randomly pick podcasts (to limit the whole process time)",
         )
         parser.add_argument(
-            '--random',
-            action='store_true',
+            "--create-index",
+            action="store_true",
             default=False,
-            help='Randomly pick podcasts (to limit the whole process time)'
-        )
-        parser.add_argument(
-            '--create-index',
-            action='store_true',
-            default=False,
-            help='create index even with limit'
+            help="create index even with limit",
         )
 
     def _handle(self, *args, **kwargs):
-        limit = int(kwargs['limit'])
-        if kwargs['random'] and not limit:
-            raise Exception('random but not limited')
+        limit = int(kwargs["limit"])
+        if kwargs["random"] and not limit:
+            raise Exception("random but not limited")
         # if kwargs['force_create_index'] and not limit:
         #     raise Exception('force-create-index but not limited')
 
         iterator = Podcast.objects.filter(error__isnull=True).exclude(
-            name='',
-            last_fetch__isnull=True,
+            name="", last_fetch__isnull=True
         )
         if limit:
-            if kwargs['random']:
-                iterator = iterator.order_by('?')[:limit]
+            if kwargs["random"]:
+                iterator = iterator.order_by("?")[:limit]
                 iterator = list(iterator)
             else:
-                iterator = iterator.order_by('-modified')[:limit]
+                iterator = iterator.order_by("-modified")[:limit]
 
-        if kwargs['create_index']:  # or not limit:
+        if kwargs["create_index"]:  # or not limit:
             podcast_index.delete(ignore=404)
             podcast_index.create()
 
@@ -58,21 +52,19 @@ class Command(BaseCommand):
         episode_counts = {}
         all_episodes = Episode.objects.all()
         if limit:
-            all_episodes = all_episodes.filter(
-                podcast_id__in=[x.id for x in iterator]
-            )
-        all_episodes_annotated = all_episodes.values('podcast_id').annotate(
-            count=Count('podcast_id')
+            all_episodes = all_episodes.filter(podcast_id__in=[x.id for x in iterator])
+        all_episodes_annotated = all_episodes.values("podcast_id").annotate(
+            count=Count("podcast_id")
         )
         for e in all_episodes_annotated:
-            episode_counts[e['podcast_id']] = e['count']
+            episode_counts[e["podcast_id"]] = e["count"]
 
         duration_sums = {}
-        all_durations_annotated = all_episodes.values('podcast_id').annotate(
-            duration=Sum('duration')
+        all_durations_annotated = all_episodes.values("podcast_id").annotate(
+            duration=Sum("duration")
         )
         for e in all_durations_annotated:
-            duration_sums[e['podcast_id']] = e['duration']
+            duration_sums[e["podcast_id"]] = e["duration"]
 
         es = connections.get_connection()
         report_every = 100
@@ -83,8 +75,7 @@ class Command(BaseCommand):
             es,
             (
                 m.to_search(
-                    duration_sums=duration_sums,
-                    episodes_count=episode_counts,
+                    duration_sums=duration_sums, episodes_count=episode_counts
                 ).to_dict(True)
                 for m in iterator
             ),
@@ -98,7 +89,4 @@ class Command(BaseCommand):
                 print(count)
         t1 = time.time()
 
-        self.out('DONE Indexing {} podcasts in {} seconds'.format(
-            count,
-            t1 - t0
-        ))
+        self.out("DONE Indexing {} podcasts in {} seconds".format(count, t1 - t0))

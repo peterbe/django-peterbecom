@@ -19,11 +19,7 @@ class YUVColorError(Exception):
 
 
 def check_output(cmd):
-    pipes = subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    )
+    pipes = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     std_out, std_err = pipes.communicate()
     if pipes.returncode == 1:
         err_msg = "%s. Code: %s" % (std_err.strip(), pipes.returncode)
@@ -36,20 +32,19 @@ def check_output(cmd):
 
 
 class Command(BaseCommand):
-
     def add_arguments(self, parser):
-        parser.add_argument('--limit', default=10)
+        parser.add_argument("--limit", default=10)
 
     def _handle(self, **options):
-        limit = int(options['limit'])
+        limit = int(options["limit"])
         qs = Podcast.objects.filter(
-            Q(image__iendswith='.jpg') | Q(image__iendswith='.png')
+            Q(image__iendswith=".jpg") | Q(image__iendswith=".png")
         )
         savings = []
         times = []
         skips = 0
         with tempfile.TemporaryDirectory() as tmp_dir:
-            for podcast in qs.order_by('?')[:limit]:
+            for podcast in qs.order_by("?")[:limit]:
                 try:
                     path = podcast.image.path
                 except ValueError:
@@ -57,7 +52,7 @@ class Command(BaseCommand):
                 if not os.path.isfile(path):
                     print("Not a file", path)
                     continue
-                log_file = path + '.guetzlied'
+                log_file = path + ".guetzlied"
                 if os.path.isfile(log_file):
                     skips += 1
                     continue
@@ -65,7 +60,7 @@ class Command(BaseCommand):
                 if not ext:
                     continue
                 # if ext not in ('.jpg', '.jpeg'):
-                if ext not in ('.jpg', '.jpeg', '.png'):
+                if ext not in (".jpg", ".jpeg", ".png"):
                     # print('Unrecognized extension {!r}'.format(ext))
                     continue
 
@@ -82,22 +77,16 @@ class Command(BaseCommand):
                     continue
 
                 tmp_path = os.path.join(tmp_dir, os.path.basename(path))
-                cmd = [
-                    settings.GUETZLI_PATH,
-                    '--quality', '90',
-                    path,
-                    tmp_path,
-                ]
+                cmd = [settings.GUETZLI_PATH, "--quality", "90", path, tmp_path]
                 t0 = time.time()
                 try:
                     out = check_output(cmd)
                 except YUVColorError as exception:
                     self.notice(exception)
-                    with open(log_file, 'w') as f:
-                        f.write('{} ({})'.format(
-                            exception.__class__.__name__,
-                            exception,
-                        ))
+                    with open(log_file, "w") as f:
+                        f.write(
+                            "{} ({})".format(exception.__class__.__name__, exception)
+                        )
                     continue
                 if out:
                     self.warning(out)
@@ -107,13 +96,11 @@ class Command(BaseCommand):
                 size_after = os.stat(tmp_path).st_size
                 if size_after < size_before:
                     shutil.move(tmp_path, path)
-                with open(log_file, 'w') as f:
-                    msg = (
-                        'From {} to {} ({})\n'.format(
-                            filesizeformat(size_before),
-                            filesizeformat(size_after),
-                            filesizeformat(size_after - size_before),
-                        )
+                with open(log_file, "w") as f:
+                    msg = "From {} to {} ({})\n".format(
+                        filesizeformat(size_before),
+                        filesizeformat(size_after),
+                        filesizeformat(size_after - size_before),
                     )
                     self.out(path)
                     self.out(msg)
@@ -125,8 +112,8 @@ class Command(BaseCommand):
             self.out("SUM savings:", filesizeformat(sum(savings)))
             avg = sum(savings) / len(savings)
             self.out("AVG savings:", filesizeformat(avg))
-            self.out('SUM times:', sum(times))
+            self.out("SUM times:", sum(times))
             avg_time = sum(times) / len(times)
-            self.out('AVG times:', avg_time)
+            self.out("AVG times:", avg_time)
 
-        self.out('{} skips'.format(skips))
+        self.out("{} skips".format(skips))

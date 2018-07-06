@@ -3,11 +3,12 @@ from elasticsearch_dsl.connections import connections
 
 from django.conf import settings
 from django.apps import AppConfig
+
 # from django.core.exceptions import ImproperlyConfigured
 
 
 class BaseConfig(AppConfig):
-    name = 'peterbecom.base'
+    name = "peterbecom.base"
 
     def ready(self):
         connections.configure(**settings.ES_CONNECTIONS)

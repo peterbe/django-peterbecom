@@ -3,26 +3,28 @@ from django import http
 from django.db.models import Q
 from peterbecom.plog.models import Category
 
-STOPWORDS = "a able about across after all almost also am among an and "\
-            "any are as at be because been but by can cannot could dear "\
-            "did do does either else ever every for from get got had has "\
-            "have he her hers him his how however i if in into is it its "\
-            "just least let like likely may me might most must my "\
-            "neither no nor not of off often on only or other our own "\
-            "rather said say says she should since so some than that the "\
-            "their them then there these they this tis to too twas us "\
-            "wants was we were what when where which while who whom why "\
-            "will with would yet you your"
+STOPWORDS = (
+    "a able about across after all almost also am among an and "
+    "any are as at be because been but by can cannot could dear "
+    "did do does either else ever every for from get got had has "
+    "have he her hers him his how however i if in into is it its "
+    "just least let like likely may me might most must my "
+    "neither no nor not of off often on only or other our own "
+    "rather said say says she should since so some than that the "
+    "their them then there these they this tis to too twas us "
+    "wants was we were what when where which while who whom why "
+    "will with would yet you your"
+)
 STOPWORDS_TUPLE = tuple(STOPWORDS.split())
 
 
 def split_search(q, keywords):
     params = {}
     s = []
-    if re.findall('[^\w]', ''.join(keywords)):
+    if re.findall("[^\w]", "".join(keywords)):
         raise ValueError("keywords can not contain non \w characters")
 
-    regex = re.compile(r'\b(%s):' % '|'.join(keywords), re.I)
+    regex = re.compile(r"\b(%s):" % "|".join(keywords), re.I)
     bits = regex.split(q)
     if len(bits) == 1:
         # there was no keyword at all
@@ -34,19 +36,21 @@ def split_search(q, keywords):
             skip_next = False
         else:
             if bit in keywords:
-                params[bit.lower()] = bits[i+1].strip()
+                params[bit.lower()] = bits[i + 1].strip()
                 skip_next = True
             elif bit.strip():
                 s.append(bit.strip())
 
-    return ' '.join(s), params
+    return " ".join(s), params
 
 
 def parse_ocs_to_categories(oc, strict_matching=False):
-    oc = re.sub('/p\d+$', '', oc)
-    ocs = [x.strip().replace('/', '').replace('+', ' ')
-           for x
-           in re.split('oc-(.*?)', oc) if x.strip()]
+    oc = re.sub("/p\d+$", "", oc)
+    ocs = [
+        x.strip().replace("/", "").replace("+", " ")
+        for x in re.split("oc-(.*?)", oc)
+        if x.strip()
+    ]
     categories = Category.objects.filter(name__in=ocs)
     if strict_matching and len(categories) != len(ocs):
         raise http.Http404("Unrecognized categories")

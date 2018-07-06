@@ -1,1 +1,1 @@
-default_app_config = 'peterbecom.base.apps.BaseConfig'
+default_app_config = "peterbecom.base.apps.BaseConfig"

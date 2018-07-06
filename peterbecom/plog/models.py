@@ -17,6 +17,7 @@ from django.contrib.postgres.fields import ArrayField
 from sorl.thumbnail import ImageField
 
 from . import utils
+
 # from peterbecom.plog import screenshot
 from peterbecom.base.fscache import invalidate_by_url
 from peterbecom.base.search import es_retry
@@ -27,7 +28,7 @@ class Category(models.Model):
     name = models.CharField(max_length=100)
 
     def __repr__(self):
-        return '<%s: %r>' % (self.__class__.__name__, self.name)
+        return "<%s: %r>" % (self.__class__.__name__, self.name)
 
     def __str__(self):
         return self.name
@@ -35,26 +36,18 @@ class Category(models.Model):
 
 def _upload_path_tagged(tag, instance, filename):
     if isinstance(filename, str):
-        filename = (
-            unicodedata
-            .normalize('NFD', filename)
-            .encode('ascii', 'ignore')
-        )
+        filename = unicodedata.normalize("NFD", filename).encode("ascii", "ignore")
     now = datetime.datetime.utcnow()
-    path = os.path.join(
-        now.strftime('%Y'),
-        now.strftime('%m'),
-        now.strftime('%d')
-    )
+    path = os.path.join(now.strftime("%Y"), now.strftime("%m"), now.strftime("%d"))
     hashed_filename = hashlib.md5(
-        filename + str(now.microsecond).encode('utf-8')
+        filename + str(now.microsecond).encode("utf-8")
     ).hexdigest()
     __, extension = os.path.splitext(str(filename))
     return os.path.join(tag, path, hashed_filename + extension)
 
 
 def _upload_to_blogitem(instance, filename):
-    return _upload_path_tagged('blogitems', instance, filename)
+    return _upload_path_tagged("blogitems", instance, filename)
 
 
 class BlogItem(models.Model):
@@ -70,10 +63,7 @@ class BlogItem(models.Model):
     display_format = models.CharField(max_length=20)
     categories = models.ManyToManyField(Category)
     # this will be renamed to "keywords" later
-    proper_keywords = ArrayField(
-        models.CharField(max_length=100),
-        default=[]
-    )
+    proper_keywords = ArrayField(models.CharField(max_length=100), default=[])
     plogrank = models.FloatField(null=True)
     codesyntax = models.CharField(max_length=20, blank=True)
     disallow_comments = models.BooleanField(default=False)
@@ -83,10 +73,10 @@ class BlogItem(models.Model):
     open_graph_image = models.CharField(max_length=400, null=True)
 
     def __repr__(self):
-        return '<%s: %r>' % (self.__class__.__name__, self.oid)
+        return "<%s: %r>" % (self.__class__.__name__, self.oid)
 
     def get_absolute_url(self):
-        return reverse('blog_post', args=(self.oid,))
+        return reverse("blog_post", args=(self.oid,))
 
     @property
     def rendered(self):
@@ -94,25 +84,19 @@ class BlogItem(models.Model):
 
     def _render(self, refresh=False):
         if not self.text_rendered or refresh:
-            if self.display_format == 'structuredtext':
-                self.text_rendered = utils.stx_to_html(
-                    self.text,
-                    self.codesyntax
-                )
+            if self.display_format == "structuredtext":
+                self.text_rendered = utils.stx_to_html(self.text, self.codesyntax)
             else:
-                self.text_rendered = utils.markdown_to_html(
-                    self.text,
-                    self.codesyntax
-                )
+                self.text_rendered = utils.markdown_to_html(self.text, self.codesyntax)
             # self.text_rendered = utils.cache_prefix_files(self.text_rendered)
             self.save()
         return self.text_rendered
 
     def has_carousel_tag(self):
-        return '::carousel::' in self.rendered
+        return "::carousel::" in self.rendered
 
     def count_comments(self):
-        cache_key = 'nocomments:%s' % self.pk
+        cache_key = "nocomments:%s" % self.pk
         count = cache.get(cache_key)
         if count is None:
             count = self._count_comments()
@@ -126,12 +110,12 @@ class BlogItem(models.Model):
         return self.title
 
     def get_or_create_inbound_hashkey(self):
-        cache_key = 'inbound_hashkey_%s' % self.pk
+        cache_key = "inbound_hashkey_%s" % self.pk
         value = cache.get(cache_key)
         if not value:
             value = self._new_inbound_hashkey(5)
             cache.set(cache_key, value, 60 * 60 * 60)
-            hash_cache_key = 'hashkey-%s' % value
+            hash_cache_key = "hashkey-%s" % value
             cache.set(hash_cache_key, self.pk, 60 * 60 * 60)
         return value
 
@@ -139,19 +123,20 @@ class BlogItem(models.Model):
         def mk():
             from string import lowercase, uppercase
             from random import choice
+
             s = choice(list(uppercase))
             while len(s) < length:
-                s += choice(list(lowercase + '012345789'))
+                s += choice(list(lowercase + "012345789"))
             return s
 
         key = mk()
-        while cache.get('hashkey-%s' % key):
+        while cache.get("hashkey-%s" % key):
             key = mk()
         return key
 
     @classmethod
     def get_by_inbound_hashkey(cls, hashkey):
-        cache_key = 'hashkey-%s' % hashkey
+        cache_key = "hashkey-%s" % hashkey
         value = cache.get(cache_key)
         if not value:
             raise cls.DoesNotExist("not found")
@@ -175,24 +160,24 @@ class BlogItem(models.Model):
     def to_search(self, **kwargs):
         doc = self.to_search_doc(**kwargs)
         assert self.id
-        return BlogItemDoc(meta={'id': self.id}, **doc)
+        return BlogItemDoc(meta={"id": self.id}, **doc)
 
     def to_search_doc(self, **kwargs):
-        if 'all_categories' in kwargs:
-            categories = kwargs['all_categories'].get(self.id, [])
+        if "all_categories" in kwargs:
+            categories = kwargs["all_categories"].get(self.id, [])
             assert isinstance(categories, list), categories
         else:
             categories = [x.name for x in self.categories.all()]
 
         doc = {
-            'id': self.id,
-            'oid': self.oid,
-            'title': self.title,
-            'title_autocomplete': self.title,
-            'text': self.text_rendered or self.text,
-            'pub_date': self.pub_date,
-            'categories': categories,
-            'keywords': self.proper_keywords,
+            "id": self.id,
+            "oid": self.oid,
+            "title": self.title,
+            "title_autocomplete": self.title,
+            "text": self.text_rendered or self.text,
+            "pub_date": self.pub_date,
+            "categories": categories,
+            "keywords": self.proper_keywords,
         }
         return doc
 
@@ -207,11 +192,7 @@ class BlogItem(models.Model):
 
 
 class BlogItemTotalHits(models.Model):
-    blogitem = models.OneToOneField(
-        BlogItem,
-        db_index=True,
-        on_delete=models.CASCADE
-    )
+    blogitem = models.OneToOneField(BlogItem, db_index=True, on_delete=models.CASCADE)
     total_hits = models.IntegerField(default=0)
     modify_date = models.DateTimeField(auto_now=True)
 
@@ -228,11 +209,7 @@ class BlogItemHit(models.Model):
 class BlogComment(models.Model):
     oid = models.CharField(max_length=100, db_index=True, unique=True)
     blogitem = models.ForeignKey(BlogItem, null=True, on_delete=models.CASCADE)
-    parent = models.ForeignKey(
-        'BlogComment',
-        null=True,
-        on_delete=models.CASCADE
-    )
+    parent = models.ForeignKey("BlogComment", null=True, on_delete=models.CASCADE)
     approved = models.BooleanField(default=False)
     comment = models.TextField()
     comment_rendered = models.TextField(blank=True, null=True)
@@ -244,12 +221,10 @@ class BlogComment(models.Model):
     akismet_pass = models.NullBooleanField(null=True)
 
     def __repr__(self):
-        return (
-            '<%s: %r (%sapproved)>' % (
-                self.__class__.__name__,
-                self.oid + ' ' + self.comment[:20],
-                not self.approved and 'not' or ''
-            )
+        return "<%s: %r (%sapproved)>" % (
+            self.__class__.__name__,
+            self.oid + " " + self.comment[:20],
+            not self.approved and "not" or "",
         )
 
     @property
@@ -261,10 +236,10 @@ class BlogComment(models.Model):
 
     @classmethod
     def next_oid(cls):
-        return 'c' + uuid.uuid4().hex[:6]
+        return "c" + uuid.uuid4().hex[:6]
 
     def get_absolute_url(self):
-        return self.blogitem.get_absolute_url() + '#%s' % self.oid
+        return self.blogitem.get_absolute_url() + "#%s" % self.oid
 
     def correct_blogitem_parent(self):
         assert self.blogitem is None
@@ -275,30 +250,29 @@ class BlogComment(models.Model):
 
     def to_search(self, **kwargs):
         doc = self.to_search_doc(**kwargs)
-        return BlogCommentDoc(meta={'id': self.id}, **doc)
+        return BlogCommentDoc(meta={"id": self.id}, **doc)
 
     def to_search_doc(self, **kwargs):
         doc = {
-            'id': self.id,
-            'oid': self.oid,
-            'blogitem_id': self.blogitem_id,
-            'approved': self.approved,
-            'add_date': self.add_date,
-            'comment': self.comment_rendered or self.comment,
+            "id": self.id,
+            "oid": self.oid,
+            "blogitem_id": self.blogitem_id,
+            "approved": self.approved,
+            "add_date": self.add_date,
+            "comment": self.comment_rendered or self.comment,
         }
         return doc
 
 
 def _uploader_dir(instance, filename):
     def fp(filename):
-        return os.path.join('plog',
-                            instance.blogitem.oid,
-                            filename)
+        return os.path.join("plog", instance.blogitem.oid, filename)
+
     a, b = os.path.splitext(filename)
     if isinstance(a, str):
-        a = a.encode('ascii', 'ignore')
+        a = a.encode("ascii", "ignore")
     a = hashlib.md5(a).hexdigest()[:10]
-    filename = '%s.%s%s' % (a, int(time.time()), b)
+    filename = "%s.%s%s" % (a, int(time.time()), b)
     return fp(filename)
 
 
@@ -310,26 +284,21 @@ class BlogFile(models.Model):
     modify_date = models.DateTimeField(default=utils.utc_now)
 
     def __repr__(self):
-        return '<%s: %r>' % (self.__class__.__name__, self.blogitem.oid)
+        return "<%s: %r>" % (self.__class__.__name__, self.blogitem.oid)
 
 
 def random_string(length):
-    pool = list('abcdefghijklmnopqrstuvwxyz')
+    pool = list("abcdefghijklmnopqrstuvwxyz")
     pool.extend([x.upper() for x in pool])
-    pool.extend('0123456789')
+    pool.extend("0123456789")
     random.shuffle(pool)
-    return ''.join(pool[:length])
+    return "".join(pool[:length])
 
 
 class OneTimeAuthKey(models.Model):
-    key = models.CharField(
-        max_length=16,
-        default=functools.partial(random_string, 16)
-    )
+    key = models.CharField(max_length=16, default=functools.partial(random_string, 16))
     blogitem = models.ForeignKey(BlogItem, on_delete=models.CASCADE)
-    blogcomment = models.ForeignKey(
-        BlogComment, null=True, on_delete=models.CASCADE
-    )
+    blogcomment = models.ForeignKey(BlogComment, null=True, on_delete=models.CASCADE)
     used = models.DateTimeField(null=True)
     add_date = models.DateTimeField(auto_now_add=True)
 
@@ -348,14 +317,14 @@ def invalidate_blogitem_comment_count(sender, instance, **kwargs):
         pk = instance.blogitem_id
     else:
         raise NotImplementedError(sender)
-    cache_key = 'nocomments:%s' % pk
+    cache_key = "nocomments:%s" % pk
     cache.delete(cache_key)
 
 
 @receiver(post_save, sender=BlogComment)
 @receiver(post_save, sender=BlogItem)
 def invalidate_latest_comment_add_dates(sender, instance, **kwargs):
-    cache_key = 'latest_comment_add_date'
+    cache_key = "latest_comment_add_date"
     cache.delete(cache_key)
 
     if sender is BlogItem:
@@ -364,8 +333,8 @@ def invalidate_latest_comment_add_dates(sender, instance, **kwargs):
         oid = instance.blogitem.oid
     else:
         raise NotImplementedError(sender)
-    cache_key = 'latest_comment_add_date:%s' % (
-        hashlib.md5(oid.encode('utf-8')).hexdigest()
+    cache_key = "latest_comment_add_date:%s" % (
+        hashlib.md5(oid.encode("utf-8")).hexdigest()
     )
     cache.delete(cache_key)
 
@@ -373,7 +342,7 @@ def invalidate_latest_comment_add_dates(sender, instance, **kwargs):
 @receiver(post_save, sender=BlogItem)
 def invalidate_latest_post_modify_date(sender, instance, **kwargs):
     assert sender is BlogItem
-    cache_key = 'latest_post_modify_date'
+    cache_key = "latest_post_modify_date"
     cache.delete(cache_key)
 
 
@@ -386,8 +355,8 @@ def invalidate_latest_comment_add_date_by_oid(sender, instance, **kwargs):
         oid = instance.blogitem.oid
     else:
         raise NotImplementedError(sender)
-    cache_key = 'latest_comment_add_date:%s' % (
-        hashlib.md5(oid.encode('utf-8')).hexdigest()
+    cache_key = "latest_comment_add_date:%s" % (
+        hashlib.md5(oid.encode("utf-8")).hexdigest()
     )
     cache.delete(cache_key)
 
@@ -396,7 +365,7 @@ def invalidate_latest_comment_add_date_by_oid(sender, instance, **kwargs):
 @receiver(pre_save, sender=BlogItem)
 @receiver(pre_save, sender=BlogComment)
 def update_modify_date(sender, instance, **kwargs):
-    if getattr(instance, '_modify_date_set', False):
+    if getattr(instance, "_modify_date_set", False):
         return
     if sender is BlogItem or sender is BlogFile:
         instance.modify_date = utils.utc_now()
@@ -411,12 +380,12 @@ def update_modify_date(sender, instance, **kwargs):
 @receiver(post_save, sender=BlogComment)
 @receiver(post_save, sender=BlogItem)
 def invalidate_fscache(sender, instance, **kwargs):
-    if kwargs['raw']:
+    if kwargs["raw"]:
         return
     if sender is BlogItem:
-        url = reverse('blog_post', args=(instance.oid,))
+        url = reverse("blog_post", args=(instance.oid,))
     elif sender is BlogComment:
-        url = reverse('blog_post', args=(instance.blogitem.oid,))
+        url = reverse("blog_post", args=(instance.blogitem.oid,))
     else:
         raise NotImplementedError(sender)
 

@@ -7,12 +7,6 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('plog', '0008_blogitemhit'),
-    ]
+    dependencies = [("plog", "0008_blogitemhit")]
 
-    operations = [
-        migrations.DeleteModel(
-            name='BlogItemHits',
-        ),
-    ]
+    operations = [migrations.DeleteModel(name="BlogItemHits")]

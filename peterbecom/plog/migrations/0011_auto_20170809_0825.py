@@ -7,29 +7,27 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('plog', '0010_blogitemtotalhits'),
-    ]
+    dependencies = [("plog", "0010_blogitemtotalhits")]
 
     operations = [
         migrations.AddField(
-            model_name='blogitemhit',
-            name='http_accept_language',
+            model_name="blogitemhit",
+            name="http_accept_language",
             field=models.TextField(null=True),
         ),
         migrations.AddField(
-            model_name='blogitemhit',
-            name='http_referer',
+            model_name="blogitemhit",
+            name="http_referer",
             field=models.URLField(max_length=450, null=True),
         ),
         migrations.AddField(
-            model_name='blogitemhit',
-            name='http_user_agent',
+            model_name="blogitemhit",
+            name="http_user_agent",
             field=models.TextField(null=True),
         ),
         migrations.AddField(
-            model_name='blogitemhit',
-            name='remote_addr',
+            model_name="blogitemhit",
+            name="remote_addr",
             field=models.GenericIPAddressField(null=True),
         ),
     ]

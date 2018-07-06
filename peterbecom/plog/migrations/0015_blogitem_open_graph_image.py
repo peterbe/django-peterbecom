@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('plog', '0014_remove_blogitem_awspa_products'),
-    ]
+    dependencies = [("plog", "0014_remove_blogitem_awspa_products")]
 
     operations = [
         migrations.AddField(
-            model_name='blogitem',
-            name='open_graph_image',
+            model_name="blogitem",
+            name="open_graph_image",
             field=models.CharField(max_length=400, null=True),
-        ),
+        )
     ]

@@ -10,16 +10,16 @@ from django.contrib.sites.models import Site
 
 def path_to_fs_path(path):
     fs_path = settings.FSCACHE_ROOT
-    for directory in path.split('/'):
+    for directory in path.split("/"):
         if directory:
             fs_path = os.path.join(fs_path, directory)
-    return fs_path + '/index.html'
+    return fs_path + "/index.html"
 
 
 def create_parents(fs_path):
     directory = os.path.dirname(fs_path)
     here = settings.FSCACHE_ROOT
-    for part in directory.replace(settings.FSCACHE_ROOT, '').split('/'):
+    for part in directory.replace(settings.FSCACHE_ROOT, "").split("/"):
         here = os.path.join(here, part)
         if not os.path.isdir(here):
             os.mkdir(here)
@@ -29,7 +29,7 @@ def create_parents(fs_path):
 def too_old(fs_path, seconds=None):
     if seconds is None:
         seconds = 60 * 60 * 24  # default
-        if '/plog/' in fs_path:
+        if "/plog/" in fs_path:
             seconds = 60 * 60 * 24 * 7
 
     age = time.time() - os.stat(fs_path).st_mtime
@@ -38,16 +38,16 @@ def too_old(fs_path, seconds=None):
 
 def invalidate(fs_path):
     os.remove(fs_path)
-    if os.path.isfile(fs_path + '.metadata'):
-        os.remove(fs_path + '.metadata')
-    if os.path.isfile(fs_path + '.cache_control'):
-        os.remove(fs_path + '.cache_control')
+    if os.path.isfile(fs_path + ".metadata"):
+        os.remove(fs_path + ".metadata")
+    if os.path.isfile(fs_path + ".cache_control"):
+        os.remove(fs_path + ".cache_control")
 
 
 def invalidate_by_url(url):
-    if not url.startswith('/'):
+    if not url.startswith("/"):
         url = urlparse(url).path
-    fs_path = settings.FSCACHE_ROOT + url + '/index.html'
+    fs_path = settings.FSCACHE_ROOT + url + "/index.html"
     if os.path.isfile(fs_path):
         invalidate(fs_path)
 
@@ -59,14 +59,14 @@ def delete_empty_directory(filepath):
 
 
 def revisit_url(path):
-    path = path.replace('/index.html', '')
-    path = path.replace(settings.FSCACHE_ROOT, '')
+    path = path.replace("/index.html", "")
+    path = path.replace(settings.FSCACHE_ROOT, "")
     site = Site.objects.get_current()
-    secure = getattr(settings, 'FSCACHE_SECURE_SITE', True)
-    base_url = secure and 'https://' or 'http://'
+    secure = getattr(settings, "FSCACHE_SECURE_SITE", True)
+    base_url = secure and "https://" or "http://"
     base_url += site.domain
     url = urljoin(base_url, path)
-    print('REVISIT', url, requests.get(url).status_code)
+    print("REVISIT", url, requests.get(url).status_code)
 
 
 def invalidate_too_old(verbose=False, dry_run=False, revisit=False):
@@ -74,14 +74,14 @@ def invalidate_too_old(verbose=False, dry_run=False, revisit=False):
     deleted = []
     for root, dirs, files in os.walk(settings.FSCACHE_ROOT):
         for file_ in files:
-            if file_.endswith('.metadata'):
+            if file_.endswith(".metadata"):
                 continue
             path = os.path.join(root, file_)
-            if os.path.isfile(path + '.metadata'):
+            if os.path.isfile(path + ".metadata"):
                 found.append(os.stat(path).st_size)
                 seconds = None
-                if os.path.isfile(path + '.cache_control'):
-                    with open(path + '.cache_control') as seconds_f:
+                if os.path.isfile(path + ".cache_control"):
+                    with open(path + ".cache_control") as seconds_f:
                         seconds = int(seconds_f.read())
                 if too_old(path, seconds=seconds):
                     if verbose:
@@ -111,38 +111,37 @@ def cache_request(request, response):
         # bail if it hasn't been set up
         return False
     if (
-        request.method == 'GET' and
+        request.method == "GET"
+        and
         # request.path != '/' and
-        response.status_code == 200 and
-        not request.META.get('QUERY_STRING') and
-        not request.user.is_authenticated and
+        response.status_code == 200
+        and not request.META.get("QUERY_STRING")
+        and not request.user.is_authenticated
+        and
         # XXX TODO: Support JSON and xml
-        'text/html' in response['Content-Type']
+        "text/html" in response["Content-Type"]
     ):
         # let's iterate through some exceptions
         not_starts = (
-            '/plog/edit/',
-            '/stats/',
-            '/search',
-            '/ajaxornot',
-            '/localvsxhr',
-            '/auth',
-            '/podcasttime',
-            '/nodomain',
+            "/plog/edit/",
+            "/stats/",
+            "/search",
+            "/ajaxornot",
+            "/localvsxhr",
+            "/auth",
+            "/podcasttime",
+            "/nodomain",
         )
         for s in not_starts:
             if request.path.startswith(s):
                 return False
 
-        not_ends = (
-            '/awspa',
-            '/ping',
-        )
+        not_ends = ("/awspa", "/ping")
         for s in not_ends:
             if request.path.endswith(s):
                 return False
 
-        if getattr(request, '_fscache_disable', None):
+        if getattr(request, "_fscache_disable", None):
             # For some reason, the request decided this page should not
             # be FS cached.
             return False

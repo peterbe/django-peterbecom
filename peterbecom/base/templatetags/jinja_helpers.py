@@ -18,23 +18,23 @@ def url(viewname, *args, **kwargs):
 
 @library.global_function
 def thousands(n):
-    return format(n, ',')
+    return format(n, ",")
 
 
 @library.global_function
 def thumbnail(imagefile, geometry, **options):
-    if not options.get('format'):
+    if not options.get("format"):
         # then let's try to do it by the file name
         filename = imagefile
-        if hasattr(imagefile, 'name'):
+        if hasattr(imagefile, "name"):
             # it's an ImageFile object
             filename = imagefile.name
-        if filename.lower().endswith('.png'):
-            options['format'] = 'PNG'
-        elif filename.lower().endswith('.gif'):
+        if filename.lower().endswith(".png"):
+            options["format"] = "PNG"
+        elif filename.lower().endswith(".gif"):
             pass
         else:
-            options['format'] = 'JPEG'
+            options["format"] = "JPEG"
     try:
         return get_thumbnail(imagefile, geometry, **options)
     except IntegrityError:

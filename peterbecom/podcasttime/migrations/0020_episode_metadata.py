@@ -8,14 +8,12 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('podcasttime', '0019_auto_20170111_1345'),
-    ]
+    dependencies = [("podcasttime", "0019_auto_20170111_1345")]
 
     operations = [
         migrations.AddField(
-            model_name='episode',
-            name='metadata',
+            model_name="episode",
+            name="metadata",
             field=django.contrib.postgres.fields.jsonb.JSONField(null=True),
-        ),
+        )
     ]

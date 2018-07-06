@@ -15,13 +15,11 @@ class AWSProduct(models.Model):
     modify_date = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('keyword', 'asin', 'searchindex')
+        unique_together = ("keyword", "asin", "searchindex")
 
     def __repr__(self):
-        return '<{} {} {!r}>'.format(
-            self.__class__.__name__,
-            self.asin,
-            self.title[:70]
+        return "<{} {} {!r}>".format(
+            self.__class__.__name__, self.asin, self.title[:70]
         )
 
 
