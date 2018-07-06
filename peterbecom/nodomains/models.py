@@ -29,4 +29,4 @@ class Queued(models.Model):
 
 @receiver(post_save, sender=Result)
 def invalidate_stats_prefix(sender, instance, **kwargs):
-    cache.delete('_stats_latest_add_date')
+    cache.delete("_stats_latest_add_date")

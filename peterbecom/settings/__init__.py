@@ -4,7 +4,7 @@ from .base import *  # NOQA
 from .local import *  # NOQA
 
 
-if len(sys.argv) > 1 and sys.argv[1] == 'test':
+if len(sys.argv) > 1 and sys.argv[1] == "test":
     # Shuts up excessive logging when running tests
     # import logging
     # logging.disable(logging.WARNING)

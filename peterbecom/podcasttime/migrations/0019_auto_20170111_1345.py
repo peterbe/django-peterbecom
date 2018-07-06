@@ -7,19 +7,17 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('podcasttime', '0018_podcast_error'),
-    ]
+    dependencies = [("podcasttime", "0018_podcast_error")]
 
     operations = [
         migrations.AddField(
-            model_name='podcast',
-            name='latest_episode',
+            model_name="podcast",
+            name="latest_episode",
             field=models.DateTimeField(null=True),
         ),
         migrations.AlterField(
-            model_name='picked',
-            name='session_key',
-            field=models.CharField(default='legacy', max_length=32),
+            model_name="picked",
+            name="session_key",
+            field=models.CharField(default="legacy", max_length=32),
         ),
     ]

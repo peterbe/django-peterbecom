@@ -13,9 +13,9 @@ class CommandRun(models.Model):
     created = models.DateTimeField(auto_now_add=True)
 
     def __repr__(self):
-        return '<{}: {!r} {!r}{}>'.format(
+        return "<{}: {!r} {!r}{}>".format(
             self.__class__.__name__,
             self.app,
             self.command,
-            self.exception and ' (Errored)' or '',
+            self.exception and " (Errored)" or "",
         )

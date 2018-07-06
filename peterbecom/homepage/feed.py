@@ -15,10 +15,10 @@ class PlogFeed(Feed):
     link = "/rss.xml"
 
     def get_object(self, request, oc):
-        if request.GET.get('oc'):
+        if request.GET.get("oc"):
             if not oc:
-                oc = ''
-            oc += '/'.join('oc-%s' % x for x in request.GET.getlist('oc'))
+                oc = ""
+            oc += "/".join("oc-%s" % x for x in request.GET.getlist("oc"))
         if not oc:
             return
         return parse_ocs_to_categories(oc)
@@ -27,7 +27,7 @@ class PlogFeed(Feed):
         qs = BlogItem.objects.filter(pub_date__lt=timezone.now())
         if categories:
             qs = qs.filter(make_categories_q(categories))
-        return qs.order_by('-pub_date')[:10]
+        return qs.order_by("-pub_date")[:10]
 
     def item_title(self, item):
         return item.title

@@ -13,16 +13,13 @@ from peterbecom.base.search import podcast_index
 
 
 edge_ngram_analyzer = analyzer(
-    'edge_ngram_analyzer',
-    type='custom',
-    tokenizer='standard',
+    "edge_ngram_analyzer",
+    type="custom",
+    tokenizer="standard",
     filter=[
-        'lowercase',
-        token_filter(
-            'edge_ngram_filter', type='edgeNGram',
-            min_gram=1, max_gram=20
-        )
-    ]
+        "lowercase",
+        token_filter("edge_ngram_filter", type="edgeNGram", min_gram=1, max_gram=20),
+    ],
 )
 
 
@@ -35,11 +32,7 @@ class PodcastDoc(DocType):
     episodes_count = Integer()
     episodes_seconds = Float()
     slug = Keyword(required=True, index=False)
-    name = Text(
-        required=True,
-        analyzer=edge_ngram_analyzer,
-        search_analyzer='standard'
-    )
+    name = Text(required=True, analyzer=edge_ngram_analyzer, search_analyzer="standard")
     link = Keyword()
     subtitle = Text()
     summary = Text()

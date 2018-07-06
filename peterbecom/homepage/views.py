@@ -23,19 +23,14 @@ from django.views import static
 
 from peterbecom.plog.models import BlogItem, BlogComment
 from peterbecom.plog.utils import utc_now, view_function_timer
-from .utils import (
-    parse_ocs_to_categories,
-    make_categories_q,
-    split_search,
-    STOPWORDS
-)
+from .utils import parse_ocs_to_categories, make_categories_q, split_search, STOPWORDS
 from fancy_cache import cache_page
 from peterbecom.plog.utils import make_prefix
 from peterbecom.plog.search import BlogItemDoc, BlogCommentDoc
 from .tasks import sample_task
 
 
-logger = logging.getLogger('homepage')
+logger = logging.getLogger("homepage")
 
 
 ONE_HOUR = 60 * 60
@@ -45,13 +40,13 @@ ONE_MONTH = ONE_WEEK * 4
 
 
 def _home_key_prefixer(request):
-    if request.method != 'GET':
+    if request.method != "GET":
         return None
     prefix = make_prefix(request.GET)
-    cache_key = 'latest_comment_add_date'
-    if request.path_info.startswith('/oc-'):
-        categories = parse_ocs_to_categories(request.path_info[len('/oc-'):])
-        cache_key += ''.join(str(x.pk) for x in categories)
+    cache_key = "latest_comment_add_date"
+    if request.path_info.startswith("/oc-"):
+        categories = parse_ocs_to_categories(request.path_info[len("/oc-") :])
+        cache_key += "".join(str(x.pk) for x in categories)
     else:
         categories = None
 
@@ -61,8 +56,8 @@ def _home_key_prefixer(request):
         if categories:
             cat_q = make_categories_q(categories)
             qs = qs.filter(cat_q)
-        latest, = qs.order_by('-modify_date').values('modify_date')[:1]
-        latest_date = latest['modify_date'].strftime('%f')
+        latest, = qs.order_by("-modify_date").values("modify_date")[:1]
+        latest_date = latest["modify_date"].strftime("%f")
         cache.set(cache_key, latest_date, ONE_DAY)
     prefix += str(latest_date)
 
@@ -75,164 +70,146 @@ def home(request, oc=None, page=1):
     qs = BlogItem.objects.filter(pub_date__lt=utc_now())
     if oc is not None:
         if not oc:  # empty string
-            return redirect('/', permanent=True)
+            return redirect("/", permanent=True)
         categories = parse_ocs_to_categories(oc, strict_matching=True)
         cat_q = make_categories_q(categories)
         qs = qs.filter(cat_q)
-        context['categories'] = categories
+        context["categories"] = categories
 
     # Reasons for not being here
-    if request.method == 'HEAD':
-        return http.HttpResponse('')
+    if request.method == "HEAD":
+        return http.HttpResponse("")
 
     BATCH_SIZE = 10
     try:
         page = max(1, int(page)) - 1
     except ValueError:
-        raise http.Http404('invalid page value')
+        raise http.Http404("invalid page value")
     n, m = page * BATCH_SIZE, (page + 1) * BATCH_SIZE
     max_count = qs.count()
     if page * BATCH_SIZE > max_count:
-        return http.HttpResponse('Too far back in time\n', status=404)
+        return http.HttpResponse("Too far back in time\n", status=404)
     if (page + 1) * BATCH_SIZE < max_count:
-        context['next_page'] = page + 2
-    context['previous_page'] = page
+        context["next_page"] = page + 2
+    context["previous_page"] = page
 
     # If you're going deep into the pagination with some really old
     # pages, it's not worth using the fs cache because if you have to
     # store a fs cache version for every single page from p5 to p55
     # it's too likely to get stale and old and it's too much work
     # on the mincss postprocess.
-    if page > 5 or (context.get('categories') and page > 2):
+    if page > 5 or (context.get("categories") and page > 2):
         request._fscache_disable = True
 
-    if context.get('categories'):
-        oc_path = '/'.join(
-            ['oc-{}'.format(c.name) for c in context['categories']]
-        )
+    if context.get("categories"):
+        oc_path = "/".join(["oc-{}".format(c.name) for c in context["categories"]])
         oc_path = oc_path[3:]
 
-    if context.get('next_page'):
-        if context.get('categories'):
+    if context.get("next_page"):
+        if context.get("categories"):
             next_page_url = reverse(
-                'only_category_paged',
-                args=(oc_path, context['next_page'])
+                "only_category_paged", args=(oc_path, context["next_page"])
             )
         else:
-            next_page_url = reverse(
-                'home_paged',
-                args=(context['next_page'],)
-            )
-        context['next_page_url'] = next_page_url
+            next_page_url = reverse("home_paged", args=(context["next_page"],))
+        context["next_page_url"] = next_page_url
 
-    if context['previous_page'] > 1:
-        if context.get('categories'):
+    if context["previous_page"] > 1:
+        if context.get("categories"):
             previous_page_url = reverse(
-                'only_category_paged',
-                args=(oc_path, context['previous_page'])
+                "only_category_paged", args=(oc_path, context["previous_page"])
             )
         else:
-            previous_page_url = reverse(
-                'home_paged',
-                args=(context['previous_page'],)
-            )
-        context['previous_page_url'] = previous_page_url
-    elif context['previous_page']:  # i.e. == 1
-        if context.get('categories'):
-            previous_page_url = reverse(
-                'only_category',
-                args=(oc_path,)
-            )
+            previous_page_url = reverse("home_paged", args=(context["previous_page"],))
+        context["previous_page_url"] = previous_page_url
+    elif context["previous_page"]:  # i.e. == 1
+        if context.get("categories"):
+            previous_page_url = reverse("only_category", args=(oc_path,))
         else:
-            previous_page_url = '/'
-        context['previous_page_url'] = previous_page_url
+            previous_page_url = "/"
+        context["previous_page_url"] = previous_page_url
 
-    context['blogitems'] = (
-        qs
-        .prefetch_related('categories')
-        .order_by('-pub_date')
-    )[n:m]
+    context["blogitems"] = (qs.prefetch_related("categories").order_by("-pub_date"))[
+        n:m
+    ]
 
     if page > 0:  # page starts on 0
-        context['page_title'] = 'Page {}'.format(page + 1)
+        context["page_title"] = "Page {}".format(page + 1)
 
     approved_comments_count = {}
-    blog_comments_count_qs = BlogComment.objects.filter(
-        blogitem__in=context['blogitems']
-    ).values('blogitem_id').annotate(count=Count('blogitem_id'))
+    blog_comments_count_qs = (
+        BlogComment.objects.filter(blogitem__in=context["blogitems"])
+        .values("blogitem_id")
+        .annotate(count=Count("blogitem_id"))
+    )
     for count in blog_comments_count_qs:
-        approved_comments_count[count['blogitem_id']] = count['count']
-    context['approved_comments_count'] = approved_comments_count
+        approved_comments_count[count["blogitem_id"]] = count["count"]
+    context["approved_comments_count"] = approved_comments_count
 
-    return render(request, 'homepage/home.html', context)
+    return render(request, "homepage/home.html", context)
 
 
-_uppercase = set('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
-_html_regex = re.compile(r'<.*?>')
+_uppercase = set("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+_html_regex = re.compile(r"<.*?>")
 
 
 def htmlify_text(text, newline_to_br=True, allow=()):
     allow_ = []
     for each in allow:
-        allow_.append('<{}>'.format(each))
-        allow_.append('</{}>'.format(each))
+        allow_.append("<{}>".format(each))
+        allow_.append("</{}>".format(each))
 
     def replacer(match):
         group = match.group()
         if group in allow_:
             # let it be
             return group
-        return ''
+        return ""
 
     html = _html_regex.sub(replacer, text)
     if newline_to_br:
-        html = html.replace('\n', '<br/>')
+        html = html.replace("\n", "<br/>")
     return html
 
 
 def massage_fragment(text, max_length=300):
     while len(text) > max_length:
         split = text.split()
-        d_left = text.find('<mark>')
-        d_right = len(text) - text.rfind('</mark>')
+        d_left = text.find("<mark>")
+        d_right = len(text) - text.rfind("</mark>")
         if d_left > d_right:
             # there's more non-<mark> on the left
             split = split[1:]
         else:
             split = split[:-1]
-        text = ' '.join(split)
+        text = " ".join(split)
     text = text.strip()
-    if not text.endswith('.'):
-        text += '…'
-    text = text.lstrip(', ')
-    text = text.lstrip('. ')
+    if not text.endswith("."):
+        text += "…"
+    text = text.lstrip(", ")
+    text = text.lstrip(". ")
     if text[0] not in _uppercase:
-        text = '…' + text
-    text = htmlify_text(
-        text,
-        newline_to_br=False,
-        allow=('mark',)
-    )
-    text = text.replace('</mark> <mark>', ' ')
+        text = "…" + text
+    text = htmlify_text(text, newline_to_br=False, allow=("mark",))
+    text = text.replace("</mark> <mark>", " ")
     return text
 
 
 def clean_fragment_html(fragment):
-
     def replacer(match):
         group = match.group()
-        if group in ('<mark>', '</mark>'):
+        if group in ("<mark>", "</mark>"):
             return group
-        return ''
+        return ""
 
     fragment = _html_regex.sub(replacer, fragment)
-    return fragment.replace('</mark> <mark>', ' ')
+    return fragment.replace("</mark> <mark>", " ")
 
 
 @view_function_timer()
 def search(request, original_q=None):
     context = {}
-    q = request.GET.get('q', '')
+    q = request.GET.get("q", "")
     if len(q) > 90:
         return http.HttpResponse("Search too long")
 
@@ -241,58 +218,42 @@ def search(request, original_q=None):
 
     documents = []
     search_times = []
-    context['base_url'] = 'https://%s' % RequestSite(request).domain
+    context["base_url"] = "https://%s" % RequestSite(request).domain
 
-    context['q'] = q
+    context["q"] = q
 
     keyword_search = {}
     if len(q) > 1:
-        _keyword_keys = ('keyword', 'keywords', 'category', 'categories')
+        _keyword_keys = ("keyword", "keywords", "category", "categories")
         q, keyword_search = split_search(q, _keyword_keys)
 
     search_terms = [(1.1, q)]
     _search_terms = set([q])
-    doc_type_keys = (
-        (BlogItemDoc, ('title', 'text')),
-        (BlogCommentDoc, ('comment',)),
-    )
+    doc_type_keys = ((BlogItemDoc, ("title", "text")), (BlogCommentDoc, ("comment",)))
     for doc_type, keys in doc_type_keys:
         suggester = doc_type.search()
         for key in keys:
-            suggester = suggester.suggest('sugg', q, term={'field': key})
+            suggester = suggester.suggest("sugg", q, term={"field": key})
         suggestions = suggester.execute()
         for each in suggestions.suggest.sugg:
             if each.options:
                 for option in each.options:
                     if option.score >= 0.6:
-                        better = q.replace(each['text'], option['text'])
+                        better = q.replace(each["text"], option["text"])
                         if better not in _search_terms:
-                            search_terms.append((
-                                option['score'],
-                                better,
-                            ))
+                            search_terms.append((option["score"], better))
                             _search_terms.add(better)
 
     search_query = BlogItemDoc.search()
-    search_query.update_from_dict({
-        'query': {
-            'range': {
-                'pub_date': {
-                    'lt': 'now'
-                }
-            }
-        }
-    })
+    search_query.update_from_dict({"query": {"range": {"pub_date": {"lt": "now"}}}})
 
-    if keyword_search.get('keyword'):
+    if keyword_search.get("keyword"):
         search_query = search_query.filter(
-            'terms',
-            keywords=[keyword_search['keyword']]
+            "terms", keywords=[keyword_search["keyword"]]
         )
-    if keyword_search.get('category'):
+    if keyword_search.get("category"):
         search_query = search_query.filter(
-            'terms',
-            categories=[keyword_search['category']]
+            "terms", categories=[keyword_search["category"]]
         )
 
     matcher = None
@@ -301,9 +262,9 @@ def search(request, original_q=None):
     if len(search_terms) > max_search_terms:
         search_terms = search_terms[:max_search_terms]
 
-    strategy = 'match_phrase'
+    strategy = "match_phrase"
     if original_q:
-        strategy = 'match'
+        strategy = "match"
     search_term_boosts = {}
     for i, (score, word) in enumerate(search_terms):
         # meaning the first search_term should be boosted most
@@ -311,38 +272,27 @@ def search(request, original_q=None):
         boost = 1 * j * score
         boost_title = 2 * boost
         search_term_boosts[word] = (boost_title, boost)
-        match = Q(strategy, title={
-            'query': word,
-            'boost': boost_title,
-        }) | Q(strategy, text={
-            'query': word,
-            'boost': boost,
-        })
+        match = Q(strategy, title={"query": word, "boost": boost_title}) | Q(
+            strategy, text={"query": word, "boost": boost}
+        )
         if matcher is None:
             matcher = match
         else:
             matcher |= match
 
-    context['search_terms'] = search_terms
-    context['search_term_boosts'] = search_term_boosts
+    context["search_terms"] = search_terms
+    context["search_term_boosts"] = search_term_boosts
 
     search_query = search_query.query(matcher)
 
     search_query = search_query.highlight(
-        'text',
-        fragment_size=80,
-        number_of_fragments=2,
-        type='plain',
+        "text", fragment_size=80, number_of_fragments=2, type="plain"
     )
     search_query = search_query.highlight(
-        'title',
-        fragment_size=120,
-        number_of_fragments=1,
-        type='plain',
+        "title", fragment_size=120, number_of_fragments=1, type="plain"
     )
     search_query = search_query.highlight_options(
-        pre_tags=['<mark>'],
-        post_tags=['</mark>'],
+        pre_tags=["<mark>"], post_tags=["</mark>"]
     )
     search_query = search_query[:LIMIT_BLOG_ITEMS]
     t0 = time.time()
@@ -357,39 +307,37 @@ def search(request, original_q=None):
             for fragment in hit.meta.highlight.title:
                 title = clean_fragment_html(fragment)
         except AttributeError:
-            title = clean_fragment_html(result['title'])
+            title = clean_fragment_html(result["title"])
         texts = []
         try:
             for fragment in hit.meta.highlight.text:
                 texts.append(massage_fragment(fragment))
         except AttributeError:
-            texts.append(strip_tags(result['text'])[:100] + '...')
-        summary = '<br>'.join(texts)
-        documents.append({
-            'url': reverse('blog_post', args=(result['oid'],)),
-            'title': title,
-            'date': result['pub_date'],
-            'summary': summary,
-            'score': hit._score,
-            'comment': False,
-        })
+            texts.append(strip_tags(result["text"])[:100] + "...")
+        summary = "<br>".join(texts)
+        documents.append(
+            {
+                "url": reverse("blog_post", args=(result["oid"],)),
+                "title": title,
+                "date": result["pub_date"],
+                "summary": summary,
+                "score": hit._score,
+                "comment": False,
+            }
+        )
 
-    context['count_documents'] = response.hits.total
+    context["count_documents"] = response.hits.total
 
     # Now append the search results based on blog comments
     search_query = BlogCommentDoc.search()
-    search_query = search_query.filter('term', approved=True)
-    search_query = search_query.query('match_phrase', comment=q)
+    search_query = search_query.filter("term", approved=True)
+    search_query = search_query.query("match_phrase", comment=q)
 
     search_query = search_query.highlight(
-        'comment',
-        fragment_size=80,
-        number_of_fragments=2,
-        type='plain',
+        "comment", fragment_size=80, number_of_fragments=2, type="plain"
     )
     search_query = search_query.highlight_options(
-        pre_tags=['<mark>'],
-        post_tags=['</mark>'],
+        pre_tags=["<mark>"], post_tags=["</mark>"]
     )
     search_query = search_query[:LIMIT_BLOG_COMMENTS]
     t0 = time.time()
@@ -397,9 +345,9 @@ def search(request, original_q=None):
     t1 = time.time()
     search_times.append(t1 - t0)
 
-    context['count_documents'] += response.hits.total
+    context["count_documents"] += response.hits.total
 
-    if not original_q and not context['count_documents'] and ' ' in q:
+    if not original_q and not context["count_documents"] and " " in q:
         # recurse
         return search(request, original_q=q)
 
@@ -411,198 +359,164 @@ def search(request, original_q=None):
             for fragment in hit.meta.highlight.comment:
                 texts.append(massage_fragment(fragment))
         except AttributeError:
-            texts.append(strip_tags(result['comment'])[:100] + '...')
-        summary = '<br>'.join(texts)
-        blogitem_lookups.add(result['blogitem_id'])
-        documents.append({
-            '_id': result['blogitem_id'],
-            'url': None,
-            'title': None,
-            'date': result['add_date'],
-            'summary': summary,
-            'score': hit._score,
-            'comment': True,
-            'oid': result['oid'],
-        })
+            texts.append(strip_tags(result["comment"])[:100] + "...")
+        summary = "<br>".join(texts)
+        blogitem_lookups.add(result["blogitem_id"])
+        documents.append(
+            {
+                "_id": result["blogitem_id"],
+                "url": None,
+                "title": None,
+                "date": result["add_date"],
+                "summary": summary,
+                "score": hit._score,
+                "comment": True,
+                "oid": result["oid"],
+            }
+        )
 
     if blogitem_lookups:
         blogitems = {}
         blogitem_qs = BlogItem.objects.filter(id__in=blogitem_lookups)
-        for blog_item in blogitem_qs.only('title', 'oid'):
-            blog_item_url = reverse('blog_post', args=(blog_item.oid,))
+        for blog_item in blogitem_qs.only("title", "oid"):
+            blog_item_url = reverse("blog_post", args=(blog_item.oid,))
             blogitems[blog_item.id] = {
-                'title': (
-                    'Comment on <i>{}</i>'.format(
-                        clean_fragment_html(blog_item.title)
-                    )
+                "title": (
+                    "Comment on <i>{}</i>".format(clean_fragment_html(blog_item.title))
                 ),
-                'url': blog_item_url,
+                "url": blog_item_url,
             }
         for doc in documents:
-            _id = doc.pop('_id', None)
+            _id = doc.pop("_id", None)
             if _id:
-                doc['url'] = blogitems[_id]['url']
-                doc['title'] = blogitems[_id]['title']
-                if doc['comment']:
-                    doc['url'] += '#{}'.format(doc['oid'])
+                doc["url"] = blogitems[_id]["url"]
+                doc["title"] = blogitems[_id]["title"]
+                if doc["comment"]:
+                    doc["url"] += "#{}".format(doc["oid"])
 
-    context['documents'] = documents
-    context['count_documents_shown'] = len(documents)
+    context["documents"] = documents
+    context["count_documents_shown"] = len(documents)
 
-    context['search_time'] = sum(search_times)
-    if not context['q']:
-        page_title = 'Search'
-    elif context['count_documents'] == 1:
-        page_title = '1 thing found'
-    elif context['count_documents'] == 0:
-        page_title = 'Nothing found'
+    context["search_time"] = sum(search_times)
+    if not context["q"]:
+        page_title = "Search"
+    elif context["count_documents"] == 1:
+        page_title = "1 thing found"
+    elif context["count_documents"] == 0:
+        page_title = "Nothing found"
     else:
-        page_title = '%s things found' % context['count_documents']
-    if context['count_documents_shown'] < context['count_documents']:
-        if context['count_documents_shown'] == 1:
-            page_title += ' (1 shown)'
+        page_title = "%s things found" % context["count_documents"]
+    if context["count_documents_shown"] < context["count_documents"]:
+        if context["count_documents_shown"] == 1:
+            page_title += " (1 shown)"
         else:
-            page_title += ' ({} shown)'.format(
-                context['count_documents_shown']
-            )
-    context['page_title'] = page_title
-    context['original_q'] = original_q
+            page_title += " ({} shown)".format(context["count_documents_shown"])
+    context["page_title"] = page_title
+    context["original_q"] = original_q
     if original_q:
-        context['non_stopwords_q'] = [
+        context["non_stopwords_q"] = [
             x for x in q.split() if x.lower() not in STOPWORDS
         ]
 
-    context['debug_search'] = 'debug-search' in request.GET
+    context["debug_search"] = "debug-search" in request.GET
 
     print(
-        'Searched For',
-        request.build_absolute_uri() + '&debug-search=1',
-        'and found',
-        context['count_documents'], 'documents',
-        'Took',
-        '{:.1f}ms'.format(context['search_time'] * 1000)
+        "Searched For",
+        request.build_absolute_uri() + "&debug-search=1",
+        "and found",
+        context["count_documents"],
+        "documents",
+        "Took",
+        "{:.1f}ms".format(context["search_time"] * 1000),
     )
 
-    return render(request, 'homepage/search.html', context)
+    return render(request, "homepage/search.html", context)
 
 
 def autocompete(request):
-    q = request.GET.get('q', '')
+    q = request.GET.get("q", "")
     if not q:
-        return http.JsonResponse({'error': "Missing 'q'"}, status=400)
-    size = int(request.GET.get('n', 10))
+        return http.JsonResponse({"error": "Missing 'q'"}, status=400)
+    size = int(request.GET.get("n", 10))
     terms = [q]
     search_query = BlogItemDoc.search()
     if len(q) > 2:
-        suggestion = search_query.suggest('suggestions', q, term={
-            'field': 'title',
-        })
+        suggestion = search_query.suggest("suggestions", q, term={"field": "title"})
         response = suggestion.execute()
         suggestions = response.suggest.suggestions
         for suggestion in suggestions:
             for option in suggestion.options:
-                terms.append(
-                    q.replace(suggestion.text, option.text)
-                )
+                terms.append(q.replace(suggestion.text, option.text))
 
-    search_query.update_from_dict({
-        'query': {
-            'range': {
-                'pub_date': {
-                    'lt': 'now'
-                }
-            }
-        }
-    })
-    query = Q('match_phrase', title_autocomplete=terms[0])
+    search_query.update_from_dict({"query": {"range": {"pub_date": {"lt": "now"}}}})
+    query = Q("match_phrase", title_autocomplete=terms[0])
     for term in terms[1:]:
-        query |= Q('match_phrase', title_autocomplete=term)
+        query |= Q("match_phrase", title_autocomplete=term)
 
     search_query = search_query.query(query)
-    search_query = search_query.sort('-pub_date', '_score')
+    search_query = search_query.sort("-pub_date", "_score")
     search_query = search_query[:size]
     response = search_query.execute()
     results = []
     for hit in response.hits:
         # print('\t', hit.oid, hit.pub_date, hit._score)
-        results.append([
-            reverse('blog_post', args=(hit.oid,)),
-            hit.title,
-        ])
+        results.append([reverse("blog_post", args=(hit.oid,)), hit.title])
 
-    response = http.JsonResponse({
-        'results': results,
-        'terms': terms,
-    })
+    response = http.JsonResponse({"results": results, "terms": terms})
     return response
 
 
 @cache_control(public=True, max_age=ONE_WEEK)
 def about(request):
-    context = {
-        'page_title': 'About this site',
-    }
-    return render(request, 'homepage/about.html', context)
+    context = {"page_title": "About this site"}
+    return render(request, "homepage/about.html", context)
 
 
 @cache_control(public=True, max_age=ONE_WEEK)
 def contact(request):
-    context = {
-        'page_title': 'Contact me',
-    }
-    return render(request, 'homepage/contact.html', context)
+    context = {"page_title": "Contact me"}
+    return render(request, "homepage/contact.html", context)
 
 
 @cache_control(public=True, max_age=ONE_WEEK)
 def sitemap(request):
-    base_url = 'https://%s' % RequestSite(request).domain
+    base_url = "https://%s" % RequestSite(request).domain
 
     urls = []
     urls.append('<?xml version="1.0" encoding="iso-8859-1"?>')
     urls.append('<urlset xmlns="http://www.google.com/schemas/sitemap/0.84">')
 
-    def add(loc, lastmod=None, changefreq='monthly', priority=None):
-        url = '<url><loc>%s%s</loc>' % (base_url, loc)
+    def add(loc, lastmod=None, changefreq="monthly", priority=None):
+        url = "<url><loc>%s%s</loc>" % (base_url, loc)
         if lastmod:
-            url += '<lastmod>%s</lastmod>' % lastmod.strftime('%Y-%m-%d')
+            url += "<lastmod>%s</lastmod>" % lastmod.strftime("%Y-%m-%d")
         if priority:
-            url += '<priority>%s</priority>' % priority
+            url += "<priority>%s</priority>" % priority
         if changefreq:
-            url += '<changefreq>%s</changefreq>' % changefreq
-        url += '</url>'
+            url += "<changefreq>%s</changefreq>" % changefreq
+        url += "</url>"
         urls.append(url)
 
     now = utc_now()
-    latest_blogitem, = (
-        BlogItem.objects
-        .filter(pub_date__lt=now)
-        .order_by('-pub_date')[:1]
-    )
-    add(
-        '/',
-        priority=1.0,
-        changefreq='daily',
-        lastmod=latest_blogitem.pub_date
-    )
-    add(reverse('about'), changefreq='weekly', priority=0.5)
-    add(reverse('contact'), changefreq='weekly', priority=0.5)
+    latest_blogitem, = BlogItem.objects.filter(pub_date__lt=now).order_by("-pub_date")[
+        :1
+    ]
+    add("/", priority=1.0, changefreq="daily", lastmod=latest_blogitem.pub_date)
+    add(reverse("about"), changefreq="weekly", priority=0.5)
+    add(reverse("contact"), changefreq="weekly", priority=0.5)
 
     # TODO: Instead of looping over BlogItem, loop over
     # BlogItemTotalHits and use the join to build this list.
     # Then we can sort by a scoring function.
     # This will only work once ALL blogitems have at least 1 hit.
-    blogitems = BlogItem.objects.filter(
-        pub_date__lt=now
-    )
-    for blogitem in blogitems.order_by('-pub_date'):
+    blogitems = BlogItem.objects.filter(pub_date__lt=now)
+    for blogitem in blogitems.order_by("-pub_date"):
         if not blogitem.modify_date:
             # legacy!
             try:
-                latest_comment, = (
-                    BlogComment.objects
-                    .filter(approved=True, blogitem=blogitem)
-                    .order_by('-add_date')[:1]
-                )
+                latest_comment, = BlogComment.objects.filter(
+                    approved=True, blogitem=blogitem
+                ).order_by("-add_date")[:1]
                 blogitem.modify_date = latest_comment.add_date
             except ValueError:
                 blogitem.modify_date = blogitem.pub_date
@@ -611,61 +525,51 @@ def sitemap(request):
 
         age = (now - blogitem.modify_date).days
         if age < 14:
-            changefreq = 'daily'
+            changefreq = "daily"
         elif age < 60:
-            changefreq = 'weekly'
+            changefreq = "weekly"
         elif age < 100:
-            changefreq = 'monthly'
+            changefreq = "monthly"
         else:
             changefreq = None
         add(
-            reverse('blog_post', args=[blogitem.oid]),
+            reverse("blog_post", args=[blogitem.oid]),
             lastmod=blogitem.modify_date,
-            changefreq=changefreq
+            changefreq=changefreq,
         )
 
-    urls.append('</urlset>')
-    return http.HttpResponse('\n'.join(urls), content_type="text/xml")
+    urls.append("</urlset>")
+    return http.HttpResponse("\n".join(urls), content_type="text/xml")
 
 
 def blog_post_by_alias(request, alias):
-    if alias.startswith('static/'):
+    if alias.startswith("static/"):
         # This only really happens when there's no Nginx at play.
         # For example, when the mincss post process thing runs, it's
         # forced to download the 'localhost:8000/static/main.©e9fc100fa.css'
         # file.
         return static.serve(
-            request,
-            alias.replace('static/', ''),
-            document_root=settings.STATIC_ROOT
+            request, alias.replace("static/", ""), document_root=settings.STATIC_ROOT
         )
-    if alias.startswith('q/') and alias.count('/') == 1:
+    if alias.startswith("q/") and alias.count("/") == 1:
         # E.g. www.peterbe.com/q/have%20to%20learn
-        url = 'https://songsear.ch/' + alias
+        url = "https://songsear.ch/" + alias
         return http.HttpResponsePermanentRedirect(url)
 
-    lower_endings = (
-        '.asp',
-        '.aspx',
-        '.xml',
-        '.php',
-        '.jpg/view',
-    )
+    lower_endings = (".asp", ".aspx", ".xml", ".php", ".jpg/view")
     if any(alias.lower().endswith(x) for x in lower_endings):
-        return http.HttpResponse('Not found', status=404)
-    if alias == '...':
-        return redirect('/')
-    if alias.startswith('podcasttime/podcasts/'):
+        return http.HttpResponse("Not found", status=404)
+    if alias == "...":
+        return redirect("/")
+    if alias.startswith("podcasttime/podcasts/"):
         return redirect(
-            'https://podcasttime.io/{}'.format(
-                alias.replace('podcasttime/', '')
-            )
+            "https://podcasttime.io/{}".format(alias.replace("podcasttime/", ""))
         )
-    if alias.startswith('cdn-2916.kxcdn.com/'):
-        return redirect('https://' + alias)
+    if alias.startswith("cdn-2916.kxcdn.com/"):
+        return redirect("https://" + alias)
     try:
         blogitem = BlogItem.objects.get(alias__iexact=alias)
-        url = reverse('blog_post', args=[blogitem.oid])
+        url = reverse("blog_post", args=[blogitem.oid])
         return http.HttpResponsePermanentRedirect(url)
     except BlogItem.DoesNotExist:
         print("UNDEALTH WITH ALIAS:", repr(alias))
@@ -677,17 +581,13 @@ def blog_post_by_alias(request, alias):
 
 @cache_page(ONE_MONTH)
 def humans_txt(request):
-    return render(
-        request,
-        'homepage/humans.txt',
-        content_type='text/plain'
-    )
+    return render(request, "homepage/humans.txt", content_type="text/plain")
 
 
 @login_required
 def celerytester(request):
-    if request.method == 'POST':
-        filepath = os.path.join(tempfile.gettempdir(), 'celerytester.log')
+    if request.method == "POST":
+        filepath = os.path.join(tempfile.gettempdir(), "celerytester.log")
         if os.path.isfile(filepath):
             os.remove(filepath)
         assert sample_task.delay(filepath)
@@ -697,21 +597,17 @@ def celerytester(request):
                 os.remove(filepath)
                 return http.HttpResponse(result)
             time.sleep(i)
-        return http.HttpResponse('Did not work :(')
-    return render(request, 'homepage/celerytester.html')
+        return http.HttpResponse("Did not work :(")
+    return render(request, "homepage/celerytester.html")
 
 
 def signin(request):
-    return render(request, 'homepage/signin.html', {
-        'page_title': 'Sign In'
-    })
+    return render(request, "homepage/signin.html", {"page_title": "Sign In"})
 
 
 @require_POST
 def signout(request):
     logout(request)
-    url = 'https://' + settings.AUTH0_DOMAIN + '/v2/logout'
-    url += '?' + urlencode({
-        'returnTo': settings.AUTH_SIGNOUT_URL,
-    })
+    url = "https://" + settings.AUTH0_DOMAIN + "/v2/logout"
+    url += "?" + urlencode({"returnTo": settings.AUTH_SIGNOUT_URL})
     return redirect(url)

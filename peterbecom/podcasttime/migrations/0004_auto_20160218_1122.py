@@ -8,15 +8,15 @@ import peterbecom.podcasttime.models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('podcasttime', '0003_auto_20160216_2132'),
-    ]
+    dependencies = [("podcasttime", "0003_auto_20160216_2132")]
 
     operations = [
         migrations.AlterField(
-            model_name='podcast',
-            name='image',
-            field=sorl.thumbnail.fields.ImageField(null=True, upload_to=peterbecom.podcasttime.models._upload_to_podcast),
+            model_name="podcast",
+            name="image",
+            field=sorl.thumbnail.fields.ImageField(
+                null=True, upload_to=peterbecom.podcasttime.models._upload_to_podcast
+            ),
             preserve_default=True,
-        ),
+        )
     ]

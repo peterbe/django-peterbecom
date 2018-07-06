@@ -7,14 +7,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('awspa', '0002_auto_20171129_0745'),
-    ]
+    dependencies = [("awspa", "0002_auto_20171129_0745")]
 
     operations = [
         migrations.AddField(
-            model_name='awsproduct',
-            name='disabled',
+            model_name="awsproduct",
+            name="disabled",
             field=models.BooleanField(default=False),
-        ),
+        )
     ]

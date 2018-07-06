@@ -7,24 +7,18 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('podcasttime', '0021_auto_20170301_0755'),
-    ]
+    dependencies = [("podcasttime", "0021_auto_20170301_0755")]
 
     operations = [
         migrations.AddField(
-            model_name='podcast',
-            name='link',
+            model_name="podcast",
+            name="link",
             field=models.URLField(max_length=400, null=True),
         ),
         migrations.AddField(
-            model_name='podcast',
-            name='subtitle',
-            field=models.TextField(null=True),
+            model_name="podcast", name="subtitle", field=models.TextField(null=True)
         ),
         migrations.AddField(
-            model_name='podcast',
-            name='summary',
-            field=models.TextField(null=True),
+            model_name="podcast", name="summary", field=models.TextField(null=True)
         ),
     ]

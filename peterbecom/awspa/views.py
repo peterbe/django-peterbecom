@@ -14,15 +14,15 @@ from .models import AWSProduct
 @login_required
 def all_keywords(request):
 
-    if request.method == 'POST':
-        asin = request.POST['asin']
-        keyword = request.POST['keyword']
+    if request.method == "POST":
+        asin = request.POST["asin"]
+        keyword = request.POST["keyword"]
         awsproduct = AWSProduct.objects.get(asin=asin, keyword=keyword)
         awsproduct.disabled = not awsproduct.disabled
         awsproduct.save()
-        return http.JsonResponse({'ok': True})
+        return http.JsonResponse({"ok": True})
 
-    awsproducts = AWSProduct.objects.all().order_by('disabled', 'modify_date')
+    awsproducts = AWSProduct.objects.all().order_by("disabled", "modify_date")
     keywords = {}
     keywords_count = {}
     keywords_disabled = {}
@@ -36,48 +36,48 @@ def all_keywords(request):
         if awsproduct.disabled:
             keywords_disabled[awsproduct.keyword] += 1
     context = {
-        'keywords': keywords,
-        'keywords_count': keywords_count,
-        'keywords_disabled': keywords_disabled,
-        'keywords_sorted': sorted(keywords),
-        'page_title': 'All Keywords',
+        "keywords": keywords,
+        "keywords_count": keywords_count,
+        "keywords_disabled": keywords_disabled,
+        "keywords_sorted": sorted(keywords),
+        "page_title": "All Keywords",
     }
-    return render(request, 'awspa/keywords.html', context)
+    return render(request, "awspa/keywords.html", context)
 
 
 @login_required
 @require_POST
 def delete_awsproduct(request):
-    assert request.method == 'POST'
-    asin = request.POST['asin']
-    keyword = request.POST['keyword']
+    assert request.method == "POST"
+    asin = request.POST["asin"]
+    keyword = request.POST["keyword"]
     awsproduct = AWSProduct.objects.get(asin=asin, keyword=keyword)
     awsproduct.delete()
-    return http.JsonResponse({'ok': True})
+    return http.JsonResponse({"ok": True})
 
 
 @login_required
 def plog_archive(request):
     keyword_count = {}
-    for each in AWSProduct.objects.values('keyword'):
-        keyword = each['keyword']
+    for each in AWSProduct.objects.values("keyword"):
+        keyword = each["keyword"]
         if keyword not in keyword_count:
             keyword_count[keyword] = 0
         keyword_count[keyword] += 1
 
-    blogitems = BlogItem.objects.all().order_by('-pub_date')
+    blogitems = BlogItem.objects.all().order_by("-pub_date")
 
     recently = timezone.now() - datetime.timedelta(days=30)
     hits_qs = BlogItemHit.objects.filter(add_date__gte=recently)
-    aggs = hits_qs.values('blogitem_id').annotate(count=Count('blogitem_id'))
+    aggs = hits_qs.values("blogitem_id").annotate(count=Count("blogitem_id"))
     hits = {}
     for agg in aggs:
-        hits[agg['blogitem_id']] = agg['count']
+        hits[agg["blogitem_id"]] = agg["count"]
 
     context = {
-        'page_title': 'Blog Archive',
-        'blogitems': blogitems,
-        'keyword_count': keyword_count,
-        'hits': hits,
+        "page_title": "Blog Archive",
+        "blogitems": blogitems,
+        "keyword_count": keyword_count,
+        "hits": hits,
     }
-    return render(request, 'awspa/archive.html', context)
+    return render(request, "awspa/archive.html", context)

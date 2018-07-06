@@ -7,19 +7,13 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('podcasttime', '0020_episode_metadata'),
-    ]
+    dependencies = [("podcasttime", "0020_episode_metadata")]
 
     operations = [
         migrations.AddField(
-            model_name='episode',
-            name='summary',
-            field=models.TextField(null=True),
+            model_name="episode", name="summary", field=models.TextField(null=True)
         ),
         migrations.AddField(
-            model_name='episode',
-            name='title',
-            field=models.TextField(null=True),
+            model_name="episode", name="title", field=models.TextField(null=True)
         ),
     ]

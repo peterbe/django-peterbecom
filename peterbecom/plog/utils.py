@@ -21,10 +21,10 @@ from django.utils import timezone
 from .gfm import gfm
 
 
-def is_bot(ua='', ip=None):
-    if 'bot' not in ua.lower() and 'download-all-plogs.py' not in ua:
+def is_bot(ua="", ip=None):
+    if "bot" not in ua.lower() and "download-all-plogs.py" not in ua:
         return False
-    if 'HeadlessChrome/' in ua:
+    if "HeadlessChrome/" in ua:
         return True
 
     return True
@@ -35,7 +35,7 @@ def make_prefix(request_dict, max_length=100, hash_request_values=False):
 
     def stringify(s):
         if isinstance(s, str):
-            s = s.encode('utf-8')
+            s = s.encode("utf-8")
         if hash_request_values:
             return hashlib.md5(s).hexdigest()
         return s
@@ -50,9 +50,7 @@ def make_prefix(request_dict, max_length=100, hash_request_values=False):
         else:
             # Try again by md5 hashing each value
             return make_prefix(
-                request_dict,
-                max_length=max_length,
-                hash_request_values=True
+                request_dict, max_length=max_length, hash_request_values=True
             )
     return url_encoded
 
@@ -69,47 +67,38 @@ def valid_email(value):
         return False
 
 
-whitespace_start_regex = re.compile(r'^\n*(\s+)', re.M)
+whitespace_start_regex = re.compile(r"^\n*(\s+)", re.M)
 
 
 def render_comment_text(text):
-    text = text.replace(
-        '<', '&lt;'
-    ).replace(
-        '>', '&gt;'
-    )
+    text = text.replace("<", "&lt;").replace(">", "&gt;")
     # Note, `bleach.linkify` automatically sets rel="nofollow"
     html = bleach.linkify(text)
 
     # So you can write comments with code with left indentation whitespace
     def subber(m):
-        return m.group().replace(' ', '&nbsp;')
+        return m.group().replace(" ", "&nbsp;")
+
     html = whitespace_start_regex.sub(subber, html)
 
-    html = html.replace('\n', '<br>')
+    html = html.replace("\n", "<br>")
     return html
 
 
 def stx_to_html(text, codesyntax):
-    rendered = zope.structuredtext.stx2html(
-        text,
-        header=0
-    )
+    rendered = zope.structuredtext.stx2html(text, header=0)
 
-    _regex = re.compile(r'(<pre>(.*?)</pre>)', re.DOTALL)
+    _regex = re.compile(r"(<pre>(.*?)</pre>)", re.DOTALL)
 
     lexer = _get_lexer(codesyntax)
 
     def match(s):
         outer, inner = s.groups()
         new_inner = inner
-        new_inner = (new_inner
-                     .replace('&gt;', '>')
-                     .replace('&lt;', '<')
-                     )
+        new_inner = new_inner.replace("&gt;", ">").replace("&lt;", "<")
         lines = new_inner.splitlines()
-        lines = [re.sub('^\s', '', x) for x in lines]
-        new_inner = '\n'.join(lines)
+        lines = [re.sub("^\s", "", x) for x in lines]
+        new_inner = "\n".join(lines)
         if lexer:
             new_inner = highlight(new_inner, lexer, HtmlFormatter())
         return new_inner
@@ -118,27 +107,27 @@ def stx_to_html(text, codesyntax):
 
 
 def _get_lexer(codesyntax):
-    if codesyntax in ('cpp', 'javascript'):
+    if codesyntax in ("cpp", "javascript"):
         return lexers.JavascriptLexer()
-    elif codesyntax == 'python':
+    elif codesyntax == "python":
         return lexers.PythonLexer()
-    elif codesyntax == 'json':
+    elif codesyntax == "json":
         return lexers.JsonLexer()
-    elif codesyntax == 'xml' or codesyntax == 'html':
+    elif codesyntax == "xml" or codesyntax == "html":
         return lexers.HtmlLexer()
-    elif codesyntax == 'yml' or codesyntax == 'yaml':
+    elif codesyntax == "yml" or codesyntax == "yaml":
         return lexers.YamlLexer()
-    elif codesyntax == 'css':
+    elif codesyntax == "css":
         return lexers.CssLexer()
-    elif codesyntax == 'sql':
+    elif codesyntax == "sql":
         return lexers.SqlLexer()
-    elif codesyntax == 'bash' or codesyntax == 'sh':
+    elif codesyntax == "bash" or codesyntax == "sh":
         return lexers.BashLexer()
-    elif codesyntax == 'go':
+    elif codesyntax == "go":
         return lexers.GoLexer()
-    elif codesyntax == 'rust':
+    elif codesyntax == "rust":
         return lexers.RustLexer()
-    elif codesyntax == 'jsx':
+    elif codesyntax == "jsx":
         return BabylonLexer()
     elif codesyntax:
         raise NotImplementedError(codesyntax)
@@ -147,9 +136,9 @@ def _get_lexer(codesyntax):
 
 
 _codesyntax_regex = re.compile(
-    '```(python|cpp|javascript|json|xml|html|yml|yaml|css|sql|sh|bash|go|jsx|rust)'  # noqa
+    "```(python|cpp|javascript|json|xml|html|yml|yaml|css|sql|sh|bash|go|jsx|rust)"  # noqa
 )
-_markdown_pre_regex = re.compile('```([^`]+)```')
+_markdown_pre_regex = re.compile("```([^`]+)```")
 
 
 def markdown_to_html(text, codesyntax):
@@ -159,46 +148,45 @@ def markdown_to_html(text, codesyntax):
             codesyntax = _codesyntax_regex.findall(found)[0]
         except IndexError:
             codesyntax = None
-        found = _codesyntax_regex.sub('```', found)
+        found = _codesyntax_regex.sub("```", found)
         if codesyntax:
+
             def highlighter(m):
                 lexer = _get_lexer(codesyntax)
-                code = m.group().replace('```', '')
+                code = m.group().replace("```", "")
                 return highlight(code, lexer, HtmlFormatter())
+
             found = _markdown_pre_regex.sub(highlighter, found)
-        found = found.replace('```', '<pre>', 1)
-        found = found.replace('```', '</pre>')
+        found = found.replace("```", "<pre>", 1)
+        found = found.replace("```", "</pre>")
         return found
 
     text = _markdown_pre_regex.sub(matcher, text)
-    html = markdown.markdown(
-        gfm(text),
-        extensions=['markdown.extensions.tables']
-    )
-    html = html.replace('<table>', '<table class="ui celled table">')
+    html = markdown.markdown(gfm(text), extensions=["markdown.extensions.tables"])
+    html = html.replace("<table>", '<table class="ui celled table">')
     return html
 
 
 _SRC_regex = re.compile('(src|href)="([^"]+)"')
-_image_extension_regex = re.compile('\.(png|jpg|jpeg|gif)$', re.I)
+_image_extension_regex = re.compile("\.(png|jpg|jpeg|gif)$", re.I)
 
 
 # Note: this is quite experimental still
 def cache_prefix_files(text):
     hash_ = str(int(time.time()))
-    static_url = settings.STATIC_URL.replace('/static/', '/')
-    prefix = '%sCONTENTCACHE-%s' % (static_url, hash_)
-    assert not prefix.endswith('/')
+    static_url = settings.STATIC_URL.replace("/static/", "/")
+    prefix = "%sCONTENTCACHE-%s" % (static_url, hash_)
+    assert not prefix.endswith("/")
 
     def matcher(match):
         attr, url = match.groups()
         if (
-            url.startswith('/') and
-            not url.startswith('//') and
-            '://' not in url and
-            _image_extension_regex.findall(url)
+            url.startswith("/")
+            and not url.startswith("//")
+            and "://" not in url
+            and _image_extension_regex.findall(url)
         ):
-            url = '%s%s' % (prefix, url)
+            url = "%s%s" % (prefix, url)
         return '%s="%s"' % (attr, url)
 
     return _SRC_regex.sub(matcher, text)
@@ -220,15 +208,15 @@ def json_view(f):
         else:
             r = http.HttpResponse(
                 json.dumps(response, cls=DateTimeEncoder, indent=2),
-                content_type='application/json'
+                content_type="application/json",
             )
-            r.write('\n')
+            r.write("\n")
             return r
+
     return wrapper
 
 
-def view_function_timer(prefix='', writeto=print):
-
+def view_function_timer(prefix="", writeto=print):
     def decorator(func):
         @functools.wraps(func)
         def inner(*args, **kwargs):
@@ -238,14 +226,15 @@ def view_function_timer(prefix='', writeto=print):
             finally:
                 t1 = time.time()
                 writeto(
-                    'View Function',
-                    '({})'.format(prefix) if prefix else '',
+                    "View Function",
+                    "({})".format(prefix) if prefix else "",
                     func.__name__,
                     args[1:],
-                    'Took',
-                    '{:.2f}ms'.format(1000 * (t1 - t0)),
+                    "Took",
+                    "{:.2f}ms".format(1000 * (t1 - t0)),
                     args[0].build_absolute_uri(),
                 )
+
         return inner
 
     return decorator

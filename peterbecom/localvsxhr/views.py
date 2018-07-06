@@ -12,38 +12,41 @@ from peterbecom.localvsxhr import forms
 
 def index(request):
     context = {
-        'page_title': 'Local vs. XHR',
-        'count_measurements': Measurement.objects.all().count(),
-        'count_boot_measurements': BootMeasurement.objects.all().count(),
+        "page_title": "Local vs. XHR",
+        "count_measurements": Measurement.objects.all().count(),
+        "count_boot_measurements": BootMeasurement.objects.all().count(),
     }
-    return render(request, 'localvsxhr/index.html', context)
+    return render(request, "localvsxhr/index.html", context)
 
 
-simple_user_agent_regex = re.compile('''
+simple_user_agent_regex = re.compile(
+    """
     Firefox/\d+ |
     Chrome/\d+ |
     Safari/\d+
-''', re.X)
+""",
+    re.X,
+)
 
 
 def parse_user_agent(ua):
-    browser = ''
+    browser = ""
     version = None
-    if 'iPhone OS' in ua:
-        browser = 'iPhone '
-    elif 'AppleWebKit' in ua and 'Chrome' in ua:
-        browser = 'AppleWebKit '
-    elif 'Mobile;' in ua:
-        browser = 'Mobile '
-    elif 'SeaMonkey/' in ua:
-        browser = 'SeaMonkey '
-    elif 'Trident/' in ua:
-        browser = 'Internet Explorer'
-        version = re.findall('rv:(\d+)', ua)[0]
+    if "iPhone OS" in ua:
+        browser = "iPhone "
+    elif "AppleWebKit" in ua and "Chrome" in ua:
+        browser = "AppleWebKit "
+    elif "Mobile;" in ua:
+        browser = "Mobile "
+    elif "SeaMonkey/" in ua:
+        browser = "SeaMonkey "
+    elif "Trident/" in ua:
+        browser = "Internet Explorer"
+        version = re.findall("rv:(\d+)", ua)[0]
 
     for match in simple_user_agent_regex.findall(ua):
-        browser += match.split('/')[0]
-        version = match.split('/')[1]
+        browser += match.split("/")[0]
+        version = match.split("/")[1]
         break
     return browser, version
 
@@ -54,27 +57,29 @@ def stats(request):
     #     m.save()
 
     def _stats(r):
-        #returns the median, average and standard deviation of a sequence
+        # returns the median, average and standard deviation of a sequence
         tot = sum(r)
-        avg = tot/len(r)
-        sdsq = sum([(i-avg)**2 for i in r])
+        avg = tot / len(r)
+        sdsq = sum([(i - avg) ** 2 for i in r])
         s = list(r)
         s.sort()
-        return s[len(s)//2], avg, (sdsq/(len(r)-1 or 1))**.5
+        return s[len(s) // 2], avg, (sdsq / (len(r) - 1 or 1)) ** .5
 
     def wrap_sequence(data):
         items = []
-        for key in sorted(data, key=lambda x: x and x.lower() or ''):
+        for key in sorted(data, key=lambda x: x and x.lower() or ""):
             median, average, stddev = _stats(data[key])
-            items.append({
-                'name': key or 'plain localStorage',
-                'median': median,
-                'average': average,
-                'stddev': stddev,
-                'count': len(data[key]),
-                'max': max(data[key]),
-                'min': min(data[key]),
-            })
+            items.append(
+                {
+                    "name": key or "plain localStorage",
+                    "median": median,
+                    "average": average,
+                    "stddev": stddev,
+                    "count": len(data[key]),
+                    "max": max(data[key]),
+                    "min": min(data[key]),
+                }
+            )
         return items
 
     def wrap_sequence_boots(data):
@@ -84,20 +89,22 @@ def stats(request):
             times2 = [x[1] for x in data[key]]
             median1, average1, stddev1 = _stats(times1)
             median2, average2, stddev2 = _stats(times2)
-            items.append({
-                'name': key or 'plain localStorage',
-                'median1': median1,
-                'average1': average1,
-                'stddev1': stddev1,
-                'median2': median2,
-                'average2': average2,
-                'stddev2': stddev2,
-                'max1': max(times1),
-                'min1': min(times1),
-                'max2': max(times2),
-                'min2': min(times2),
-                'count': len(data[key]),
-            })
+            items.append(
+                {
+                    "name": key or "plain localStorage",
+                    "median1": median1,
+                    "average1": average1,
+                    "stddev1": stddev1,
+                    "median2": median2,
+                    "average2": average2,
+                    "stddev2": stddev2,
+                    "max1": max(times1),
+                    "min1": min(times1),
+                    "max2": max(times2),
+                    "min2": min(times2),
+                    "count": len(data[key]),
+                }
+            )
         return items
 
     drivers = defaultdict(list)
@@ -105,7 +112,7 @@ def stats(request):
     # browserversions = defaultdict(list)
     for m in Measurement.objects.all():
         drivers[m.driver].append(m.local_median)
-        drivers['XHR'].append(m.xhr_median)
+        drivers["XHR"].append(m.xhr_median)
         browser, version = parse_user_agent(m.user_agent)
         if browser:
             browsers[browser].append(m.local_median)
@@ -113,37 +120,31 @@ def stats(request):
             #     browserversions['%s %s' % (browser, version)].append(
             #         m.xhr_median
             #     )
-    context['drivers'] = wrap_sequence(drivers)
-    context['browsers'] = wrap_sequence(browsers)
+    context["drivers"] = wrap_sequence(drivers)
+    context["browsers"] = wrap_sequence(browsers)
     # context['browserversions'] = wrap_sequence(browserversions)
 
     boots = defaultdict(list)
     for m in BootMeasurement.objects.all():
         boots[m.driver].append((m.time_to_boot1, m.time_to_boot2))
-    context['boots'] = wrap_sequence_boots(boots)
+    context["boots"] = wrap_sequence_boots(boots)
 
-    return render(request, 'localvsxhr/stats.html', context)
+    return render(request, "localvsxhr/stats.html", context)
 
 
 def localforage(request):
-    context = {
-        'page_title': 'localForage vs. XHR',
-    }
-    return render(request, 'localvsxhr/localforage.html', context)
+    context = {"page_title": "localForage vs. XHR"}
+    return render(request, "localvsxhr/localforage.html", context)
 
 
 def localforage_localstorage(request):
-    context = {
-        'page_title': 'localForage (localStorage driver) vs. XHR',
-    }
-    return render(request, 'localvsxhr/localforage_localstorage.html', context)
+    context = {"page_title": "localForage (localStorage driver) vs. XHR"}
+    return render(request, "localvsxhr/localforage_localstorage.html", context)
 
 
 def localstorage(request):
-    context = {
-        'page_title': 'localStorage vs. XHR',
-    }
-    return render(request, 'localvsxhr/localstorage.html', context)
+    context = {"page_title": "localStorage vs. XHR"}
+    return render(request, "localvsxhr/localstorage.html", context)
 
 
 @require_POST
@@ -172,30 +173,31 @@ def store_boot(request):
 
 @json_view
 def download_json(request):
-    context = {
-        'measurements': [],
-        'boot_measurements': [],
-    }
+    context = {"measurements": [], "boot_measurements": []}
     for m in Measurement.objects.all():
-        context['measurements'].append({
-            'url': m.url,
-            'user_agent': m.user_agent,
-            'driver': m.driver,
-            'xhr_median': m.xhr_median,
-            'local_median': m.local_median,
-            'plain_localstorage': m.plain_localstorage,
-            'iterations': m.iterations,
-            'add_date': m.add_date,
-        })
+        context["measurements"].append(
+            {
+                "url": m.url,
+                "user_agent": m.user_agent,
+                "driver": m.driver,
+                "xhr_median": m.xhr_median,
+                "local_median": m.local_median,
+                "plain_localstorage": m.plain_localstorage,
+                "iterations": m.iterations,
+                "add_date": m.add_date,
+            }
+        )
 
     for m in BootMeasurement.objects.all():
-        context['boot_measurements'].append({
-            'time_to_boot1': m.time_to_boot1,
-            'time_to_boot2': m.time_to_boot2,
-            'plain_localstorage': m.plain_localstorage,
-            'driver': m.driver,
-            'add_date': m.add_date,
-            'user_agent': m.user_agent,
-        })
+        context["boot_measurements"].append(
+            {
+                "time_to_boot1": m.time_to_boot1,
+                "time_to_boot2": m.time_to_boot2,
+                "plain_localstorage": m.plain_localstorage,
+                "driver": m.driver,
+                "add_date": m.add_date,
+                "user_agent": m.user_agent,
+            }
+        )
 
     return context

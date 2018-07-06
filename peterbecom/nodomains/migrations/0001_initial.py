@@ -7,43 +7,72 @@ import peterbecom.plog.utils
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Queued',
+            name="Queued",
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('url', models.URLField(max_length=400)),
-                ('add_date', models.DateTimeField(default=peterbecom.plog.utils.utc_now)),
+                (
+                    "id",
+                    models.AutoField(
+                        verbose_name="ID",
+                        serialize=False,
+                        auto_created=True,
+                        primary_key=True,
+                    ),
+                ),
+                ("url", models.URLField(max_length=400)),
+                (
+                    "add_date",
+                    models.DateTimeField(default=peterbecom.plog.utils.utc_now),
+                ),
             ],
-            options={
-            },
+            options={},
             bases=(models.Model,),
         ),
         migrations.CreateModel(
-            name='Result',
+            name="Result",
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('url', models.URLField(unique=True, max_length=400)),
-                ('count', models.IntegerField()),
-                ('add_date', models.DateTimeField(default=peterbecom.plog.utils.utc_now)),
+                (
+                    "id",
+                    models.AutoField(
+                        verbose_name="ID",
+                        serialize=False,
+                        auto_created=True,
+                        primary_key=True,
+                    ),
+                ),
+                ("url", models.URLField(unique=True, max_length=400)),
+                ("count", models.IntegerField()),
+                (
+                    "add_date",
+                    models.DateTimeField(default=peterbecom.plog.utils.utc_now),
+                ),
             ],
-            options={
-            },
+            options={},
             bases=(models.Model,),
         ),
         migrations.CreateModel(
-            name='ResultDomain',
+            name="ResultDomain",
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('domain', models.CharField(max_length=100)),
-                ('count', models.PositiveIntegerField(default=1, null=True)),
-                ('result', models.ForeignKey(to='nodomains.Result', on_delete=models.CASCADE)),
+                (
+                    "id",
+                    models.AutoField(
+                        verbose_name="ID",
+                        serialize=False,
+                        auto_created=True,
+                        primary_key=True,
+                    ),
+                ),
+                ("domain", models.CharField(max_length=100)),
+                ("count", models.PositiveIntegerField(default=1, null=True)),
+                (
+                    "result",
+                    models.ForeignKey(to="nodomains.Result", on_delete=models.CASCADE),
+                ),
             ],
-            options={
-            },
+            options={},
             bases=(models.Model,),
         ),
     ]

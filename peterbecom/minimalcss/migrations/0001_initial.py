@@ -8,18 +8,25 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Minimization',
+            name="Minimization",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('url', models.URLField()),
-                ('result', django.contrib.postgres.fields.jsonb.JSONField()),
-                ('time_took', models.FloatField()),
-                ('add_date', models.DateTimeField(auto_now_add=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("url", models.URLField()),
+                ("result", django.contrib.postgres.fields.jsonb.JSONField()),
+                ("time_took", models.FloatField()),
+                ("add_date", models.DateTimeField(auto_now_add=True)),
             ],
-        ),
+        )
     ]

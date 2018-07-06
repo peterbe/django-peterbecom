@@ -7,13 +7,10 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('awspa', '0001_initial'),
-    ]
+    dependencies = [("awspa", "0001_initial")]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='awsproduct',
-            unique_together=set([('keyword', 'asin', 'searchindex')]),
-        ),
+            name="awsproduct", unique_together=set([("keyword", "asin", "searchindex")])
+        )
     ]

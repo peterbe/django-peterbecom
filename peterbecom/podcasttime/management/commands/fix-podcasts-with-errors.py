@@ -11,10 +11,9 @@ from peterbecom.podcasttime.scraper import (
 
 
 class Command(BaseCommand):
-
     def _handle(self, *args, **kwargs):
         podcasts = Podcast.objects.filter(error__isnull=False)
-        self.out(podcasts.count(), 'podcasts with errors')
+        self.out(podcasts.count(), "podcasts with errors")
         acceptable_exceptions = (
             TooManyRedirects,
             ConnectionError,
@@ -22,7 +21,7 @@ class Command(BaseCommand):
             NotFound,
             BadEpisodeDurationError,
         )
-        for podcast in podcasts.order_by('?')[:10]:
+        for podcast in podcasts.order_by("?")[:10]:
             print((podcast.name, podcast.id))
             print("ERROR (before)", repr(podcast.error[:100]))
             try:
@@ -31,7 +30,4 @@ class Command(BaseCommand):
                 print("ERROR (after)", bool(podcast.error))
                 print()
             except acceptable_exceptions as exception:
-                print('Fetch error ({!r}): {}'.format(
-                    podcast,
-                    exception,
-                ))
+                print("Fetch error ({!r}): {}".format(podcast, exception))

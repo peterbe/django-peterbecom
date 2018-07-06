@@ -8,18 +8,29 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('plog', '0009_delete_blogitemhits'),
-    ]
+    dependencies = [("plog", "0009_delete_blogitemhits")]
 
     operations = [
         migrations.CreateModel(
-            name='BlogItemTotalHits',
+            name="BlogItemTotalHits",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('total_hits', models.IntegerField(default=0)),
-                ('modify_date', models.DateTimeField(auto_now=True)),
-                ('blogitem', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to='plog.BlogItem')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("total_hits", models.IntegerField(default=0)),
+                ("modify_date", models.DateTimeField(auto_now=True)),
+                (
+                    "blogitem",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE, to="plog.BlogItem"
+                    ),
+                ),
             ],
-        ),
+        )
     ]

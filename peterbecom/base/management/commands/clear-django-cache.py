@@ -3,12 +3,9 @@ from django.core.cache import cache
 
 
 class Command(BaseCommand):
-
     def handle(self, **options):
         count = 0
-        for key in cache.iter_keys('*'):
+        for key in cache.iter_keys("*"):
             count += 1
-        self.stdout.write('Cleared {} cache keys'.format(
-            format(count, ',')
-        ))
+        self.stdout.write("Cleared {} cache keys".format(format(count, ",")))
         cache.clear()

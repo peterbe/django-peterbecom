@@ -6,9 +6,7 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('podcasttime', '0006_podcast_last_fetch'),
-    ]
+    dependencies = [("podcasttime", "0006_podcast_last_fetch")]
 
     operations = [
         migrations.RunSQL(
@@ -17,5 +15,5 @@ class Migration(migrations.Migration):
             ON podcasttime_podcast
             USING gin(to_tsvector('english', name))
             """
-        ),
+        )
     ]

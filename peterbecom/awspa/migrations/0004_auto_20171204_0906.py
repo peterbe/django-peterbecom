@@ -6,7 +6,7 @@ from django.db import migrations
 
 
 def forwards_func(apps, schema_editor):
-    AWSProduct = apps.get_model('awspa', 'AWSProduct')
+    AWSProduct = apps.get_model("awspa", "AWSProduct")
     qs = AWSProduct.objects.all()
     for awsproduct in qs:
         if awsproduct.keyword != awsproduct.keyword.lower():
@@ -16,10 +16,6 @@ def forwards_func(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('awspa', '0003_awsproduct_disabled'),
-    ]
+    dependencies = [("awspa", "0003_awsproduct_disabled")]
 
-    operations = [
-        migrations.RunPython(forwards_func)
-    ]
+    operations = [migrations.RunPython(forwards_func)]

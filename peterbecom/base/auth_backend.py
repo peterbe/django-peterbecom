@@ -14,17 +14,14 @@ class AuthBackend(object):
 
     def authenticate(self, request, **kwargs):
         try:
-            email = kwargs.pop('email', None)
-            username = kwargs.pop('nickname', None)
+            email = kwargs.pop("email", None)
+            username = kwargs.pop("nickname", None)
             if email:
                 try:
-                    user = UserModel.objects.get(
-                        email__iexact=email
-                    )
+                    user = UserModel.objects.get(email__iexact=email)
                 except UserModel.DoesNotExist:
                     user = UserModel.objects.create(
-                        email=email,
-                        username=hash_email(email),
+                        email=email, username=hash_email(email)
                     )
                 if not user.username:
                     user.username = username
@@ -32,6 +29,7 @@ class AuthBackend(object):
                 return user
         except Exception:
             import sys
+
             print(" **** WARNING **** ")
             print(sys.exc_info())
             print()

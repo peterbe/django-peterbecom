@@ -27,7 +27,6 @@ def floatformat(*args, **kwargs):
 
 @library.global_function
 def make_images_lazy(html, placeholder_image_url):
-
     def replacer(match):
         html_tag, old_url = match.groups()
         # Only do this trick for images that have a width and height set.
@@ -38,8 +37,7 @@ def make_images_lazy(html, placeholder_image_url):
         # unnecessarily.
         if width_or_height_regex.findall(html_tag):
             new_snippet = '{}" data-originalsrc="{}'.format(
-                placeholder_image_url,
-                old_url,
+                placeholder_image_url, old_url
             )
             html_tag = html_tag.replace(old_url, new_snippet)
         else:

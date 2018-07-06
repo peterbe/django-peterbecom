@@ -1,1 +1,1 @@
-default_app_config = 'peterbecom.podcasttime.apps.PodcasttimeConfig'
+default_app_config = "peterbecom.podcasttime.apps.PodcasttimeConfig"

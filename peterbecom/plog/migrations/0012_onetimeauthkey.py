@@ -10,20 +10,46 @@ import peterbecom.plog.models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('plog', '0011_auto_20170809_0825'),
-    ]
+    dependencies = [("plog", "0011_auto_20170809_0825")]
 
     operations = [
         migrations.CreateModel(
-            name='OneTimeAuthKey',
+            name="OneTimeAuthKey",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('key', models.CharField(default=functools.partial(peterbecom.plog.models.random_string, *(16,), **{}), max_length=16)),
-                ('used', models.DateTimeField(null=True)),
-                ('add_date', models.DateTimeField(auto_now_add=True)),
-                ('blogcomment', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='plog.BlogComment')),
-                ('blogitem', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='plog.BlogItem')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "key",
+                    models.CharField(
+                        default=functools.partial(
+                            peterbecom.plog.models.random_string, *(16,), **{}
+                        ),
+                        max_length=16,
+                    ),
+                ),
+                ("used", models.DateTimeField(null=True)),
+                ("add_date", models.DateTimeField(auto_now_add=True)),
+                (
+                    "blogcomment",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="plog.BlogComment",
+                    ),
+                ),
+                (
+                    "blogitem",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="plog.BlogItem"
+                    ),
+                ),
             ],
-        ),
+        )
     ]
