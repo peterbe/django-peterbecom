@@ -4,7 +4,9 @@ import datetime
 import json
 import random
 import re
+import zlib
 from collections import defaultdict
+from io import BytesIO
 from statistics import median
 from urllib.parse import urlencode, urlparse
 
@@ -30,6 +32,8 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
 from peterbecom.awspa.models import AWSProduct
+from peterbecom.bayes.models import BayesData, BlogCommentTraining
+from peterbecom.bayes.guesser import default_guesser
 from .models import (
     BlogItem,
     BlogComment,
@@ -676,15 +680,31 @@ def new_comments(request):
     comments = BlogComment.objects.all()
     if not request.user.is_superuser:
         comments = comments.filter(approved=True)
-
-    # legacy stuff that can be removed in march 2012
-    for c in comments.filter(blogitem__isnull=True):
-        if not c.parent:
-            c.delete()
-        else:
-            c.correct_blogitem_parent()
-
-    context["comments"] = comments.order_by("-add_date").select_related("blogitem")[:50]
+        context["comments"] = comments.order_by("-add_date").select_related("blogitem")[
+            :50
+        ]
+    else:
+        comments = comments.filter(approved=False)
+        comments = comments.order_by("-add_date").select_related("blogitem")[:50]
+        bayes_data = BayesData.objects.get(topic="comments")
+        guesser = default_guesser
+        with BytesIO(zlib.decompress(bayes_data.pickle_data)) as f:
+            guesser.load_handler(f)
+        comments_list = []
+        for comment in comments:
+            t = comment.name + " " + comment.comment
+            bayes_guess = dict(guesser.guess(t))
+            bayes_training = None
+            try:
+                bayes_training = BlogCommentTraining.objects.get(
+                    comment=comment, bayes_data=bayes_data
+                ).tag
+            except BlogCommentTraining.DoesNotExist:
+                pass
+            comment.bayes_training = bayes_training
+            comments.bayes_guess = bayes_guess
+            comments_list.append(comment)
+        context["comments"] = comments_list
     context["page_title"] = "Latest new blog comments"
     return render(request, "plog/new-comments.html", context)
 
