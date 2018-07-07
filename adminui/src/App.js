@@ -8,6 +8,7 @@ import { Container, Dropdown, List, Menu, Segment } from 'semantic-ui-react';
 import { formatDistance } from 'date-fns/esm';
 
 import Dashboard from './Dashboard';
+import Comments from './Comments';
 import Blogitems from './Blogitems';
 import EditBlogitem from './EditBlogitem';
 import {
@@ -40,41 +41,53 @@ export default observer(
           if (err) {
             return console.error(err);
           }
+          if (authResult && window.location.hash) {
+            window.location.hash = '';
+          }
+
+          let startAccessTokenRefreshLoop = !!authResult;
 
           if (!authResult) {
             authResult = JSON.parse(localStorage.getItem('authResult'));
+            if (authResult) {
+              startAccessTokenRefreshLoop = true;
+            }
+            const expiresAt = JSON.parse(localStorage.getItem('expiresAt'));
+            if (expiresAt && expiresAt - new Date().getTime() < 0) {
+              // Oh no! It has expired.
+              authResult = null;
+            }
           }
-
-          // The contents of authResult depend on which authentication parameters were used.
-          // It can include the following:
-          // authResult.accessToken - access token for the API specified by `audience`
-          // authResult.expiresIn - string with the access token's expiration time in seconds
-          // authResult.idToken - ID token JWT containing user profile information
-          this._postProcessAuthResult(authResult);
+          if (authResult) {
+            // The contents of authResult depend on which authentication parameters were used.
+            // It can include the following:
+            // authResult.accessToken - access token for the API specified by `audience`
+            // authResult.expiresIn - string with the access token's expiration time in seconds
+            // authResult.idToken - ID token JWT containing user profile information
+            this._postProcessAuthResult(authResult);
+          }
+          if (startAccessTokenRefreshLoop) {
+            this.accessTokenRefreshLoop();
+          }
         }
       );
     }
 
     _postProcessAuthResult = authResult => {
       if (authResult) {
-        this.webAuth.client.userInfo(authResult.accessToken, (err, user) => {
-          if (err) {
-            store.user.setServerError(err);
-            return console.error(err);
-          }
-          // Now you have the user's information
-          store.user.setUserInfo(user);
-          store.user.setServerError(null);
-          store.user.setAccessToken(authResult.accessToken);
+        // Now you have the user's information
+        store.user.setUserInfo(authResult.idTokenPayload);
+        store.user.setServerError(null);
+        store.user.setAccessToken(authResult.accessToken);
 
-          const expiresAt = authResult.expiresIn * 1000 + new Date().getTime();
-          if (authResult.state) {
-            delete authResult.state;
-          }
-          localStorage.setItem('authResult', JSON.stringify(authResult));
-          localStorage.setItem('expiresAt', JSON.stringify(expiresAt));
-          this.accessTokenRefreshLoop();
-        });
+        const expiresAt = authResult.expiresIn * 1000 + new Date().getTime();
+        if (authResult.state) {
+          // XXX we could use authResult.state to redirect to where you
+          // came from.
+          delete authResult.state;
+        }
+        localStorage.setItem('authResult', JSON.stringify(authResult));
+        localStorage.setItem('expiresAt', JSON.stringify(expiresAt));
       }
     };
 
@@ -93,6 +106,7 @@ export default observer(
       const timeToRefresh = age < 0;
 
       if (timeToRefresh) {
+        console.warn('Time to fresh the auth token!');
         this.webAuth.checkSession({}, (err, authResult) => {
           if (err) {
             console.warn('Error trying to checkSession');
@@ -142,6 +156,9 @@ export default observer(
                 </Menu.Item>
                 <Menu.Item>
                   <Link to="/blogitems">Blogitems</Link>
+                </Menu.Item>
+                <Menu.Item>
+                  <Link to="/comments">Comments</Link>
                 </Menu.Item>
 
                 <Dropdown item simple text="Dropdown">
@@ -204,6 +221,7 @@ export default observer(
                     <Dashboard {...props} authorize={this.authorize} />
                   )}
                 />
+                <Route path="/comments" exact component={Comments} />
                 <Route path="/blogitems" exact component={Blogitems} />
                 <Route path="/blogitems/:id" component={EditBlogitem} />
                 {/* <Route

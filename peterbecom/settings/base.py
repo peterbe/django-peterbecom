@@ -199,6 +199,7 @@ INSTALLED_APPS = (
     "fancy_cache",
     "pipeline",
     "django_jinja",
+    "rest_framework",
 )
 
 # A sample logging configuration. The only tangible logging

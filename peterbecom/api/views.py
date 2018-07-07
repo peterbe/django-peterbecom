@@ -6,7 +6,7 @@ from rest_framework.permissions import BasePermission
 from django.utils import timezone
 from django.db.models import Count, Max
 from django.shortcuts import get_object_or_404
-from peterbecom.plog.models import BlogItem, Category
+from peterbecom.plog.models import BlogItem, Category, BlogComment
 
 from . import serializers
 from . import forms
@@ -20,26 +20,23 @@ class InvalidFormFilter(Exception):
 
 class CategoryViewSet(viewsets.ViewSet):
     def list(self, request):
-        all_categories = dict(
-            Category.objects.all().values_list('id', 'name')
-        )
+        all_categories = dict(Category.objects.all().values_list("id", "name"))
         one_year = timezone.now() - datetime.timedelta(days=365)
         qs = (
-            BlogItem.categories.through.objects
-            .filter(blogitem__pub_date__gte=one_year)
-            .values('category_id')
-            .annotate(Count('category_id'))
-            .order_by('-category_id__count')
+            BlogItem.categories.through.objects.filter(blogitem__pub_date__gte=one_year)
+            .values("category_id")
+            .annotate(Count("category_id"))
+            .order_by("-category_id__count")
         )
         choices = []
         _used = set()
         for count in qs:
-            pk = count['category_id']
+            pk = count["category_id"]
             choices.append(
                 {
-                    'id': pk,
-                    'name': all_categories[pk],
-                    'count': count['category_id__count'],
+                    "id": pk,
+                    "name": all_categories[pk],
+                    "count": count["category_id__count"],
                 }
             )
             _used.add(pk)
@@ -48,13 +45,7 @@ class CategoryViewSet(viewsets.ViewSet):
         for pk, name in sorted(category_items, key=lambda x: x[1].lower()):
             if pk in _used:
                 continue
-            choices.append(
-                {
-                    'id': pk,
-                    'name': all_categories[pk],
-                    'count': 0,
-                }
-            )
+            choices.append({"id": pk, "name": all_categories[pk], "count": 0})
         serializer = serializers.CategorySerializer(choices, many=True)
         return Response(serializer.data)
 
@@ -67,14 +58,10 @@ class CategoryViewSet(viewsets.ViewSet):
 
 
 class IsStaff(BasePermission):
-
     def has_permission(self, request, view):
-        if request.method == 'GET':
+        if request.method == "GET":
             return True
-        return (
-            request.user and request.user.is_authenticated and
-            request.user.is_staff
-        )
+        return request.user and request.user.is_authenticated and request.user.is_staff
 
 
 class BlogitemViewSet(viewsets.ModelViewSet):
@@ -83,20 +70,20 @@ class BlogitemViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = BlogItem.objects.all()
-        if self.request.GET.get('since'):
+        if self.request.GET.get("since"):
             form = forms.BlogitemsFilterForm(data=self.request.GET)
             if form.is_valid():
-                qs = qs.filter(modify_date__gt=form.cleaned_data['since'])
+                qs = qs.filter(modify_date__gt=form.cleaned_data["since"])
             else:
                 raise InvalidFormFilter(form.errors)
-        qs = qs.prefetch_related('categories')
-        return qs.order_by('-modify_date')
+        qs = qs.prefetch_related("categories")
+        return qs.order_by("-modify_date")
 
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
         latest_blogitem_date = BlogItem.objects.all().aggregate(
-            max_modify_date=Max('modify_date')
-        )['max_modify_date']
+            max_modify_date=Max("modify_date")
+        )["max_modify_date"]
 
         # category_names = {}
         # for category in Category.objects.all():
@@ -115,28 +102,24 @@ class BlogitemViewSet(viewsets.ModelViewSet):
         #     each['categories'] = categories_map.get(each['id'], [])
 
         response.data = {
-            'blogitems': response.data,
-            'latest_blogitem_date': latest_blogitem_date,
+            "blogitems": response.data,
+            "latest_blogitem_date": latest_blogitem_date,
         }
         return response
 
     def retrieve(self, request, *args, **kwargs):
         response = super().retrieve(request, *args, **kwargs)
-        response.data = {
-            'blogitem': response.data,
-        }
+        response.data = {"blogitem": response.data}
         return response
 
     def update(self, request, pk=None):
         categories = [
-            get_object_or_404(Category, id=x)
-            for x in request.data['categories']
+            get_object_or_404(Category, id=x) for x in request.data["categories"]
         ]
         # This is necessary so that you can send in a list of IDs
         # without the validation failing.
-        request.data['categories'] = [
-            {'id': category.id, 'name': category.name}
-            for category in categories
+        request.data["categories"] = [
+            {"id": category.id, "name": category.name} for category in categories
         ]
         # self.fields['categories'].read_only=True
         response = super().update(request, pk=pk)
@@ -150,11 +133,51 @@ class BlogitemViewSet(viewsets.ModelViewSet):
         for category in set(existing) - set(categories):
             instance.categories.remove(category)
 
-        keywords = [x.strip() for x in request.data['keywords'] if x.strip()]
+        keywords = [x.strip() for x in request.data["keywords"] if x.strip()]
         if instance.proper_keywords != keywords:
             instance.proper_keywords = keywords
             instance.save()
+        response.data = {"blogitem": response.data}
+        return response
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = serializers.CommentSerializer
+    permission_classes = (IsStaff,)
+
+    def get_queryset(self):
+        qs = BlogComment.objects.all()
+        if self.request.GET.get("since"):
+            form = forms.CommentsFilterForm(data=self.request.GET)
+            if form.is_valid():
+                qs = qs.filter(add_date__gt=form.cleaned_data["since"])
+            else:
+                raise InvalidFormFilter(form.errors)
+        qs = qs.prefetch_related("blogitem")
+        return qs.order_by("-add_date")
+
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        latest_comment_date = BlogComment.objects.all().aggregate(
+            max_add_date=Max("add_date")
+        )["max_add_date"]
+
         response.data = {
-            'blogitem': response.data,
+            "comments": response.data,
+            "latest_comment_date": latest_comment_date,
         }
+        return response
+
+    def retrieve(self, request, *args, **kwargs):
+        response = super().retrieve(request, *args, **kwargs)
+        response.data = {"comment": response.data}
+        return response
+
+    def update(self, request, pk=None):
+        response = super().update(request, pk=pk)
+
+        # Manually update the read_only fields
+        # instance = self.get_object()
+
+        response.data = {"comment": response.data}
         return response
