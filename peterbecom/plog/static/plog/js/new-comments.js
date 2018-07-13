@@ -22,6 +22,11 @@ $(function() {
       });
   });
 
+  $('.comments').on('click', 'input.all-unchecked', function(event) {
+    var checkBoxes = $('.comment input[type="checkbox"]');
+    checkBoxes.prop('checked', !checkBoxes.prop('checked'));
+  });
+
   var approveAllUrl = $('.comments').data('approve-all-url');
   var deleteAllUrl = $('.comments').data('delete-all-url');
   $('.comments').on('click', '.approve-all-button', function(event) {
