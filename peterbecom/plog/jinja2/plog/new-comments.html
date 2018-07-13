@@ -10,7 +10,7 @@ div.comment {
 div.comment p {
   margin-bottom: 5px;
 }
-div.comment input[type="checkbox"] {
+div.comments input[type="checkbox"] {
   margin: 0 20px;
 }
 </style>
@@ -30,6 +30,7 @@ div.comment input[type="checkbox"] {
   >
 
   {% if request.user.is_superuser %}
+  <input type="checkbox" name="" value="all" class="all-unchecked">
   <button type="button" class="ui button primary approve-all-button">Approve All</button>
   <button type="button" class="ui button yellow delete-all-button">Delete All</button>
   <hr/>
@@ -56,6 +57,7 @@ div.comment input[type="checkbox"] {
 
   {% if request.user.is_superuser %}
   <hr/>
+  <input type="checkbox" name="" value="all" class="all-unchecked">
   <button type="button" class="ui button primary approve-all-button">Approve All</button>
   <button type="button" class="ui button yellow delete-all-button">Delete All</button>
   {% endif %}
