@@ -684,7 +684,6 @@ def new_comments(request):
             :50
         ]
     else:
-        comments = comments.filter(approved=False)
         comments = comments.order_by("-add_date").select_related("blogitem")[:50]
         bayes_data = BayesData.objects.get(topic="comments")
         guesser = default_guesser
