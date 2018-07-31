@@ -55,6 +55,7 @@ $(function() {
     });
     formData.append('ids', ids);
     var url = action === 'approve' ? approveAllUrl : deleteAllUrl;
+    alert('URL:' + url);
     if (ids.length) {
       fetch(url, {
         method: 'POST',
@@ -69,6 +70,9 @@ $(function() {
               .parent('.approval')
               .text(action === 'approve' ? 'Approved' : 'Deleted');
           });
+        })
+        .catch(function(error) {
+          alert('ERROR: ' + error.toString());
         });
     }
   }
