@@ -54,25 +54,36 @@ $(function() {
       ids.push(id);
     });
     formData.append('ids', ids);
+    console.log('csrf', $('input[name="csrfmiddlewaretoken"]').val());
     var url = action === 'approve' ? approveAllUrl : deleteAllUrl;
-    alert('URL:' + url);
     if (ids.length) {
       fetch(url, {
         method: 'POST',
-        body: formData
+        body: formData,
+        credentials: 'same-origin'
       })
         .then(function(r) {
-          r.json();
-        })
-        .then(function(result) {
-          $('input[name="ids"]:checked').each(function() {
-            $(this)
-              .parent('.approval')
-              .text(action === 'approve' ? 'Approved' : 'Deleted');
-          });
+          if (r.status !== 200) {
+            alert(r.status + ' - ' + r.statusText);
+            return;
+          }
+          return r
+            .json()
+            .then(function(result) {
+              $('input[name="ids"]:checked').each(function() {
+                $(this)
+                  .parent('.approval')
+                  .text(action === 'approve' ? 'Approved' : 'Deleted');
+              });
+            })
+            .catch(function(error) {
+              console.warn('ERROR 2');
+              console.error(error);
+            });
         })
         .catch(function(error) {
-          alert('ERROR: ' + error.toString());
+          console.warn('ERROR 1');
+          console.error(error);
         });
     }
   }
