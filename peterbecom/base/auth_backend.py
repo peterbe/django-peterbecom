@@ -1,3 +1,5 @@
+# THIS FILE IS MOST LIKELY NEVER USED ANY MORE
+
 import hashlib
 
 from django.contrib.auth import get_user_model
