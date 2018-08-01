@@ -194,7 +194,7 @@ h4 {
 /* For comments */
 .ui.comments {
   /* Default from Semantic-ui is 650px */
-  max-width: 800px;
+  max-width: 900px;
 }
 /* .ui.comments .comment > b {
   margin-right: 0.5em;
