@@ -18,7 +18,7 @@ var F = (function() {
       email: $('input[name="email"]', form).val(),
       parent: $('input[name="parent"]', form).val(),
       comment: $('textarea', form).val(),
-      csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]', form).val(),
+      csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]', form).val()
     };
   }
 
@@ -109,7 +109,7 @@ var F = (function() {
         },
         error: function(jqXHR, textStatus, errorThrown) {
           alert('Error: ' + errorThrown);
-        },
+        }
       });
     },
     submit: function() {
@@ -191,10 +191,10 @@ var F = (function() {
           $('.dimmer', form).removeClass('active');
           alert('Error: ' + errorThrown);
           submitting = false;
-        },
+        }
       });
       return false;
-    },
+    }
   };
 })();
 
@@ -238,37 +238,37 @@ $(function() {
   var commentsOuter = $('#comments-outer');
 
   if (commentsOuter.length) {
-    commentsOuter.on('click', 'button[name="approve"]', function() {
-      var oid = $(this).data('oid');
-      var url = location.href;
-      url = url.split('#')[0];
-      url = url.split('?')[0];
-      url += '/approve/' + $(this).data('oid');
-      var button = $(this);
-      $.post(
-        url,
-        { csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val() },
-        function() {
-          $('.not-approved', '#' + oid).remove();
-          button.remove();
-        }
-      );
-      return false;
-    });
+    // commentsOuter.on('click', 'button[name="approve"]', function() {
+    //   var oid = $(this).data('oid');
+    //   var url = location.href;
+    //   url = url.split('#')[0];
+    //   url = url.split('?')[0];
+    //   url += '/approve/' + $(this).data('oid');
+    //   var button = $(this);
+    //   $.post(
+    //     url,
+    //     { csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val() },
+    //     function() {
+    //       $('.not-approved', '#' + oid).remove();
+    //       button.remove();
+    //     }
+    //   );
+    //   return false;
+    // });
 
-    commentsOuter.on('click', 'button[name="delete"]', function() {
-      var oid = $(this).data('oid');
-      var url = location.pathname;
-      url += '/delete/' + oid;
-      $.post(
-        url,
-        { csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val() },
-        function() {
-          $('#' + oid).remove();
-        }
-      );
-      return false;
-    });
+    // commentsOuter.on('click', 'button[name="delete"]', function() {
+    //   var oid = $(this).data('oid');
+    //   var url = location.pathname;
+    //   url += '/delete/' + oid;
+    //   $.post(
+    //     url,
+    //     { csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val() },
+    //     function() {
+    //       $('#' + oid).remove();
+    //     }
+    //   );
+    //   return false;
+    // });
 
     var loadingAllComments = false; // for the slow-load lock
     $('.comments-truncated').on('click', 'button', function() {
