@@ -181,9 +181,6 @@ pytz==2018.5 \
 django-jinja==2.4.1 \
     --hash=sha256:ceaa0eeebc4d91a5800967e50f4f087f0b6457503e3c2af85dc199bed8732a9a \
     --hash=sha256:8a49d73de616a12075eee14c6d3bbab936261a463457d40348d8b8e2995cfbed
-django-auth0==0.0.3 \
-    --hash=sha256:83f1415a7dabaa9a9b52154b2ca5a4c0e11cbb04772dd346ea5ed36a95088bbd \
-    --hash=sha256:029e1ea2d3a1696ec34aecb8d730af0a7960f734a6382768119452e1f783c50b
 ujson==1.35 \
     --hash=sha256:f66073e5506e91d204ab0c614a148d5aa938bdbf104751be66f8ad7a222f5f86
 cloudinary==1.12.0 \
@@ -384,3 +381,9 @@ webencodings==0.5.1 \
     --hash=sha256:b36a1c245f2d304965eb4e0a82848379241dc04b865afcc4aab16748587e1923
 rollbar==0.14.1 \
     --hash=sha256:a629babe937869c6ca0386edca96b3e434e6f40cbc169aca0578ca72fb694734
+mozilla-django-oidc==1.0.0 \
+    --hash=sha256:1e29a3d448cde77f0a96d4274dd67bfe5749554a5d6220007507d05d91cd50df \
+    --hash=sha256:8d0336d0a1e628f148c045f6cfdec3f1259cf9060335e514f8dd6be8e337784b
+josepy==1.1.0 \
+    --hash=sha256:1309a25aac3caeff5239729c58ff9b583f7d022ffdb1553406ddfc8e5b52b76e \
+    --hash=sha256:fb5c62c77d26e04df29cb5ecd01b9ce69b6fcc9e521eb1ca193b7faa2afa7086

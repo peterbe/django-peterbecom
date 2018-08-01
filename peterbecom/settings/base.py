@@ -117,7 +117,8 @@ MIDDLEWARE = (
 ROOT_URLCONF = "peterbecom.urls"
 
 AUTHENTICATION_BACKENDS = (
-    "peterbecom.base.auth_backend.AuthBackend",
+    # "peterbecom.base.auth_backend.AuthBackend",
+    "mozilla_django_oidc.auth.OIDCAuthenticationBackend",
     "django.contrib.auth.backends.ModelBackend",
 )
 
@@ -133,7 +134,6 @@ _CONTEXT_PROCESSORS = (
     "django.template.context_processors.tz",
     "django.template.context_processors.request",
     "peterbecom.homepage.context_processors.context",
-    "django_auth0.context_processors.auth0",
 )
 
 TEMPLATES = [
@@ -181,9 +181,9 @@ INSTALLED_APPS = (
     # 'django_celery_results',
     # 'django.contrib.admin',
     # 'kombu.transport.django',
+    "mozilla_django_oidc",
     "semanticuiform",
     "sorl.thumbnail",
-    "django_auth0",
     "peterbecom.base",
     "peterbecom.plog",
     "peterbecom.homepage",
@@ -352,3 +352,12 @@ LOGIN_URL = "/signin/"
 MINIMALCSS_SERVER_URL = "http://localhost:5000"
 
 ENABLE_CLIENT_SIDE_ROLLBAR = False
+
+LOGIN_REDIRECT_URL = "/signin/?logged=in"
+LOGOUT_REDIRECT_URL = "/signin/?logged=out"
+
+OIDC_OP_AUTHORIZATION_ENDPOINT = "https://peterbecom.auth0.com/authorize"
+OIDC_OP_TOKEN_ENDPOINT = "https://peterbecom.auth0.com/oauth/token"
+OIDC_OP_USER_ENDPOINT = "https://peterbecom.auth0.com/userinfo"
+OIDC_RP_CLIENT_ID = ""
+OIDC_RP_CLIENT_SECRET = ""
