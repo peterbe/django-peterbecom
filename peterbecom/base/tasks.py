@@ -4,6 +4,9 @@ import shutil
 
 from celery import shared_task
 
+from django.utils import timezone
+from django.conf import settings
+
 from peterbecom.mincss_response import mincss_html
 from peterbecom.minify_html import minify_html
 
@@ -35,6 +38,10 @@ def post_process_cached_html(filepath, url):
     if not minify_html:
         print("Something went horribly wrong! The minified HTML is empty!")
         print("filepath={}\turl={}".format(filepath, url))
+        if settings.DEBUG:
+            raise Exception("Minifying HTML failed")
+        with open("/tmp/minifying-trouble.log", "a") as f:
+            f.write("{}\t{}\t{}\n".format(timezone.now(), filepath, url))
         return
     before = len(optimized_html)
     before_gz = len(gzip.compress(optimized_html.encode("utf-8")))
