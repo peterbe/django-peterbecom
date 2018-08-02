@@ -63,7 +63,7 @@ class BlogItem(models.Model):
     display_format = models.CharField(max_length=20)
     categories = models.ManyToManyField(Category)
     # this will be renamed to "keywords" later
-    proper_keywords = ArrayField(models.CharField(max_length=100), default=[])
+    proper_keywords = ArrayField(models.CharField(max_length=100), default=list)
     plogrank = models.FloatField(null=True)
     codesyntax = models.CharField(max_length=20, blank=True)
     disallow_comments = models.BooleanField(default=False)
