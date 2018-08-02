@@ -35,7 +35,7 @@ def post_process_cached_html(filepath, url):
     print("mincss optimized {}".format(filepath))
 
     minified_html = minify_html(optimized_html)
-    if not minify_html:
+    if not minified_html:
         print("Something went horribly wrong! The minified HTML is empty!")
         print("filepath={}\turl={}".format(filepath, url))
         if settings.DEBUG:
