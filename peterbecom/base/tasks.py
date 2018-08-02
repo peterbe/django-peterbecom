@@ -32,6 +32,10 @@ def post_process_cached_html(filepath, url):
     print("mincss optimized {}".format(filepath))
 
     minified_html = minify_html(optimized_html)
+    if not minify_html:
+        print("Something went horribly wrong! The minified HTML is empty!")
+        print("filepath={}\turl={}".format(filepath, url))
+        return
     before = len(optimized_html)
     before_gz = len(gzip.compress(optimized_html.encode("utf-8")))
     after = len(minified_html)
