@@ -7,11 +7,11 @@
     <a class="metadata reply" rel="nofollow" data-oid="{{ comment.oid }}" href="#{{ comment.oid }}">Reply</a>
   {% endif %}
   {% endif %}
-  {#
-    {% if not comment.approved -%}
-    <span class="not-approved"><b>Note:</b> This comment has not been approved yet</span>
-    {% endif %}
-  #}
+
+  {% if not comment.approved -%}
+  <span class="not-approved"><b>Note:</b> This comment has not been approved yet</span>
+  {% endif %}
+
   <div class="text">{{ comment.rendered|safe }}</div>
 
   {% if not preview -%}

@@ -75,6 +75,11 @@ PIPELINE_JS = {
     #         'defer': True,
     #     },
     # },
+    "carbonnative": {
+        "source_filenames": ("js/carbonnative.js",),
+        "output_filename": "js/carbonnative.min.js",
+        "extra_context": {"async": True},
+    },
     "autocompeter": {
         "source_filenames": ("js/autocompeter.js",),
         "output_filename": "js/autocompeter.min.js",
