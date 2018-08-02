@@ -10,13 +10,15 @@ from peterbecom.plog.models import BlogItem, BlogFile, Category
 
 
 class MultilineTextarea(Textarea):
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         if value:
             if isinstance(value, list):
                 value = "\n".join(value)
             else:
                 raise NotImplementedError(type(value))
-        return super(MultilineTextarea, self).render(name, value, attrs=attrs)
+        return super(MultilineTextarea, self).render(
+            name, value, attrs=attrs, renderer=renderer
+        )
 
 
 class BlogForm(forms.ModelForm):
