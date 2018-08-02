@@ -1,30 +1,22 @@
 <div id="{{ comment.oid }}" class="comment">
-  <b>{% if comment.name %}{{ comment.name }}{% else %}<em>Anonymous</em>{% endif %}</b>
-  <a class="metadata" href="#{{comment.oid}}" title="Permalink to this comment">{{ comment.add_date.strftime('%d %B %Y') }}</a>
-
-  {% if not preview %}
-  {% if allow_comments %}
-    <a class="metadata reply" rel="nofollow" data-oid="{{ comment.oid }}"
-        href="#{{ comment.oid }}">Reply</a>
+  <b>{% if comment.name %}{{ comment.name }}{% else %}<i>Anonymous</i>{% endif %}</b>
+  {#<a class="metadata" href="#{{comment.oid}}" title="Permalink to this comment">{{ comment.add_date.strftime('%d %B %Y') }}</a>#}
+  <a class="metadata" href="#{{comment.oid}}">{{ comment.add_date.strftime('%d %B %Y') }}</a>
+  {% if not preview -%}
+  {% if allow_comments -%}
+    <a class="metadata reply" rel="nofollow" data-oid="{{ comment.oid }}" href="#{{ comment.oid }}">Reply</a>
   {% endif %}
   {% endif %}
 
-    {% if not comment.approved %}
-    <span class="not-approved">
-      <b>Note:</b> This comment has not been approved yet
-    </span>
-    {% endif %}
-
-  <div class="text">
-    {{ comment.rendered|safe }}
-  </div>
-
-  {% if not preview %}
-  {% if count_children %}
-  <div class="comments">
-    {{ show_comments(comment, is_staff, all_comments, allow_comments)|safe }}
-  </div>
-  {% endif %}
+  {% if not comment.approved -%}
+  <span class="not-approved"><b>Note:</b> This comment has not been approved yet</span>
   {% endif %}
 
+  <div class="text">{{ comment.rendered|safe }}</div>
+
+  {% if not preview -%}
+  {% if count_children -%}
+  <div class="comments">{{ show_comments(comment, is_staff, all_comments, allow_comments)|safe }}</div>
+  {% endif %}
+  {% endif %}
 </div>

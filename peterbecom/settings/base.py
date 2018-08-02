@@ -361,3 +361,6 @@ OIDC_OP_TOKEN_ENDPOINT = "https://peterbecom.auth0.com/oauth/token"
 OIDC_OP_USER_ENDPOINT = "https://peterbecom.auth0.com/userinfo"
 OIDC_RP_CLIENT_ID = ""
 OIDC_RP_CLIENT_SECRET = ""
+
+
+HTML_MINIFIER_PATH = path("node_modules/.bin/html-minifier")
