@@ -1,9 +1,11 @@
+import gzip
 import os
 import shutil
 
 from celery import shared_task
 
 from peterbecom.mincss_response import mincss_html
+from peterbecom.minify_html import minify_html
 
 
 @shared_task
@@ -28,3 +30,26 @@ def post_process_cached_html(filepath, url):
     with open(filepath, "w") as f:
         f.write(optimized_html)
     print("mincss optimized {}".format(filepath))
+
+    minified_html = minify_html(optimized_html)
+    before = len(optimized_html)
+    before_gz = len(gzip.compress(optimized_html.encode("utf-8")))
+    after = len(minified_html)
+    after_gz = len(gzip.compress(minified_html.encode("utf-8")))
+    print(
+        "Minified before: {} bytes ({} gzipped), "
+        "After: {} bytes ({} gzipped), "
+        "Shaving {} bytes ({} gzipped)"
+        "".format(
+            format(before, ","),
+            format(before_gz, ","),
+            format(after, ","),
+            format(after_gz, ","),
+            format(before - after, ","),
+            format(before_gz - after_gz, ","),
+        )
+    )
+    shutil.move(filepath, filepath.replace(".html", ".not-minified.html"))
+    with open(filepath, "w") as f:
+        f.write(minified_html)
+    print("HTML optimized {}".format(filepath))

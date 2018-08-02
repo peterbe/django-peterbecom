@@ -9,6 +9,7 @@
   "license": "MPL-2.0",
   "dependencies": {
     "csso-cli": "1.1.0",
-    "uglify-js": "^3.3.27"
+    "html-minifier": "3.5.19",
+    "uglify-js": "^3.4.6"
   }
 }
