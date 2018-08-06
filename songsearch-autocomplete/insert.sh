@@ -1,4 +1,7 @@
 #!/bin/bash
+
+set -ex
+
 LOGFILE=/var/log/django/insert-songsearch-autocomplete.log
 exec >> $LOGFILE 2>&1
 
