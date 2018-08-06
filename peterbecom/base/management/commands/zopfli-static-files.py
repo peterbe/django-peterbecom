@@ -56,7 +56,7 @@ class Command(BaseCommand):
             age = now - os.stat(file).st_mtime
             age_days = age / (60 * 60 * 24)
             if age_days > too_old_days:
-                if verbose:
+                if options["verbosity"] > 2:
                     print(file, "Too old!", round(age_days, 1), "days old")
                 continue
 
