@@ -36,7 +36,7 @@ case $1 in
     python manage.py collectstatic --noinput
     python manage.py fscache -v 2  # deletes old FS cached files
     python manage.py migrate --noinput
-    python manage.py zopfli-static-files -i 500 -v 2
+    python manage.py zopfli-static-files -v 2
     # export PYTHONWARNINGS=d
     exec python manage.py runserver 0.0.0.0:8000
     ;;
