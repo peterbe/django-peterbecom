@@ -75,7 +75,7 @@ class Command(BaseCommand):
                     t1 = time.time()
                     if verbose:
                         print(
-                            "Took",
+                            "\ttook",
                             "{:.1f}s".format(t1 - t0),
                             filesizeformat(os.stat(file).st_size).ljust(6),
                             "->",
