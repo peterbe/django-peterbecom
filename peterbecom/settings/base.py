@@ -364,3 +364,5 @@ OIDC_RP_CLIENT_SECRET = ""
 
 
 HTML_MINIFIER_PATH = path("node_modules/.bin/html-minifier")
+
+ZOPFLI_PATH = "/usr/bin/zopfli"
