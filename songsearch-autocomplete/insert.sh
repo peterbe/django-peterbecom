@@ -9,9 +9,8 @@ aunpack -X ../peterbecom-static-content/ songsearch-autocomplete.zip
 ./_zopfli.py ../peterbecom-static-content/songsearch-autocomplete/css/*.css
 ./_zopfli.py ../peterbecom-static-content/songsearch-autocomplete/js/*.js
 
-./_insert.py
-
-./_zopfli.py ../peterbecom-static-content/_FSCACHE/plog/blogitem-040601-1/index.html
+./_insert.py && \
+  ./_zopfli.py ../peterbecom-static-content/_FSCACHE/plog/blogitem-040601-1/index.html
 
 echo "Finished at..."
 echo `date`

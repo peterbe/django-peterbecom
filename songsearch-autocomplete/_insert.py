@@ -55,6 +55,7 @@ def run():
         print("Updated {} with new content.".format(template))
     else:
         print("Nothing changed in the content. No write.")
+        return 1
 
     return 0
 
