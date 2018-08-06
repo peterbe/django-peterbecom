@@ -1,9 +1,10 @@
+import glob
 import os
 import time
-import glob
 
-from django.core.management.base import BaseCommand
 from django.conf import settings
+from django.core.management.base import BaseCommand
+from django.template.defaultfilters import filesizeformat
 
 from peterbecom.zopfli_file import zopfli_file
 
@@ -65,15 +66,20 @@ class Command(BaseCommand):
                 if options["dry_run"]:
                     print("zopfli_file({})".format(file))
                 else:
+                    if verbose:
+                        print(
+                            "Zopflying", file.replace(settings.STATIC_ROOT, ""), "..."
+                        )
                     t0 = time.time()
                     file_gz = zopfli_file(file, i=i, timeout=timeout)
                     t1 = time.time()
                     if verbose:
                         print(
-                            "Generated",
-                            file_gz.replace(settings.STATIC_ROOT, "").ljust(70),
                             "Took",
                             "{:.1f}s".format(t1 - t0),
+                            filesizeformat(os.stat(file).st_size).ljust(6),
+                            "->",
+                            filesizeformat(os.stat(file_gz).st_size),
                         )
                     times.append(t1 - t0)
 
