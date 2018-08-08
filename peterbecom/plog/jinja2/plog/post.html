@@ -257,7 +257,7 @@
   <dl>
     <dt>Related by Keyword:</dt>
     {% for each in related_by_keyword %}
-    <dd><a href="{{ each.get_absolute_url() }}" data-plogrank="{{ each.plogrank }}">{{ each.title }}</a>
+    <dd><a href="{{ each.get_absolute_url() }}">{{ each.title }}</a>
     <small>{{ each.pub_date.strftime('%d %B %Y') }}</small>
     </dd>
     {% endfor %}
@@ -268,7 +268,7 @@
   <dl>
     <dt>Related by Text:</dt>
     {% for each in related_by_text %}
-    <dd><a href="{{ each.get_absolute_url() }}" data-plogrank="{{ each.plogrank }}">{{ each.title }}</a>
+    <dd><a href="{{ each.get_absolute_url() }}">{{ each.title }}</a>
     <small>{{ each.pub_date.strftime('%d %B %Y') }}</small>
     </dd>
     {% endfor %}
