@@ -22,28 +22,47 @@ def post_process_cached_html(filepath, url):
             "{!r} does not exist and can't be post-processed".format(filepath)
         )
 
-    with open(filepath) as f:
-        html = f.read()
+    attempts = 0
+    while True:
+        original_ts = os.stat(filepath).st_mtime
+        with open(filepath) as f:
+            html = f.read()
+
         optimized_html = mincss_html(html, url)
-    if optimized_html is None:
-        print("WARNING! mincss_html returned None for {} ({})".format(filepath, url))
-        return
-    # if os.path.isfile(filepath + '.original'):
-    #     warnings.warn('{} was already optimized'.format(filepath))
-    shutil.move(filepath, filepath + ".original")
-    with open(filepath, "w") as f:
-        f.write(optimized_html)
-    print("mincss optimized {}".format(filepath))
+        attempts += 1
+        if optimized_html is None:
+            print(
+                "WARNING! mincss_html returned None for {} ({})".format(filepath, url)
+            )
+            if attempts < 3:
+                print("Will try again!")
+                continue
+            return
+
+        if original_ts != os.stat(filepath).st_mtime:
+            print(
+                "WARNING!! The original HTML file changed ({}) whilst "
+                "running mincss_html".format(filepath)
+            )
+            continue
+
+        shutil.move(filepath, filepath + ".original")
+        with open(filepath, "w") as f:
+            f.write(optimized_html)
+        print("mincss optimized {}".format(filepath))
+        break
 
     # Minification
-    minified_html = _minify_html(optimized_html, filepath, url)
+    minified_html = _minify_html(filepath, url)
 
     # Zopfli
     _zopfli_html(minified_html and minified_html or optimized_html, filepath, url)
 
 
-def _minify_html(optimized_html, filepath, url):
-    minified_html = minify_html(optimized_html)
+def _minify_html(filepath, url):
+    with open(filepath) as f:
+        html = f.read()
+    minified_html = minify_html(html)
     if not minified_html:
         print(
             "Something went horribly wrong! The minified HTML is empty! "
@@ -54,8 +73,8 @@ def _minify_html(optimized_html, filepath, url):
         with open("/tmp/minifying-trouble.log", "a") as f:
             f.write("{}\t{}\t{}\n".format(timezone.now(), filepath, url))
         return
-    before = len(optimized_html)
-    before_gz = len(gzip.compress(optimized_html.encode("utf-8")))
+    before = len(html)
+    before_gz = len(gzip.compress(html.encode("utf-8")))
     after = len(minified_html)
     after_gz = len(gzip.compress(minified_html.encode("utf-8")))
     print(
@@ -79,16 +98,25 @@ def _minify_html(optimized_html, filepath, url):
 
 
 def _zopfli_html(html, filepath, url):
-    t0 = time.time()
-    new_filepath = zopfli_file(filepath)
-    t1 = time.time()
-    if new_filepath:
-        print(
-            "Generated {} ({} bytes) from {} ({} bytes) Took {:.1f}s".format(
-                new_filepath,
-                format(os.stat(new_filepath).st_size, ","),
-                filepath,
-                format(os.stat(filepath).st_size, ","),
-                t1 - t0,
+    while True:
+        original_ts = os.stat(filepath).st_mtime
+        t0 = time.time()
+        new_filepath = zopfli_file(filepath)
+        t1 = time.time()
+        if new_filepath:
+            print(
+                "Generated {} ({} bytes) from {} ({} bytes) Took {:.1f}s".format(
+                    new_filepath,
+                    format(os.stat(new_filepath).st_size, ","),
+                    filepath,
+                    format(os.stat(filepath).st_size, ","),
+                    t1 - t0,
+                )
             )
-        )
+            if original_ts != os.stat(filepath).st_mtime:
+                print(
+                    "WARNING! The file {} changed during the "
+                    "zopfli process.".format(filepath)
+                )
+                continue
+            break
