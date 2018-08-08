@@ -391,9 +391,9 @@ webencodings==0.5.1 \
     --hash=sha256:b36a1c245f2d304965eb4e0a82848379241dc04b865afcc4aab16748587e1923
 rollbar==0.14.2 \
     --hash=sha256:f699a75572ef0b2676665cffefc0cf1d3bd3e604a0dfc68ccb001ce2a58453d6
-mozilla-django-oidc==1.0.0 \
-    --hash=sha256:1e29a3d448cde77f0a96d4274dd67bfe5749554a5d6220007507d05d91cd50df \
-    --hash=sha256:8d0336d0a1e628f148c045f6cfdec3f1259cf9060335e514f8dd6be8e337784b
+mozilla-django-oidc==1.1.0 \
+    --hash=sha256:c204cf1c5a1f818fdde4a2984b7a72df463c9c4b4559cd62f76a79b906f51873 \
+    --hash=sha256:cafcdc9363071475124e067b9afb9660f012cdd2ada959eaa0043dc06b2e63cf
 josepy==1.1.0 \
     --hash=sha256:1309a25aac3caeff5239729c58ff9b583f7d022ffdb1553406ddfc8e5b52b76e \
     --hash=sha256:fb5c62c77d26e04df29cb5ecd01b9ce69b6fcc9e521eb1ca193b7faa2afa7086
