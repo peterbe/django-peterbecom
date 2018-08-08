@@ -65,6 +65,8 @@ class FSCacheMiddleware:
                     f.write(response.content.decode("utf-8"))
                     if "text/html" in response["Content-Type"]:
                         f.write("\n<!-- {} -->\n".format(metadata_text))
+                if os.path.isfile(fs_path + ".gz"):
+                    os.remove(fs_path + ".gz")
                 with open(fs_path + ".metadata", "w") as f:
                     f.write(metadata_text)
                     f.write("\n")
