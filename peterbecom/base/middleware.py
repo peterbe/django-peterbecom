@@ -65,7 +65,13 @@ class FSCacheMiddleware:
                     f.write(response.content.decode("utf-8"))
                     if "text/html" in response["Content-Type"]:
                         f.write("\n<!-- {} -->\n".format(metadata_text))
+
+                # This is a bit temporary
+                with open("/tmp/fscached.log", "a") as f:
+                    f.write("{}\t{}\n".format(time.time(), fs_path))
+
                 if os.path.isfile(fs_path + ".gz"):
+                    print("Also, removed", fs_path + ".gz")  # TEMPORARY
                     os.remove(fs_path + ".gz")
                 with open(fs_path + ".metadata", "w") as f:
                     f.write(metadata_text)
@@ -90,7 +96,7 @@ class FSCacheMiddleware:
                         hashlib.md5(force_bytes(absolute_url)).hexdigest(),
                     )
                     if not cache.get(cache_key):
-                        cache.set(cache_key, True, 10)
+                        cache.set(cache_key, True, 20)
                         post_process_cached_html.delay(fs_path, absolute_url)
 
         return response
