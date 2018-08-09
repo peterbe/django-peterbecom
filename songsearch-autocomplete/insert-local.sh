@@ -11,3 +11,9 @@ export ZOPFLI_PATH=/usr/local/bin/zopfli
 
 ./_insert.py && \
   ./_zopfli.py ../peterbecom-static-content/_FSCACHE/plog/blogitem-040601-1/index.html
+
+
+if [ ../peterbecom-static-content/_FSCACHE/plog/blogitem-040601-1/index.html -ot ../peterbecom-static-content/_FSCACHE/plog/blogitem-040601-1/index.html.gz ]; then
+    echo "OH NO! index.html is older than index.html.gz!!!"
+    exit 1
+fi
