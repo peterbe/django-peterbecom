@@ -15,10 +15,21 @@ aunpack -X ../peterbecom-static-content/ songsearch-autocomplete.zip
 ./_insert.py && \
   ./_zopfli.py ../peterbecom-static-content/_FSCACHE/plog/blogitem-040601-1/index.html
 
-if [ ../peterbecom-static-content/_FSCACHE/plog/blogitem-040601-1/index.html -ot ../peterbecom-static-content/_FSCACHE/plog/blogitem-040601-1/index.html.gz ]; then
-    echo "OH NO! index.html is older than index.html.gz!!!"
-    exit 1
+
+# Temporary stuff
+ls -ltr ../peterbecom-static-content/_FSCACHE/plog/blogitem-040601-1/
+if [ -f ../peterbecom-static-content/_FSCACHE/plog/blogitem-040601-1/index.html.gz ]; then
+   if [ ../peterbecom-static-content/_FSCACHE/plog/blogitem-040601-1/index.html.gz -ot ../peterbecom-static-content/_FSCACHE/plog/blogitem-040601-1/index.html ]; then
+        echo "OH NO! index.html is older than index.html.gz!!!"
+        rm ../peterbecom-static-content/_FSCACHE/plog/blogitem-040601-1/index.html.gz
+        exit 1
+    else
+        echo "All is well."
+    fi
+else
+    echo "The file index.html.gz doesn't even exist"
 fi
+
 
 echo "Finished at..."
 echo `date`
