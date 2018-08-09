@@ -22,7 +22,8 @@ if [ -f ../peterbecom-static-content/_FSCACHE/plog/blogitem-040601-1/index.html.
    if [ ../peterbecom-static-content/_FSCACHE/plog/blogitem-040601-1/index.html.gz -ot ../peterbecom-static-content/_FSCACHE/plog/blogitem-040601-1/index.html ]; then
         echo "OH NO! index.html is older than index.html.gz!!!"
         rm ../peterbecom-static-content/_FSCACHE/plog/blogitem-040601-1/index.html.gz
-        exit 1
+        echo "Generating a new index.html.gz"
+        ./_zopfli.py ../peterbecom-static-content/_FSCACHE/plog/blogitem-040601-1/index.html
     else
         echo "All is well."
     fi
