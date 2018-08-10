@@ -75,6 +75,11 @@ class BlogItem(models.Model):
     def __repr__(self):
         return "<%s: %r>" % (self.__class__.__name__, self.oid)
 
+    # def save(self, *args, **kwargs):
+    #     print("* * * * * SAVE * * * * *")
+    #     raise Exception("STOP")
+    #     super(BlogItem, self).save(*args, **kwargs)
+
     def get_absolute_url(self):
         return reverse("blog_post", args=(self.oid,))
 
@@ -370,7 +375,7 @@ def update_modify_date(sender, instance, **kwargs):
     if sender is BlogItem or sender is BlogFile:
         instance.modify_date = utils.utc_now()
     elif sender is BlogComment:
-        if instance.blogitem:
+        if instance.blogitem and instance.approved:
             instance.blogitem.modify_date = utils.utc_now()
             instance.blogitem.save()
     else:
@@ -385,6 +390,9 @@ def invalidate_fscache(sender, instance, **kwargs):
     if sender is BlogItem:
         url = reverse("blog_post", args=(instance.oid,))
     elif sender is BlogComment:
+        # Only invalidate if the comment is approved!
+        if not instance.approved:
+            return
         url = reverse("blog_post", args=(instance.blogitem.oid,))
     else:
         raise NotImplementedError(sender)

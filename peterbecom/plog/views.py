@@ -104,7 +104,11 @@ def _blog_post_key_prefixer(request):
         latest_date = blogitem["modify_date"]
         blogitem_pk = blogitem["pk"]
         for c in (
-            BlogComment.objects.filter(blogitem=blogitem_pk, add_date__gt=latest_date)
+            BlogComment.objects.filter(
+                blogitem=blogitem_pk,
+                add_date__gt=latest_date,
+                approved=True
+            )
             .values("add_date")
             .order_by("-add_date")[:1]
         ):
