@@ -633,7 +633,7 @@ def _plog_index_key_prefixer(request):
     return prefix
 
 
-@cache_control(public=True, max_age=60 * 60)
+@cache_control(public=True, max_age=60 * 60 * 2)
 @cache_page(ONE_DAY, _plog_index_key_prefixer)
 def plog_index(request):
     groups = defaultdict(list)
@@ -1199,9 +1199,6 @@ def plog_hits_data(request):
 @cache_page(ONE_DAY)
 @view_function_timer("inner")
 def blog_post_awspa(request, oid):
-    # ua = request.META.get('HTTP_USER_AGENT', '')
-    # print('\n=========================\n{!r}\n******************************'.format(ua))
-
     try:
         blogitem = BlogItem.objects.get(oid=oid)
     except BlogItem.DoesNotExist:
