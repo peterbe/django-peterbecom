@@ -105,10 +105,9 @@ def _zopfli_html(html, filepath, url):
         t1 = time.time()
         if new_filepath:
             print(
-                "Generated {} ({} bytes) from {} ({} bytes) Took {:.1f}s".format(
+                "Generated {} ({} bytes, originally {} bytes) Took {:.2f}s".format(
                     new_filepath,
                     format(os.stat(new_filepath).st_size, ","),
-                    filepath,
                     format(os.stat(filepath).st_size, ","),
                     t1 - t0,
                 )

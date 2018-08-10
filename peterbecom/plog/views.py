@@ -1199,6 +1199,9 @@ def plog_hits_data(request):
 @cache_page(ONE_DAY)
 @view_function_timer("inner")
 def blog_post_awspa(request, oid):
+    # ua = request.META.get('HTTP_USER_AGENT', '')
+    # print('\n=========================\n{!r}\n******************************'.format(ua))
+
     try:
         blogitem = BlogItem.objects.get(oid=oid)
     except BlogItem.DoesNotExist:

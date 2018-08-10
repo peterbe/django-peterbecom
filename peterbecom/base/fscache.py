@@ -50,6 +50,8 @@ def invalidate_by_url(url):
     fs_path = settings.FSCACHE_ROOT + url + "/index.html"
     if os.path.isfile(fs_path):
         invalidate(fs_path)
+    if os.path.isfile(fs_path + ".gz"):
+        invalidate(fs_path + ".gz")
 
 
 def delete_empty_directory(filepath):

@@ -16,6 +16,10 @@ from peterbecom.base.tasks import post_process_cached_html
 max_age_re = re.compile("max-age=(\d+)")
 
 
+def _is_too_new(fs_path, timeout=5):
+    return os.path.isfile(fs_path) and os.stat(fs_path).st_mtime > time.time() - timeout
+
+
 class FSCacheMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
@@ -44,7 +48,7 @@ class FSCacheMiddleware:
 
         response = self.get_response(request)
 
-        if fscache.cache_request(request, response):
+        if fscache.cache_request(request, response) and not _is_too_new(fs_path):
             # if not fs_path:
             #     # exit early
             #     return response
@@ -60,19 +64,23 @@ class FSCacheMiddleware:
                 # 'fs_path' is the path to the file, but its parent folder(s)
                 # might need to be created.
                 fscache.create_parents(fs_path)
-                assert os.path.isdir(os.path.dirname(fs_path))
+                assert os.path.isdir(os.path.dirname(fs_path)), os.path.dirname(fs_path)
                 with open(fs_path, "w") as f:
                     f.write(response.content.decode("utf-8"))
                     if "text/html" in response["Content-Type"]:
                         f.write("\n<!-- {} -->\n".format(metadata_text))
 
+                print("WROTE", fs_path)
+                assert os.stat(fs_path).st_size
+
                 # This is a bit temporary
-                with open("/tmp/fscached.log", "a") as f:
+                with open("/tmp/fscached2.log", "a") as f:
                     f.write("{}\t{}\n".format(time.time(), fs_path))
 
                 if os.path.isfile(fs_path + ".gz"):
                     print("Also, removed", fs_path + ".gz")  # TEMPORARY
                     os.remove(fs_path + ".gz")
+
                 with open(fs_path + ".metadata", "w") as f:
                     f.write(metadata_text)
                     f.write("\n")
@@ -97,6 +105,7 @@ class FSCacheMiddleware:
                     )
                     if not cache.get(cache_key):
                         cache.set(cache_key, True, 20)
+                        print("POST PROCESS!!!", fs_path)
                         post_process_cached_html.delay(fs_path, absolute_url)
 
         return response
