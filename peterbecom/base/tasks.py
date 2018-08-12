@@ -52,16 +52,9 @@ def post_process_cached_html(filepath, url):
         print("mincss optimized {}".format(filepath))
         break
 
-    # Minification
     if not url.endswith("/plog/blogitem-040601-1"):
         minified_html = _minify_html(filepath, url)
-    else:
-        minified_html = None
 
-    # Zopfli
-    # At the moment, making an exception for the lyrics page because of the
-    # various problems had with the songsearch-autocomplete insertion.
-    if not url.endswith("/plog/blogitem-040601-1"):
         _zopfli_html(minified_html and minified_html or optimized_html, filepath, url)
 
 
