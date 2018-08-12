@@ -53,7 +53,10 @@ def post_process_cached_html(filepath, url):
         break
 
     # Minification
-    minified_html = _minify_html(filepath, url)
+    if not url.endswith("/plog/blogitem-040601-1"):
+        minified_html = _minify_html(filepath, url)
+    else:
+        minified_html = None
 
     # Zopfli
     # At the moment, making an exception for the lyrics page because of the
