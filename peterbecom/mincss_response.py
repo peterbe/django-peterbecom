@@ -214,7 +214,7 @@ Saving:               %.fKb
         "*/" % ((t1 - t0) * 1000, (t3 - t1) * 1000),
     )
     combined_css = "{}\n{}".format(stats_css.strip(), combined_css)
-    new_style = '<style type="text/css">\n{}\n</style>'.format(combined_css)
+    new_style = "<style>\n{}\n</style>".format(combined_css)
     html = html.replace("</head>", new_style + "\n</head>")
 
     logger.info("Took %.2fms to process with minimalcss" % ((t1 - t0) * 1000,))

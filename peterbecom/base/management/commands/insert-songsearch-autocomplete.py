@@ -14,8 +14,11 @@ from peterbecom.zopfli_file import zopfli_file
 
 CDN = os.environ.get("CDN", "")
 
-BLOCK = """
+CSS_BLOCK = """
 <style>{csspayload}</style>
+"""
+
+JS_BLOCK = """
 <script src="{cdn}/{jspath}" defer></script>
 """
 
@@ -79,12 +82,11 @@ class Command(BaseCommand):
         csspayload = re.sub(r"\/\*# sourceMappingURL=.*?\*\/", "", csspayload)
         csspayload = csspayload.strip()
 
-        block = (
-            BLOCK.replace("{cdn}", CDN)
-            .replace("{csspayload}", csspayload)
-            .replace("{jspath}", jspath)
-        )
-        block = block.strip()
+        js_block = (JS_BLOCK.replace("{cdn}", CDN).replace("{jspath}", jspath)).strip()
+        css_block = (
+            CSS_BLOCK.replace("{cdn}", CDN).replace("{csspayload}", csspayload)
+        ).strip()
+
         template = os.path.join(
             contentroot, "_FSCACHE/plog/blogitem-040601-1/index.html"
         )
@@ -94,19 +96,42 @@ class Command(BaseCommand):
             )
         with open(template) as f:
             original_content = content = f.read()
-        header = "<!-- songsearch-autocomplete -->"
-        start = content.find(header)
-        footer = "<!-- /songsearch-autocomplete -->"
-        end = content.find(footer)
+
+        # Inject the JS code
+        js_header = "<!-- songsearch-autocomplete -->"
+        start = content.find(js_header)
+        js_footer = "<!-- /songsearch-autocomplete -->"
+        end = content.find(js_footer)
         if start > -1:
-            content = content[:start] + header + "\n" + block + "\n" + content[end:]
+            content = (
+                content[:start] + js_header + "\n" + js_block + "\n" + content[end:]
+            )
         else:
-            if footer in content and header not in content:
+            if js_footer in content and js_header not in content:
                 raise SongsearchAutocompleteError(
                     "Only footer is in the HTML but not the header"
                 )
             content = content.replace(
-                "</body>", "{}\n{}\n{}\n</body>".format(header, block, footer)
+                "</body>", "{}\n{}\n{}\n</body>".format(js_header, js_block, js_footer)
+            )
+
+        # Inject the CSS code
+        css_header = "<!-- songsearch-autocomplete-css -->"
+        start = content.find(css_header)
+        css_footer = "<!-- /songsearch-autocomplete-css -->"
+        end = content.find(css_footer)
+        if start > -1:
+            content = (
+                content[:start] + css_header + "\n" + css_block + "\n" + content[end:]
+            )
+        else:
+            if css_footer in content and css_header not in content:
+                raise SongsearchAutocompleteError(
+                    "Only footer is in the HTML but not the header"
+                )
+            content = content.replace(
+                "</head>",
+                "{}\n{}\n{}\n</head>".format(css_header, css_block, css_footer),
             )
 
         # Paranoia, because it has happened in the past
