@@ -80,9 +80,6 @@ mark {
 .autocomplete .media-body {
   margin-left: 50px;
 }
-.autocomplete .media-body p {
-  line-height: 1em;
-}
 
 .autocomplete li.search-suggestion p {
     font-weight: normal;
