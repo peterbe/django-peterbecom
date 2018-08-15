@@ -12,7 +12,7 @@ class ZopfliMixin(object):
 
     # 'numiterations' default is 15 in
     # https://github.com/obp/py-zopfli/blob/master/src/zopflimodule.c
-    numiterations = getattr(settings, "ZOPFLI_COMPRESS_NUM_ITERATIONS", 100)
+    numiterations = getattr(settings, "ZOPFLI_COMPRESS_NUM_ITERATIONS", 15)
     minimum_size_bytes = getattr(settings, "ZOPFLI_COMPRESS_MIN_SIZE_BYTES", 256)
     only_hashed_files = getattr(settings, "ZOPFLI_COMPRESS_ONLY_HASHED_FILES", True)
 
