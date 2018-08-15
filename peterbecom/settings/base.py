@@ -89,7 +89,8 @@ STATIC_URL = "/static/"
 #     path('static'),
 # )
 
-STATICFILES_STORAGE = "pipeline.storage.PipelineCachedStorage"
+# STATICFILES_STORAGE = "pipeline.storage.PipelineCachedStorage"
+STATICFILES_STORAGE = "peterbecom.storage.ZopfliPipelineCachedStorage"
 
 # List of finder classes that know how to find static files in
 # various locations.
