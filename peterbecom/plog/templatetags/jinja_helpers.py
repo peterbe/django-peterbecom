@@ -53,28 +53,6 @@ def semanticuiform(form):
     return template.render(context)
 
 
-@library.global_function
-def expand_carousel(html, post):
-    if "::carousel::" in html:
-        thumbnails = get_photos(post, "900x900")
-        html = html.replace(
-            "::carousel::", render_to_string("plog/carousel.html", thumbnails)
-        )
-
-    return html
-
-
-@library.global_function
-def expand_carousel_thumbnails(html, post):
-    if "::carousel::" in html:
-        thumbnails = get_photos(post, "100x100")
-        html = html.replace(
-            "::carousel::",
-            render_to_string("plog/thumbnails.html", dict(thumbnails, post=post)),
-        )
-    return html
-
-
 def get_photos(post, size):
     photos = []
     sizes = []

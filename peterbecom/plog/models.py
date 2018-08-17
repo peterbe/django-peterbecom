@@ -24,6 +24,10 @@ from peterbecom.base.search import es_retry
 from peterbecom.plog.search import BlogItemDoc, BlogCommentDoc
 
 
+class HTMLRenderingError(Exception):
+    """When rendering Markdown or RsT generating invalid HTML."""
+
+
 class Category(models.Model):
     name = models.CharField(max_length=100)
 
@@ -89,16 +93,31 @@ class BlogItem(models.Model):
 
     def _render(self, refresh=False):
         if not self.text_rendered or refresh:
-            if self.display_format == "structuredtext":
-                self.text_rendered = utils.stx_to_html(self.text, self.codesyntax)
-            else:
-                self.text_rendered = utils.markdown_to_html(self.text, self.codesyntax)
-            # self.text_rendered = utils.cache_prefix_files(self.text_rendered)
+            self.text_rendered = self.__class__.render(
+                self.text, self.display_format, self.codesyntax
+            )
             self.save()
         return self.text_rendered
 
-    def has_carousel_tag(self):
-        return "::carousel::" in self.rendered
+    @classmethod
+    def render(cls, text, display_format, codesyntax, strict=False):
+        if display_format == "structuredtext":
+            text_rendered = utils.stx_to_html(text, codesyntax)
+        else:
+            text_rendered = utils.markdown_to_html(text, codesyntax)
+        if strict:
+            bad = '<div class="highlight"></p>'
+            if bad in text_rendered:
+                lines = []
+                for i, line in enumerate(text_rendered.splitlines()):
+                    if bad in line:
+                        lines.append(i + 1)
+                raise HTMLRenderingError(
+                    "Rendered HTML contains invalid HTML (line: {})".format(
+                        ", ".join([str(x) for x in lines])
+                    )
+                )
+        return text_rendered
 
     def count_comments(self):
         cache_key = "nocomments:%s" % self.pk

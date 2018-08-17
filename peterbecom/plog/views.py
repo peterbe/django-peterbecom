@@ -41,6 +41,7 @@ from .models import (
     BlogFile,
     BlogItemHit,
     OneTimeAuthKey,
+    HTMLRenderingError,
 )
 from peterbecom.awspa.search import search as awspa_search
 from .search import BlogItemDoc
@@ -105,9 +106,7 @@ def _blog_post_key_prefixer(request):
         blogitem_pk = blogitem["pk"]
         for c in (
             BlogComment.objects.filter(
-                blogitem=blogitem_pk,
-                add_date__gt=latest_date,
-                approved=True
+                blogitem=blogitem_pk, add_date__gt=latest_date, approved=True
             )
             .values("add_date")
             .order_by("-add_date")[:1]
@@ -776,6 +775,7 @@ def edit_post(request, oid):
             for category in form.cleaned_data["categories"]:
                 blogitem.categories.add(category)
             blogitem.save()
+            assert blogitem._render(refresh=True)
 
             url = reverse("edit_post", args=[blogitem.oid])
             return redirect(url)
@@ -968,10 +968,9 @@ def preview_post(request):
 
         @property
         def rendered(self):
-            if self.display_format == "structuredtext":
-                return utils.stx_to_html(self.text, self.codesyntax)
-            else:
-                return utils.markdown_to_html(self.text, self.codesyntax)
+            return BlogItem.render(
+                self.text, self.display_format, self.codesyntax, strict=True
+            )
 
     post = MockPost()
     post.title = form.cleaned_data["title"]
@@ -983,7 +982,10 @@ def preview_post(request):
     post.categories = Category.objects.filter(pk__in=form.cleaned_data["categories"])
     template = get_template("plog/_post.html")
     context = Context({"post": post, "request": request})
-    return http.HttpResponse(template.render(context))
+    try:
+        return http.HttpResponse(template.render(context))
+    except HTMLRenderingError as exception:
+        return http.JsonResponse({'error': str(exception)}, status=400)
 
 
 @login_required

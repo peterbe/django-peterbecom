@@ -70,7 +70,7 @@ class FSCacheMiddleware:
                     if "text/html" in response["Content-Type"]:
                         f.write("\n<!-- {} -->\n".format(metadata_text))
 
-                print("WROTE", fs_path)
+                # print("WROTE", fs_path)
                 assert os.stat(fs_path).st_size
 
                 # This is a bit temporary
@@ -105,7 +105,20 @@ class FSCacheMiddleware:
                     )
                     if not cache.get(cache_key):
                         cache.set(cache_key, True, 20)
-                        print("POST PROCESS!!!", fs_path)
+                        # print("POST PROCESS!!!", fs_path)
                         post_process_cached_html.delay(fs_path, absolute_url)
 
+        return response
+
+
+class StatsMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        t0 = time.time()
+        response = self.get_response(request)
+        t1 = time.time()
+        duration = t1 - t0
+        response["X-Response-Time"] = int(duration * 1000)
         return response
