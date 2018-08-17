@@ -75,7 +75,7 @@ def download(urls, base_url, max=100, sleeptime=1):
             fasts += 1
 
     if fasts or slow:
-        print("{.:1f}% are fast".format(100 * fasts / (fasts + slows)))
+        print("{:.1f}%".format(100 * fasts / (fasts + slows)), "are fast")
 
 
 if __name__ == "__main__":
