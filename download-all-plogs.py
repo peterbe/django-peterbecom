@@ -25,16 +25,17 @@ def get_urls(base_url, exclude=set()):
 
     doc = PyQuery(base_url + "/")
     doc.make_links_absolute(base_url=base_url)
-    for a in doc("p a"):
-        href = a.attrib["href"]
-        if href.startswith(base_url) and "oc-" in href:
-            if href not in urls:
-                if href in exclude:
-                    # print("EXCLUDE", href)
-                    continue
-                urls.append(href)
-                for i in range(5):
-                    urls.append(href)
+    for a in doc("a"):
+        try:
+            href = a.attrib["href"]
+        except KeyError:
+            pass
+        if not href.startswith(base_url):
+            continue
+        if href.endswith(".html") or href.endswith(".png"):
+            continue
+        if href not in urls and href not in exclude:
+            urls.append(href)
     url_start = base_url + "/?page="
     for i in range(2, 10):
         url = url_start + str(i)
