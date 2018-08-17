@@ -1,21 +1,15 @@
-{% macro show_carbon_ad() -%}
-<script async src="https://cdn.carbonads.com/carbon.js?serve=CKYI52Q7&placement=peterbecom" id="_carbonads_js"></script>
+{% macro show_carbon_ad_macro() -%}
+<script async src="https://cdn.carbonads.com/carbon.js?serve=CKYI52Q7&amp;placement=peterbecom" id="_carbonads_js"></script>
 {%- endmacro %}
 
-{% if not post.has_carousel_tag() %}
-  {% if show_carbon_ad and request.path != '/plog/blogitem-040601-1' %}
-    {{ show_carbon_ad() }}
-  {% endif %}
+{% if show_carbon_ad and request.path != '/plog/blogitem-040601-1' %}
+  {{ show_carbon_ad_macro() }}
 {% endif %}
 
 
-{% if post.has_carousel_tag %}
-{{ expand_carousel(post.rendered, post)|safe }}
-{% else %}
 {{ post.rendered|safe }}
-{% endif %}
 
 
 {% if show_carbon_ad and request.path == '/plog/blogitem-040601-1' %}
-  {{ show_carbon_ad() }}
+  {{ show_carbon_ad_macro() }}
 {% endif %}

@@ -70,7 +70,7 @@ class FSCacheMiddleware:
                     if "text/html" in response["Content-Type"]:
                         f.write("\n<!-- {} -->\n".format(metadata_text))
 
-                print("WROTE", fs_path)
+                # print("WROTE", fs_path)
                 assert os.stat(fs_path).st_size
 
                 # This is a bit temporary
@@ -105,7 +105,7 @@ class FSCacheMiddleware:
                     )
                     if not cache.get(cache_key):
                         cache.set(cache_key, True, 20)
-                        print("POST PROCESS!!!", fs_path)
+                        # print("POST PROCESS!!!", fs_path)
                         post_process_cached_html.delay(fs_path, absolute_url)
 
         return response

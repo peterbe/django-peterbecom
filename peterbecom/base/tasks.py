@@ -67,10 +67,10 @@ def _minify_html(filepath, url):
             "Something went horribly wrong! The minified HTML is empty! "
             "filepath={}\turl={}".format(filepath, url)
         )
-        if settings.DEBUG:
-            raise Exception("Minifying HTML failed")
         with open("/tmp/minifying-trouble.log", "a") as f:
             f.write("{}\t{}\t{}\n".format(timezone.now(), filepath, url))
+        if settings.DEBUG:
+            raise Exception("Minifying HTML failed")
         return
     before = len(html)
     before_gz = len(gzip.compress(html.encode("utf-8")))
