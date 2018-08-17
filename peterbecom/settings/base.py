@@ -113,6 +113,7 @@ MIDDLEWARE = (
     "rollbar.contrib.django.middleware.RollbarNotifierMiddleware",
     # Important that this is last
     "peterbecom.base.middleware.FSCacheMiddleware",
+    "peterbecom.base.middleware.StatsMiddleware",
 )
 
 ROOT_URLCONF = "peterbecom.urls"
@@ -342,7 +343,7 @@ ES_CONNECTIONS = {"default": {"hosts": ["localhost:9200"]}}
 LATEST_PODCAST_CUTOFF_DAYS = 300
 
 MAX_INITIAL_COMMENTS = 50
-MAX_RECENT_COMMENTS = 250
+MAX_RECENT_COMMENTS = 240
 
 MOZJPEG_PATH = "mozjpeg"
 GUETZLI_PATH = "guetzli"

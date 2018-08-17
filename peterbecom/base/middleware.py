@@ -109,3 +109,16 @@ class FSCacheMiddleware:
                         post_process_cached_html.delay(fs_path, absolute_url)
 
         return response
+
+
+class StatsMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        t0 = time.time()
+        response = self.get_response(request)
+        t1 = time.time()
+        duration = t1 - t0
+        response["X-Response-Time"] = int(duration * 1000)
+        return response

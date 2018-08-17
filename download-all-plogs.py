@@ -23,7 +23,7 @@ def get_urls(base_url):
         if href.startswith(base_url) and "oc-" in href:
             if href not in urls:
                 urls.append(href)
-                for i in range(10):
+                for i in range(5):
                     urls.append(href)
     return urls
 
@@ -31,26 +31,41 @@ def get_urls(base_url):
 def download(urls, base_url, max=100, sleeptime=1):
     headers = {"User-Agent": "download-all-plogs.py/requests 1.0"}
     for i, url in enumerate(urls[:max]):
-        print(url.ljust(80))
+        # print(url.ljust(80))
         t0 = time.time()
         r = requests.get(url, headers=headers)
         t1 = time.time()
+        slow = bool(r.headers.get("X-Response-Time"))
         print(
             str(i + 1).ljust(3),
-            r.status_code, "\t", "%.2fs" % (t1 - t0)
+            url[:100].ljust(100),
+            r.status_code,
+            "\t",
+            "%.3fs" % (t1 - t0),
+            "slow!" if slow else "fast!",
         )
-        time.sleep(sleeptime)
+        if slow:
+            # It was so slow it had to generate in Django.
+            time.sleep(sleeptime)
 
     # also download a bunch of pages of the home page
     url_start = base_url + "/?page="
     for i in range(2, 6):
         url = url_start + str(i)
-        print(url.ljust(80))
         t0 = time.time()
         r = requests.get(url, headers=headers)
         t1 = time.time()
-        print(r.status_code, "\t", "%.2fs" % (t1 - t0))
-        time.sleep(sleeptime)
+        slow = bool(r.headers.get("X-Response-Time"))
+        print(
+            str(i + 1).ljust(3),
+            url[:100].ljust(100),
+            r.status_code,
+            "\t",
+            "%.3fs" % (t1 - t0),
+            "slow!" if slow else "fast!",
+        )
+        if slow:
+            time.sleep(sleeptime)
 
 
 if __name__ == "__main__":
