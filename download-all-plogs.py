@@ -30,6 +30,7 @@ def get_urls(base_url):
 
 def download(urls, base_url, max=100, sleeptime=1):
     headers = {"User-Agent": "download-all-plogs.py/requests 1.0"}
+    fasts = slows = 0
     for i, url in enumerate(urls[:max]):
         # print(url.ljust(80))
         t0 = time.time()
@@ -47,6 +48,9 @@ def download(urls, base_url, max=100, sleeptime=1):
         if slow:
             # It was so slow it had to generate in Django.
             time.sleep(sleeptime)
+            slows += 1
+        else:
+            fasts += 1
 
     # also download a bunch of pages of the home page
     url_start = base_url + "/?page="
@@ -66,6 +70,12 @@ def download(urls, base_url, max=100, sleeptime=1):
         )
         if slow:
             time.sleep(sleeptime)
+            slows += 1
+        else:
+            fasts += 1
+
+    if fasts or slow:
+        print("{.:1f}% are fast".format(100 * fasts / (fasts + slows)))
 
 
 if __name__ == "__main__":
