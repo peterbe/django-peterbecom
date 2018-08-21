@@ -6,6 +6,7 @@ import functools
 import hashlib
 import re
 from urllib.parse import urlencode
+from html import escape
 
 import bleach
 import zope.structuredtext
@@ -101,6 +102,9 @@ def stx_to_html(text, codesyntax):
         new_inner = "\n".join(lines)
         if lexer:
             new_inner = highlight(new_inner, lexer, HtmlFormatter())
+        # else:
+        #     print("NO LEXER FOR......................................")
+        #     print(new_inner)
         return new_inner
 
     return _regex.sub(match, rendered)
@@ -139,6 +143,7 @@ _codesyntax_regex = re.compile(
     "```(python|cpp|javascript|json|xml|html|yml|yaml|css|sql|sh|bash|go|jsx|rust)"  # noqa
 )
 _markdown_pre_regex = re.compile("```([^`]+)```")
+_markdown_pre_sans_codesyntax_regex = re.compile("(```([^`]+)```)")
 
 
 def markdown_to_html(text, codesyntax):
@@ -157,8 +162,13 @@ def markdown_to_html(text, codesyntax):
                 return highlight(code, lexer, HtmlFormatter())
 
             found = _markdown_pre_regex.sub(highlighter, found)
-        found = found.replace("```", "<pre>", 1)
-        found = found.replace("```", "</pre>")
+        else:
+
+            def highlighter(m):
+                meat = m.groups()[1]
+                return "<pre>{}</pre>".format(escape(meat.strip()))
+
+            found = _markdown_pre_sans_codesyntax_regex.sub(highlighter, found)
         return found
 
     text = _markdown_pre_regex.sub(matcher, text)
