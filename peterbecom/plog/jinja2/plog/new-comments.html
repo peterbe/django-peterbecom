@@ -49,7 +49,7 @@ div.comments input[type="checkbox"] {
       {% endif %}
     </p>
     <small>{% if comment.name %}<b>{{ comment.name }}</b>{% else %}<em>Anonymous</em>{% endif %}
-    on <a href="{{ comment.blogitem.get_absolute_url() }}{% if not comment.approved %}?admin=1{% endif %}#{{ comment.oid }}">{{ comment.blogitem.title }}</a>
+    on <a href="{{ comment.blogitem.get_absolute_url() }}#{{ comment.oid }}">{{ comment.blogitem.title }}</a>
     {{ timesince(comment.add_date) }} ago
     </small>
   </div>
