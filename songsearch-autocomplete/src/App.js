@@ -123,6 +123,15 @@ class App extends React.Component {
         redirectingSearch: false
       });
     }
+
+    if (!this._firstFocusSearch) {
+      this._firstFocusSearch = true;
+      // If you're on a small screen this is the first time you've focused,
+      // the scroll the top of the search input into view.
+      if (window.innerHeight && window.innerHeight < 600) {
+        this.refs.q.scrollIntoView();
+      }
+    }
   };
 
   onBlurSearch = event => {

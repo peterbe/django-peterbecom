@@ -4,7 +4,7 @@ import shutil
 import tempfile
 import time
 import zipfile
-from filecmp import dircmp
+import filecmp
 from glob import glob
 
 from django.conf import settings
@@ -27,14 +27,47 @@ class SongsearchAutocompleteError(Exception):
     """Something terrible happened."""
 
 
-def count_diff_files(dcmp):
-    differences = 0
-    for name in dcmp.diff_files:
-        print("diff_file %s found in %s and %s" % (name, dcmp.left, dcmp.right))
-        differences += 1
-    for sub_dcmp in dcmp.subdirs.values():
-        differences += count_diff_files(sub_dcmp)
-    return differences
+# def count_diff_files(dcmp):
+#     differences = 0
+#     for name in dcmp.diff_files:
+#         print("diff_file %s found in %s and %s" % (name, dcmp.left, dcmp.right))
+#         differences += 1
+#     for sub_dcmp in dcmp.subdirs.values():
+#         differences += count_diff_files(sub_dcmp)
+#     return differences
+
+
+def are_dir_trees_equal(dir1, dir2):
+    """
+    Compare two directories recursively. Files in each directory are
+    assumed to be equal if their names and contents are equal.
+
+    @param dir1: First directory path
+    @param dir2: Second directory path
+
+    @return: True if the directory trees are the same and
+        there were no errors while accessing the directories or files,
+        False otherwise.
+   """
+
+    dirs_cmp = filecmp.dircmp(dir1, dir2)
+    if (
+        len(dirs_cmp.left_only) > 0
+        or len(dirs_cmp.right_only) > 0
+        or len(dirs_cmp.funny_files) > 0
+    ):
+        return False
+    (_, mismatch, errors) = filecmp.cmpfiles(
+        dir1, dir2, dirs_cmp.common_files, shallow=False
+    )
+    if len(mismatch) > 0 or len(errors) > 0:
+        return False
+    for common_dir in dirs_cmp.common_dirs:
+        new_dir1 = os.path.join(dir1, common_dir)
+        new_dir2 = os.path.join(dir2, common_dir)
+        if not are_dir_trees_equal(new_dir1, new_dir2):
+            return False
+    return True
 
 
 class Command(BaseCommand):
@@ -59,15 +92,14 @@ class Command(BaseCommand):
             with open(zip_path, "rb") as f:
                 zf = zipfile.ZipFile(f)
                 zf.extractall(tmpdir)
-            # print(os.listdir(tmpdir))
+            # print(os.listdir(tmpdir + "/songsearch-autocomplete/js"))
             assert os.listdir(tmpdir)
             source = os.path.join(tmpdir, "songsearch-autocomplete")
             assert os.path.isdir(source), source
             destination = os.path.join(contentroot, "songsearch-autocomplete")
-            dcmp = dircmp(source, destination)
-            differences = count_diff_files(dcmp)
-            # print("DIFFERENCES", differences)
-            if differences:
+            # print(os.listdir(destination + "/js"))
+            different = not are_dir_trees_equal(source, destination)
+            if different:
                 shutil.rmtree(destination)
                 shutil.move(source, destination)
                 print("MOVED", source, "TO", destination)
