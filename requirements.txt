@@ -389,8 +389,8 @@ html5lib==1.0.1 \
 webencodings==0.5.1 \
     --hash=sha256:a0af1213f3c2226497a97e2b3aa01a7e4bee4f403f95be16fc9acd2947514a78 \
     --hash=sha256:b36a1c245f2d304965eb4e0a82848379241dc04b865afcc4aab16748587e1923
-rollbar==0.14.2 \
-    --hash=sha256:f699a75572ef0b2676665cffefc0cf1d3bd3e604a0dfc68ccb001ce2a58453d6
+rollbar==0.14.3 \
+    --hash=sha256:d65197d4424ff90f0397bc677890a0d6269fcff424a0b93b4f878c79db8edf0e
 mozilla-django-oidc==1.1.1 \
     --hash=sha256:1b7d6141ebf54cf7ec68cf145bf310a89c6b7875d3ddf7e25be1d9286737a83d \
     --hash=sha256:4bede3a3432b1305544cccc6c55dbc3e55a16e26fd5a451668ed5d099baa9a9a
