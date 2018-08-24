@@ -45,7 +45,7 @@ class PlogTestCase(TestCase):
         try:
             response = self.client.get(url)
             content = response.content.decode("utf-8")
-            self.assertTrue(blog.title in content)
+            assert blog.title in content
             assert "0 comments" in content
             response = self.client.get(url)
             content = response.content.decode("utf-8")
@@ -90,23 +90,23 @@ class PlogTestCase(TestCase):
         # but it hasn't been approved yet
         response = anonymous.get(url)
         content = response.content.decode("utf-8")
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue("COMMENTX" not in content)
+        assert response.status_code == 200
+        assert "COMMENTX" not in content
 
         # let's approve it!
         approve_url = reverse("approve_comment", args=[blog.oid, comment.oid])
         response = loggedin.post(approve_url, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
-        self.assertEqual(response.status_code, 403)
+        assert response.status_code == 403
         key = OneTimeAuthKey.objects.create(blogitem=blog, blogcomment=comment).key
         response = loggedin.get(
             approve_url + "?key={}".format(key), HTTP_X_REQUESTED_WITH="XMLHttpRequest"
         )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content.decode("utf-8"), "OK")
+        assert response.status_code == 200
+        assert response.content.decode("utf-8") == "OK"
 
         response = anonymous.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue("COMMENTX" in str(response.content))
+        assert response.status_code == 200
+        assert "COMMENTX" in str(response.content)
 
     def test_preview_post(self):
         cat = Category.objects.create(name="MyCategory")
@@ -120,12 +120,12 @@ class PlogTestCase(TestCase):
             "categories[]": str(cat.pk),
         }
         response = self.client.post(url, data)
-        self.assertEqual(response.status_code, 200)
-        # self.assertTrue('Some &lt;script&gt; TITLE' in response.content)
+        assert response.status_code == 200
+        # assert 'Some &lt;script&gt; TITLE' in response.content
         content = response.content.decode("utf-8")
-        self.assertTrue("This is<br" in content)
-        self.assertTrue("<em>great</em>" in content)
-        self.assertTrue("<code>verbatim</code>" in content)
+        assert "This is<br" in content
+        assert "<em>great</em>" in content
+        assert "<code>verbatim</code>" in content
 
         data[
             "text"
@@ -140,8 +140,8 @@ code"""
 
         response = self.client.post(url, data)
         content = response.content.decode("utf-8")
-        self.assertTrue('<div class="highlight">' in content)
-        self.assertTrue('<span class="k">def</span>' in content)
+        assert '<div class="highlight">' in content
+        assert '<span class="k">def</span>' in content
 
     def test_old_redirects(self):
         blog = BlogItem.objects.create(
@@ -159,6 +159,6 @@ code"""
         assert response.status_code == 200
 
         response = self.client.get(url, {"replypath": "foo"})
-        self.assertEqual(response.status_code, 301)
-        self.assertEqual(urlparse(response["location"]).path, url)
-        self.assertTrue(not urlparse(response["location"]).query)
+        assert response.status_code == 301
+        assert urlparse(response["location"]).path == url
+        assert not urlparse(response["location"]).query
