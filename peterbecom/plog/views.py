@@ -414,7 +414,8 @@ def submit_json(request, oid):
         if request.user.is_authenticated:
             _approve_comment(blog_comment)
             assert blog_comment.approved
-        else:
+        elif post.oid != 'blogitem-040601-1':
+            # Let's not send an more admin emails for "Find songs by lyrics"
             tos = [x[1] for x in settings.ADMINS]
             from_ = ["%s <%s>" % x for x in settings.ADMINS][0]
             body = _get_comment_body(post, blog_comment)
