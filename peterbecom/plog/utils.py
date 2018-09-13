@@ -142,8 +142,7 @@ def _get_lexer(codesyntax):
 _codesyntax_regex = re.compile(
     "```(python|cpp|javascript|json|xml|html|yml|yaml|css|sql|sh|bash|go|jsx|rust)"  # noqa
 )
-_markdown_pre_regex = re.compile("```([^`]+)```")
-_markdown_pre_sans_codesyntax_regex = re.compile("(```([^`]+)```)")
+_markdown_pre_regex = re.compile(r"(```(.*?)```)", re.M | re.DOTALL)
 
 
 def markdown_to_html(text, codesyntax):
@@ -168,12 +167,13 @@ def markdown_to_html(text, codesyntax):
                 meat = m.groups()[1]
                 return "<pre>{}</pre>".format(escape(meat.strip()))
 
-            found = _markdown_pre_sans_codesyntax_regex.sub(highlighter, found)
+            found = _markdown_pre_regex.sub(highlighter, found)
         return found
 
     text = _markdown_pre_regex.sub(matcher, text)
     html = markdown.markdown(gfm(text), extensions=["markdown.extensions.tables"])
     html = html.replace("<table>", '<table class="ui celled table">')
+    html = html.replace("<pre><span></span>", "<pre>")
     return html
 
 
