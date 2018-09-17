@@ -15,9 +15,6 @@ python-memcached==1.59 \
 celery==4.2.0 \
     --hash=sha256:2082cbd82effa8ac8a8a58977d70bb203a9f362817e3b66f4578117b9f93d8a9 \
     --hash=sha256:ff727c115533edbc7b81b2b4ba1ec88d1c2fc4836e1e2f4c3c33a76ff53e5d7f
-django-celery-email==2.0.0 \
-    --hash=sha256:1d20120569edd233d7f5a22460b60410b4d8f7c0f1ef66889e1267762aeacbf5 \
-    --hash=sha256:29894330d621a0794b2e82e63220ccc5f1dbd539f5cedd9e183616dc2f72f973
 Markdown==2.6.11 \
     --hash=sha256:9ba587db9daee7ec761cfc656272be6aabe2ed300fece21208e4aab2e457bc8f \
     --hash=sha256:a856869c7ff079ad84a3e19cd87a64998350c2b94e9e08e44270faef33400f81
