@@ -330,9 +330,9 @@ Unipath==1.1 \
     --hash=sha256:09839adcc72e8a24d4f76d63656f30b5a1f721fc40c9bcd79d8c67bdd8b47dae
 python-decouple==3.1 \
     --hash=sha256:1317df14b43efee4337a4aa02914bf004f010cd56d6c4bd894e6474ec8c4fe2d
-delegator.py==0.1.0 \
-    --hash=sha256:58f3ea6fe36680e1d828e2e66e52844b826f186409dfee4436e42351b0e699fe \
-    --hash=sha256:2d46966a7f484d271b09e2646eae1e9acadc4fdf2cb760c142f073e81c927d8d
+delegator.py==0.1.1 \
+    --hash=sha256:814657d96b98a244c479e3d5f6e9e850ac333e85f807d6bc846e72bbb2537806 \
+    --hash=sha256:e6cc9cedab9ae59b169ee0422e17231adedadb144e63c0b5a60e6ff8adf8521b
 pexpect==4.6.0 \
     --hash=sha256:2a8e88259839571d1251d278476f3eec5db26deb73a70be5ed5dc5435e418aba \
     --hash=sha256:3fbd41d4caf27fa4a377bfd16fef87271099463e6fa73e92a52f92dfee5d425b
