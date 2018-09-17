@@ -43,6 +43,7 @@ class BaseCommand(DjangoBaseCommand):
         return copied
 
     def handle(self, **options):
+        # self._handle(**options)
         try:
             self._handle(**options)
         except Exception:

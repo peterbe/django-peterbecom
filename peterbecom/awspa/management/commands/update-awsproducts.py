@@ -9,6 +9,10 @@ from peterbecom.awspa.models import AWSProduct
 from peterbecom.awspa.search import lookup
 
 
+class UpdateAWSError(Exception):
+    """A product update failed."""
+
+
 def diff(d1, d2, indent=None):
     indent = indent or []
     diffkeys = [k for k in d1 if d1[k] != d2.get(k)]
@@ -30,8 +34,8 @@ def dumb_diff(d1, d2):
 
 class Command(BaseCommand):
     def add_arguments(self, parser):
-        parser.add_argument("--limit", default=10)
-        parser.add_argument("--sleep", default=2.1)
+        parser.add_argument("--limit", default=5)
+        parser.add_argument("--sleep", default=7.1)
 
     def _handle(self, **options):
         limit = int(options["limit"])
@@ -49,7 +53,12 @@ class Command(BaseCommand):
             payload, error = lookup(awsproduct.asin, sleep=sleep)
             if error:
                 self.error("Error looking up {!r} ({!r})".format(awsproduct, error))
-                continue
+                # continue
+                # if settings.DEBUG:
+                raise UpdateAWSError(
+                    "Error looking up {!r} ({!r})".format(awsproduct, error)
+                )
+
             try:
                 diff(awsproduct.payload, payload)
             except (AttributeError, KeyError):
