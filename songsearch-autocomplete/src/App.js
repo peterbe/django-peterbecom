@@ -357,6 +357,7 @@ class App extends React.Component {
             onKeyDown={this.onKeyDownSearch}
             className="form-control x-large"
             placeholder="Type your lyrics search here..."
+            aria-label="Lyrics search"
           />
           <i className="search icon" onClick={this.onSelectSuggestionAll} />
           {this.state.autocompleteSuggestions &&
