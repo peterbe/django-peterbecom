@@ -5,7 +5,7 @@ import json
 import functools
 import hashlib
 import re
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 from html import escape
 
 import bleach
@@ -14,6 +14,8 @@ from pygments import highlight
 from pygments import lexers
 from pygments.formatters import HtmlFormatter
 from pygmentslexerbabylon import BabylonLexer
+from bleach.linkifier import Linker
+
 from django.conf import settings
 from django import http
 from django.core.validators import validate_email
@@ -248,3 +250,59 @@ def view_function_timer(prefix="", writeto=print):
         return inner
 
     return decorator
+
+
+def rate_blog_comment(comment):
+
+    GOOD_STRINGS = (
+        "I've been looking",
+        "anyone know this song",
+        "these lyrics",
+        "to find a song",
+        "find this song",
+        "The lyrics go",
+        "looking for a song",
+    )
+
+    BAD_STRINGS = ("@",)
+
+    result = {"good": {}, "bad": {}}
+
+    if len(comment.comment) > 500:
+        result["bad"]["length"] = ">500 characters"
+
+    # Exclude comments that have links in them unless the links are to
+    # www.peterbe.com or songsear.ch.
+    links = []
+
+    def find_links(attrs, new=False):
+        href = attrs[(None, u"href")]
+        p = urlparse(href)
+        if p.netloc not in ["www.peterbe.com", "songsear.ch"]:
+            links.append(href)
+
+    linker = Linker(callbacks=[find_links])
+    linker.linkify(comment.comment)
+
+    if links:
+        result["bad"]["links"] = links
+
+    good_strings = [x for x in GOOD_STRINGS if x in comment.comment]
+    maybe_good_strings = [
+        x for x in GOOD_STRINGS if x.lower() in comment.comment.lower()
+    ]
+
+    bad_strings = [x for x in BAD_STRINGS if x in comment.comment]
+    maybe_bad_strings = [x for x in BAD_STRINGS if x.lower() in comment.comment.lower()]
+
+    if good_strings:
+        result["good"]["strings"] = good_strings
+    elif maybe_good_strings:
+        result["good"]["maybe_strings"] = maybe_good_strings
+
+    if bad_strings:
+        result["bad"]["strings"] = bad_strings
+    elif maybe_bad_strings:
+        result["bad"]["maybe_strings"] = maybe_bad_strings
+
+    return result

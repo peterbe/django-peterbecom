@@ -45,6 +45,7 @@ div.comments input[type="checkbox"] {
       <!-- <a class="ui red small label">Not approved</a> -->
       <button class="small ui button primary approve-button" data-url="{{ comment.blogitem.get_absolute_url() }}/approve/{{ comment.oid }}">approve</button>
       <button class="small ui button yellow delete-button" data-url="{{ comment.blogitem.get_absolute_url() }}/delete/{{ comment.oid }}">delete</button>
+      <code>{{ json_print(comment._clues) }}</code>
       <br>
       {% endif %}
     </p>
