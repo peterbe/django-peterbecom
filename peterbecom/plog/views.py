@@ -47,7 +47,7 @@ from peterbecom.awspa.search import search as awspa_search
 from .search import BlogItemDoc
 from .utils import render_comment_text, valid_email, utc_now, view_function_timer
 from . import utils
-from .utils import json_view
+from .utils import json_view, rate_blog_comment
 from .forms import BlogForm, BlogFileUpload, CalendarDataForm
 from . import tasks
 
@@ -412,7 +412,7 @@ def submit_json(request, oid):
         )
 
         if request.user.is_authenticated:
-            _approve_comment(blog_comment)
+            actually_approve_comment(blog_comment)
             assert blog_comment.approved
         elif post.oid != 'blogitem-040601-1':
             # Let's not send an more admin emails for "Find songs by lyrics"
@@ -447,7 +447,7 @@ def approve_delete_blog_post_comments(request, action):
     deleted = []
     for blogcomment in blogcomments:
         if action == "approve":
-            _approve_comment(blogcomment)
+            actually_approve_comment(blogcomment)
             approved.append(blogcomment.id)
         elif action == "delete":
             deleted.append(blogcomment.id)
@@ -492,7 +492,7 @@ def approve_comment(request, oid, comment_oid):
         if forbidden:
             return forbidden
 
-    _approve_comment(blogcomment)
+    actually_approve_comment(blogcomment)
 
     if request.META.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest":
         return http.HttpResponse("OK")
@@ -528,7 +528,7 @@ def _check_auth_key(request, blogitem, blogcomment):
         return http.HttpResponseForbidden("Key not found or already used")
 
 
-def _approve_comment(blogcomment):
+def actually_approve_comment(blogcomment):
     blogcomment.approved = True
     blogcomment.save()
 
@@ -705,7 +705,8 @@ def new_comments(request):
             except BlogCommentTraining.DoesNotExist:
                 pass
             comment.bayes_training = bayes_training
-            comments.bayes_guess = bayes_guess
+            comment.bayes_guess = bayes_guess
+            comment._clues = rate_blog_comment(comment)
             comments_list.append(comment)
         context["comments"] = comments_list
     context["page_title"] = "Latest new blog comments"
