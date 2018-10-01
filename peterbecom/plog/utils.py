@@ -75,8 +75,26 @@ whitespace_start_regex = re.compile(r"^\n*(\s+)", re.M)
 
 def render_comment_text(text):
     text = text.replace("<", "&lt;").replace(">", "&gt;")
-    # Note, `bleach.linkify` automatically sets rel="nofollow"
-    html = bleach.linkify(text)
+
+    def custom_nofollow_maker(attrs, new=False):
+        href_key = (None, u"href")
+
+        if href_key not in attrs:
+            return attrs
+
+        if attrs[href_key].startswith(u"mailto:"):
+            return attrs
+
+        p = urlparse(attrs[(None, u"href")])
+        if p.netloc not in ["peterbe.com", "www.peterbe.com", "songsear.ch"]:
+            rel_key = (None, u"rel")
+            rel_values = [val for val in attrs.get(rel_key, "").split(" ") if val]
+            if "nofollow" not in [rel_val.lower() for rel_val in rel_values]:
+                rel_values.append("nofollow")
+            attrs[rel_key] = " ".join(rel_values)
+        return attrs
+
+    html = bleach.linkify(text, callbacks=[custom_nofollow_maker])
 
     # So you can write comments with code with left indentation whitespace
     def subber(m):
