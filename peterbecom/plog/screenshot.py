@@ -1,11 +1,13 @@
 import re
 
-import cloudinary
+import subprocess
 
 from django.conf import settings
 
 
-def get_image_url(url, width=1280, height=1000, sign_url=True):
+def get_image_url(url, width=1280, height=1000):
+
+    proc = subprocess.Popen("./screenshot.js", url)
     cloudinary.config(
         cloud_name=settings.CLOUDINARY_CLOUD_NAME,
         api_key=settings.CLOUDINARY_API_KEY,
