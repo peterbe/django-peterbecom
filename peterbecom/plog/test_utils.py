@@ -100,3 +100,18 @@ def test_linkify_urls_with_fragments(requestsmock):
         'rel="nofollow">https://www.youtobe.com/watch#anchor'
         "</a>"
     ) in html
+
+
+def test_linkify_urls_not_http():
+    text = """
+Email me mailto:mail@example.com
+Or call me on tel:123456789
+Or you can just go to ftp://archive.example.com
+But SSH is better ssh://root@git.example.com
+Then open file:///tmp/foo.txt
+    """
+    html = utils.render_comment_text(text)
+    assert '<a href="mailto:mail@example.com">mailto:mail@example.com</a>' in html
+    assert " ftp://" in html  # that it does not become a link.
+    assert " ssh://" in html  # that it does not become a link.
+    assert " file://" in html  # that it does not become a link.
