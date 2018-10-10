@@ -80,21 +80,26 @@ def render_comment_text(text):
     html = bleach.clean(text)
 
     def custom_nofollow_maker(attrs, new=False):
-        href_key = (None, u"href")
+        href_key = (None, "href")
 
         if href_key not in attrs:
             return attrs
 
-        if attrs[href_key].startswith(u"mailto:"):
+        href = attrs[href_key]
+        if href.startswith("mailto:") or href.startswith("tel:"):
+            # Leave untouched
             return attrs
+        if not (href.startswith("http:") or href.startswith("https:")):
+            # Bail if it's not a HTTP URL, such as ssh:// or ftp://
+            return None
 
-        p = urlparse(attrs[href_key])
+        p = urlparse(href)
         if p.netloc not in settings.NOFOLLOW_EXCEPTIONS:
             # Before we add the `rel="nofollow"` let's first check that this is a
             # valid domain at all.
             root_url = p.scheme + "://" + p.netloc
             try:
-                response = requests.head(root_url)
+                response = requests.head(root_url, timeout=5)
                 if response.status_code == 301:
                     redirect_p = urlparse(response.headers["location"])
                     # If the only difference is that it redirects to https instead
@@ -104,12 +109,12 @@ def render_comment_text(text):
                         and p.scheme == "http"
                         and p.netloc == redirect_p.netloc
                     ):
-                        attrs[href_key] = attrs[href_key].replace("http://", "https://")
+                        attrs[href_key] = href.replace("http://", "https://")
 
             except ConnectionError:
                 return None
 
-            rel_key = (None, u"rel")
+            rel_key = (None, "rel")
             rel_values = [val for val in attrs.get(rel_key, "").split(" ") if val]
             if "nofollow" not in [rel_val.lower() for rel_val in rel_values]:
                 rel_values.append("nofollow")
