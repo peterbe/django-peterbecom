@@ -78,3 +78,25 @@ But try github.com too.
     assert '<a href="http://google.com" rel="nofollow">google.com</a>' in html
     # Did dare with this one.
     assert '<a href="https://github.com" rel="nofollow">github.com</a>' in html
+
+
+def test_linkify_urls_with_ampersands(requestsmock):
+    requestsmock.head("https://www.youtobe.com", text="Works", status_code=200)
+    text = "link: https://www.youtobe.com/watch?v=2rGuXYAQb8s&feature=share"
+    html = utils.render_comment_text(text)
+    assert (
+        '<a href="https://www.youtobe.com/watch?v=2rGuXYAQb8s&amp;feature=share" '
+        'rel="nofollow">https://www.youtobe.com/watch?v=2rGuXYAQb8s&amp;feature=share'
+        "</a>"
+    ) in html
+
+
+def test_linkify_urls_with_fragments(requestsmock):
+    requestsmock.head("https://www.youtobe.com", text="Works", status_code=200)
+    text = "link: https://www.youtobe.com/watch#anchor"
+    html = utils.render_comment_text(text)
+    assert (
+        '<a href="https://www.youtobe.com/watch#anchor" '
+        'rel="nofollow">https://www.youtobe.com/watch#anchor'
+        "</a>"
+    ) in html
