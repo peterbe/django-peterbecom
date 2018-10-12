@@ -380,6 +380,20 @@ def submit_json(request, oid):
     comment = request.POST["comment"].strip()
     if not comment:
         return http.HttpResponseBadRequest("Missing comment")
+
+    # I'm desperate so I'll put in some easy-peasy spam checks before I get around
+    # to building a proper classifier.
+    comment_lower = comment.lower()
+    if (
+        ("whatsapp" in comment_lower or "://" in comment)
+        and ("@gmail.com" in comment_lower or "@yahoo.com" in comment_lower)
+        and re.findall(r"\+\d+", comment)
+    ) or (
+        ("@gmail.com" in comment_lower or "@yahoo.com" in comment_lower)
+        and ("spell" in comment or "healing" in comment)
+    ):
+        return http.HttpResponseBadRequest("Looks too spammy")
+
     name = request.POST.get("name", u"").strip()
     email = request.POST.get("email", u"").strip()
     parent = request.POST.get("parent")
@@ -414,7 +428,7 @@ def submit_json(request, oid):
         if request.user.is_authenticated:
             actually_approve_comment(blog_comment)
             assert blog_comment.approved
-        elif post.oid != 'blogitem-040601-1':
+        elif post.oid != "blogitem-040601-1":
             # Let's not send an more admin emails for "Find songs by lyrics"
             tos = [x[1] for x in settings.ADMINS]
             from_ = ["%s <%s>" % x for x in settings.ADMINS][0]
@@ -987,7 +1001,7 @@ def preview_post(request):
     try:
         return http.HttpResponse(template.render(context))
     except HTMLRenderingError as exception:
-        return http.JsonResponse({'error': str(exception)}, status=400)
+        return http.JsonResponse({"error": str(exception)}, status=400)
 
 
 @login_required
