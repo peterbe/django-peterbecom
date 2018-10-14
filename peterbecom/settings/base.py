@@ -369,3 +369,17 @@ HTML_MINIFIER_PATH = path("node_modules/.bin/html-minifier")
 
 # These domains don't need the `rel="nofollow"` attribute when linkified.
 NOFOLLOW_EXCEPTIONS = ("peterbe.com", "www.peterbe.com", "songsear.ch")
+
+
+PLOG_GOOD_STRINGS = (
+    "I've been looking",
+    "anyone know this song",
+    "these lyrics",
+    "to find a song",
+    "find this song",
+    "The lyrics go",
+    "looking for a song",
+    "This is a song I",
+)
+
+PLOG_BAD_STRINGS = ("@",)

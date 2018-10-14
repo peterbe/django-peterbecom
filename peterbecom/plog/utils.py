@@ -300,18 +300,6 @@ def view_function_timer(prefix="", writeto=print):
 
 def rate_blog_comment(comment):
 
-    GOOD_STRINGS = (
-        "I've been looking",
-        "anyone know this song",
-        "these lyrics",
-        "to find a song",
-        "find this song",
-        "The lyrics go",
-        "looking for a song",
-    )
-
-    BAD_STRINGS = ("@",)
-
     result = {"good": {}, "bad": {}}
 
     if len(comment.comment) > 500:
@@ -332,6 +320,9 @@ def rate_blog_comment(comment):
 
     if links:
         result["bad"]["links"] = links
+
+    GOOD_STRINGS = settings.PLOG_GOOD_STRINGS
+    BAD_STRINGS = settings.PLOG_BAD_STRINGS
 
     good_strings = [x for x in GOOD_STRINGS if x in comment.comment]
     maybe_good_strings = [
