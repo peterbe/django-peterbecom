@@ -37,3 +37,8 @@ echo "Installing the node packages"
 npm install
 
 ./manage.py collectstatic --noinput
+
+
+echo "Is elasticsearch there??"
+curl localhost:9200
+curl --version
