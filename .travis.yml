@@ -1,7 +1,7 @@
 # http://travis-ci.org/peterbe/django-peterbecom
 
 # Needed to install custom java and elasticsearch
-sudo: required
+#sudo: required
 
 dist: trusty
 
