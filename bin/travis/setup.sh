@@ -35,6 +35,5 @@ SETTINGS
 
 echo "Installing the node packages"
 yarn
-yarn --version
 
 ./manage.py collectstatic --noinput
