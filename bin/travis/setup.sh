@@ -34,6 +34,6 @@ CELERY_TASK_ALWAYS_EAGER = True
 SETTINGS
 
 echo "Installing the node packages"
-npm install
+yarn
 
 ./manage.py collectstatic --noinput
