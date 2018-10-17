@@ -390,7 +390,9 @@ def submit_json(request, oid):
         and re.findall(r"\+\d+", comment)
     ) or (
         ("@gmail.com" in comment_lower or "@yahoo.com" in comment_lower)
-        and ("spell" in comment or "healing" in comment)
+        and (
+            "spell" in comment or "healing" in comment or "call doctor" in comment_lower
+        )
     ):
         return http.HttpResponseBadRequest("Looks too spammy")
 
