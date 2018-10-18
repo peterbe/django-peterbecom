@@ -53,6 +53,11 @@ class Command(BaseCommand):
             payload, error = lookup(awsproduct.asin, sleep=sleep)
             if error:
                 self.error("Error looking up {!r} ({!r})".format(awsproduct, error))
+                if "is not a valid value for ItemId" in error["Message"]:
+                    # Let's not bother with that AWSProduct any more.
+                    awsproduct.disabled = True
+                    awsproduct.save()
+                    continue
                 # continue
                 # if settings.DEBUG:
                 raise UpdateAWSError(
