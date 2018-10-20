@@ -189,6 +189,7 @@ INSTALLED_APPS = (
     "peterbecom.base",
     "peterbecom.plog",
     "peterbecom.homepage",
+    "peterbecom.chiveproxy",
     "peterbecom.nodomains",
     "peterbecom.ajaxornot",
     "peterbecom.localvsxhr",

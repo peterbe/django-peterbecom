@@ -1,0 +1,30 @@
+{
+  "name": "chiveproxy",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "bulma": "0.7.2",
+    "ky": "0.4.1",
+    "node-sass": "4.9.4",
+    "react": "16.5.2",
+    "react-dom": "16.5.2",
+    "react-router-dom": "4.3.1",
+    "react-scripts": "2.0.5"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "proxy": "http://localhost:8000/chiveproxy",
+  "browserslist": [
+    "> 2%",
+    "last 2 versions",
+    "Firefox ESR",
+    "not dead"
+  ]
+}
