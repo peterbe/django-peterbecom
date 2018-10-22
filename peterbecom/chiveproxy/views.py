@@ -1,23 +1,27 @@
-from django.core.cache import cache
 from django import http
+from django.conf import settings
+from django.core.cache import cache
+from django.views.decorators.cache import cache_control
 
-from .sucks import get_cards, get_card
+from .sucks import get_card, get_cards
 
 
 class ScrapingError(Exception):
     """Something went wrong."""
 
 
+@cache_control(max_age=settings.DEBUG and 5 or 30 * 60, public=True)
 def api_cards(request):
     cache_key = "cards"
     cards = cache.get(cache_key)
     if cards is None:
         cards = list(get_cards())
-        cache.set(cache_key, cards, 60 * 60)
+        cache.set(cache_key, cards, 30 * 60)
     context = {"cards": cards}
     return http.JsonResponse(context)
 
 
+@cache_control(max_age=settings.DEBUG and 10 or 60 * 60, public=True)
 def api_card(request, hash):
     cache_key = "card:{}".format(hash)
     card = cache.get(cache_key)
