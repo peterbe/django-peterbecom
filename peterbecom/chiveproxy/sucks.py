@@ -26,10 +26,11 @@ def get_cards():
             break
         else:
             continue
+
+        date = None
         for time_ in slot("time[datetime]").items():
             date = time_.attr("datetime")
-        else:
-            date = None
+            break
 
         uri = hashlib.md5(href.encode("utf-8")).hexdigest()[:8]
         yield {"url": href, "uri": uri, "text": text, "img": img, "date": date}
@@ -45,11 +46,10 @@ def get_card(url):
     else:
         return
 
+    date = None
     for time_ in doc("header.article-header time[datetime]").items():
         date = time_.attr("datetime")
         break
-    else:
-        date = None
 
     pictures = []
     for figure in doc("div.gallery figure.gallery-item").items():
@@ -62,7 +62,10 @@ def get_card(url):
             gifsrc = img.attr("data-gifsrc")
             break
         else:
-            continue
+            for img in figure("img.attachment-gallery-item-hires").items():
+                src = img.attr("src")
+                break
+
         pictures.append({"img": src, "gifsrc": gifsrc, "caption": "\n".join(caption)})
 
     return {"text": text, "pictures": pictures, "date": date}

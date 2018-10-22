@@ -4,6 +4,10 @@ from django import http
 from .sucks import get_cards, get_card
 
 
+class ScrapingError(Exception):
+    """Something went wrong."""
+
+
 def api_cards(request):
     cache_key = "cards"
     cards = cache.get(cache_key)
@@ -22,6 +26,11 @@ def api_card(request, hash):
         if not url:
             return http.HttpResponseNotFound("No 'url'")
         card = get_card(url)
-        cache.set(cache_key, card, 60 * 60)
+        if not card:
+            raise ScrapingError(url)
+        if card["pictures"]:
+            cache.set(cache_key, card, 60 * 60)
+        else:
+            raise ScrapingError("no pictures! ({})".format(url))
 
     return http.JsonResponse(card)
