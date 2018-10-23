@@ -23,6 +23,8 @@ def get_cards():
             text = a.text().replace("\xa0", " ").strip()
             if text.endswith("(Video)"):
                 continue
+            if text.endswith("(Vote)"):
+                continue
             break
         else:
             continue
