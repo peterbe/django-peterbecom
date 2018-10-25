@@ -6,6 +6,7 @@ import pyquery
 def get_cards():
     base = "http://thechive.com/"
     doc = pyquery.PyQuery(base)
+
     for slot in doc("div.slot").items():
         for a in slot("a.card-img-link").items():
             href = a.attr("href")
@@ -30,12 +31,21 @@ def get_cards():
             continue
 
         date = None
+        human_time = None
         for time_ in slot("time[datetime]").items():
             date = time_.attr("datetime")
+            human_time = time_.text()
             break
 
         uri = hashlib.md5(href.encode("utf-8")).hexdigest()[:8]
-        yield {"url": href, "uri": uri, "text": text, "img": img, "date": date}
+        yield {
+            "url": href,
+            "uri": uri,
+            "text": text,
+            "img": img,
+            "date": date,
+            "human_time": human_time,
+        }
 
 
 def get_card(url):
