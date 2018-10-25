@@ -207,9 +207,9 @@ kombu==4.2.1 \
 billiard==3.5.0.3 \
     --hash=sha256:abd9ce008c9a71ccde2c816f8daa36246e92a21e6a799831b887d88277187ecd \
     --hash=sha256:1d7b22bdc47aa52841120fcd22a74ae4fc8c13e9d3935643098184f5788c3ce6
-python-dateutil==2.7.3 \
-    --hash=sha256:1adb80e7a782c12e52ef9a8182bebeb73f1d7e24e374397af06fb4956c8dc5c0 \
-    --hash=sha256:e27001de32f627c22380a688bcc43ce83504a7bc5da472209b4c70f02829f0b8
+python-dateutil==2.7.4 \
+    --hash=sha256:f7cde3aecf8a797553d6ec49b65f0fbcffe7ffb971ccac452d181c28fd279936 \
+    --hash=sha256:2f13d3ea236aeb237e7258d5729c46eafe1506fd7f8507f34730734ed8b37454
 django-appconf==1.0.2 \
     --hash=sha256:6a4d9aea683b4c224d97ab8ee11ad2d29a37072c0c6c509896dd9857466fb261 \
     --hash=sha256:ddab987d14b26731352c01ee69c090a4ebfc9141ed223bef039d79587f22acd9
