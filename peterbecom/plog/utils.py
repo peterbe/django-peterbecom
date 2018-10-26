@@ -177,6 +177,8 @@ def _get_lexer(codesyntax):
         return lexers.BashLexer()
     elif codesyntax == "go":
         return lexers.GoLexer()
+    elif codesyntax == "diff":
+        return lexers.DiffLexer()
     elif codesyntax == "rust":
         return lexers.RustLexer()
     elif codesyntax == "jsx":
@@ -188,7 +190,7 @@ def _get_lexer(codesyntax):
 
 
 _codesyntax_regex = re.compile(
-    "```(python|cpp|javascript|json|xml|html|yml|yaml|css|sql|sh|bash|go|jsx|rust)"  # noqa
+    "```(python|cpp|javascript|json|xml|html|yml|yaml|css|sql|sh|bash|go|diff|jsx|rust)"  # noqa
 )
 _markdown_pre_regex = re.compile(r"(```(.*?)```)", re.M | re.DOTALL)
 
