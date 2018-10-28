@@ -1,7 +1,8 @@
-import hashlib
-import logging
 import datetime
+import hashlib
 import json
+import logging
+import os
 import random
 import re
 import zlib
@@ -10,47 +11,50 @@ from io import BytesIO
 from statistics import median
 from urllib.parse import urlencode, urlparse
 
+from django import http
+from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from django.contrib.sites.models import Site
+from django.contrib.sites.requests import RequestSite
+from django.core.cache import cache
+from django.core.mail import send_mail
+from django.db import transaction
+from django.shortcuts import get_object_or_404, redirect, render
+from django.template import loader
+from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils import timezone
+from django.views.decorators.cache import cache_control
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
+from django.views.decorators.http import require_http_methods, require_POST
 from fancy_cache import cache_page
 
-from django.contrib.sites.models import Site
-from django.urls import reverse
-from django.template import loader
-from django import http
-from django.core.cache import cache
-from django.db import transaction
-from django.shortcuts import render, get_object_or_404, redirect
-from django.template.loader import render_to_string
-from django.core.mail import send_mail
-from django.views.decorators.http import require_POST, require_http_methods
-from django.contrib.auth.decorators import login_required
-from django.conf import settings
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.sites.requests import RequestSite
-from django.views.decorators.cache import cache_control
-from django.utils import timezone
-from django.views.decorators.csrf import ensure_csrf_cookie
-
-from peterbecom.base.templatetags.jinja_helpers import thumbnail
 from peterbecom.awspa.models import AWSProduct
-from peterbecom.bayes.models import BayesData, BlogCommentTraining
-from peterbecom.bayes.guesser import default_guesser
-from .models import (
-    BlogItem,
-    BlogComment,
-    Category,
-    BlogFile,
-    BlogItemHit,
-    OneTimeAuthKey,
-    HTMLRenderingError,
-)
 from peterbecom.awspa.search import search as awspa_search
-from .search import BlogItemDoc
-from .utils import render_comment_text, valid_email, utc_now, view_function_timer
-from . import utils
-from .utils import json_view, rate_blog_comment
-from .forms import BlogForm, BlogFileUpload, CalendarDataForm
-from . import tasks
+from peterbecom.base.templatetags.jinja_helpers import thumbnail
+from peterbecom.bayes.guesser import default_guesser
+from peterbecom.bayes.models import BayesData, BlogCommentTraining
 
+from . import tasks, utils
+from .forms import BlogFileUpload, BlogForm, CalendarDataForm
+from .models import (
+    BlogComment,
+    BlogFile,
+    BlogItem,
+    BlogItemHit,
+    Category,
+    HTMLRenderingError,
+    OneTimeAuthKey,
+)
+from .search import BlogItemDoc
+from .utils import (
+    json_view,
+    rate_blog_comment,
+    render_comment_text,
+    utc_now,
+    valid_email,
+    view_function_timer,
+)
 
 logger = logging.getLogger("plog.views")
 
@@ -1041,6 +1045,8 @@ def _post_thumbnails(blogitem):
     images = []
 
     for blogfile in blogfiles:
+        if not os.path.isfile(blogfile.file.path):
+            continue
         full_im = thumbnail(blogfile.file, "1000x1000", upscale=False, quality=100)
         full_url = full_im.url
         delete_url = reverse("delete_post_thumbnail", args=(blogfile.pk,))
