@@ -224,6 +224,11 @@ def markdown_to_html(text, codesyntax):
     html = markdown.markdown(gfm(text), extensions=["markdown.extensions.tables"])
     html = html.replace("<table>", '<table class="ui celled table">')
     html = html.replace("<pre><span></span>", "<pre>")
+
+    # Markdown leaves a strange whitespace before the end of the paragraph.
+    # Manually clean that up.
+    html = re.sub(r"[ ]+</p>", "</p>", html)
+
     return html
 
 
