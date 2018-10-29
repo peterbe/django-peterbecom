@@ -4,7 +4,7 @@ import pyquery
 
 
 def get_cards():
-    base = "http://thechive.com/"
+    base = "https://thechive.com/"
     doc = pyquery.PyQuery(base)
 
     for slot in doc("div.slot").items():
@@ -20,6 +20,9 @@ def get_cards():
             break
         else:
             continue
+
+        assert img.startswith("https"), img
+        # print("IMG", img)
         for a in slot("h3.post-title a").items():
             text = a.text().replace("\xa0", " ").strip()
             if text.endswith("(Video)"):
@@ -49,7 +52,7 @@ def get_cards():
 
 
 def get_card(url):
-    assert url.startswith("http://thechive.com"), url
+    assert url.startswith("https://thechive.com"), url
     doc = pyquery.PyQuery(url)
 
     for h1 in doc("h1#post-title").items():
@@ -77,6 +80,10 @@ def get_card(url):
             for img in figure("img.attachment-gallery-item-hires").items():
                 src = img.attr("src")
                 break
+
+        assert src.startswith("https://"), src
+        if gifsrc:
+            assert gifsrc.startswith("https://")
 
         pictures.append({"img": src, "gifsrc": gifsrc, "caption": "\n".join(caption)})
 

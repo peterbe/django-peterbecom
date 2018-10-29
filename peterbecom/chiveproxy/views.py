@@ -10,13 +10,13 @@ class ScrapingError(Exception):
     """Something went wrong."""
 
 
-@cache_control(max_age=settings.DEBUG and 5 or 30 * 60, public=True)
+@cache_control(max_age=settings.DEBUG and 30 or 30 * 60, public=True)
 def api_cards(request):
     cache_key = "cards"
     cards = cache.get(cache_key)
     if cards is None:
         cards = list(get_cards())
-        cache.set(cache_key, cards, 30 * 60)
+        cache.set(cache_key, cards, settings.DEBUG and 30 or 30 * 60)
     context = {"cards": cards}
     return http.JsonResponse(context)
 
@@ -33,7 +33,7 @@ def api_card(request, hash):
         if not card:
             raise ScrapingError(url)
         if card["pictures"]:
-            cache.set(cache_key, card, 60 * 60)
+            cache.set(cache_key, card, settings.DEBUG and 60 or 60 * 60)
         else:
             raise ScrapingError("no pictures! ({})".format(url))
 
