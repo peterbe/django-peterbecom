@@ -70,7 +70,7 @@ def get_card(url):
     for figure in doc("div.gallery figure.gallery-item").items():
         caption = []
         gifsrc = None
-        for p in figure("figcaption.gallery-caption").items():
+        for p in figure("figcaption.gallery-caption p").items():
             caption.append(p.text())
         for img in figure("img.attachment-gallery-item-full").items():
             src = img.attr("src")
