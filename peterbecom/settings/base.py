@@ -202,6 +202,7 @@ INSTALLED_APPS = (
     "fancy_cache",
     "pipeline",
     "django_jinja",
+    "huey.contrib.djhuey",
 )
 
 # A sample logging configuration. The only tangible logging
@@ -398,3 +399,43 @@ PLOG_GOOD_STRINGS = (
 )
 
 PLOG_BAD_STRINGS = ("@",)
+
+
+HUEY = {
+    "name": DATABASES["default"]["NAME"],  # Use db name for huey.
+    # "result_store": True,  # Store return values of tasks.
+    "result_store": False,  # Store return values of tasks.
+    "events": True,  # Consumer emits events allowing real-time monitoring.
+    "store_none": False,  # If a task returns None, do not save to results.
+    # "always_eager": settings.DEBUG,  # If DEBUG=True, run synchronously.
+    "always_eager": False,
+    # "store_errors": True,  # Store error info if task throws exception.
+    "store_errors": False,  # Store error info if task throws exception.
+    "blocking": False,  # Poll the queue rather than do blocking pop.
+    "backend_class": "huey.RedisHuey",  # Use path to redis huey by default,
+    "connection": {
+        # 'host': 'localhost',
+        # 'port': 6379,
+        # 'db': 0,
+        # 'connection_pool': None,  # Definitely you should use pooling!
+        # # ... tons of other options, see redis-py for details.
+        # huey-specific connection parameters.
+        "read_timeout": 1,  # If not polling (blocking pop), use timeout.
+        "max_errors": 1000,  # Only store the 1000 most recent errors.
+        # 'url': None,  # Allow Redis config via a DSN.
+        "url": REDIS_URL,  # Allow Redis config via a DSN.
+    },
+    "consumer": {
+        "workers": 1,
+        "worker_type": "thread",
+        "initial_delay": 0.1,  # Smallest polling interval, same as -d.
+        "backoff": 1.15,  # Exponential backoff using this rate, -b.
+        "max_delay": 10.0,  # Max possible polling interval, -m.
+        "utc": True,  # Treat ETAs and schedules as UTC datetimes.
+        "scheduler_interval": 1,  # Check schedule every second, -s.
+        "periodic": True,  # Enable crontab feature.
+        # "periodic": False,  # Enable crontab feature.
+        "check_worker_health": True,  # Enable worker health checks.
+        "health_check_interval": 1,  # Check worker health every second.
+    },
+}

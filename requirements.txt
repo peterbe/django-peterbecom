@@ -467,3 +467,5 @@ brotlipy==0.7.0 \
     --hash=sha256:d2c1c724c4ac375feb2110f1af98ecdc0e5a8ea79d068efb5891f621a5b235cb \
     --hash=sha256:dc6c5ee0df9732a44d08edab32f8a616b769cc5a4155a12d2d010d248eb3fb07 \
     --hash=sha256:fd1d1c64214af5d90014d82cee5d8141b13d44c92ada7a0c0ec0679c6f15a471
+huey==1.10.3 \
+    --hash=sha256:cbaeb9e94455fd28a15c4492e0d56f4ad8a17f9a70fdf65f34c092752ebb2944
