@@ -138,7 +138,10 @@ def home(request, oc=None, page=1):
 
     approved_comments_count = {}
     blog_comments_count_qs = (
-        BlogComment.objects.filter(blogitem__in=context["blogitems"])
+        BlogComment.objects.filter(
+            blogitem__in=context["blogitems"],
+            approved=True,
+        )
         .values("blogitem_id")
         .annotate(count=Count("blogitem_id"))
     )

@@ -66,7 +66,7 @@ var F = (function() {
       if (parent.length !== 1) {
         throw new Error('Must be exactly 1 parent');
       }
-      form.detach().insertAfter($('.text:eq(0)', parent));
+      form.detach().insertAfter($('p:eq(0)', parent));
       preview.detach().insertBefore(form);
       $('input[name="parent"]', form).val(parent.attr('id'));
       $('p.cancel:hidden', form).show();
@@ -204,6 +204,19 @@ $(function() {
   // This JS might be included on all pages. Even those that are
   // not blog posts. Hence this careful if statement on form.length.
   var form = $('form#comment');
+
+  // Create a "Reply" link for all existing comments.
+  // But only if the post allows comments.
+  if ($('#preview-comment-outer').length) {
+    $('div.comment a.metadata').each(function() {
+      var date = $(this);
+      var reply = $('<a class="metadata reply">Reply</a>');
+      var oid = date.attr('href').split('#')[1];
+      reply.attr('href', '#' + oid);
+      reply.data('oid', oid);
+      reply.insertAfter(date);
+    });
+  }
   if (form.length) {
     form.on('mouseover', function() {
       $(this).off('mouseover');
@@ -226,7 +239,10 @@ $(function() {
     });
 
     $('#comments-outer').on('click', 'a.reply', function() {
-      F.setupReply($('#' + $(this).attr('data-oid')));
+      var parentOid = $(this)
+        .parent()
+        .attr('id');
+      F.setupReply($('#' + parentOid));
       return false;
     });
 
@@ -238,38 +254,6 @@ $(function() {
   var commentsOuter = $('#comments-outer');
 
   if (commentsOuter.length) {
-    // commentsOuter.on('click', 'button[name="approve"]', function() {
-    //   var oid = $(this).data('oid');
-    //   var url = location.href;
-    //   url = url.split('#')[0];
-    //   url = url.split('?')[0];
-    //   url += '/approve/' + $(this).data('oid');
-    //   var button = $(this);
-    //   $.post(
-    //     url,
-    //     { csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val() },
-    //     function() {
-    //       $('.not-approved', '#' + oid).remove();
-    //       button.remove();
-    //     }
-    //   );
-    //   return false;
-    // });
-
-    // commentsOuter.on('click', 'button[name="delete"]', function() {
-    //   var oid = $(this).data('oid');
-    //   var url = location.pathname;
-    //   url += '/delete/' + oid;
-    //   $.post(
-    //     url,
-    //     { csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val() },
-    //     function() {
-    //       $('#' + oid).remove();
-    //     }
-    //   );
-    //   return false;
-    // });
-
     var loadingAllComments = false; // for the slow-load lock
     $('.comments-truncated').on('click', 'button', function() {
       if (loadingAllComments) return;
