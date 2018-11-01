@@ -65,7 +65,7 @@ def download(urls, base_url, max=100, sleeptime=1, state_file=None):
         slow = bool(r.headers.get("X-Response-Time"))
         print(
             str(i + 1).ljust(3),
-            url[:100].ljust(100),
+            url[:90].ljust(90),
             r.status_code,
             "\t",
             "%.3fs" % (t1 - t0),
