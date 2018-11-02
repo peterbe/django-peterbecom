@@ -106,15 +106,20 @@ class Command(BaseCommand):
 
         assert os.path.isdir(contentroot)
         csspath, = glob(os.path.join(contentroot, "songsearch-autocomplete/css/*.css"))
-        jspath, = glob(os.path.join(contentroot, "songsearch-autocomplete/js/*.js"))
-        jspath = jspath.replace(contentroot + "/", "")
+        jspaths = glob(os.path.join(contentroot, "songsearch-autocomplete/js/*.js"))
+        jspaths = [x.replace(contentroot + "/", "") for x in jspaths]
 
         with open(csspath) as f:
             csspayload = f.read()
         csspayload = re.sub(r"\/\*# sourceMappingURL=.*?\*\/", "", csspayload)
         csspayload = csspayload.strip()
 
-        js_block = (JS_BLOCK.replace("{cdn}", CDN).replace("{jspath}", jspath)).strip()
+        js_block = "\n".join(
+            [
+                (JS_BLOCK.replace("{cdn}", CDN).replace("{jspath}", jspath)).strip()
+                for jspath in jspaths
+            ]
+        )
         css_block = (
             CSS_BLOCK.replace("{cdn}", CDN).replace("{csspayload}", csspayload)
         ).strip()
@@ -168,7 +173,7 @@ class Command(BaseCommand):
 
         # Paranoia, because it has happened in the past
         js_files = re.findall(
-            r"/songsearch-autocomplete/js/main.[a-f0-9]{8}.js", content
+            r"/songsearch-autocomplete/js/main.[a-f0-9]{8}.chunk.js", content
         )
         if len(js_files) != 1:
             os.remove(template)

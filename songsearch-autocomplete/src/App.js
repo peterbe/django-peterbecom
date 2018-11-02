@@ -1,7 +1,7 @@
 import React from 'react';
 import './App.css';
 import { throttle, debounce } from 'throttle-debounce';
-import placeholderImage from './placeholder.png';
+import placeholderImage from './placeholder40x40.png';
 
 const SERVER = process.env.REACT_APP_SERVER_URL || 'https://songsear.ch';
 

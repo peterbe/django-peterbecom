@@ -1,6 +1,6 @@
 #!/bin/bash
 
-yarn run build
+INLINE_RUNTIME_CHUNK=false yarn run build
 
 rm -fr build.zip
 pushd build
