@@ -5,28 +5,37 @@ import placeholderImage from './placeholder40x40.png';
 
 const SERVER = process.env.REACT_APP_SERVER_URL || 'https://songsear.ch';
 
-const appendSuggestion = (text, append) => {
+function appendSuggestion(text, append) {
   let split = text.split(/\s+/);
   split.pop();
   split.push(append);
   return split.join(' ');
-};
+}
 
-const absolutifyUrl = uri => {
+function absolutifyUrl(uri) {
   if (uri.charAt(0) === '/' && uri.charAt(1) !== '/') {
     return SERVER + uri;
   }
   return uri;
-};
+}
 
-const convertLazyLoadImages = (once = false) => {
-  const inner = () => {
+const convertedLazyImagesCache = {};
+
+function convertLazyLoadImages() {
+  function inner() {
     const nodelist = document.querySelectorAll('img[data-src]');
     let count = 0;
     [...nodelist].forEach(img => {
       const trueSrc = img.dataset.src;
       delete img.dataset.src;
       img.src = trueSrc;
+
+      // Use the "module scoped global" to remember that this image url
+      // has been converted from lazy to full load.
+      // Knowing this, in the <SongImage/> component helps because
+      // then we can avoid rendering them as lazy if it's already done the
+      // dance.
+      convertedLazyImagesCache[trueSrc] = 1;
       if (img.classList) {
         img.classList.remove('lazyload');
         img.classList.remove('preview');
@@ -34,16 +43,13 @@ const convertLazyLoadImages = (once = false) => {
       count++;
     });
     return count;
-  };
+  }
   const wrap = debounce(200, true, inner);
 
-  if (once) {
-    wrap();
-  } else {
-    setTimeout(wrap, 40);
-    setTimeout(wrap, 300);
-  }
-};
+  wrap();
+  // setTimeout(wrap, 40);
+  setTimeout(wrap, 300);
+}
 
 class App extends React.Component {
   constructor(props) {
@@ -84,6 +90,19 @@ class App extends React.Component {
 
   componentWillUnmount() {
     this.dismounted = true;
+  }
+
+  componentDidUpdate() {
+    if (
+      this.state.showAutocompleteSuggestions &&
+      this.state.autocompleteSuggestions
+    ) {
+      if (
+        this.state.autocompleteSuggestions.some(suggestion => !!suggestion.id)
+      ) {
+        convertLazyLoadImages();
+      }
+    }
   }
 
   submitSearch = event => {
@@ -394,7 +413,7 @@ class App extends React.Component {
 
 export default App;
 
-const ShowMaxlengthWarning = ({ length, maxLength }) => {
+function ShowMaxlengthWarning({ length, maxLength }) {
   let className = 'help-block maxlength';
   if (length === maxLength) {
     className += ' danger';
@@ -404,32 +423,17 @@ const ShowMaxlengthWarning = ({ length, maxLength }) => {
       {length} of max {maxLength} characters!
     </p>
   );
-};
+}
 
-class ShowAutocompleteSuggestions extends React.PureComponent {
-  componentDidMount() {
-    this._maybeConvertLazyLoadImages(this.props.suggestions);
-  }
-
-  componentWillReceiveProps(nextProps) {
-    this._maybeConvertLazyLoadImages(nextProps.suggestions);
-  }
-
-  _maybeConvertLazyLoadImages = suggestions => {
-    if (suggestions.some(suggestion => !!suggestion.id)) {
-      convertLazyLoadImages();
-    }
-  };
-
-  render() {
-    const {
-      q,
-      highlight,
-      suggestions,
-      searchSuggestions,
-      onSelectSuggestion,
-      onSelectSuggestionAll
-    } = this.props;
+const ShowAutocompleteSuggestions = React.memo(
+  ({
+    q,
+    highlight,
+    suggestions,
+    searchSuggestions,
+    onSelectSuggestion,
+    onSelectSuggestionAll
+  }) => {
     if (!suggestions.length) {
       return null;
     }
@@ -487,49 +491,52 @@ class ShowAutocompleteSuggestions extends React.PureComponent {
       </div>
     );
   }
-}
+);
 
-class ShowAutocompleteSuggestionSong extends React.PureComponent {
-  render() {
-    const { song } = this.props;
-    return (
-      <div className="media autocomplete-suggestion-song">
-        <div className="media-left">
-          <img
-            className={
-              song.image && song.image.preview
-                ? 'img-rounded lazyload preview'
-                : 'img-rounded lazyload'
-            }
-            src={
-              song.image && song.image.preview
-                ? song.image.preview
-                : placeholderImage
-            }
-            data-src={
-              song.image ? absolutifyUrl(song.image.url) : placeholderImage
-            }
-            alt={song.name}
-          />
-        </div>
-        <div className="media-body">
-          <h5 className="artist-name">
-            <b>{song.name}</b>
-            {' by '}
-            <span>{song.artist.name}</span>
-          </h5>
-          {song.fragments.map((fragment, i) => {
-            return <p key={i} dangerouslySetInnerHTML={{ __html: fragment }} />;
-          })}
-        </div>
+const ShowAutocompleteSuggestionSong = React.memo(({ song }) => {
+  return (
+    <div className="media autocomplete-suggestion-song">
+      <div className="media-left">
+        <SongImage image={song.image} name={song.name} />
       </div>
-    );
+      <div className="media-body">
+        <h5 className="artist-name">
+          <b>{song.name}</b>
+          {' by '}
+          <span>{song.artist.name}</span>
+        </h5>
+        {song.fragments.map((fragment, i) => {
+          return <p key={i} dangerouslySetInnerHTML={{ __html: fragment }} />;
+        })}
+      </div>
+    </div>
+  );
+});
+
+function SongImage({ image, name }) {
+  if (!image) {
+    // Don't even bother with lazy loading.
+    return <img className="img-rounded" src={placeholderImage} alt={name} />;
   }
+  const absoluteUrl = absolutifyUrl(image.url);
+  if (convertedLazyImagesCache[absoluteUrl]) {
+    return <img className="img-rounded" src={absoluteUrl} alt={name} />;
+  }
+  return (
+    <img
+      className={
+        image.preview ? 'img-rounded lazyload preview' : 'img-rounded lazyload'
+      }
+      src={image.preview ? image.preview : placeholderImage}
+      data-src={absoluteUrl}
+      alt={name}
+    />
+  );
 }
 
 /* http://stackoverflow.com/a/2901298 */
-const numberWithCommas = function(x) {
+function numberWithCommas(x) {
   var parts = x.toString().split('.');
   parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   return parts.join('.');
-};
+}
