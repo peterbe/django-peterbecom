@@ -2,6 +2,7 @@ import backoff
 import requests
 
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 
@@ -22,9 +23,12 @@ class AuthenticationMiddleware:
                 header_value = request.META.get("HTTP_AUTHORIZATION")
                 if not header_value:
                     raise PermissionDenied("No HTTP_AUTHORIZATION")
-                print("HEADER_VALUE", repr(header_value))
                 access_token = header_value.split("Bearer")[1].strip()
-                user_info = self.fetch_oidc_user_profile(access_token)
+                cache_key = "bearer-to-user-info"
+                user_info = cache.get(cache_key)
+                if user_info is None:
+                    user_info = self.fetch_oidc_user_profile(access_token)
+                    cache.set(cache_key, user_info, 60 * 60)
                 if user_info:
                     request.user = get_user_model().objects.get(
                         email=user_info["email"]

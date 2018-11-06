@@ -442,3 +442,5 @@ HUEY = {
         "health_check_interval": 1,  # Check worker health every second.
     },
 }
+
+OIDC_USER_ENDPOINT = "https://peterbecom.auth0.com/userinfo"
