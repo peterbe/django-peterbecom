@@ -25,9 +25,9 @@ def get_cards():
         # print("IMG", img)
         for a in slot("h3.post-title a").items():
             text = a.text().replace("\xa0", " ").strip()
-            if text.endswith("(Video)"):
+            if text.lower().endswith("(video)"):
                 continue
-            if text.endswith("(Vote)"):
+            if text.lower().endswith("(vote)"):
                 continue
             break
         else:
