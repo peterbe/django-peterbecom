@@ -4,3 +4,4 @@ web: ./bin/run.sh web
 minimalcss: cd minimalcss && PORT=5000 yarn run start
 worker: ./bin/run.sh worker-purge
 huey: ./manage.py run_huey --flush-locks --huey-verbose
+adminui: cd adminui && REACT_APP_BASE_URL=http://peterbecom.local BROWSER=none PORT=4000 yarn start

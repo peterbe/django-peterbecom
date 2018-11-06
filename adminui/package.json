@@ -3,9 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "react": "^16.6.0",
-    "react-dom": "^16.6.0",
-    "react-scripts": "2.1.1"
+    "react": "16.6.0",
+    "react-dom": "16.6.0",
+    "react-router-dom": "4.3.1",
+    "react-scripts": "2.1.1",
+    "semantic-ui-css": "2.4.1",
+    "semantic-ui-react": "0.83.0"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -16,10 +19,10 @@
   "eslintConfig": {
     "extends": "react-app"
   },
+  "proxy": "http://localhost:8000",
   "browserslist": [
-    ">0.2%",
-    "not dead",
-    "not ie <= 11",
-    "not op_mini all"
+    "last 2 Chrome major versions",
+    "last 2 Firefox major versions",
+    "last 1 iOS major versions"
   ]
 }

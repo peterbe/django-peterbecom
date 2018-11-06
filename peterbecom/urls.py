@@ -24,6 +24,7 @@ urlpatterns += [
     ),
     url(r"^awspa/", include("peterbecom.awspa.urls", namespace="awspa")),
     url(r"^oidc/", include("mozilla_django_oidc.urls")),
+    url(r"^api/v0/", include("peterbecom.api.urls", namespace="api")),
     url(r"^plog/", include("peterbecom.plog.urls")),
     url(r"^plog$", lambda x: http.HttpResponseRedirect("/plog/")),
     url(r"^minimalcss/", include("peterbecom.minimalcss.urls")),

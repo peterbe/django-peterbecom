@@ -189,6 +189,7 @@ INSTALLED_APPS = (
     "sorl.thumbnail",
     "peterbecom.base",
     "peterbecom.plog",
+    "peterbecom.api",
     "peterbecom.homepage",
     "peterbecom.chiveproxy",
     "peterbecom.nodomains",

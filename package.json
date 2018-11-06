@@ -8,8 +8,11 @@
   "author": "Peter Bengtsson",
   "license": "MPL-2.0",
   "dependencies": {
+    "auth0-js": "9.8.1",
     "csso-cli": "1.1.0",
+    "date-fns": "2.0.0-alpha.25",
     "html-minifier": "3.5.21",
+    "throttle-debounce": "2.0.1",
     "uglify-js": "^3.4.9"
   }
 }
