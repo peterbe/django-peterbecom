@@ -108,11 +108,11 @@ SECRET_KEY = ""  # set in local settings
 MIDDLEWARE = (
     "django.middleware.common.CommonMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "peterbecom.api.middleware.AuthenticationMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "rollbar.contrib.django.middleware.RollbarNotifierMiddleware",
+    "peterbecom.api.middleware.AuthenticationMiddleware",
     # Important that this is last
     "peterbecom.base.middleware.FSCacheMiddleware",
     "peterbecom.base.middleware.StatsMiddleware",

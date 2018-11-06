@@ -3,6 +3,7 @@ import requests
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
+from django.contrib.auth.signals import user_logged_in
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 
@@ -18,25 +19,31 @@ class AuthenticationMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        response = self.process_request(request)
+        if not response:
+            response = self.get_response(request)
+        return response
+
+    def process_request(self, request):
         if request.path.startswith("/api/"):
-            if request.method != "GET":
+            if 1 or request.method != "GET":
                 header_value = request.META.get("HTTP_AUTHORIZATION")
                 if not header_value:
                     raise PermissionDenied("No HTTP_AUTHORIZATION")
                 access_token = header_value.split("Bearer")[1].strip()
-                cache_key = "bearer-to-user-info"
-                user_info = cache.get(cache_key)
-                if user_info is None:
+                cache_key = "bearer-to-user-info:{}".format(access_token[:10])
+                user = cache.get(cache_key)
+                if user is None:
                     user_info = self.fetch_oidc_user_profile(access_token)
-                    cache.set(cache_key, user_info, 60 * 60)
-                if user_info:
-                    request.user = get_user_model().objects.get(
-                        email=user_info["email"]
-                    )
+                    if user_info:
+                        user = get_user_model().objects.get(email=user_info["email"])
+                        cache.set(cache_key, user, 60 * 60)
+                if not user:
+                    raise PermissionDenied("access_token invalid")
+                request.user = user
+                user_logged_in.send(sender=user.__class__, request=request, user=user)
 
             request.csrf_processing_done = True
-
-        return self.get_response(request)
 
     @backoff.on_exception(
         backoff.constant, requests.exceptions.RequestException, max_tries=5

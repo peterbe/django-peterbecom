@@ -2,6 +2,7 @@
 
 body {
   background-color: #ffffff;
+
 }
 .ui.menu .item img.logo {
   margin-right: 1.5em;
@@ -28,4 +29,25 @@ textarea.monospaced {
   margin-top: 40px;
   padding-top: 20px;
   border-top: 1px solid #ccc;
+}
+
+
+/* Need some of the CSS from the view site */
+pre {
+  padding: 5px;
+  margin: 0px 0px 10px;
+  line-height: 1.42857;
+  color: #333;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  overflow: auto;
+}
+
+.ui.header,
+h1,
+h2,
+h3,
+h4 {
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans-serif;
 }

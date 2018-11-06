@@ -10,4 +10,5 @@ urlpatterns = [
     url("^plog/preview/$", views.preview, name="preview"),
     url("^plog/(.*)$", views.blogitem, name="blogitem"),
     url("^categories/?$", views.categories, name="categories"),
+    url("", views.catch_all, name="catch_all"),
 ]

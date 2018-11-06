@@ -1,9 +1,10 @@
 import json
+from functools import wraps
 
 from django import http
-
-# from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Q
+from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
@@ -20,11 +21,43 @@ from peterbecom.plog.views import PreviewValidationError, preview_by_data
 #     return inner
 
 
+# def api_login_required(view_func):
+#     """similar to django.contrib.auth.decorators.login_required
+#     except instead of redirecting it returns a 403 message if not
+#     authenticated."""
+
+#     @wraps(view_func)
+#     def inner(request, *args, **kwargs):
+#         if not request.user.is_active:
+#             error_msg = "You are not logged in"
+#             raise PermissionDenied(error_msg)
+#         return view_func(request, *args, **kwargs)
+
+#     return inner
+
+
+def api_superuser_required(view_func):
+    """Decorator that will return a 403 JSON response if the user
+    is *not* a superuser.
+    Use this decorator *after* others like api_login_required.
+    """
+
+    @wraps(view_func)
+    def inner(request, *args, **kwargs):
+        if not request.user.is_superuser:
+            error_msg = "Must be superuser to access this view."
+            raise PermissionDenied(error_msg)
+        return view_func(request, *args, **kwargs)
+
+    return inner
+
+
 def _response(context, status=200, safe=False):
     return http.JsonResponse(context, status=status, safe=safe)
 
 
 # @bearer_token_required
+@api_superuser_required
 def blogitems(request):
     if request.method == "POST":
         raise NotImplementedError
@@ -56,8 +89,12 @@ def blogitems(request):
 
 
 # @bearer_token_required
+@api_superuser_required
 def blogitem(request, oid):
     item = get_object_or_404(BlogItem, oid=oid)
+    if request.method == "POST":
+        raise NotImplementedError
+        return
     context = {
         "blogitem": {
             "id": item.id,
@@ -67,6 +104,15 @@ def blogitem(request, oid):
             "text": item.text,
             "keywords": item.proper_keywords,
             "categories": [{"id": x.id, "name": x.name} for x in item.categories.all()],
+            "summary": item.summary,
+            "url": item.summary,
+            "display_format": item.display_format,
+            "codesyntax": item.codesyntax,
+            "disallow_comments": item.disallow_comments,
+            "hide_comments": item.hide_comments,
+            "modify_date": item.modify_date,
+            "open_graph_image": item.open_graph_image,
+            "_absolute_url": "/plog/{}".format(item.oid),
         }
     }
     return _response(context)
@@ -92,6 +138,7 @@ def categories(request):
     return _response(context)
 
 
+@api_superuser_required
 def preview(request):
     assert request.method == "POST", request.method
     post_data = json.loads(request.body.decode("utf-8"))
@@ -104,3 +151,9 @@ def preview(request):
         return _response(context)
     context = {"blogitem": {"html": html}}
     return _response(context)
+
+
+def catch_all(request):
+    if settings.DEBUG:
+        raise http.Http404(request.path)
+    return _response({"error": request.path}, status=404)

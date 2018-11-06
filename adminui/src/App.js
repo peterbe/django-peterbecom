@@ -4,6 +4,7 @@ import { formatDistance } from 'date-fns/esm';
 import { BrowserRouter as Router, Link, Route, Switch } from 'react-router-dom';
 import 'semantic-ui-css/semantic.min.css';
 import { Container, Dropdown, List, Menu, Segment } from 'semantic-ui-react';
+import './copy-of-highlight.css';
 import './App.css';
 import {
   OIDC_AUDIENCE,

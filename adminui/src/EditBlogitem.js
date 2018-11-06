@@ -118,8 +118,8 @@ export class EditBlogitem extends React.Component {
       throw new Error('No accessToken');
     }
     const oid = this.state.blogitem.oid;
-    const response = await fetch(`/api/v0/plog/${oid}/`, {
-      method: 'PUT',
+    const response = await fetch(`/api/v0/plog/${oid}`, {
+      method: 'POST',
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
@@ -129,6 +129,9 @@ export class EditBlogitem extends React.Component {
     });
     if (response.ok) {
       const data = await response.json();
+      if (data.blogitem.oid !== this.state.blogitem.oid) {
+        throw new Error('NEED TO REDIRECT');
+      }
       this.setState({ blogitem: data.blogitem, updated: new Date() });
     } else {
       this.setState({ serverError: response.status });
@@ -198,7 +201,6 @@ export class EditBlogitem extends React.Component {
             }}
             onSubmitData={data => {
               this.setState({ updated: null });
-              // store.blogitems.setUpdated(null);
               this.updateBlogitem(data, this.props.accessToken);
               // store.blogitems.updateBlogitem(
               //   store.blogitems.blogitem.id,
@@ -339,11 +341,16 @@ class EditForm extends React.PureComponent {
   };
 
   onTextBlur = event => {
-    this.submitForm(event, true);
+    event.preventDefault();
+    this._submit(true);
   };
 
-  submitForm = (event, preview = false) => {
+  submitForm = event => {
     event.preventDefault();
+    this._submit();
+  };
+
+  _submit = (preview = false) => {
     const { blogitem } = this.props;
     const data = {};
     // data.title = this.state.title;
