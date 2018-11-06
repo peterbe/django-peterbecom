@@ -7,5 +7,7 @@ app_name = "api"
 
 urlpatterns = [
     url("^plog/$", views.blogitems, name="blogitems"),
+    url("^plog/preview/$", views.preview, name="preview"),
+    url("^plog/(.*)$", views.blogitem, name="blogitem"),
     url("^categories/?$", views.categories, name="categories"),
 ]

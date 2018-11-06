@@ -30,19 +30,12 @@ export class EditBlogitem extends React.Component {
   componentDidMount() {
     document.title = 'Edit Blogitem';
 
-    // if (store.blogitems.updated) {
-    //   store.blogitems.setUpdated(null);
-    // }
     if (this.props.accessToken) {
       this.fetchBlogitem(this.props.match.params.oid, this.props.accessToken);
       this.fetchAllCategories(this.props.accessToken);
     }
-
-    // store.blogitems.fetchBlogitem(this.props.match.params.id);
-    // if (!store.blogitems.allCategories.size) {
-    //   store.blogitems.fetchAllCategories(store.user.accessToken);
-    // }
   }
+
   componentDidUpdate(prevProps) {
     if (prevProps.accessToken !== this.props.accessToken) {
       this.fetchBlogitem(this.props.match.params.oid, this.props.accessToken);
@@ -201,12 +194,12 @@ export class EditBlogitem extends React.Component {
             // accessToken={this.props.accessToken}
             onLoadPreview={async data => {
               // store.blogitems.previewBlogitem(data, store.user.accessToken);
-              this.previewBlogitem(data);
+              this.previewBlogitem(data, this.props.accessToken);
             }}
             onSubmitData={data => {
               this.setState({ updated: null });
               // store.blogitems.setUpdated(null);
-              this.updateBlogitem(data);
+              this.updateBlogitem(data, this.props.accessToken);
               // store.blogitems.updateBlogitem(
               //   store.blogitems.blogitem.id,
               //   data,
