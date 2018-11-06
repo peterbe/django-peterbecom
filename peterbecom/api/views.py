@@ -40,6 +40,7 @@ def _serialize_blogitem(item):
 
 
 def categories(request):
+
     context = {
         "categories": [
             {"id": x.id, "name": x.name}
