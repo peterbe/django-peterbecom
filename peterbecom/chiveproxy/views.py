@@ -34,7 +34,7 @@ def api_card(request, hash):
             raise ScrapingError(url)
         if card["pictures"]:
             cache.set(cache_key, card, settings.DEBUG and 60 or 60 * 60)
-        else:
+        elif settings.DEBUG:
             raise ScrapingError("no pictures! ({})".format(url))
 
     return http.JsonResponse(card)
