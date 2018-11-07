@@ -2,6 +2,8 @@ import hashlib
 
 import pyquery
 
+from django.conf import settings
+
 
 def get_cards():
     base = "https://thechive.com/"
@@ -70,6 +72,7 @@ def get_card(url):
     for figure in doc("div.gallery figure.gallery-item").items():
         caption = []
         gifsrc = None
+        src = None
         for p in figure("figcaption.gallery-caption p").items():
             caption.append(p.text())
         for img in figure("img.attachment-gallery-item-full").items():
@@ -80,7 +83,11 @@ def get_card(url):
             for img in figure("img.attachment-gallery-item-hires").items():
                 src = img.attr("src")
                 break
-
+        if not src:
+            # Happens sometimes when it's just a bunch of Twitter quotes.
+            if settings.DEBUG:
+                raise Exception("No src on {}".format(url))
+            continue
         assert src.startswith("https://"), src
         if gifsrc:
             assert gifsrc.startswith("https://")
