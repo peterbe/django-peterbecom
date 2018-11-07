@@ -7,7 +7,7 @@ from pipeline.storage import PipelineCachedStorage
 from zopfli import gzip as zopfli
 
 
-class ZopfliMixin(object):
+class ZopfliAndBrotliMixin(object):
     name_patterns = ("*.css", "*.js", "*.svg")
 
     # 'numiterations' default is 15 in
@@ -16,15 +16,20 @@ class ZopfliMixin(object):
     minimum_size_bytes = getattr(settings, "ZOPFLI_COMPRESS_MIN_SIZE_BYTES", 256)
     only_hashed_files = getattr(settings, "ZOPFLI_COMPRESS_ONLY_HASHED_FILES", True)
 
-    def _compress(self, original_file):
+    def _zopfli_compress(self, original_file):
         content = BytesIO(
             zopfli.compress(original_file.read(), numiterations=self.numiterations)
         )
         content.seek(0)
         return File(content)
 
+    def _brotli_compress(self, original_file):
+        content = BytesIO(zopfli.compress(original_file.read()))
+        content.seek(0)
+        return File(content)
+
     def post_process(self, paths, dry_run=False, **options):
-        super_class = super(ZopfliMixin, self)
+        super_class = super()
         processed_hash_names = []
         if hasattr(super_class, "post_process"):
             for name, hashed_name, processed in super_class.post_process(
@@ -48,17 +53,27 @@ class ZopfliMixin(object):
                 continue
 
             gzipped_path = "{0}.gz".format(path)
-            if self.exists(gzipped_path):
+            if not self.exists(gzipped_path):
                 # This is the beauty of using django_pipeline.
                 # If the .gz file exists, it means the source of it hasn't changed
                 # even though it was re-written to disk, because we only bother
                 # with files with hashed in the name.
-                continue
-            gzipped_file = self._compress(original_file)
-            gzipped_path = self.save(gzipped_path, gzipped_file)
-            yield gzipped_path, gzipped_path, True
+                compressed_file = self._zopfli_compress(original_file)
+                gzipped_path = self.save(gzipped_path, compressed_file)
+                yield gzipped_path, gzipped_path, True
+
+            brotli_path = "{0}.br".format(path)
+            if not self.exists(brotli_path):
+                # This is the beauty of using django_pipeline.
+                # If the .gz file exists, it means the source of it hasn't changed
+                # even though it was re-written to disk, because we only bother
+                # with files with hashed in the name.
+                compressed_file = self._brotli_compress(original_file)
+                brotli_path = self.save(brotli_path, compressed_file)
+                yield brotli_path, brotli_path, True
 
 
-class ZopfliPipelineCachedStorage(ZopfliMixin, PipelineCachedStorage):
-    """Same as pipeline.storage.PipelineCachedStorage but runs zopfli on the files
+class ZopfliAndBrotliPipelineCachedStorage(ZopfliAndBrotliMixin, PipelineCachedStorage):
+    """Same as pipeline.storage.PipelineCachedStorage but runs zopfli and brotli
+    on the files.
     """
