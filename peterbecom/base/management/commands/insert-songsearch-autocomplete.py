@@ -1,15 +1,16 @@
+import filecmp
 import os
 import re
 import shutil
 import tempfile
 import time
 import zipfile
-import filecmp
 from glob import glob
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
+from peterbecom.brotli_file import brotli_file
 from peterbecom.zopfli_file import zopfli_file
 
 CDN = os.environ.get("CDN", "")
@@ -191,12 +192,18 @@ class Command(BaseCommand):
                 if os.path.isfile(template + ".gz"):
                     os.remove(template + ".gz")
                 _zopfli(template)
+                if os.path.isfile(template + ".br"):
+                    os.remove(template + ".gz")
+                _brotli(template)
             print("Updated {} with new content.".format(template))
         else:
             print("Nothing changed in the content. No write.")
             if not os.path.isfile(template + ".gz"):
                 print("Going to zopfli a new index.html")
                 _zopfli(template)
+            if not os.path.isfile(template + ".br"):
+                print("Going to brotli a new index.html")
+                _brotli(template)
 
         # The zopfli file should always be younger than the not-zopflied file.
         age_html = os.stat(template).st_mtime
@@ -205,6 +212,12 @@ class Command(BaseCommand):
             os.remove(template + ".gz")
             raise SongsearchAutocompleteError(
                 "The index.html.gz file was older than the index.html file"
+            )
+        age_br = os.stat(template + ".br").st_mtime
+        if age_html > age_br:
+            os.remove(template + ".br")
+            raise SongsearchAutocompleteError(
+                "The index.html.br file was older than the index.html file"
             )
 
 
@@ -227,6 +240,30 @@ def _zopfli(filepath):
                 print(
                     "WARNING! The file {} changed during the "
                     "zopfli process.".format(filepath)
+                )
+                continue
+            break
+
+
+def _brotli(filepath):
+    while True:
+        original_ts = os.stat(filepath).st_mtime
+        t0 = time.time()
+        new_filepath = brotli_file(filepath)
+        t1 = time.time()
+        if new_filepath:
+            print(
+                "Generated {} ({} bytes, originally {} bytes) Took {:.2f}s".format(
+                    new_filepath,
+                    format(os.stat(new_filepath).st_size, ","),
+                    format(os.stat(filepath).st_size, ","),
+                    t1 - t0,
+                )
+            )
+            if original_ts != os.stat(filepath).st_mtime:
+                print(
+                    "WARNING! The file {} changed during the "
+                    "brotli process.".format(filepath)
                 )
                 continue
             break

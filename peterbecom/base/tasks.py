@@ -7,6 +7,7 @@ from celery import shared_task
 from django.conf import settings
 from django.utils import timezone
 
+from peterbecom.brotli_file import brotli_file
 from peterbecom.mincss_response import mincss_html
 from peterbecom.minify_html import minify_html
 from peterbecom.zopfli_file import zopfli_file
@@ -56,6 +57,7 @@ def post_process_cached_html(filepath, url):
         minified_html = _minify_html(filepath, url)
 
         _zopfli_html(minified_html and minified_html or optimized_html, filepath, url)
+        _brotli_html(minified_html and minified_html or optimized_html, filepath, url)
 
 
 def _minify_html(filepath, url):
@@ -118,15 +120,13 @@ def _zopfli_html(html, filepath, url):
                 )
                 continue
             break
-not: 42,626
-gz: 10,110
-br: 8,853
+
 
 def _brotli_html(html, filepath, url):
     while True:
         original_ts = os.stat(filepath).st_mtime
         t0 = time.time()
-        new_filepath = zopfli_file(filepath)
+        new_filepath = brotli_file(filepath)
         t1 = time.time()
         if new_filepath:
             print(
@@ -140,7 +140,7 @@ def _brotli_html(html, filepath, url):
             if original_ts != os.stat(filepath).st_mtime:
                 print(
                     "WARNING! The file {} changed during the "
-                    "zopfli process.".format(filepath)
+                    "brotli process.".format(filepath)
                 )
                 continue
             break

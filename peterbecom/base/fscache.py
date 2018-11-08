@@ -3,7 +3,6 @@ import time
 from urllib.parse import urljoin, urlparse
 
 import requests
-
 from django.conf import settings
 from django.contrib.sites.models import Site
 
@@ -37,11 +36,18 @@ def too_old(fs_path, seconds=None):
 
 
 def invalidate(fs_path):
+    deleted = [fs_path]
     os.remove(fs_path)
-    if os.path.isfile(fs_path + ".metadata"):
-        os.remove(fs_path + ".metadata")
-    if os.path.isfile(fs_path + ".cache_control"):
-        os.remove(fs_path + ".cache_control")
+    endings = (".metadata", ".cache_control", ".gz", ".br", ".original")
+    for ending in endings:
+        fs_path_w = fs_path + ending
+        if os.path.isfile(fs_path_w):
+            os.remove(fs_path_w)
+            deleted.append(fs_path_w)
+
+    # XXX What about "index.not-minified.html"???
+
+    return deleted
 
 
 def invalidate_by_url(url):
@@ -90,7 +96,9 @@ def invalidate_too_old(verbose=False, dry_run=False, revisit=False):
                         print("INVALIDATE", path)
                     if not dry_run:
                         deleted.append(os.stat(path).st_size)
-                        invalidate(path)
+                        deleted = invalidate(path)
+                        if verbose:
+                            print("\tDELETED", deleted)
                         delete_empty_directory(path)
                         if revisit:
                             revisit_url(path)
