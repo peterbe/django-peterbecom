@@ -118,3 +118,29 @@ def _zopfli_html(html, filepath, url):
                 )
                 continue
             break
+not: 42,626
+gz: 10,110
+br: 8,853
+
+def _brotli_html(html, filepath, url):
+    while True:
+        original_ts = os.stat(filepath).st_mtime
+        t0 = time.time()
+        new_filepath = zopfli_file(filepath)
+        t1 = time.time()
+        if new_filepath:
+            print(
+                "Generated {} ({} bytes, originally {} bytes) Took {:.2f}s".format(
+                    new_filepath,
+                    format(os.stat(new_filepath).st_size, ","),
+                    format(os.stat(filepath).st_size, ","),
+                    t1 - t0,
+                )
+            )
+            if original_ts != os.stat(filepath).st_mtime:
+                print(
+                    "WARNING! The file {} changed during the "
+                    "zopfli process.".format(filepath)
+                )
+                continue
+            break
