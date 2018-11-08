@@ -1,5 +1,6 @@
 from io import BytesIO
 
+import brotli
 from django.conf import settings
 from django.contrib.staticfiles.utils import matches_patterns
 from django.core.files.base import File
@@ -24,7 +25,7 @@ class ZopfliAndBrotliMixin(object):
         return File(content)
 
     def _brotli_compress(self, original_file):
-        content = BytesIO(zopfli.compress(original_file.read()))
+        content = BytesIO(brotli.compress(original_file.read()))
         content.seek(0)
         return File(content)
 
