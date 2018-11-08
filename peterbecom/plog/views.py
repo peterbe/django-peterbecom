@@ -437,7 +437,7 @@ def submit_json(request, oid):
         elif post.oid != "blogitem-040601-1":
             # Let's not send an more admin emails for "Find songs by lyrics"
             tos = [x[1] for x in settings.ADMINS]
-            from_ = ["%s <%s>" % x for x in settings.ADMINS][0]
+            from_ = ["%s <%s>" % x for x in settings.MANAGERS][0]
             body = _get_comment_body(post, blog_comment)
             send_mail("Peterbe.com: New comment on '%s'" % post.title, body, from_, tos)
 
