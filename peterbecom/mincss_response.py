@@ -122,6 +122,7 @@ def mincss_html(html, abs_uri):
 
     found_link_hrefs = list(result["stylesheetContents"].keys())
 
+    # print("ABS_URI:", abs_uri)
     template = (
         '<link rel="preload" href="{url}" as="style" '
         "onload=\"this.onload=null;this.rel='stylesheet'\">\n"

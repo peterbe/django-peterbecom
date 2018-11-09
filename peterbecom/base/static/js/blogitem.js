@@ -162,13 +162,13 @@ var F = (function() {
             parent
               .hide()
               .append(response.html)
-              .fadeIn(500);
+              .fadeIn(300);
             $('textarea', form).val('');
             $('.dimmer', form).removeClass('active');
-          }, 800);
+          }, 500);
 
           F.reset();
-          $('span.comment-count').fadeOut(500, function() {
+          $('span.comment-count').fadeOut(400, function() {
             var text;
             if (response.comment_count === 1) {
               text = '1 comment';
@@ -177,7 +177,7 @@ var F = (function() {
             }
             $(this)
               .text(text)
-              .fadeIn(1000);
+              .fadeIn(800);
           });
           // save the name and email if possible
           if (data.name) {
