@@ -97,6 +97,11 @@ PIPELINE_JS = {
         "output_filename": "js/cssrelpreload.min.js",
         "extra_context": {"async": True},
     },
+    "delayedcss": {
+        "source_filenames": ("js/delayedcss.js",),
+        "output_filename": "js/delayedcss.min.js",
+        "extra_context": {"defer": True},
+    },
     # 'warmup_songsearch': {
     #     'source_filenames': (
     #         'plog/js/warmup-songsearch.js',

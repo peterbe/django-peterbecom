@@ -148,10 +148,12 @@ var _rollbarConfig = {
   {% block basejs %}
   {%- if request.path == '/plog/blogitem-040601-1' %}
   {% javascript 'lyrics' %}
+  {% javascript 'delayedcss' %}
   {% else %}
   {% javascript 'base' %}
-  {% endif -%}
   {% javascript 'cssrelpreload' %}
+  {% endif -%}
+
   {% endblock %}
 
   {% block extrajs %}{% endblock %}

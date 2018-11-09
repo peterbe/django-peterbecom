@@ -122,12 +122,17 @@ def mincss_html(html, abs_uri):
 
     found_link_hrefs = list(result["stylesheetContents"].keys())
 
-    # print("ABS_URI:", abs_uri)
-    template = (
-        '<link rel="preload" href="{url}" as="style" '
-        "onload=\"this.onload=null;this.rel='stylesheet'\">\n"
-        '<noscript><link rel="stylesheet" href="{url}"></noscript>'
-    )
+    if abs_uri.endswith("/plog/blogitem-040601-1"):
+        template = (
+            '<link rel="preload" href="{url}" as="style" media="delayed">\n'
+            '<noscript><link rel="stylesheet" href="{url}"></noscript>'
+        )
+    else:
+        template = (
+            '<link rel="preload" href="{url}" as="style" '
+            "onload=\"this.onload=null;this.rel='stylesheet'\">\n"
+            '<noscript><link rel="stylesheet" href="{url}"></noscript>'
+        )
 
     def equal_uris(uri1, uri2):
         # If any one of them is relative, compare their paths

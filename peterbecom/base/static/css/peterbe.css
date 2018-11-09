@@ -1,3 +1,5 @@
+/*! peterbe.css */
+
 body {
   color: #333;
   background-color: #ffffff;
@@ -227,9 +229,9 @@ span.not-approved {
   color: rgba(0, 0, 0, 0.4);
   font-size: 0.875em;
 }
-.ui.comments .comment .metadata a {
+.ui.comments .comment a.metadata {
   color: rgba(0, 0, 0, 0.4);
 }
-.ui.comments .comment .metadata a:hover {
+.ui.comments .comment a.metadata:hover {
   color: rgba(0, 0, 0, 0.8);
 }
