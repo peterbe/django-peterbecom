@@ -7,7 +7,11 @@
 
   <title>{% block title %}{% block title_prefix %}{{ page_title }}{% endblock %} - Peterbe.com{% endblock %}</title>
 
+  {% if request.path == '/plog/blogitem-040601-1' -%}
+  {% stylesheet 'lyrics' %}
+  {% else %}
   {% stylesheet 'base' %}
+  {% endif -%}
 
   <meta name="description" content="Stuff in Peter's head">
   <link rel="shortcut icon" href="{{ static("images/favicon-32.png") }}">
@@ -106,8 +110,15 @@ var _rollbarConfig = {
       {% block content_body %}
       {% endblock %}
     {% endblock %}
+
+    {% if request.path == '/plog/blogitem-040601-1' %}
+    <p class="lyrics-footer">
+      &copy; <a href="https://www.peterbe.com">peterbe.com</a> 2003 - {{ THIS_YEAR }}
+    </p>
+    {% endif %}
   </div>
 
+  {% if request.path != '/plog/blogitem-040601-1' %}
   <div class="ui inverted vertical footer segment">
     <div class="ui center aligned container">
       <p>
@@ -131,9 +142,15 @@ var _rollbarConfig = {
       </p>
     </div>
   </div>
+  {% endif %}
+
 
   {% block basejs %}
+  {%- if request.path == '/plog/blogitem-040601-1' %}
+  {% javascript 'lyrics' %}
+  {% else %}
   {% javascript 'base' %}
+  {% endif -%}
   {% javascript 'cssrelpreload' %}
   {% endblock %}
 

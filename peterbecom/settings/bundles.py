@@ -1,21 +1,17 @@
 PIPELINE_CSS = {
     "base": {
         "source_filenames": (
-            # 'css/semantic.css',
             "css/semantic/reset.css",
             "css/semantic/site.css",
             "css/semantic/button.css",
             "css/semantic/container.css",
             "css/semantic/divider.css",
             "css/semantic/header.css",
-            # 'css/semantic/icon.css',
-            # 'css/semantic/image.css',
             "css/semantic/input.css",
             "css/semantic/label.css",
             "css/semantic/list.css",
             "css/semantic/loader.css",
             "css/semantic/segment.css",
-            # 'css/semantic/breadcrumb.css',
             "css/semantic/form.css",
             "css/semantic/grid.css",
             "css/semantic/menu.css",
@@ -34,6 +30,36 @@ PIPELINE_CSS = {
             "autocompeter/autocompeter.min.css",
         ),
         "output_filename": "css/base.min.css",
+    },
+    "lyrics": {
+        "source_filenames": (
+            "css/semantic/reset.css",
+            "css/semantic/site.css",
+            "css/semantic/button.css",
+            "css/semantic/container.css",
+            # "css/semantic/divider.css",
+            "css/semantic/header.css",
+            "css/semantic/input.css",
+            # "css/semantic/label.css",
+            # "css/semantic/list.css",
+            "css/semantic/loader.css",
+            # "css/semantic/segment.css",
+            "css/semantic/form.css",
+            "css/semantic/grid.css",
+            # "css/semantic/menu.css",
+            "css/semantic/message.css",
+            # "css/semantic/table.css",
+            # "css/semantic/item.css",
+            "css/semantic/comment.css",
+            "css/semantic/dimmer.css",
+            # "css/semantic/dropdown.css",
+            # "css/semantic/search.css",
+            "css/peterbe.css",
+            "css/lyrics.css",
+            "css/carbon-ads.css",
+            "css/carbon-campaign.css",
+        ),
+        "output_filename": "css/lyrics.min.css",
     },
     "homepage:search": {
         "source_filenames": (
@@ -54,6 +80,11 @@ PIPELINE_JS = {
             "js/blogitem.js",
         ),
         "output_filename": "js/base.min.js",
+        "extra_context": {"defer": True},
+    },
+    "lyrics": {
+        "source_filenames": ("libs/jquery-3.3.1.min.js", "js/blogitem.js"),
+        "output_filename": "js/lyrics.min.js",
         "extra_context": {"defer": True},
     },
     "google_analytics": {
@@ -118,6 +149,10 @@ _used = {}
 for config in PIPELINE_JS, PIPELINE_CSS:  # NOQA
     _trouble = set()
     for k, v in config.items():
+        if k == "lyrics":
+            # That bundle is very exceptional.
+            # Basically, the "base" bundle isn't used in base.html.
+            continue
         assert isinstance(k, str), k
         out = v["output_filename"]
         assert isinstance(v["source_filenames"], tuple), v
