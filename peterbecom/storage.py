@@ -1,3 +1,4 @@
+import os
 from io import BytesIO
 
 import brotli
@@ -61,7 +62,17 @@ class ZopfliAndBrotliMixin(object):
                 # with files with hashed in the name.
                 compressed_file = self._zopfli_compress(original_file)
                 gzipped_path = self.save(gzipped_path, compressed_file)
-                yield gzipped_path, gzipped_path, True
+                abs_path = os.path.join(settings.STATIC_ROOT, gzipped_path)
+                if os.stat(abs_path).st_size > 1:
+                    yield gzipped_path, gzipped_path, True
+                else:
+                    # Something went very wrong!
+                    os.remove(abs_path)
+                    print(
+                        "The file {} was too small! ({} bytes)".format(
+                            abs_path, os.stat(abs_path).st_size
+                        )
+                    )
 
             brotli_path = "{0}.br".format(path)
             if not self.exists(brotli_path):
@@ -71,7 +82,17 @@ class ZopfliAndBrotliMixin(object):
                 # with files with hashed in the name.
                 compressed_file = self._brotli_compress(original_file)
                 brotli_path = self.save(brotli_path, compressed_file)
-                yield brotli_path, brotli_path, True
+                abs_path = os.path.join(settings.STATIC_ROOT, brotli_path)
+                if os.stat(abs_path).st_size > 1:
+                    yield brotli_path, brotli_path, True
+                else:
+                    # Something went very wrong!
+                    os.remove(abs_path)
+                    print(
+                        "The file {} was too small! ({} bytes)".format(
+                            abs_path, os.stat(abs_path).st_size
+                        )
+                    )
 
 
 class ZopfliAndBrotliPipelineCachedStorage(ZopfliAndBrotliMixin, PipelineCachedStorage):
