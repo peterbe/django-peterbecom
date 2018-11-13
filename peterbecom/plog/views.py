@@ -210,14 +210,15 @@ def _render_blog_post(request, oid, screenshot_mode=False):
     post._absolute_url = base_url + reverse("blog_post", args=(post.oid,))
 
     context = {"post": post, "screenshot_mode": screenshot_mode}
-    try:
-        context["previous_post"] = post.get_previous_by_pub_date()
-    except BlogItem.DoesNotExist:
-        context["previous_post"] = None
-    try:
-        context["next_post"] = post.get_next_by_pub_date(pub_date__lt=utc_now())
-    except BlogItem.DoesNotExist:
-        context["next_post"] = None
+    if request.path != "/plog/blogitem-040601-1":
+        try:
+            context["previous_post"] = post.get_previous_by_pub_date()
+        except BlogItem.DoesNotExist:
+            context["previous_post"] = None
+        try:
+            context["next_post"] = post.get_next_by_pub_date(pub_date__lt=utc_now())
+        except BlogItem.DoesNotExist:
+            context["next_post"] = None
 
     if post.screenshot_image:
         context["screenshot_image"] = thumbnail(
@@ -233,10 +234,19 @@ def _render_blog_post(request, oid, screenshot_mode=False):
     if post.open_graph_image and "://" not in post.open_graph_image:
         post.open_graph_image = request.build_absolute_uri(post.open_graph_image)
 
-    comments = BlogComment.objects.filter(blogitem=post).order_by("add_date")
-    if not request.user.is_staff:
-        comments = comments.filter(approved=True)
-
+    comments = (
+        BlogComment.objects.filter(blogitem=post, approved=True)
+        .order_by("add_date")
+        .only(
+            "oid",
+            "blogitem_id",
+            "parent_id",
+            "approved",
+            "comment_rendered",
+            "add_date",
+            "name",
+        )
+    )
     comments_truncated = False
     count_comments = post.count_comments()
     if request.GET.get("comments") != "all":
@@ -252,14 +262,15 @@ def _render_blog_post(request, oid, screenshot_mode=False):
     for comment in comments:
         all_comments[comment.parent_id].append(comment)
 
+    # print(all_comments.keys())
+
     context["comments_truncated"] = comments_truncated
     context["count_comments"] = count_comments
     context["all_comments"] = all_comments
-    context["related_by_keyword"] = get_related_posts_by_keyword(post, limit=5)
-    context["related_by_text"] = get_related_posts_by_text(post, limit=5)
-    context["show_buttons"] = (
-        not screenshot_mode and request.path != "/plog/blogitem-040601-1"
-    )
+    if request.path != "/plog/blogitem-040601-1":
+        context["related_by_keyword"] = get_related_posts_by_keyword(post, limit=5)
+        context["related_by_text"] = get_related_posts_by_text(post, limit=5)
+        context["show_buttons"] = not screenshot_mode
     context["show_carbon_ad"] = not screenshot_mode
     context["home_url"] = request.build_absolute_uri("/")
     context["page_title"] = post.title
