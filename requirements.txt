@@ -431,9 +431,9 @@ zopfli==0.1.4 \
 pytest==3.10.1 \
     --hash=sha256:3f193df1cfe1d1609d4c583838bea3d532b18d6160fd3f55c9447fdca30848ec \
     --hash=sha256:e246cf173c01169b9617fc07264b7b1316e78d7a650055235d6d897bc80d9660
-pytest-django==3.4.3 \
-    --hash=sha256:49e9ffc856bc6a1bec1c26c5c7b7213dff7cc8bc6b64d624c4d143d04aff0bcf \
-    --hash=sha256:b379282feaf89069cb790775ab6bbbd2bd2038a68c7ef9b84a41898e0b551081
+pytest-django==3.4.4 \
+    --hash=sha256:deffd9d65827c582bd0a85638a0fe52f0eb65a764872ddcee9ce51cdf6ae9f55 \
+    --hash=sha256:fe1f71a0171f6b7edac37654da0904c9bd5ffba5221ab5a76779ab870611f41f
 requests-mock==1.5.2 \
     --hash=sha256:7a5fa99db5e3a2a961b6f20ed40ee6baeff73503cf0a553cc4d679409e6170fb \
     --hash=sha256:8ca0628dc66d3f212878932fd741b02aa197ad53fd2228164800a169a4a826af
