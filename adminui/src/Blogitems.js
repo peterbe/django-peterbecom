@@ -20,13 +20,28 @@ class Blogitems extends React.Component {
     search: ''
   };
   componentDidMount() {
-    this.fetchBlogitems();
+    if (this.props.accessToken) {
+      this.fetchBlogitems();
+    }
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.accessToken !== prevProps.accessToken) {
+      this.fetchBlogitems();
+    }
   }
 
   fetchBlogitems = async () => {
+    if (!this.props.accessToken) {
+      throw new Error('No accessToken');
+    }
     const { page, search } = this.state;
     let url = `/api/v0/plog/?page=${page}&search=${encodeURIComponent(search)}`;
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${this.props.accessToken}`
+      }
+    });
     if (response.ok) {
       const data = await response.json();
       this.setState({ blogitems: data.blogitems, count: data.count });

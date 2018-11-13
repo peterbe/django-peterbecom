@@ -10,3 +10,6 @@ export const OIDC_CALLBACK_URL =
   process.env.REACT_APP_OIDC_CALLBACK_URL || defaultCallbackUrl;
 export const OIDC_AUDIENCE =
   process.env.REACT_APP_OIDC_AUDIENCE || `https://${OIDC_DOMAIN}/userinfo`;
+
+export const BASE_URL =
+  process.env.REACT_APP_BASE_URL || 'https://www.peterbe.com';

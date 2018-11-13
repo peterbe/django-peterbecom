@@ -1,5 +1,8 @@
+import os
+import re
 import json
 from functools import wraps
+from urllib.parse import urlparse
 
 from django import http
 from django.core.exceptions import PermissionDenied
@@ -8,32 +11,9 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
-from peterbecom.plog.models import BlogItem, Category
+from peterbecom.plog.models import BlogItem, Category, BlogFile
 from peterbecom.plog.views import PreviewValidationError, preview_by_data
-
-# def bearer_token_required(view_func):
-#     @wraps(view_func)
-#     def inner(request, *args, **kwargs):
-#         print("RIGHT HERE", request.META)
-#         request.csrf_processing_done = True
-#         raise PermissionDenied("No Bearer token")
-
-#     return inner
-
-
-# def api_login_required(view_func):
-#     """similar to django.contrib.auth.decorators.login_required
-#     except instead of redirecting it returns a 403 message if not
-#     authenticated."""
-
-#     @wraps(view_func)
-#     def inner(request, *args, **kwargs):
-#         if not request.user.is_active:
-#             error_msg = "You are not logged in"
-#             raise PermissionDenied(error_msg)
-#         return view_func(request, *args, **kwargs)
-
-#     return inner
+from peterbecom.base.templatetags.jinja_helpers import thumbnail
 
 
 def api_superuser_required(view_func):
@@ -157,3 +137,88 @@ def catch_all(request):
     if settings.DEBUG:
         raise http.Http404(request.path)
     return _response({"error": request.path}, status=404)
+
+
+@api_superuser_required
+def open_graph_image(request, oid):
+    blogitem = get_object_or_404(BlogItem, oid=oid)
+
+    context = {"images": []}
+
+    images_used = re.findall(r'<a href="(.*?)"', blogitem.text)
+    images_used = [
+        x
+        for x in images_used
+        if x.lower().endswith(".png") or x.lower().endswith(".jpg")
+    ]
+    images_used.extend(re.findall(r'<img src="(.*?)"', blogitem.text))
+    images_used_paths = [urlparse(x).path for x in images_used]
+    options = []
+    for i, image in enumerate(_post_thumbnails(blogitem)):
+        # from pprint import pprint
+        # pprint(image)
+        full_url_path = image["full_url"]
+        if "://" in full_url_path:
+            full_url_path = urlparse(full_url_path).path
+
+        options.append(
+            {
+                "label": "Thumbnail #{}".format(i + 1),
+                "src": image["full_url"],
+                "size": image["full_size"],
+                "current": (
+                    blogitem.open_graph_image
+                    and image["full_url"] == blogitem.open_graph_image
+                ),
+                "used_in_text": full_url_path in images_used_paths,
+            }
+        )
+
+    if request.method == "POST":
+        post = json.loads(request.body.decode("utf-8"))
+        src = post.get("src")
+        if not src or src not in [x["src"] for x in options]:
+            return http.HttpResponseBadRequest("No src")
+        if blogitem.open_graph_image and blogitem.open_graph_image == src:
+            blogitem.open_graph_image = None
+        else:
+            blogitem.open_graph_image = src
+        blogitem.save()
+        return _response({"ok": True})
+
+    context["images"] = options
+    return _response(context)
+
+
+def _post_thumbnails(blogitem):
+    blogfiles = BlogFile.objects.filter(blogitem=blogitem).order_by("add_date")
+
+    images = []
+
+    for blogfile in blogfiles:
+        if not os.path.isfile(blogfile.file.path):
+            continue
+        full_im = thumbnail(blogfile.file, "1000x1000", upscale=False, quality=100)
+        full_url = full_im.url
+        # delete_url = reverse("delete_post_thumbnail", args=(blogfile.pk,))
+        image = {
+            "full_url": full_url,
+            "full_size": full_im.size,
+            # "delete_url": delete_url,
+        }
+        formats = (
+            ("small", "120x120"),
+            ("big", "230x230"),
+            ("bigger", "370x370"),  # iPhone 6 is 375
+        )
+        for key, geometry in formats:
+            im = thumbnail(blogfile.file, geometry, quality=81)
+            url_ = im.url
+            image[key] = {
+                "url": url_,
+                "alt": getattr(blogfile, "title", blogitem.title),
+                "width": im.width,
+                "height": im.height,
+            }
+        images.append(image)
+    return images

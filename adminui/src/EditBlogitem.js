@@ -11,12 +11,10 @@ import {
   Select
 } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
-
-// import { DisplayDate, Breadcrumbs } from './Common';
-import { DisplayDate, ShowServerError } from './Common';
 import { addHours } from 'date-fns/esm';
 
-const BASE_URL = process.env.REACT_APP_BASE_URL || 'https://www.peterbe.com';
+import { DisplayDate, ShowServerError } from './Common';
+import { BASE_URL } from './Config';
 
 export class EditBlogitem extends React.Component {
   state = {
@@ -363,11 +361,6 @@ class EditForm extends React.PureComponent {
     data.summary = this.refs.summary.ref.value;
 
     data.categories = this.state.categories;
-    // if (this.categories) {
-    //   data.categories = this.categories;
-    // } else {
-    //   data.categories = blogitem.categories.map(c => c.id);
-    // }
     data.keywords = this.refs.keywords.ref.value.trim().split(/\s*[\r\n]+\s*/g);
     data.display_format = this.displayFormat
       ? this.displayFormat.value
@@ -418,8 +411,8 @@ class EditForm extends React.PureComponent {
           <a href={BASE_URL + blogitem._absolute_url}>{blogitem.title}</a>
         </h3>
         <h5>
-          <Link to={`/blogitems/${blogitem.oid}/open-graph-image`}>
-            Open Graph Image (XXX?)
+          <Link to={`/plog/${blogitem.oid}/open-graph-image`}>
+            Open Graph Image ({blogitem.open_graph_image ? 'picked!' : 'none'})
           </Link>
         </h5>
         <p style={{ textAlign: 'right' }}>

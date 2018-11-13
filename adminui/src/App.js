@@ -15,6 +15,7 @@ import {
 import Blogitems from './Blogitems';
 import Dashboard from './Dashboard';
 import { AddBlogitem, EditBlogitem } from './EditBlogitem';
+import OpenGraphImageBlogitem from './OpenGraphImageBlogitem';
 
 class App extends React.Component {
   state = {
@@ -243,6 +244,15 @@ class App extends React.Component {
                 exact
                 render={props => (
                   <AddBlogitem
+                    {...props}
+                    accessToken={this.state.accessToken}
+                  />
+                )}
+              />
+              <Route
+                path="/plog/:oid/open-graph-image"
+                render={props => (
+                  <OpenGraphImageBlogitem
                     {...props}
                     accessToken={this.state.accessToken}
                   />

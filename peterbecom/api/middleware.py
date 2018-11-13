@@ -26,7 +26,7 @@ class AuthenticationMiddleware:
 
     def process_request(self, request):
         if request.path.startswith("/api/"):
-            if 1 or request.method != "GET":
+            if request.META.get("HTTP_AUTHORIZATION") or request.method != "GET":
                 header_value = request.META.get("HTTP_AUTHORIZATION")
                 if not header_value:
                     raise PermissionDenied("No HTTP_AUTHORIZATION")
