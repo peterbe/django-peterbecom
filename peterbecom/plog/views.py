@@ -5,9 +5,9 @@ import logging
 import os
 import random
 import re
-import zlib
+# import zlib
 from collections import defaultdict
-from io import BytesIO
+# from io import BytesIO
 from statistics import median
 from urllib.parse import urlencode, urlparse
 
@@ -32,8 +32,8 @@ from fancy_cache import cache_page
 from peterbecom.awspa.models import AWSProduct
 from peterbecom.awspa.search import search as awspa_search
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
-from peterbecom.bayes.guesser import default_guesser
-from peterbecom.bayes.models import BayesData, BlogCommentTraining
+# from peterbecom.bayes.guesser import default_guesser
+# from peterbecom.bayes.models import BayesData, BlogCommentTraining
 
 from . import tasks, utils
 from .forms import BlogFileUpload, BlogForm, CalendarDataForm
@@ -720,23 +720,23 @@ def new_comments(request):
         ]
     else:
         comments = comments.order_by("-add_date").select_related("blogitem")[:50]
-        bayes_data = BayesData.objects.get(topic="comments")
-        guesser = default_guesser
-        with BytesIO(zlib.decompress(bayes_data.pickle_data)) as f:
-            guesser.load_handler(f)
+        # bayes_data = BayesData.objects.get(topic="comments")
+        # guesser = default_guesser
+        # with BytesIO(zlib.decompress(bayes_data.pickle_data)) as f:
+        #     guesser.load_handler(f)
         comments_list = []
         for comment in comments:
-            t = comment.name + " " + comment.comment
-            bayes_guess = dict(guesser.guess(t))
-            bayes_training = None
-            try:
-                bayes_training = BlogCommentTraining.objects.get(
-                    comment=comment, bayes_data=bayes_data
-                ).tag
-            except BlogCommentTraining.DoesNotExist:
-                pass
-            comment.bayes_training = bayes_training
-            comment.bayes_guess = bayes_guess
+            # t = comment.name + " " + comment.comment
+            # bayes_guess = dict(guesser.guess(t))
+            # bayes_training = None
+            # try:
+            #     bayes_training = BlogCommentTraining.objects.get(
+            #         comment=comment, bayes_data=bayes_data
+            #     ).tag
+            # except BlogCommentTraining.DoesNotExist:
+            #     pass
+            # comment.bayes_training = bayes_training
+            # comment.bayes_guess = bayes_guess
             comment._clues = rate_blog_comment(comment)
             comments_list.append(comment)
         context["comments"] = comments_list

@@ -115,3 +115,13 @@ Then open file:///tmp/foo.txt
     assert " ftp://" in html  # that it does not become a link.
     assert " ssh://" in html  # that it does not become a link.
     assert " file://" in html  # that it does not become a link.
+
+
+def test_linkify_actual_domain_but_still_bad(requestsmock):
+    requestsmock.head("http://sentence.it", text="Works", status_code=200)
+    requestsmock.head("http://please.so", text="Works", status_code=200)
+    text = "Here is a sentence.It starts with.\n"
+    text += "But what about http://please.So it will match!"
+    html = utils.render_comment_text(text)
+    assert '<a href="http://please.So" rel="nofollow">http://please.So</a>' in html
+    assert "a sentence.It starts" in html
