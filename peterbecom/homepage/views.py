@@ -6,6 +6,7 @@ import logging
 from urllib.parse import urlencode
 
 from elasticsearch_dsl import Q
+from huey.contrib.djhuey import task
 
 from django import http
 from django.core.cache import cache
@@ -614,3 +615,75 @@ def signout(request):
     url = "https://" + settings.AUTH0_DOMAIN + "/v2/logout"
     url += "?" + urlencode({"returnTo": settings.AUTH_SIGNOUT_URL})
     return redirect(url)
+
+
+def huey_test(request):
+    a = int(request.GET.get("a", 1))
+    b = int(request.GET.get("b", 2))
+    crash = request.GET.get("crash")
+    wait = request.GET.get("wait")
+    sleep = float(request.GET.get("sleep", 0.2))
+    task_function = sample_huey_task
+    if request.GET.get("orm"):
+        task_function = sample_huey_task_with_orm
+    if settings.HUEY.get("store_results"):
+        queued = task_function(a, b, crash=crash, sleep=sleep)
+        result = queued()
+        # print("Result:", repr(result))
+        for i in range(10):
+            time.sleep(0.1 * (i + 1))
+            result = queued()
+            # print(i, "\tResult:", repr(result))
+            if result is not None:
+                return http.HttpResponse(str(result))
+    elif wait:
+        fp = "/tmp/huey.result.{}".format(time.time())
+        try:
+            task_function(a, b, crash=crash, output_filepath=fp, sleep=sleep)
+            slept = 0
+            for i in range(10):
+                sleep = 0.1 * (i + 1)
+                # print("SLEEP", sleep)
+                time.sleep(sleep)
+                slept += sleep
+                try:
+                    with open(fp) as f:
+                        result = f.read()
+                except FileNotFoundError:
+                    continue
+                return http.HttpResponse("{} after {}s".format(result, slept))
+        finally:
+            if os.path.isfile(fp):
+                os.remove(fp)
+    else:
+        task_function(a, b, crash=crash, sleep=sleep)
+
+    return http.HttpResponse("OK")
+
+
+@task()
+def sample_huey_task(a, b, crash=None, output_filepath=None, sleep=0):
+    if sleep:
+        time.sleep(sleep)
+    if crash:
+        raise Exception(crash)
+    result = a * b
+    if output_filepath:
+        with open(output_filepath, "w") as f:
+            f.write("{}".format(result))
+    else:
+        return result
+
+
+@task()
+def sample_huey_task_with_orm(a, b, crash=None, output_filepath=None, sleep=0):
+    if sleep:
+        time.sleep(sleep)
+    if crash:
+        raise Exception(crash)
+    result = BlogComment.objects.all().count()
+    if output_filepath:
+        with open(output_filepath, "w") as f:
+            f.write("{}".format(result))
+    else:
+        return result

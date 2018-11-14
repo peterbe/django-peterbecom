@@ -22,5 +22,6 @@ urlpatterns = [
     url("^zitemap.xml$", lambda x: HttpResponsePermanentRedirect("/sitemap.xml")),
     url("^sitemap.xml$", views.sitemap, name="sitemap"),
     url("^humans.txt$", views.humans_txt, name="humans_txt"),
+    url(r"^__huey__", views.huey_test, name="huey_test"),
     url("^(.*)", views.blog_post_by_alias, name="blog_post_by_alias"),
 ]
