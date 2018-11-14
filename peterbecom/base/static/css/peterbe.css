@@ -217,6 +217,16 @@ h4 {
   color: #1e70bf;
 }
 
+.ui.comments div.comment.nested {
+  margin-top: 5px;
+}
+.ui.comments div.comment.d-1 { margin-left: 25px; }
+.ui.comments div.comment.d-2 { margin-left: 45px; }
+.ui.comments div.comment.d-3 { margin-left: 65px; }
+.ui.comments div.comment.d-4 { margin-left: 85px; }
+.ui.comments div.comment.d-5 { margin-left: 105px; }
+.ui.comments div.comment.d-6 { margin-left: 125px; }
+.ui.comments div.comment.d-7 { margin-left: 145px; }
 
 span.not-approved {
   font-size:90%;

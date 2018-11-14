@@ -19,6 +19,7 @@ class ZopfliAndBrotliMixin(object):
     only_hashed_files = getattr(settings, "ZOPFLI_COMPRESS_ONLY_HASHED_FILES", True)
 
     def _zopfli_compress(self, original_file):
+        original_file.seek(0)
         content = BytesIO(
             zopfli.compress(original_file.read(), numiterations=self.numiterations)
         )
@@ -26,6 +27,7 @@ class ZopfliAndBrotliMixin(object):
         return File(content)
 
     def _brotli_compress(self, original_file):
+        original_file.seek(0)
         content = BytesIO(brotli.compress(original_file.read()))
         content.seek(0)
         return File(content)
@@ -63,14 +65,15 @@ class ZopfliAndBrotliMixin(object):
                 compressed_file = self._zopfli_compress(original_file)
                 gzipped_path = self.save(gzipped_path, compressed_file)
                 abs_path = os.path.join(settings.STATIC_ROOT, gzipped_path)
-                if os.stat(abs_path).st_size > 1 or os.getenv("CI"):
+                if os.getenv("CI") or os.stat(abs_path).st_size > 1:
                     yield gzipped_path, gzipped_path, True
                 else:
                     # Something went very wrong!
+                    size_before = os.stat(abs_path).st_size
                     os.remove(abs_path)
                     print(
                         "The file {} was too small! ({} bytes)".format(
-                            abs_path, os.stat(abs_path).st_size
+                            abs_path, size_before
                         )
                     )
 
@@ -83,14 +86,15 @@ class ZopfliAndBrotliMixin(object):
                 compressed_file = self._brotli_compress(original_file)
                 brotli_path = self.save(brotli_path, compressed_file)
                 abs_path = os.path.join(settings.STATIC_ROOT, brotli_path)
-                if os.stat(abs_path).st_size > 1 or os.getenv("CI"):
+                if os.getenv("CI") or os.stat(abs_path).st_size > 1:
                     yield brotli_path, brotli_path, True
                 else:
                     # Something went very wrong!
+                    size_before = os.stat(abs_path).st_size
                     os.remove(abs_path)
                     print(
                         "The file {} was too small! ({} bytes)".format(
-                            abs_path, os.stat(abs_path).st_size
+                            abs_path, size_before
                         )
                     )
 

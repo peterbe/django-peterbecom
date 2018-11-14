@@ -10,7 +10,7 @@ from sorl.thumbnail import get_thumbnail
 
 
 @library.global_function
-def show_comments(parent, is_staff, all_comments, allow_comments):
+def show_comments(parent, all_comments, depth=None):
     if parent.__class__ == BlogItem:
         parent = None
     else:
@@ -23,11 +23,9 @@ def show_comments(parent, is_staff, all_comments, allow_comments):
                 "plog/comment.html",
                 {
                     "comment": comment,
-                    "preview": False,
-                    "is_staff": is_staff,
                     "all_comments": all_comments,
                     "count_children": len(all_comments[comment.pk]),
-                    "allow_comments": allow_comments,
+                    "depth": depth or 0,
                 },
             )
         )
