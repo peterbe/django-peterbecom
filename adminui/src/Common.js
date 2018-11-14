@@ -61,8 +61,9 @@ export function BlogitemBreadcrumb({ blogitem, oid, page }) {
         {page === 'open_graph_image' ? (
           'Open Graph Image'
         ) : (
-          <Link to={`/plog/${blogitem.oid}/open-graph-image`}>
-            Open Graph Image ({blogitem.open_graph_image ? 'picked!' : 'none'})
+          <Link to={`/plog/${oid}/open-graph-image`}>
+            Open Graph Image{' '}
+            {blogitem && `(${blogitem.open_graph_image ? 'picked!' : 'none'})`}
           </Link>
         )}
       </Breadcrumb.Section>

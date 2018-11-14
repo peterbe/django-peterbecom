@@ -41,7 +41,18 @@ def _response(context, status=200, safe=False):
 @api_superuser_required
 def blogitems(request):
     if request.method == "POST":
-        raise NotImplementedError
+        data = json.loads(request.body.decode("utf-8"))
+        data["proper_keywords"] = data.pop("keywords")
+        form = EditBlogForm(data)
+        if form.is_valid():
+            item = form.save()
+            # item.refresh_from_db()
+            assert item._render(refresh=True)
+            context = {"blogitem": {"id": item.id}}
+            return _response(context, status=201)
+        else:
+            print("DATA", form.errors)
+            return _response({"errors": form.errors}, status=400)
 
     def _serialize_blogitem(item):
         return {
@@ -75,6 +86,7 @@ def blogitem(request, oid):
     item = get_object_or_404(BlogItem, oid=oid)
     if request.method == "POST":
         data = json.loads(request.body.decode("utf-8"))
+        data["proper_keywords"] = data.pop("keywords")
         form = EditBlogForm(data, instance=item)
         if form.is_valid():
             form.save()
@@ -94,7 +106,7 @@ def blogitem(request, oid):
             "keywords": item.proper_keywords,
             "categories": [{"id": x.id, "name": x.name} for x in item.categories.all()],
             "summary": item.summary,
-            "url": item.summary,
+            "url": item.url,
             "display_format": item.display_format,
             "codesyntax": item.codesyntax,
             "disallow_comments": item.disallow_comments,

@@ -40,7 +40,7 @@ class ISODateTimeField(DateTimeField):
 
 class BlogForm(forms.ModelForm):
 
-    proper_keywords = forms.fields.CharField(widget=MultilineTextarea())
+    # proper_keywords = forms.fields.CharField(widget=MultilineTextarea())
     pub_date = ISODateTimeField()
 
     class Meta:
@@ -100,7 +100,7 @@ class BlogForm(forms.ModelForm):
 
     def clean_proper_keywords(self):
         value = self.cleaned_data["proper_keywords"]
-        return [x.strip() for x in value.splitlines() if x.strip()]
+        return [x.strip() for x in value if x.strip()]
 
     def clean_oid(self):
         value = self.cleaned_data["oid"]

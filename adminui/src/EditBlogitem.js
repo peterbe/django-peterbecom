@@ -11,6 +11,7 @@ import {
   TextArea,
   Select
 } from 'semantic-ui-react';
+import { Link } from 'react-router-dom';
 import { addHours } from 'date-fns/esm';
 
 import { DisplayDate, ShowServerError, BlogitemBreadcrumb } from './Common';
@@ -127,14 +128,15 @@ export class EditBlogitem extends React.Component {
     });
     if (response.ok) {
       const data = await response.json();
-      if (data.blogitem.oid !== this.state.blogitem.oid) {
-        throw new Error('NEED TO REDIRECT');
-      }
+      const newOid = data.blogitem.oid !== this.state.blogitem.oid;
       this.setState({
         blogitem: data.blogitem,
         updated: new Date(),
         validationErrors: null
       });
+      if (newOid) {
+        window.location.href = `/plog/${data.blogitem.oid}`;
+      }
     } else if (response.status === 400) {
       const data = await response.json();
       this.setState({ serverError: null, validationErrors: data.errors });
@@ -226,7 +228,16 @@ export class EditBlogitem extends React.Component {
 export class AddBlogitem extends EditBlogitem {
   componentDidMount() {
     document.title = 'Add Blogitem';
-    this.fetchAllCategories(this.props.accessToken);
+
+    if (this.props.accessToken) {
+      this.fetchAllCategories(this.props.accessToken);
+    }
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.accessToken !== this.props.accessToken) {
+      this.fetchAllCategories(this.props.accessToken);
+    }
   }
 
   createBlogitem = async data => {
@@ -244,8 +255,12 @@ export class AddBlogitem extends EditBlogitem {
     });
     if (response.ok) {
       const data = await response.json();
-      this.setState({ updated: new Date(), validationErrors: null });
-      console.warn('REDIRECT BASED ON', data.oid);
+      this.setState(
+        { updated: new Date(), validationErrors: null, serverError: null },
+        () => {
+          window.location.href = `/plog/${data.blogitem.oid}`;
+        }
+      );
     } else if (response.status === 400) {
       const data = await response.json();
       this.setState({ validationErrors: data.errors, serverError: null });
@@ -272,13 +287,11 @@ export class AddBlogitem extends EditBlogitem {
     return (
       <Container>
         <Breadcrumb>
-          <Breadcrumb.Section link>Blogitems</Breadcrumb.Section>
+          <Breadcrumb.Section>
+            <Link to="/plog">Blogitems</Link>
+          </Breadcrumb.Section>
           <Breadcrumb.Divider />
-          <Breadcrumb.Section active>Edit</Breadcrumb.Section>
-          <Breadcrumb.Divider />
-          <Breadcrumb.Section link>Open Graph Image (xxx)</Breadcrumb.Section>
-          <Breadcrumb.Divider />
-          <Breadcrumb.Section link>View</Breadcrumb.Section>
+          <Breadcrumb.Section active>Add</Breadcrumb.Section>
         </Breadcrumb>
         <ShowServerError error={this.state.serverError} />
         {this.renderUpdated()}
@@ -298,7 +311,7 @@ export class AddBlogitem extends EditBlogitem {
           // accessToken={store.user.accessToken}
           validationErrors={this.state.validationErrors}
           onLoadPreview={async data => {
-            this.previewBlogitem(data);
+            // this.previewBlogitem(data);
           }}
           onSubmitData={async data => {
             this.setState({ updated: null });
@@ -407,12 +420,16 @@ class EditForm extends React.PureComponent {
     if (!validationErrors) {
       validationErrors = {};
     }
-    const categoryOptions = allCategories.map(cat => ({
-      key: cat.id,
-      text: `${cat.name} (${cat.count})`,
-      name: cat.name,
-      value: cat.id
-    }));
+
+    let categoryOptions = [];
+    if (allCategories) {
+      categoryOptions = allCategories.map(cat => ({
+        key: cat.id,
+        text: `${cat.name} (${cat.count})`,
+        name: cat.name,
+        value: cat.id
+      }));
+    }
     const keywords = blogitem.keywords.map(keyword => keyword);
     this.categories = blogitem.categories.map(category => category.id);
     const displayFormat = blogitem.display_format;
