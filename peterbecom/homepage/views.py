@@ -661,12 +661,16 @@ def huey_test(request):
     return http.HttpResponse("OK")
 
 
+class HueySampleError(Exception):
+    """Only for testing."""
+
+
 @task()
 def sample_huey_task(a, b, crash=None, output_filepath=None, sleep=0):
     if sleep:
         time.sleep(sleep)
     if crash:
-        raise Exception(crash)
+        raise HueySampleError(crash)
     result = a * b
     if output_filepath:
         with open(output_filepath, "w") as f:
@@ -680,7 +684,7 @@ def sample_huey_task_with_orm(a, b, crash=None, output_filepath=None, sleep=0):
     if sleep:
         time.sleep(sleep)
     if crash:
-        raise Exception(crash)
+        raise HueySampleError(crash)
     result = BlogComment.objects.all().count()
     if output_filepath:
         with open(output_filepath, "w") as f:
