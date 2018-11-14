@@ -13,6 +13,7 @@ from django.utils import timezone
 
 from peterbecom.plog.models import BlogItem, Category, BlogFile
 from peterbecom.plog.views import PreviewValidationError, preview_by_data
+from .forms import EditBlogForm
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
 
 
@@ -73,8 +74,16 @@ def blogitems(request):
 def blogitem(request, oid):
     item = get_object_or_404(BlogItem, oid=oid)
     if request.method == "POST":
-        raise NotImplementedError
-        return
+        data = json.loads(request.body.decode("utf-8"))
+        form = EditBlogForm(data, instance=item)
+        if form.is_valid():
+            form.save()
+            item.refresh_from_db()
+            assert item._render(refresh=True)
+        else:
+            print("DATA", form.errors)
+            return _response({"errors": form.errors}, status=400)
+
     context = {
         "blogitem": {
             "id": item.id,

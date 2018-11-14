@@ -3,6 +3,7 @@ import {
   Button,
   Message,
   Container,
+  Breadcrumb,
   Loader,
   Input,
   Form,
@@ -10,10 +11,9 @@ import {
   TextArea,
   Select
 } from 'semantic-ui-react';
-import { Link } from 'react-router-dom';
 import { addHours } from 'date-fns/esm';
 
-import { DisplayDate, ShowServerError } from './Common';
+import { DisplayDate, ShowServerError, BlogitemBreadcrumb } from './Common';
 import { BASE_URL } from './Config';
 
 export class EditBlogitem extends React.Component {
@@ -130,7 +130,14 @@ export class EditBlogitem extends React.Component {
       if (data.blogitem.oid !== this.state.blogitem.oid) {
         throw new Error('NEED TO REDIRECT');
       }
-      this.setState({ blogitem: data.blogitem, updated: new Date() });
+      this.setState({
+        blogitem: data.blogitem,
+        updated: new Date(),
+        validationErrors: null
+      });
+    } else if (response.status === 400) {
+      const data = await response.json();
+      this.setState({ serverError: null, validationErrors: data.errors });
     } else {
       this.setState({ serverError: response.status });
     }
@@ -174,7 +181,7 @@ export class EditBlogitem extends React.Component {
     }
     return (
       <Container>
-        (BREADCRUMBS)
+        <BlogitemBreadcrumb blogitem={blogitem} page="edit" />
         <ShowServerError error={this.state.serverError} />
         {this.renderUpdated()}
         {this.state.validationErrors && (
@@ -241,7 +248,7 @@ export class AddBlogitem extends EditBlogitem {
       console.warn('REDIRECT BASED ON', data.oid);
     } else if (response.status === 400) {
       const data = await response.json();
-      this.setState({ validationErrors: data });
+      this.setState({ validationErrors: data.errors, serverError: null });
     } else {
       this.setState({ serverError: response.status });
     }
@@ -264,7 +271,15 @@ export class AddBlogitem extends EditBlogitem {
     };
     return (
       <Container>
-        (BREADCRUMBS XXX)
+        <Breadcrumb>
+          <Breadcrumb.Section link>Blogitems</Breadcrumb.Section>
+          <Breadcrumb.Divider />
+          <Breadcrumb.Section active>Edit</Breadcrumb.Section>
+          <Breadcrumb.Divider />
+          <Breadcrumb.Section link>Open Graph Image (xxx)</Breadcrumb.Section>
+          <Breadcrumb.Divider />
+          <Breadcrumb.Section link>View</Breadcrumb.Section>
+        </Breadcrumb>
         <ShowServerError error={this.state.serverError} />
         {this.renderUpdated()}
         {this.state.validationErrors && (
@@ -410,11 +425,6 @@ class EditForm extends React.PureComponent {
         <h3>
           <a href={BASE_URL + blogitem._absolute_url}>{blogitem.title}</a>
         </h3>
-        <h5>
-          <Link to={`/plog/${blogitem.oid}/open-graph-image`}>
-            Open Graph Image ({blogitem.open_graph_image ? 'picked!' : 'none'})
-          </Link>
-        </h5>
         <p style={{ textAlign: 'right' }}>
           <Button
             size="mini"
@@ -488,7 +498,11 @@ class EditForm extends React.PureComponent {
         </Form.Field>
         <Form.Field>
           {!hideLabels ? <label>Pub Date</label> : null}
-          <Input ref="pub_date" placeholder="Pub date" />
+          <Input
+            ref="pub_date"
+            placeholder="Pub date"
+            error={!!validationErrors.pub_date}
+          />
         </Form.Field>
         <Form.Field>
           {!hideLabels ? <label>Categories</label> : null}

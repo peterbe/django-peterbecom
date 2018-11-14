@@ -1,6 +1,9 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { toDate, isBefore, formatDistance } from 'date-fns/esm';
-import { Message } from 'semantic-ui-react';
+import { Breadcrumb, Message } from 'semantic-ui-react';
+
+import { BASE_URL } from './Config';
 
 export const DisplayDate = ({ date }) => {
   if (date === null) {
@@ -39,5 +42,34 @@ export function ShowServerError({ error }) {
       <Message.Header>Server Error</Message.Header>
       {errorMessage}
     </Message>
+  );
+}
+
+export function BlogitemBreadcrumb({ blogitem, oid, page }) {
+  if (blogitem && !oid) {
+    oid = blogitem.oid;
+  }
+  return (
+    <Breadcrumb>
+      <Breadcrumb.Section link>Blogitems</Breadcrumb.Section>
+      <Breadcrumb.Divider />
+      <Breadcrumb.Section active={page === 'edit'}>
+        {page === 'edit' ? 'Edit' : <Link to={`/plog/${oid}`}>Edit</Link>}
+      </Breadcrumb.Section>
+      <Breadcrumb.Divider />
+      <Breadcrumb.Section active={page === 'open_graph_image'}>
+        {page === 'open_graph_image' ? (
+          'Open Graph Image'
+        ) : (
+          <Link to={`/plog/${blogitem.oid}/open-graph-image`}>
+            Open Graph Image ({blogitem.open_graph_image ? 'picked!' : 'none'})
+          </Link>
+        )}
+      </Breadcrumb.Section>
+      <Breadcrumb.Divider />
+      <Breadcrumb.Section>
+        <a href={BASE_URL + `/plog/${oid}`}>View</a>
+      </Breadcrumb.Section>
+    </Breadcrumb>
   );
 }

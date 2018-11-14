@@ -2,7 +2,7 @@ import React from 'react';
 import { Button, Message, Container, Loader } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
 
-import { DisplayDate, ShowServerError } from './Common';
+import { DisplayDate, ShowServerError, BlogitemBreadcrumb } from './Common';
 import { BASE_URL } from './Config';
 
 class OpenGraphImageBlogitem extends React.Component {
@@ -119,7 +119,7 @@ class OpenGraphImageBlogitem extends React.Component {
     }
     return (
       <Container>
-        (BREADCRUMBS)
+        <BlogitemBreadcrumb oid={oid} page="open_graph_image" />
         <ShowServerError error={this.state.serverError} />
         {this.renderUpdated()}
         {images && (
