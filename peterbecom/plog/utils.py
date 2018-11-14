@@ -93,6 +93,15 @@ def render_comment_text(text):
             # Bail if it's not a HTTP URL, such as ssh:// or ftp://
             return None
 
+        # If the href was written like this: [a-z]+.[A-Z][a-z]+ it could simply
+        # be a missing space when separating the sentences.
+        # Also, if the found href was never found in the text, it really can't
+        # be a valid URL. I.e. "Here is a sentence.It starts with" would find
+        # 'http://sentence.It` but the input was without the http:// part.
+        if re.search(r"[a-z]+\.[A-Z][a-z]+", href) and href not in text:
+            # Suspect!
+            return None
+
         p = urlparse(href)
         if p.netloc not in settings.NOFOLLOW_EXCEPTIONS:
             # Before we add the `rel="nofollow"` let's first check that this is a
