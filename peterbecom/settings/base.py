@@ -218,28 +218,29 @@ LOGGING = {
         "require_debug_true": {"()": "django.utils.log.RequireDebugTrue"},
     },
     "handlers": {
-        "mail_admins": {
-            "level": "ERROR",
-            "filters": ["require_debug_false"],
-            "class": "django.utils.log.AdminEmailHandler",
-        },
+        # "mail_admins": {
+        #     "level": "ERROR",
+        #     "filters": ["require_debug_false"],
+        #     "class": "django.utils.log.AdminEmailHandler",
+        # },
         "console": {
             "level": "INFO",
-            "filters": ["require_debug_true"],
+            # "filters": ["require_debug_true"],
             "class": "logging.StreamHandler",
-        },
+        }
     },
     "loggers": {
-        "django.request": {
-            "handlers": ["mail_admins"],
-            "level": "ERROR",
-            "propagate": True,
-        },
+        # "django.request": {
+        #     "handlers": ["mail_admins"],
+        #     "level": "ERROR",
+        #     "propagate": True,
+        # },
         "django.security.csrf": {
             "handlers": ["console"],
             "level": "INFO",
             "propagate": True,
         },
+        "huey": {"handlers": ["console"], "level": "INFO", "propagate": True},
     },
 }
 
