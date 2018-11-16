@@ -3,7 +3,14 @@ import React from 'react';
 import { formatDistance } from 'date-fns/esm';
 import { BrowserRouter as Router, Link, Route, Switch } from 'react-router-dom';
 import 'semantic-ui-css/semantic.min.css';
-import { Container, Dropdown, List, Menu, Segment } from 'semantic-ui-react';
+import {
+  Container,
+  Dropdown,
+  List,
+  Loader,
+  Menu,
+  Segment
+} from 'semantic-ui-react';
 import './copy-of-highlight.css';
 import './App.css';
 import {
@@ -16,6 +23,14 @@ import Blogitems from './Blogitems';
 import Dashboard from './Dashboard';
 import { AddBlogitem, EditBlogitem } from './EditBlogitem';
 import OpenGraphImageBlogitem from './OpenGraphImageBlogitem';
+import BlogitemImages from './BlogitemImages';
+
+// const BlogitemsSecure = notWithoutAccessToken(Blogitems);
+// const AddBlogitemSecure = notWithoutAccessToken(AddBlogitem);
+// const OpenGraphImageBlogitemSecure = notWithoutAccessToken(
+//   OpenGraphImageBlogitem
+// );
+// const EditBlogitemSecure = notWithoutAccessToken(EditBlogitem);
 
 class App extends React.Component {
   state = {
@@ -232,40 +247,50 @@ class App extends React.Component {
                 )}
               />
               {/* <Route path="/comments" exact component={Comments} /> */}
-              <Route
+              <SecureRoute
                 path="/plog"
                 exact
-                render={props => (
-                  <Blogitems {...props} accessToken={this.state.accessToken} />
-                )}
+                component={Blogitems}
+                accessToken={this.state.accessToken}
               />
-              <Route
+              <SecureRoute
                 path="/plog/add"
                 exact
-                render={props => (
-                  <AddBlogitem
-                    {...props}
-                    accessToken={this.state.accessToken}
-                  />
-                )}
+                component={AddBlogitem}
+                accessToken={this.state.accessToken}
               />
-              <Route
+              <SecureRoute
                 path="/plog/:oid/open-graph-image"
+                component={OpenGraphImageBlogitem}
+                accessToken={this.state.accessToken}
+              />
+              <SecureRoute
+                path="/plog/:oid/images"
+                component={BlogitemImages}
+                accessToken={this.state.accessToken}
+              />
+              {/* <Route
+                path="/plog/:oid/images"
                 render={props => (
-                  <OpenGraphImageBlogitem
+                  <BlogitemImagesSecure
                     {...props}
                     accessToken={this.state.accessToken}
                   />
                 )}
-              />
-              <Route
+              /> */}
+              {/* <Route
                 path="/plog/:oid"
                 render={props => (
-                  <EditBlogitem
+                  <EditBlogitemSecure
                     {...props}
                     accessToken={this.state.accessToken}
                   />
                 )}
+              /> */}
+              <SecureRoute
+                path="/plog/:oid"
+                component={EditBlogitem}
+                accessToken={this.state.accessToken}
               />
               <Route component={NoMatch} />
             </Switch>
@@ -308,3 +333,61 @@ const NoMatch = ({ location }) => (
     </h3>
   </div>
 );
+
+class SecureRoute extends React.Component {
+  render() {
+    const { accessToken, path } = this.props;
+    if (!accessToken) {
+      return (
+        <Container>
+          <Loader
+            active
+            size="massive"
+            inline="centered"
+            content="Waiting to log you in..."
+            style={{ margin: '200px 0' }}
+          />
+        </Container>
+      );
+    }
+    const Component = this.props.component;
+    return (
+      <Route
+        path={path}
+        render={props => {
+          return <Component {...props} accessToken={accessToken} />;
+        }}
+      />
+    );
+  }
+}
+
+// function notWithoutAccessToken(WrappedComponent) {
+//   class NotWithoutAccessToken extends React.Component {
+//     render() {
+//       // console.log('Rendering', this.props.accessToken, WrappedComponent);
+//       if (!this.props.accessToken) {
+//         return (
+//           <Container>
+//             <Loader
+//               active
+//               size="massive"
+//               inline="centered"
+//               content="Waiting to log you in..."
+//               style={{ margin: '200px 0' }}
+//             />
+//           </Container>
+//         );
+//       }
+//       return <WrappedComponent {...this.props} />;
+//     }
+//   }
+//   NotWithoutAccessToken.displayName = `NotWithoutAccessToken(${_getDisplayName(
+//     WrappedComponent
+//   )})`;
+//   return NotWithoutAccessToken;
+// }
+
+// function _getDisplayName(WrappedComponent) {
+//   return WrappedComponent.displayName || WrappedComponent.name || 'Component';
+// }

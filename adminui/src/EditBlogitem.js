@@ -29,17 +29,8 @@ export class EditBlogitem extends React.Component {
   componentDidMount() {
     document.title = 'Edit Blogitem';
 
-    if (this.props.accessToken) {
-      this.fetchBlogitem(this.props.match.params.oid, this.props.accessToken);
-      this.fetchAllCategories(this.props.accessToken);
-    }
-  }
-
-  componentDidUpdate(prevProps) {
-    if (prevProps.accessToken !== this.props.accessToken) {
-      this.fetchBlogitem(this.props.match.params.oid, this.props.accessToken);
-      this.fetchAllCategories(this.props.accessToken);
-    }
+    this.fetchBlogitem(this.props.match.params.oid, this.props.accessToken);
+    this.fetchAllCategories(this.props.accessToken);
   }
 
   fetchAllCategories = async accessToken => {

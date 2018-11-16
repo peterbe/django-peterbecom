@@ -211,6 +211,39 @@ def open_graph_image(request, oid):
     return _response(context)
 
 
+@api_superuser_required
+def images(request, oid):
+    blogitem = get_object_or_404(BlogItem, oid=oid)
+
+    context = {"images": []}
+
+    for i, image in enumerate(_post_thumbnails(blogitem)):
+        # from pprint import pprint
+        # pprint(image)
+        full_url_path = image["full_url"]
+        if "://" in full_url_path:
+            full_url_path = urlparse(full_url_path).path
+
+        context["images"].append(
+            {
+                "label": "Thumbnail #{}".format(i + 1),
+                "src": image["full_url"],
+                "size": image["full_size"],
+                "current": (
+                    blogitem.open_graph_image
+                    and image["full_url"] == blogitem.open_graph_image
+                ),
+            }
+        )
+
+    if request.method == "POST":
+        # post = json.loads(request.body.decode("utf-8"))
+        raise NotImplementedError
+
+    # context["images"] = options
+    return _response(context)
+
+
 def _post_thumbnails(blogitem):
     blogfiles = BlogFile.objects.filter(blogitem=blogitem).order_by("add_date")
 

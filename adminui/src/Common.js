@@ -68,6 +68,14 @@ export function BlogitemBreadcrumb({ blogitem, oid, page }) {
         )}
       </Breadcrumb.Section>
       <Breadcrumb.Divider />
+      <Breadcrumb.Section active={page === 'images'}>
+        {page === 'images' ? (
+          'Images'
+        ) : (
+          <Link to={`/plog/${oid}/images`}>Images</Link>
+        )}
+      </Breadcrumb.Section>
+      <Breadcrumb.Divider />
       <Breadcrumb.Section>
         <a href={BASE_URL + `/plog/${oid}`}>View</a>
       </Breadcrumb.Section>

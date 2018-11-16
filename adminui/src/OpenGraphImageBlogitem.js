@@ -15,14 +15,7 @@ class OpenGraphImageBlogitem extends React.Component {
 
   componentDidMount() {
     document.title = 'Open Graph Image';
-    if (this.props.accessToken) {
-      this.fetchAllImages(this.props.accessToken);
-    }
-  }
-  componentDidUpdate(prevProps) {
-    if (prevProps.accessToken !== this.props.accessToken) {
-      this.fetchAllImages(this.props.accessToken);
-    }
+    this.fetchAllImages(this.props.accessToken);
   }
 
   fetchAllImages = async accessToken => {

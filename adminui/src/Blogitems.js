@@ -20,26 +20,18 @@ class Blogitems extends React.Component {
     search: ''
   };
   componentDidMount() {
-    if (this.props.accessToken) {
-      this.fetchBlogitems();
-    }
+    this.fetchBlogitems();
   }
 
-  componentDidUpdate(prevProps) {
-    if (this.props.accessToken !== prevProps.accessToken) {
-      this.fetchBlogitems();
-    }
-  }
-
-  fetchBlogitems = async () => {
-    if (!this.props.accessToken) {
+  fetchBlogitems = async accessToken => {
+    if (!accessToken) {
       throw new Error('No accessToken');
     }
     const { page, search } = this.state;
     let url = `/api/v0/plog/?page=${page}&search=${encodeURIComponent(search)}`;
     const response = await fetch(url, {
       headers: {
-        Authorization: `Bearer ${this.props.accessToken}`
+        Authorization: `Bearer ${accessToken}`
       }
     });
     if (response.ok) {
@@ -53,7 +45,6 @@ class Blogitems extends React.Component {
   render() {
     return (
       <Container>
-        (BREADCRUMB)
         <ShowServerError error={this.state.serverError} />
         {this.state.blogitems === null && this.state.serverError === null ? (
           <Loader
