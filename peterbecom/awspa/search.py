@@ -55,6 +55,12 @@ def lookup(asin, sleep=0):
 
 @with_tmpdir
 def _raw_search(tmpdir, asin=None, keyword=None, searchindex=None):
+    with open("/tmp/awspa-searches.log", "a") as f:
+        line = "asin={!r}\tkeyword={!r}\tsearchindex={!r}\n".format(
+            asin, keyword, searchindex
+        )
+        f.write(line)
+        print("AWSPA_SEARCH:", line)
     filename = os.path.join(tmpdir, "out.json")
     cli_path = os.path.join(settings.BASE_DIR, "awspa/cli.js")
     if asin:
