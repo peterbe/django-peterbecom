@@ -56,8 +56,8 @@ def lookup(asin, sleep=0):
 @with_tmpdir
 def _raw_search(tmpdir, asin=None, keyword=None, searchindex=None):
     with open("/tmp/awspa-searches.log", "a") as f:
-        line = "asin={!r}\tkeyword={!r}\tsearchindex={!r}\n".format(
-            asin, keyword, searchindex
+        line = "{}\tasin={!r}\tkeyword={!r}\tsearchindex={!r}\n".format(
+            int(time.time()), asin, keyword, searchindex
         )
         f.write(line)
         print("AWSPA_SEARCH:", line)
