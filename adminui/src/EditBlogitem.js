@@ -1,10 +1,13 @@
 import React from 'react';
 import {
   Button,
+  Card,
   Message,
   Container,
   Breadcrumb,
+  Image,
   Loader,
+  Icon,
   Input,
   Form,
   Checkbox,
@@ -13,6 +16,7 @@ import {
 } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
 import { addHours } from 'date-fns/esm';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 import { DisplayDate, ShowServerError, BlogitemBreadcrumb } from './Common';
 import { BASE_URL } from './Config';
@@ -189,7 +193,8 @@ export class EditBlogitem extends React.Component {
         )}
         {this.state.blogitem && (
           <EditForm
-            blogitem={this.state.blogitem}
+            accessToken={this.props.accessToken}
+            blogitem={blogitem}
             allCategories={this.state.allCategories}
             validationErrors={this.state.validationErrors}
             // accessToken={this.props.accessToken}
@@ -433,6 +438,7 @@ class EditForm extends React.PureComponent {
         <h3>
           <a href={BASE_URL + blogitem._absolute_url}>{blogitem.title}</a>
         </h3>
+        <Thumbnails accessToken={this.props.accessToken} oid={blogitem.oid} />
         <p style={{ textAlign: 'right' }}>
           <Button
             size="mini"
@@ -620,6 +626,140 @@ class PreviewBlogitem extends React.PureComponent {
             __html: data.html
           }}
         />
+      </div>
+    );
+  }
+}
+
+class Thumbnails extends React.PureComponent {
+  state = { copied: null, show: false, images: null };
+
+  async componentDidMount() {
+    if (!this.props.accessToken) {
+      throw new Error('No accessToken');
+    }
+    const oid = this.props.oid;
+    try {
+      const response = await fetch(`/api/v0/plog/${oid}/images`, {
+        headers: {
+          Authorization: `Bearer ${this.props.accessToken}`
+        }
+      });
+      this.setState({ loading: false });
+      if (response.ok) {
+        const json = await response.json();
+        this.setState({ images: json.images });
+      } else {
+        this.setState({ serverError: response }, () => {
+          window.scrollTo(0, 0);
+        });
+      }
+    } catch (ex) {
+      this.setState({ serverError: ex }, () => {
+        window.scrollTo(0, 0);
+      });
+    }
+  }
+  setCopied = key => {
+    this.setState({ copied: key }, () => {
+      if (this.timeout) {
+        window.clearTimeout(this.timeout);
+      }
+      this.timeout = window.setTimeout(() => {
+        if (!this.dismounted) {
+          this.setState({ copied: false });
+        }
+      }, 3000);
+    });
+  };
+  render() {
+    if (!this.state.show && !this.state.images) {
+      return null;
+    }
+    if (!this.state.show) {
+      return (
+        <Button
+          onClick={event => {
+            this.setState({ show: true });
+          }}
+        >
+          Show ({this.state.images.length}) thumbnails
+        </Button>
+      );
+    }
+    const { images } = this.state;
+    const keys = ['small', 'big', 'bigger'];
+    return (
+      <div>
+        <Button
+          onClick={event => {
+            this.setState({ show: false });
+          }}
+        >
+          Hide thumbnails
+        </Button>
+        {images.map(image => {
+          // console.log(image);
+          return (
+            <Card.Group key={image.full_url}>
+              {keys.map(key => {
+                const thumb = image[key];
+
+                const imageTagHtml = `
+                <img src="${thumb.url}" alt="${thumb.alt}" width="${
+                  thumb.width
+                }" height="${thumb.height}">
+                `.trim();
+                const aTagHtml = `
+                <a href="${image.full_url}">${imageTagHtml.replace(
+                  'width=',
+                  'class="floatright" width='
+                )}</a>
+                `.trim();
+                return (
+                  <Card key={key}>
+                    <a href={BASE_URL + thumb.url}>
+                      <Image src={BASE_URL + thumb.url} />
+                    </a>
+                    <Card.Content>
+                      <Card.Header>{key}</Card.Header>
+                      <Card.Meta>
+                        <span className="date">{`${thumb.width}x${
+                          thumb.height
+                        }`}</span>
+                      </Card.Meta>
+                      <Card.Description>{thumb.alt}</Card.Description>
+                      {this.state.copied === key ? (
+                        <small>copied!</small>
+                      ) : null}
+                    </Card.Content>
+                    <Card.Content extra>
+                      <Icon name="copy" loading={this.state.copied === key} />
+                      <CopyToClipboard
+                        text={thumb.url}
+                        onCopy={() => this.setCopied(key)}
+                      >
+                        <Button size="mini">URL</Button>
+                      </CopyToClipboard>
+                      <CopyToClipboard
+                        text={imageTagHtml}
+                        onCopy={() => this.setCopied(key)}
+                      >
+                        <Button size="mini">Image tag</Button>
+                      </CopyToClipboard>
+                      <CopyToClipboard
+                        text={aTagHtml}
+                        onCopy={() => this.setCopied(key)}
+                      >
+                        <Button size="mini">Whole tag</Button>
+                      </CopyToClipboard>
+                    </Card.Content>
+                  </Card>
+                );
+              })}
+            </Card.Group>
+          );
+        })}
       </div>
     );
   }

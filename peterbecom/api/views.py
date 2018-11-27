@@ -13,7 +13,7 @@ from django.utils import timezone
 
 from peterbecom.plog.models import BlogItem, Category, BlogFile
 from peterbecom.plog.views import PreviewValidationError, preview_by_data
-from .forms import EditBlogForm
+from .forms import EditBlogForm, BlogFileUpload
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
 
 
@@ -215,32 +215,21 @@ def open_graph_image(request, oid):
 def images(request, oid):
     blogitem = get_object_or_404(BlogItem, oid=oid)
 
-    context = {"images": []}
-
-    for i, image in enumerate(_post_thumbnails(blogitem)):
-        # from pprint import pprint
-        # pprint(image)
-        full_url_path = image["full_url"]
-        if "://" in full_url_path:
-            full_url_path = urlparse(full_url_path).path
-
-        context["images"].append(
-            {
-                "label": "Thumbnail #{}".format(i + 1),
-                "src": image["full_url"],
-                "size": image["full_size"],
-                "current": (
-                    blogitem.open_graph_image
-                    and image["full_url"] == blogitem.open_graph_image
-                ),
-            }
-        )
+    context = {"images": _post_thumbnails(blogitem)}
 
     if request.method == "POST":
-        # post = json.loads(request.body.decode("utf-8"))
-        raise NotImplementedError
+        form = BlogFileUpload(
+            dict(
+                request.POST, blogitem=blogitem.id, title=request.POST.get("title", "")
+            ),
+            request.FILES,  # initial={"blogitem": blogitem.id}
+        )
+        if form.is_valid():
+            instance = form.save()
+            return _response({"id": instance.id})
+        # print("DATA", form.errors)
+        return _response({"errors": form.errors}, status=400)
 
-    # context["images"] = options
     return _response(context)
 
 
@@ -254,12 +243,7 @@ def _post_thumbnails(blogitem):
             continue
         full_im = thumbnail(blogfile.file, "1000x1000", upscale=False, quality=100)
         full_url = full_im.url
-        # delete_url = reverse("delete_post_thumbnail", args=(blogfile.pk,))
-        image = {
-            "full_url": full_url,
-            "full_size": full_im.size,
-            # "delete_url": delete_url,
-        }
+        image = {"full_url": full_url, "full_size": full_im.size}
         formats = (
             ("small", "120x120"),
             ("big", "230x230"),

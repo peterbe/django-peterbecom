@@ -23,7 +23,7 @@ import Blogitems from './Blogitems';
 import Dashboard from './Dashboard';
 import { AddBlogitem, EditBlogitem } from './EditBlogitem';
 import OpenGraphImageBlogitem from './OpenGraphImageBlogitem';
-import BlogitemImages from './BlogitemImages';
+import UploadImages from './UploadImages';
 
 // const BlogitemsSecure = notWithoutAccessToken(Blogitems);
 // const AddBlogitemSecure = notWithoutAccessToken(AddBlogitem);
@@ -266,7 +266,7 @@ class App extends React.Component {
               />
               <SecureRoute
                 path="/plog/:oid/images"
-                component={BlogitemImages}
+                component={UploadImages}
                 accessToken={this.state.accessToken}
               />
               {/* <Route

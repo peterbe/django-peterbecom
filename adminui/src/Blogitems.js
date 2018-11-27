@@ -20,7 +20,7 @@ class Blogitems extends React.Component {
     search: ''
   };
   componentDidMount() {
-    this.fetchBlogitems();
+    this.fetchBlogitems(this.props.accessToken);
   }
 
   fetchBlogitems = async accessToken => {

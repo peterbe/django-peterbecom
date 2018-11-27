@@ -82,3 +82,12 @@ export function BlogitemBreadcrumb({ blogitem, oid, page }) {
     </Breadcrumb>
   );
 }
+
+export const formatFileSize = (bytes, decimals = 0) => {
+  if (!bytes) return '0 bytes';
+  var k = 1024;
+  var dm = decimals + 1 || 3;
+  var sizes = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+  var i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+};
