@@ -45,12 +45,10 @@ def blogitems(request):
         form = EditBlogForm(data)
         if form.is_valid():
             item = form.save()
-            # item.refresh_from_db()
             assert item._render(refresh=True)
             context = {"blogitem": {"id": item.id}}
             return _response(context, status=201)
         else:
-            print("DATA", form.errors)
             return _response({"errors": form.errors}, status=400)
 
     def _serialize_blogitem(item):
@@ -59,6 +57,7 @@ def blogitems(request):
             "oid": item.oid,
             "title": item.title,
             "pub_date": item.pub_date,
+            "_is_published": item.pub_date < timezone.now(),
             "modify_date": item.modify_date,
             "categories": [{"id": x.id, "name": x.name} for x in item.categories.all()],
             "keywords": item.proper_keywords,
@@ -67,7 +66,11 @@ def blogitems(request):
     page = int(request.GET.get("page", 1))
     batch_size = int(request.GET.get("batch_size", 25))
     search = request.GET.get("search", "").lower().strip()
-    items = BlogItem.objects.all().order_by("-modify_date")
+    items = BlogItem.objects.all()
+
+    order_by = request.GET.get("order", "modify_date")
+    assert order_by in ("modify_date", "pub_date"), order_by
+    items = items.order_by("-" + order_by)
     if search:
         items = items.filter(Q(title__icontains=search) | Q(oid__icontains=search))
     items = items.prefetch_related("categories")
