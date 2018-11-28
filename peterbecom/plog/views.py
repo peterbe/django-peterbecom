@@ -977,27 +977,39 @@ def plog_open_graph_image(request, oid):
 @csrf_exempt
 @login_required
 @require_POST
-def preview_post(request):
+def preview_post(request, return_html_string=False):
+    post_data = request.POST.dict()
+    post_data['categories'] = request.POST.getlist("categories[]")
+    try:
+        html_string = preview_by_data(post_data, request)
+        return http.HttpResponse(html_string)
+    except HTMLRenderingError as exception:
+        return http.JsonResponse({'error': str(exception)}, status=400)
+    except PreviewValidationError as form:
+        return http.HttpResponse(str(form.errors))
+
+
+class PreviewValidationError(Exception):
+    """When something is wrong with the preview data."""
+
+
+def preview_by_data(data, request):
     from django.template import Context
     from django.template.loader import get_template
 
     post_data = dict()
-    for key, value in request.POST.items():
+    for key, value in data.items():
         if value:
             post_data[key] = value
-    post_data["categories"] = request.POST.getlist("categories[]")
     post_data["oid"] = "doesntmatter"
     post_data["keywords"] = []
     form = BlogForm(data=post_data)
     if not form.is_valid():
-        return http.HttpResponse(str(form.errors))
+        raise PreviewValidationError(form.errors)
 
     class MockPost(object):
         def count_comments(self):
             return 0
-
-        def has_carousel_tag(self):
-            return False
 
         @property
         def rendered(self):
@@ -1015,10 +1027,7 @@ def preview_post(request):
     post.categories = Category.objects.filter(pk__in=form.cleaned_data["categories"])
     template = get_template("plog/_post.html")
     context = Context({"post": post, "request": request})
-    try:
-        return http.HttpResponse(template.render(context))
-    except HTMLRenderingError as exception:
-        return http.JsonResponse({"error": str(exception)}, status=400)
+    return template.render(context)
 
 
 @login_required

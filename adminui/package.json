@@ -1,0 +1,29 @@
+{
+  "name": "adminui",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "react": "16.6.3",
+    "react-copy-to-clipboard": "5.0.1",
+    "react-dom": "16.6.3",
+    "react-router-dom": "4.3.1",
+    "react-scripts": "2.1.1",
+    "semantic-ui-css": "2.4.1",
+    "semantic-ui-react": "0.83.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "proxy": "http://localhost:8000",
+  "browserslist": [
+    "last 2 Chrome major versions",
+    "last 2 Firefox major versions",
+    "last 1 iOS major versions"
+  ]
+}

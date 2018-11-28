@@ -112,6 +112,7 @@ MIDDLEWARE = (
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "rollbar.contrib.django.middleware.RollbarNotifierMiddleware",
+    "peterbecom.api.middleware.AuthenticationMiddleware",
     # Important that this is last
     "peterbecom.base.middleware.FSCacheMiddleware",
     "peterbecom.base.middleware.StatsMiddleware",
@@ -189,6 +190,7 @@ INSTALLED_APPS = (
     "sorl.thumbnail",
     "peterbecom.base",
     "peterbecom.plog",
+    "peterbecom.api",
     "peterbecom.homepage",
     "peterbecom.chiveproxy",
     "peterbecom.nodomains",
@@ -440,3 +442,5 @@ HUEY = {
         "health_check_interval": 1,  # Check worker health every second.
     },
 }
+
+OIDC_USER_ENDPOINT = "https://peterbecom.auth0.com/userinfo"
