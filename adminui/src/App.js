@@ -6,10 +6,10 @@ import 'semantic-ui-css/semantic.min.css';
 import {
   Container,
   Dropdown,
-  List,
+  // List,
   Loader,
-  Menu,
-  Segment
+  Menu
+  // Segment
 } from 'semantic-ui-react';
 import './copy-of-highlight.css';
 import './App.css';
@@ -24,13 +24,6 @@ import Dashboard from './Dashboard';
 import { AddBlogitem, EditBlogitem } from './EditBlogitem';
 import OpenGraphImageBlogitem from './OpenGraphImageBlogitem';
 import UploadImages from './UploadImages';
-
-// const BlogitemsSecure = notWithoutAccessToken(Blogitems);
-// const AddBlogitemSecure = notWithoutAccessToken(AddBlogitem);
-// const OpenGraphImageBlogitemSecure = notWithoutAccessToken(
-//   OpenGraphImageBlogitem
-// );
-// const EditBlogitemSecure = notWithoutAccessToken(EditBlogitem);
 
 class App extends React.Component {
   state = {
@@ -296,7 +289,7 @@ class App extends React.Component {
             </Switch>
           </Container>
 
-          <Segment
+          {/* <Segment
             inverted
             vertical
             style={{ margin: '5em 0em 0em', padding: '5em 0em' }}
@@ -317,7 +310,7 @@ class App extends React.Component {
                 </List.Item>
               </List>
             </Container>
-          </Segment>
+          </Segment> */}
         </div>
       </Router>
     );
@@ -361,33 +354,3 @@ class SecureRoute extends React.Component {
     );
   }
 }
-
-// function notWithoutAccessToken(WrappedComponent) {
-//   class NotWithoutAccessToken extends React.Component {
-//     render() {
-//       // console.log('Rendering', this.props.accessToken, WrappedComponent);
-//       if (!this.props.accessToken) {
-//         return (
-//           <Container>
-//             <Loader
-//               active
-//               size="massive"
-//               inline="centered"
-//               content="Waiting to log you in..."
-//               style={{ margin: '200px 0' }}
-//             />
-//           </Container>
-//         );
-//       }
-//       return <WrappedComponent {...this.props} />;
-//     }
-//   }
-//   NotWithoutAccessToken.displayName = `NotWithoutAccessToken(${_getDisplayName(
-//     WrappedComponent
-//   )})`;
-//   return NotWithoutAccessToken;
-// }
-
-// function _getDisplayName(WrappedComponent) {
-//   return WrappedComponent.displayName || WrappedComponent.name || 'Component';
-// }

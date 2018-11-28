@@ -2,7 +2,10 @@
 
 body {
   background-color: #ffffff;
+}
 
+div#root {
+  padding-bottom: 100px;
 }
 .ui.menu .item img.logo {
   margin-right: 1.5em;

@@ -51,7 +51,9 @@ export function BlogitemBreadcrumb({ blogitem, oid, page }) {
   }
   return (
     <Breadcrumb>
-      <Breadcrumb.Section link>Blogitems</Breadcrumb.Section>
+      <Breadcrumb.Section>
+        <Link to="/plog">Blogitems</Link>
+      </Breadcrumb.Section>
       <Breadcrumb.Divider />
       <Breadcrumb.Section active={page === 'edit'}>
         {page === 'edit' ? 'Edit' : <Link to={`/plog/${oid}`}>Edit</Link>}

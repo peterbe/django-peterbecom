@@ -222,14 +222,17 @@ def images(request, oid):
             dict(
                 request.POST, blogitem=blogitem.id, title=request.POST.get("title", "")
             ),
-            request.FILES,  # initial={"blogitem": blogitem.id}
+            request.FILES,
         )
         if form.is_valid():
             instance = form.save()
             return _response({"id": instance.id})
         # print("DATA", form.errors)
         return _response({"errors": form.errors}, status=400)
-
+    elif request.method == "DELETE":
+        blogfile = get_object_or_404(BlogFile, blogitem=blogitem, id=request.GET["id"])
+        blogfile.delete()
+        return _response({"deleted": True})
     return _response(context)
 
 

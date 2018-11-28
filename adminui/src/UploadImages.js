@@ -63,7 +63,6 @@ class UploadImages extends React.Component {
           Authorization: `Bearer ${this.props.accessToken}`
         }
       });
-      console.log(response);
       if (response.ok) {
         const result = await response.json();
         this.setState(state => {
@@ -93,7 +92,38 @@ class UploadImages extends React.Component {
   };
 
   undoUpload = async preview => {
-    console.warn(preview.uploaded);
+    const { oid } = this.props.match.params;
+    try {
+      let url = `/api/v0/plog/${oid}/images?id=${preview.uploaded}`;
+      const response = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${this.props.accessToken}`
+        }
+      });
+      if (response.ok) {
+        // const result = await response.json();
+        this.setState(state => {
+          const previewUrls = state.previewUrls.filter(each => {
+            return each.name !== preview.file.name;
+          });
+          return { previewUrls };
+        });
+      } else {
+        this.setState({ serverError: response });
+      }
+    } catch (ex) {
+      this.setState({ serverError: ex });
+    }
+  };
+
+  cancelUpload = preview => {
+    this.setState(state => {
+      const previewUrls = state.previewUrls.filter(each => {
+        return each.name !== preview.file.name;
+      });
+      return { previewUrls };
+    });
   };
 
   render() {
@@ -129,6 +159,7 @@ class UploadImages extends React.Component {
                 key={each.file.name}
                 undoUpload={this.undoUpload}
                 fileUpload={this.fileUpload}
+                canelUpload={this.cancelUpload}
               />
             );
           })}
@@ -174,14 +205,25 @@ class PreviewCard extends React.Component {
                 Undo upload
               </Button>
             ) : (
-              <Button
-                onClick={event => {
-                  event.preventDefault();
-                  this.props.fileUpload(preview, this.state.title);
-                }}
-              >
-                Upload
-              </Button>
+              <>
+                <Button
+                  primary={true}
+                  onClick={event => {
+                    event.preventDefault();
+                    this.props.fileUpload(preview, this.state.title);
+                  }}
+                >
+                  Upload
+                </Button>
+                <Button
+                  onClick={event => {
+                    event.preventDefault();
+                    this.props.canelUpload(preview);
+                  }}
+                >
+                  Cancel
+                </Button>
+              </>
             )}
 
             {preview.uploading && !preview.errored && (

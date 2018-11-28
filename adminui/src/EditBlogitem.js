@@ -676,7 +676,10 @@ class Thumbnails extends React.PureComponent {
     if (!this.state.show && !this.state.images) {
       return null;
     }
-    if (!this.state.show) {
+    if (!this.state.show && this.state.images) {
+      if (!this.state.images.length) {
+        return null;
+      }
       return (
         <Button
           onClick={event => {
