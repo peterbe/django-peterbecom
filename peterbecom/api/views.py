@@ -37,7 +37,6 @@ def _response(context, status=200, safe=False):
     return http.JsonResponse(context, status=status, safe=safe)
 
 
-# @bearer_token_required
 @api_superuser_required
 def blogitems(request):
     if request.method == "POST":
@@ -80,7 +79,6 @@ def blogitems(request):
     return _response(context)
 
 
-# @bearer_token_required
 @api_superuser_required
 def blogitem(request, oid):
     item = get_object_or_404(BlogItem, oid=oid)
@@ -93,7 +91,6 @@ def blogitem(request, oid):
             item.refresh_from_db()
             assert item._render(refresh=True)
         else:
-            print("DATA", form.errors)
             return _response({"errors": form.errors}, status=400)
 
     context = {
@@ -227,7 +224,6 @@ def images(request, oid):
         if form.is_valid():
             instance = form.save()
             return _response({"id": instance.id})
-        # print("DATA", form.errors)
         return _response({"errors": form.errors}, status=400)
     elif request.method == "DELETE":
         blogfile = get_object_or_404(BlogFile, blogitem=blogitem, id=request.GET["id"])

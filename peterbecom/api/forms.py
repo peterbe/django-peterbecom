@@ -23,24 +23,15 @@ class MultilineTextarea(Textarea):
 
 
 class ISODateTimeField(DateTimeField):
-    # def to_python(self, value):
-    #     print("VALUE", value)
-    #     res = super().to_python(value)
-    #     print("RES", res)
-    #     return res
-
     def strptime(self, value, format):
-        # print("VALUE", repr(value), "FORMAT", format)
         try:
             return parse_datetime(value)
         except Exception:
             return super().strptime(value, format)
-        # return parse_datetime(force_str(value))
 
 
 class BlogForm(forms.ModelForm):
 
-    # proper_keywords = forms.fields.CharField(widget=MultilineTextarea())
     pub_date = ISODateTimeField()
 
     class Meta:
@@ -113,7 +104,6 @@ class BlogForm(forms.ModelForm):
 
 
 class EditBlogForm(BlogForm):
-
     pass
 
 

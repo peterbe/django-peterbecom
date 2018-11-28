@@ -197,25 +197,17 @@ export class EditBlogitem extends React.Component {
             blogitem={blogitem}
             allCategories={this.state.allCategories}
             validationErrors={this.state.validationErrors}
-            // accessToken={this.props.accessToken}
             onLoadPreview={async data => {
-              // store.blogitems.previewBlogitem(data, store.user.accessToken);
               this.previewBlogitem(data, this.props.accessToken);
             }}
             onSubmitData={data => {
               this.setState({ updated: null });
               this.updateBlogitem(data, this.props.accessToken);
-              // store.blogitems.updateBlogitem(
-              //   store.blogitems.blogitem.id,
-              //   data,
-              //   store.user.accessToken
-              // );
             }}
           />
         )}
         {this.renderUpdated()}
         <PreviewBlogitem data={this.state.preview} />
-        {/* {store.blogitems.preview && store.blogitems.preview} */}
       </Container>
     );
   }
@@ -304,11 +296,8 @@ export class AddBlogitem extends EditBlogitem {
         <EditForm
           blogitem={blogitemSkeleton}
           allCategories={this.state.allCategories}
-          // accessToken={store.user.accessToken}
           validationErrors={this.state.validationErrors}
-          onLoadPreview={async data => {
-            // this.previewBlogitem(data);
-          }}
+          onLoadPreview={async data => {}}
           onSubmitData={async data => {
             this.setState({ updated: null });
             this.createBlogitem(data);

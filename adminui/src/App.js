@@ -262,24 +262,6 @@ class App extends React.Component {
                 component={UploadImages}
                 accessToken={this.state.accessToken}
               />
-              {/* <Route
-                path="/plog/:oid/images"
-                render={props => (
-                  <BlogitemImagesSecure
-                    {...props}
-                    accessToken={this.state.accessToken}
-                  />
-                )}
-              /> */}
-              {/* <Route
-                path="/plog/:oid"
-                render={props => (
-                  <EditBlogitemSecure
-                    {...props}
-                    accessToken={this.state.accessToken}
-                  />
-                )}
-              /> */}
               <SecureRoute
                 path="/plog/:oid"
                 component={EditBlogitem}
