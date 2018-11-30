@@ -31,6 +31,7 @@ class App extends React.Component {
     userInfo: null
   };
   componentDidMount() {
+    document.title = 'Peterbe.com Admin UI';
     this.authenticate();
   }
 

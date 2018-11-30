@@ -3,6 +3,13 @@ import tempfile
 import requests_mock
 import pytest
 
+from django.core.cache import cache
+
+
+@pytest.fixture(autouse=True)
+def clear_cache():
+    cache.clear()
+
 
 @pytest.fixture
 def tmpfscacheroot(settings):

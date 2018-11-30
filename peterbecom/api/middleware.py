@@ -1,6 +1,7 @@
 import backoff
 import requests
 
+from django import http
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.contrib.auth.signals import user_logged_in
@@ -29,17 +30,32 @@ class AuthenticationMiddleware:
             if request.META.get("HTTP_AUTHORIZATION") or request.method != "GET":
                 header_value = request.META.get("HTTP_AUTHORIZATION")
                 if not header_value:
-                    raise PermissionDenied("No HTTP_AUTHORIZATION")
-                access_token = header_value.split("Bearer")[1].strip()
-                cache_key = "bearer-to-user-info:{}".format(access_token[:10])
+                    return http.JsonResponse(
+                        {"error": "No HTTP_AUTHORIZATION"}, status=403
+                    )
+                try:
+                    access_token = header_value.split("Bearer")[1].strip()
+                except IndexError:
+                    return http.JsonResponse(
+                        {"error": "invalid header value"}, status=403
+                    )
+                cache_key = "bearer-to-user-info:{}".format(access_token[:12])
                 user = cache.get(cache_key)
                 if user is None:
                     user_info = self.fetch_oidc_user_profile(access_token)
                     if user_info:
-                        user = get_user_model().objects.get(email=user_info["email"])
-                        cache.set(cache_key, user, 60 * 60)
+                        user_model = get_user_model()
+                        try:
+                            user = user_model.objects.get(email=user_info["email"])
+                            cache.set(cache_key, user, 60 * 60)
+                        except user_model.DoesNotExist:
+                            return http.JsonResponse(
+                                {"error": "Not creating users"}, status=403
+                            )
                 if not user:
-                    raise PermissionDenied("access_token invalid")
+                    return http.JsonResponse(
+                        {"error": "access_token invalid"}, status=403
+                    )
                 request.user = user
                 user_logged_in.send(sender=user.__class__, request=request, user=user)
 

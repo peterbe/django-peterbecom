@@ -17,7 +17,8 @@ class Blogitems extends React.Component {
     count: 0,
     page: 1,
     serverError: null,
-    search: ''
+    search: '',
+    orderBy: null
   };
   componentDidMount() {
     this.fetchBlogitems(this.props.accessToken);
@@ -29,6 +30,9 @@ class Blogitems extends React.Component {
     }
     const { page, search } = this.state;
     let url = `/api/v0/plog/?page=${page}&search=${encodeURIComponent(search)}`;
+    if (this.state.orderBy) {
+      url += `&order=${encodeURIComponent(this.state.orderBy)}`;
+    }
     const response = await fetch(url, {
       headers: {
         Authorization: `Bearer ${accessToken}`
@@ -40,6 +44,26 @@ class Blogitems extends React.Component {
     } else {
       this.setState({ serverError: response });
     }
+  };
+
+  changeOrderColumn = () => {
+    this.setState(
+      {
+        orderBy: this.state.orderBy === 'pub_date' ? 'modify_date' : 'pub_date'
+      },
+      () => this.fetchBlogitems(this.props.accessToken)
+    );
+  };
+
+  getOrderLabel = () => {
+    return this.state.orderBy === 'pub_date' ? 'Published' : 'Modified';
+  };
+
+  getOrderDirection = () => {
+    if (this.state.orderBy) {
+      return this.state.orderBy.charAt(0) === '-' ? 'descending' : 'ascending';
+    }
+    return 'ascending';
   };
 
   render() {
@@ -59,6 +83,9 @@ class Blogitems extends React.Component {
           <BlogitemsTable
             blogitems={this.state.blogitems}
             count={this.state.count}
+            orderLabel={this.getOrderLabel()}
+            orderDirection={this.getOrderDirection()}
+            changeOrderColumn={this.changeOrderColumn}
             updateFilterSearch={search => {
               this.setState({ search }, this.fetchBlogitems);
             }}
@@ -75,7 +102,7 @@ class BlogitemsTable extends React.PureComponent {
   state = {
     search: ''
   };
-  // updateFilterSearch = () => {};
+
   render() {
     const { blogitems, count } = this.props;
     return (
@@ -83,7 +110,14 @@ class BlogitemsTable extends React.PureComponent {
         <Table.Header>
           <Table.Row>
             <Table.HeaderCell>Title ({count})</Table.HeaderCell>
-            <Table.HeaderCell>Modified</Table.HeaderCell>
+            <Table.HeaderCell
+              sorted={this.props.orderDirection}
+              onClick={event => {
+                this.props.changeOrderColumn();
+              }}
+            >
+              {this.props.orderLabel}
+            </Table.HeaderCell>
           </Table.Row>
           <Table.Row>
             <Table.HeaderCell colSpan={2}>

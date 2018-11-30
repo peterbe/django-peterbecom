@@ -217,15 +217,7 @@ export class AddBlogitem extends EditBlogitem {
   componentDidMount() {
     document.title = 'Add Blogitem';
 
-    if (this.props.accessToken) {
-      this.fetchAllCategories(this.props.accessToken);
-    }
-  }
-
-  componentDidUpdate(prevProps) {
-    if (prevProps.accessToken !== this.props.accessToken) {
-      this.fetchAllCategories(this.props.accessToken);
-    }
+    this.fetchAllCategories(this.props.accessToken);
   }
 
   createBlogitem = async data => {
@@ -427,7 +419,9 @@ class EditForm extends React.PureComponent {
         <h3>
           <a href={BASE_URL + blogitem._absolute_url}>{blogitem.title}</a>
         </h3>
-        <Thumbnails accessToken={this.props.accessToken} oid={blogitem.oid} />
+        {blogitem.oid && (
+          <Thumbnails accessToken={this.props.accessToken} oid={blogitem.oid} />
+        )}
         <p style={{ textAlign: 'right' }}>
           <Button
             size="mini"
