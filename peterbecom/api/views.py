@@ -5,7 +5,7 @@ from functools import wraps
 from urllib.parse import urlparse
 
 from django import http
-from django.core.exceptions import PermissionDenied
+
 from django.db.models import Count, Q
 from django.conf import settings
 from django.shortcuts import get_object_or_404
@@ -27,7 +27,8 @@ def api_superuser_required(view_func):
     def inner(request, *args, **kwargs):
         if not request.user.is_superuser:
             error_msg = "Must be superuser to access this view."
-            raise PermissionDenied(error_msg)
+            # raise PermissionDenied(error_msg)
+            return http.JsonResponse({"error": error_msg}, status=403)
         return view_func(request, *args, **kwargs)
 
     return inner

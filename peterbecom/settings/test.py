@@ -24,3 +24,10 @@ ROLLBAR = {
     "patch_debugview": False,
     "exception_level_filters": [(Http404, "ignored")],
 }
+
+OIDC_RP_CLIENT_ID = "bogus"
+OIDC_RP_CLIENT_SECRET = "evenmoresecret"
+
+AUTH0_DOMAIN = "peterbecom.auth0.example.com"
+
+OIDC_USER_ENDPOINT = "https://peterbecom.auth0.example.com/userinfooo"
