@@ -5,8 +5,10 @@ import logging
 import os
 import random
 import re
+
 # import zlib
 from collections import defaultdict
+
 # from io import BytesIO
 from statistics import median
 from urllib.parse import urlencode, urlparse
@@ -28,14 +30,16 @@ from django.views.decorators.cache import cache_control
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods, require_POST
 from fancy_cache import cache_page
+from huey.contrib.djhuey import task
 
 from peterbecom.awspa.models import AWSProduct
 from peterbecom.awspa.search import search as awspa_search
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
+
 # from peterbecom.bayes.guesser import default_guesser
 # from peterbecom.bayes.models import BayesData, BlogCommentTraining
 
-from . import tasks, utils
+from . import utils
 from .forms import BlogFileUpload, BlogForm, CalendarDataForm
 from .models import (
     BlogComment,
@@ -162,7 +166,7 @@ def blog_post_ping(request, oid):
             current_url = request.build_absolute_uri().split("/ping")[0]
             if current_url == http_referer:
                 http_referer = None
-        tasks.increment_blogitem_hit.delay(
+        increment_blogitem_hit(
             oid,
             http_user_agent=request.META.get("HTTP_USER_AGENT"),
             http_accept_language=request.META.get("HTTP_ACCEPT_LANGUAGE"),
@@ -170,6 +174,28 @@ def blog_post_ping(request, oid):
             http_referer=http_referer,
         )
     return http.JsonResponse({"ok": True})
+
+
+@task()
+def increment_blogitem_hit(
+    oid,
+    http_user_agent=None,
+    http_accept_language=None,
+    remote_addr=None,
+    http_referer=None,
+):
+    if http_referer and len(http_referer) > 450:
+        http_referer = http_referer[: 450 - 3] + "..."
+    try:
+        BlogItemHit.objects.create(
+            blogitem=BlogItem.objects.get(oid=oid),
+            http_user_agent=http_user_agent,
+            http_accept_language=http_accept_language,
+            http_referer=http_referer,
+            remote_addr=remote_addr,
+        )
+    except BlogItem.DoesNotExist:
+        print("Can't find BlogItem with oid {!r}".format(oid))
 
 
 def blog_screenshot(request, oid):
@@ -979,12 +1005,12 @@ def plog_open_graph_image(request, oid):
 @require_POST
 def preview_post(request, return_html_string=False):
     post_data = request.POST.dict()
-    post_data['categories'] = request.POST.getlist("categories[]")
+    post_data["categories"] = request.POST.getlist("categories[]")
     try:
         html_string = preview_by_data(post_data, request)
         return http.HttpResponse(html_string)
     except HTMLRenderingError as exception:
-        return http.JsonResponse({'error': str(exception)}, status=400)
+        return http.JsonResponse({"error": str(exception)}, status=400)
     except PreviewValidationError as form:
         return http.HttpResponse(str(form.errors))
 
