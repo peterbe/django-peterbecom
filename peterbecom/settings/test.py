@@ -31,3 +31,5 @@ OIDC_RP_CLIENT_SECRET = "evenmoresecret"
 AUTH0_DOMAIN = "peterbecom.auth0.example.com"
 
 OIDC_USER_ENDPOINT = "https://peterbecom.auth0.example.com/userinfooo"
+
+HUEY["always_eager"] = True  # noqa

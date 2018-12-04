@@ -5,7 +5,13 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from django.test import TestCase, Client
 
-from peterbecom.plog.models import BlogItem, BlogComment, Category, OneTimeAuthKey
+from peterbecom.plog.models import (
+    BlogItem,
+    BlogComment,
+    Category,
+    OneTimeAuthKey,
+    BlogItemHit,
+)
 from peterbecom.plog.utils import utc_now
 
 
@@ -162,3 +168,23 @@ code"""
         assert response.status_code == 301
         assert urlparse(response["location"]).path == url
         assert not urlparse(response["location"]).query
+
+    def test_blog_post_ping(self):
+        blog = BlogItem.objects.create(
+            oid="myoid",
+            title="TITLEX",
+            text="""
+            ttest test
+            """,
+            display_format="structuredtext",
+            pub_date=utc_now() - datetime.timedelta(seconds=10),
+        )
+        url = reverse("blog_post_ping", args=[blog.oid])
+        response = self.client.get(url)
+        assert response.status_code == 405
+        response = self.client.put(url)
+        assert response.status_code == 200
+        assert response.json()["ok"]
+
+        hit, = BlogItemHit.objects.all()
+        assert hit.blogitem == blog
