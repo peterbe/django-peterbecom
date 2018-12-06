@@ -3,7 +3,7 @@ import os
 import shutil
 import time
 
-from celery import shared_task
+from huey.contrib.djhuey import task
 from django.conf import settings
 from django.utils import timezone
 
@@ -13,7 +13,7 @@ from peterbecom.minify_html import minify_html
 from peterbecom.zopfli_file import zopfli_file
 
 
-@shared_task
+@task()
 def post_process_cached_html(filepath, url):
     if url.startswith("http://testserver"):
         # do nothing. testing.

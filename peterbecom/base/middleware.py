@@ -104,9 +104,8 @@ class FSCacheMiddleware:
                         hashlib.md5(force_bytes(absolute_url)).hexdigest(),
                     )
                     if not cache.get(cache_key):
-                        cache.set(cache_key, True, 20)
-                        # print("POST PROCESS!!!", fs_path)
-                        post_process_cached_html.delay(fs_path, absolute_url)
+                        cache.set(cache_key, True, 30)
+                        post_process_cached_html(fs_path, absolute_url)
 
         return response
 

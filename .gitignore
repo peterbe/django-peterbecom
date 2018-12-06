@@ -25,3 +25,4 @@ minimalcss/yarn-error.log
 .vscode/
 .pytest_cache/
 yarn-error.log
+htmlcov/
