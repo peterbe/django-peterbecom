@@ -424,7 +424,7 @@ HUEY = {
         # # ... tons of other options, see redis-py for details.
         # huey-specific connection parameters.
         "read_timeout": 1,  # If not polling (blocking pop), use timeout.
-        "max_errors": 1000,  # Only store the 1000 most recent errors.
+        "max_errors": 100,  # Only store the 1000 most recent errors.
         # 'url': None,  # Allow Redis config via a DSN.
         "url": REDIS_URL,  # Allow Redis config via a DSN.
     },
@@ -439,7 +439,7 @@ HUEY = {
         "periodic": True,  # Enable crontab feature.
         # "periodic": False,  # Enable crontab feature.
         "check_worker_health": True,  # Enable worker health checks.
-        "health_check_interval": 1,  # Check worker health every second.
+        "health_check_interval": 2,  # Check worker health every second.
     },
 }
 
