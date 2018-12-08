@@ -1,6 +1,5 @@
 import re
 import os
-import tempfile
 import time
 import logging
 from urllib.parse import urlencode
@@ -17,7 +16,6 @@ from django.urls import reverse
 from django.contrib.sites.requests import RequestSite
 from django.views.decorators.cache import cache_control
 from django.contrib.auth import logout
-from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.utils.html import strip_tags
 from django.views import static
@@ -28,7 +26,6 @@ from .utils import parse_ocs_to_categories, make_categories_q, split_search, STO
 from fancy_cache import cache_page
 from peterbecom.plog.utils import make_prefix
 from peterbecom.plog.search import BlogItemDoc, BlogCommentDoc
-from .tasks import sample_task
 
 
 logger = logging.getLogger("homepage")
@@ -586,23 +583,6 @@ def blog_post_by_alias(request, alias):
 @cache_page(ONE_MONTH)
 def humans_txt(request):
     return render(request, "homepage/humans.txt", content_type="text/plain")
-
-
-@login_required
-def celerytester(request):
-    if request.method == "POST":
-        filepath = os.path.join(tempfile.gettempdir(), "celerytester.log")
-        if os.path.isfile(filepath):
-            os.remove(filepath)
-        assert sample_task.delay(filepath)
-        for i in range(1, 5):
-            if os.path.isfile(filepath):
-                result = open(filepath).read()
-                os.remove(filepath)
-                return http.HttpResponse(result)
-            time.sleep(i)
-        return http.HttpResponse("Did not work :(")
-    return render(request, "homepage/celerytester.html")
 
 
 def signin(request):
