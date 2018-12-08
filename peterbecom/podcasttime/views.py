@@ -104,7 +104,7 @@ def find(request):
                                 podcast.name, podcast.id
                             )
                         )
-                        download_episodes_task.delay(podcast.id)
+                        download_episodes_task(podcast.id)
                         cache.set(cache_key, True, 60)
                 else:
                     podcast.save()
@@ -122,7 +122,7 @@ def find(request):
                             podcast["name"], podcast["id"]
                         )
                     )
-                    download_episodes_task.delay(podcast["id"])
+                    download_episodes_task(podcast["id"])
                     cache.set(cache_key, True, 60)
                 podcast["_updating"] = True
             found.append(podcast)
@@ -156,7 +156,7 @@ def find(request):
                     podcast.download_image(timeout=3)
                 except (ReadTimeout, ConnectTimeout):
                     redownload_podcast_image(podcast.id)
-                download_episodes_task.delay(podcast.id)
+                download_episodes_task(podcast.id)
                 # Reload since the task functions operate on a new instance
                 # podcast = Podcast.objects.get(id=podcast.id)
             found.append(package_podcast(podcast))
@@ -177,14 +177,14 @@ def find(request):
                             podcast["name"], podcast["id"]
                         )
                     )
-                    download_episodes_task.delay(podcast["id"])
+                    download_episodes_task(podcast["id"])
                     cache.set(cache_key, True, 60)
                     # this will force the client-side to re-query for this
                     podcast["last_fetch"] = None
             found.append(podcast)
         if total < 5:
             print("NOTHING FOUND!", q, "SENDING IT TO iTUNES")
-            search_by_itunes.delay(q)
+            search_by_itunes(q)
 
     if total is None:
         total = len(found)
@@ -413,12 +413,12 @@ def podcast_episodes(request, id):
         not episodes.exists()
         or episodes.count() == episodes.filter(title__isnull=True).count()
     ):
-        download_episodes_task.delay(id)
+        download_episodes_task(id)
 
     if podcast.link is None and podcast.summary is None and podcast.subtitle is None:
         cache_key = "download_podcast_metadata:{}".format(podcast.id)
         if not cache.get(cache_key):
-            download_podcast_metadata.delay(podcast.id)
+            download_podcast_metadata(podcast.id)
             cache.set(cache_key, True, 60)
 
     context["episodes"] = []
@@ -529,22 +529,22 @@ def podcast_data(request, id, slug=None):
         cache_key = "updating:episodes:{}".format(podcast.id)
         if not cache.get(cache_key):
             cache.set(cache_key, True, 60)
-            download_episodes_task.delay(podcast.id)
+            download_episodes_task(podcast.id)
             context["_updating"] = True
     episodes = Episode.objects.filter(podcast=podcast).order_by("-published")
     if podcast.image and is_html_document(podcast.image.path):
         print("Found a podcast.image that wasn't an image")
         podcast.image = None
         podcast.save()
-        redownload_podcast_image.delay(podcast.id)
+        redownload_podcast_image(podcast.id)
     elif not podcast.image and podcast.image_url:
-        redownload_podcast_image.delay(podcast.id)
+        redownload_podcast_image(podcast.id)
 
     if podcast.itunes_lookup is None:
-        fetch_itunes_lookup.delay(podcast.id)
+        fetch_itunes_lookup(podcast.id)
 
     if not episodes.exists():
-        download_episodes_task.delay(podcast.id)
+        download_episodes_task(podcast.id)
     context["episodes_count"] = episodes.count()
     context["episodes"] = []
     for episode in episodes:
@@ -567,7 +567,7 @@ def podcast_data(request, id, slug=None):
         podcast.image = None
         podcast.save()
         context["thumb"] = None
-        redownload_podcast_image.delay(podcast.id)
+        redownload_podcast_image(podcast.id)
     return http.JsonResponse(context)
 
 
