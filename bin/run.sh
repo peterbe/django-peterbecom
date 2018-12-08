@@ -39,19 +39,6 @@ case $1 in
     # export PYTHONWARNINGS=d
     exec python manage.py runserver 0.0.0.0:8000
     ;;
-  worker)
-    # echo "STARTING WORKER WITHOUT PURGE"
-    celery -A peterbecom worker -l info
-    ;;
-  worker-purge)
-    # Start worker but first purge ALL old stale tasks.
-    # Only useful in local development where you might have accidentally
-    # started waaaay too make background tasks when debugging something.
-    # Or perhaps the jobs belong to the wrong branch as you stop/checkout/start
-    # the docker container.
-    # echo "STARTING WORKER WITH PURGE"
-    celery -A peterbecom worker -l info --purge
-    ;;
   superuser)
     exec python manage.py superuser "${@:2}"
     ;;

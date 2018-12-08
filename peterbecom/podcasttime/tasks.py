@@ -1,5 +1,5 @@
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task
+from huey.contrib.djhuey import task
 from requests.exceptions import ReadTimeout, ConnectTimeout
 
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
@@ -8,7 +8,7 @@ from peterbecom.podcasttime.utils import get_podcast_metadata, NotFound
 from peterbecom.podcasttime.scraper import download_episodes, itunes_search
 
 
-@shared_task
+@task()
 def download_episodes_task(podcast_id, verbose=True):
     try:
         podcast = Podcast.objects.get(id=podcast_id)
@@ -26,7 +26,7 @@ def download_episodes_task(podcast_id, verbose=True):
         podcast.save()
 
 
-@shared_task
+@task()
 def redownload_podcast_image(podcast_id):
     podcast = Podcast.objects.get(id=podcast_id)
     try:
@@ -49,7 +49,7 @@ def redownload_podcast_image(podcast_id):
         raise
 
 
-@shared_task
+@task()
 def fetch_itunes_lookup(podcast_id):
     podcast = Podcast.objects.get(id=podcast_id)
     print("Fetching itunes lookup: {!r}".format(podcast.name))
@@ -86,7 +86,7 @@ def fetch_itunes_lookup(podcast_id):
         print("Found no results")
 
 
-@shared_task
+@task()
 def download_podcast_metadata(podcast_id):
     metadata = get_podcast_metadata(
         Podcast.objects.get(id=podcast_id).url,
@@ -105,7 +105,7 @@ def download_podcast_metadata(podcast_id):
         podcast.save()
 
 
-@shared_task
+@task()
 def search_by_itunes(q):
     try:
         print("ITUNES SEARCHING {!r}".format(q))

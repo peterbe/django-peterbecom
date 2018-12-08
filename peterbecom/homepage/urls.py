@@ -14,7 +14,6 @@ urlpatterns = [
     url("^About$", lambda x: HttpResponsePermanentRedirect("/about/")),
     url("^about$", views.about, name="about"),
     url("^contact$", views.contact, name="contact"),
-    url("^celerytester/$", views.celerytester, name="celerytester"),
     url("^signin/$", views.signin, name="signin"),
     url("^signout/$", views.signout, name="signout"),
     url("^oc-(?P<oc>.*)/p(?P<page>\d+)$", views.home, name="only_category_paged"),
