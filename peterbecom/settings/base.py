@@ -284,8 +284,6 @@ PIPELINE = {
 # REDIS_URL = 'redis://redis:6379/0'
 REDIS_URL = config("REDIS_URL", "redis://localhost:6379/0")
 
-CELERY_BROKER_URL = REDIS_URL
-
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",

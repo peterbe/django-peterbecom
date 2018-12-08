@@ -21,7 +21,6 @@ ES_CONNECTIONS = {
     },
 }
 REDIS_URL = 'redis://localhost:6379/0'
-CELERY_BROKER_URL = REDIS_URL
 HMAC_KEYS = {'some': 'thing'}
 SECRET_KEY = 'something'
 CACHES = {
@@ -30,7 +29,6 @@ CACHES = {
         'LOCATION': 'unique-snowflake'
     }
 }
-CELERY_TASK_ALWAYS_EAGER = True
 SETTINGS
 
 echo "Installing the node packages"
