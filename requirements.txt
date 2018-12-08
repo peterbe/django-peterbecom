@@ -228,9 +228,9 @@ MarkupSafe==1.1.0 \
     --hash=sha256:1c25694ca680b6919de53a4bb3bdd0602beafc63ff001fea2f2fc16ec3a11834 \
     --hash=sha256:7d263e5770efddf465a9e31b78362d84d015cc894ca2c131901a4445eaa61ee1 \
     --hash=sha256:4e97332c9ce444b0c2c38dd22ddc61c743eb208d916e4265a2a3b575bdccb1d3
-kombu==4.2.2 \
-    --hash=sha256:9bf7d37b93249b76a03afb7bbcf7149a358b6079ca2431e725414b1caa10922c \
-    --hash=sha256:52763f41077e25fe7e2f17b8319d8a7b7ab953a888c49d9e4e0464fceb716896
+kombu==4.2.1 \
+    --hash=sha256:86adec6c60f63124e2082ea8481bbe4ebe04fde8ebed32c177c7f0cd2c1c9082 \
+    --hash=sha256:b274db3a4eacc4789aeb24e1de3e460586db7c4fc8610f7adcc7a3a1709a60af
 billiard==3.5.0.5 \
     --hash=sha256:42d9a227401ac4fba892918bba0a0c409def5435c4b483267ebfe821afaaba0e
 python-dateutil==2.7.5 \
