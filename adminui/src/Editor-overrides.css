@@ -1,0 +1,4 @@
+.CodeMirror, .tui-editor-defaultUI {
+    font-family: SFMono-Regular, Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;
+    font-size: 13px;
+}
