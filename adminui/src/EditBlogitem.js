@@ -18,6 +18,18 @@ import { Link } from 'react-router-dom';
 import { addHours } from 'date-fns/esm';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 
+import 'codemirror/lib/codemirror.css'; // codemirror
+import 'tui-editor/dist/tui-editor.css'; // editor ui
+import 'tui-editor/dist/tui-editor-contents.css'; // editor content
+import 'highlight.js/styles/github.css'; // code block highlight
+
+import './Editor-overrides.css';
+
+import Editor from 'tui-editor';
+
+import 'tui-editor/dist/tui-editor-extTable.js';
+import 'tui-editor/dist/tui-editor-extScrollSync.js';
+
 import { DisplayDate, ShowServerError, BlogitemBreadcrumb } from './Common';
 import { BASE_URL } from './Config';
 
@@ -314,7 +326,8 @@ class EditForm extends React.PureComponent {
     hideLabels: JSON.parse(localStorage.getItem('hideLabels') || 'false'),
     showUnimportantFields: false,
     saving: false,
-    categories: null
+    categories: null,
+    useTuiEditor: window.sessionStorage.getItem('useTuiEditor') ? true : false
   };
 
   componentDidMount() {
@@ -343,8 +356,7 @@ class EditForm extends React.PureComponent {
     // this.categories = categories;
   };
 
-  onTextBlur = event => {
-    event.preventDefault();
+  onTextBlur = () => {
     this._submit(true);
   };
 
@@ -477,13 +489,46 @@ class EditForm extends React.PureComponent {
         </Form.Field>
         <Form.Field>
           {!hideLabels ? <label>Text</label> : null}
+          {this.state.useTuiEditor ? (
+            <TuiEditor
+              onBlur={() => {
+                this.onTextBlur();
+              }}
+              onChange={markdown => {
+                this.refs.text.ref.value = markdown;
+              }}
+              initial={
+                this.refs.text ? this.refs.text.ref.value : blogitem.text
+              }
+            />
+          ) : null}
           <TextArea
             ref="text"
             className="monospaced"
             rows={25}
-            onBlur={this.onTextBlur}
-            style={{ overscrollBehaviorY: 'contain' }}
+            onBlur={event => {
+              event.preventDefault(); // is this needed?
+              this.onTextBlur();
+            }}
+            style={{
+              overscrollBehaviorY: 'contain',
+              display: this.state.useTuiEditor ? 'none' : null
+            }}
           />
+          <Button
+            size="mini"
+            onClick={event => {
+              this.setState({ useTuiEditor: !this.state.useTuiEditor }, () => {
+                if (this.state.useTuiEditor) {
+                  window.sessionStorage.setItem('useTuiEditor', 'true');
+                } else {
+                  window.sessionStorage.removeItem('useTuiEditor');
+                }
+              });
+            }}
+          >
+            Toggle Editor
+          </Button>
         </Form.Field>
         <Form.Field>
           {!hideLabels ? <label>Summary</label> : null}
@@ -595,6 +640,31 @@ class EditForm extends React.PureComponent {
   }
 }
 
+class TuiEditor extends React.PureComponent {
+  componentDidMount() {
+    this.editor = new Editor({
+      el: document.querySelector('#editText'),
+      initialEditType: 'markdown',
+      previewStyle: 'vertical',
+      height: '800px',
+      usageStatistics: false,
+      initialValue: this.props.initial,
+      exts: ['scrollSync', 'table'],
+      events: {
+        change: () => {
+          this.props.onChange(this.editor.getMarkdown());
+        },
+        blur: () => {
+          this.props.onBlur();
+        }
+      }
+    });
+  }
+  render() {
+    return <div id="editText" />;
+  }
+}
+
 class PreviewBlogitem extends React.PureComponent {
   render() {
     const { data } = this.props;
@@ -685,7 +755,6 @@ class Thumbnails extends React.PureComponent {
           Hide thumbnails
         </Button>
         {images.map(image => {
-          // console.log(image);
           return (
             <Card.Group key={image.full_url}>
               {keys.map(key => {
