@@ -124,12 +124,6 @@ def _blog_post_key_prefixer(request):
         cache.set(cache_key, latest_date, ONE_MONTH)
     prefix += str(latest_date)
 
-    # if not all_comments:
-    #     # temporary solution because I can't get Google Analytics API to work
-    #     ua = request.META.get('HTTP_USER_AGENT', '')
-    #     if not utils.is_bot(ua):
-    #         tasks.increment_blogitem_hit.delay(oid)
-
     # This is a HACK!
     # This prefixer function gets called, first for the request,
     # then for the response. The answer is not going to be any different.

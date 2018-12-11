@@ -47,7 +47,7 @@ def blogitems(request):
         if form.is_valid():
             item = form.save()
             assert item._render(refresh=True)
-            context = {"blogitem": {"id": item.id}}
+            context = {"blogitem": {"id": item.id, "oid": item.oid}}
             return _response(context, status=201)
         else:
             return _response({"errors": form.errors}, status=400)

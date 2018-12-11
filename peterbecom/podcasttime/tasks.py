@@ -134,7 +134,7 @@ def search_by_itunes(q):
                 podcast.download_image(timeout=3)
             except (ReadTimeout, ConnectTimeout):
                 redownload_podcast_image(podcast.id)
-            download_episodes_task.delay(podcast.id)
+            download_episodes_task(podcast.id)
             count_new += 1
 
     print("Found {} new podcasts by iTunes search".format(count_new))
