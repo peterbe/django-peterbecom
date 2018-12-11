@@ -79,7 +79,7 @@ class Command(BaseCommand):
         )
         for podcast in podcasts.order_by("?")[:10]:
             print("Fetching itunes lookup for", repr(podcast))
-            fetch_itunes_lookup.delay(podcast.id)
+            fetch_itunes_lookup(podcast.id)
             time.sleep(4)
 
     def reset_missing_images(self):

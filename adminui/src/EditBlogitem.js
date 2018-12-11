@@ -468,6 +468,7 @@ class EditForm extends React.PureComponent {
           <Input
             ref="oid"
             error={!!validationErrors.oid}
+            placeholder="OID..."
             onChange={event => {
               if (!this.oidTouched) {
                 this.oidTouched = true;
@@ -480,6 +481,7 @@ class EditForm extends React.PureComponent {
           <Input
             ref="title"
             error={!!validationErrors.title}
+            placeholder="Title..."
             onChange={event => {
               if (!this.oidTouched && !this.props.blogitem.oid) {
                 this.refs.oid.inputRef.value = slugify(event.target.value);
@@ -532,7 +534,7 @@ class EditForm extends React.PureComponent {
         </Form.Field>
         <Form.Field>
           {!hideLabels ? <label>Summary</label> : null}
-          <TextArea ref="summary" rows={4} />
+          <TextArea ref="summary" placeholder="Optional summary..." rows={4} />
         </Form.Field>
         <Form.Field>
           {!hideLabels ? <label>URL</label> : null}

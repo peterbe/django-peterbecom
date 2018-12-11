@@ -3,14 +3,7 @@ import React from 'react';
 import { formatDistance } from 'date-fns/esm';
 import { BrowserRouter as Router, Link, Route, Switch } from 'react-router-dom';
 import 'semantic-ui-css/semantic.min.css';
-import {
-  Container,
-  Dropdown,
-  // List,
-  Loader,
-  Menu
-  // Segment
-} from 'semantic-ui-react';
+import { Container, Dropdown, Loader, Menu } from 'semantic-ui-react';
 import './copy-of-highlight.css';
 import './App.css';
 import {
@@ -159,9 +152,9 @@ class App extends React.Component {
         <div>
           <Menu fixed="top" inverted>
             <Container>
-              <Menu.Item as="a" header>
+              <Menu.Item header>
                 {/* <Image size="mini" src="/logo.png" style={{ marginRight: '1.5em' }} /> */}
-                Peterbe.com Admin UI
+                <Link to="/">Peterbe.com Admin UI</Link>
               </Menu.Item>
               <Menu.Item>
                 <Link to="/">Home</Link>
@@ -180,7 +173,7 @@ class App extends React.Component {
                       Add new blogitem
                     </Link>
                   </Dropdown.Item>
-                  <Dropdown.Divider />
+                  {/* <Dropdown.Divider />
                   <Dropdown.Header>Header Item</Dropdown.Header>
                   <Dropdown.Item>
                     <i className="dropdown icon" />
@@ -190,7 +183,7 @@ class App extends React.Component {
                       <Dropdown.Item>List Item</Dropdown.Item>
                     </Dropdown.Menu>
                   </Dropdown.Item>
-                  <Dropdown.Item>List Item</Dropdown.Item>
+                  <Dropdown.Item>List Item</Dropdown.Item> */}
                 </Dropdown.Menu>
               </Dropdown>
 
