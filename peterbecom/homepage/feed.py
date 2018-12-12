@@ -6,7 +6,7 @@ from peterbecom.plog.models import BlogItem
 from .utils import parse_ocs_to_categories, make_categories_q
 
 
-smart_static_urls = re.compile('src="//')
+smart_static_urls = re.compile(r'src="//')
 
 
 class PlogFeed(Feed):
@@ -43,7 +43,7 @@ class PlogFeed(Feed):
             #  <img src="//aoisjdeqwd.cloudfront/oijsdfa.jpg"
             # should default to
             #  <img src="http://aoisjdeqwd.cloudfront/oijsdfa.jpg"
-            summary = smart_static_urls.sub('src="http://', summary)
+            summary = smart_static_urls.sub('src="https://', summary)
             # this is to please
             # http://validator.w3.org/feed/check.cgi?url=http%3A%2F%2Fwww.peterbe.com%2Frss.xml
         return summary
