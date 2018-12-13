@@ -8,8 +8,8 @@ import zipfile
 from glob import glob
 
 from django.conf import settings
-from django.core.management.base import BaseCommand
 
+from peterbecom.base.basecommand import BaseCommand
 from peterbecom.brotli_file import brotli_file
 from peterbecom.zopfli_file import zopfli_file
 
@@ -71,7 +71,7 @@ def are_dir_trees_equal(dir1, dir2):
     return True
 
 
-def patient_isfile_check(fp, sleep=3, max_attempts=5, impatient=False):
+def patient_isfile_check(fp, sleep=5, max_attempts=5, impatient=False):
     attempts = 0
     while True:
         if not os.path.isfile(fp):
@@ -101,7 +101,7 @@ class Command(BaseCommand):
             help="Exit on errors immediately",
         )
 
-    def handle(self, **options):
+    def _handle(self, **options):
         dry_run = options["dry_run"]
         impatient = options["impatient"]
 
