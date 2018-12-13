@@ -71,6 +71,21 @@ def are_dir_trees_equal(dir1, dir2):
     return True
 
 
+def patient_isfile_check(fp, sleep=3, max_attempts=5, impatient=False):
+    attempts = 0
+    while True:
+        if not os.path.isfile(fp):
+            if attempts > max_attempts:
+                raise SongsearchAutocompleteError(
+                    "The file {} does not exist".format(fp)
+                )
+            attempts += 1
+            print("{} did not exist. Sleeping and trying again later...".format(fp))
+            time.sleep(sleep)
+            continue
+        break
+
+
 class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
@@ -79,9 +94,16 @@ class Command(BaseCommand):
             default=False,
             help="Print instead of deleting",
         )
+        parser.add_argument(
+            "--impatient",
+            action="store_true",
+            default=False,
+            help="Exit on errors immediately",
+        )
 
     def handle(self, **options):
         dry_run = options["dry_run"]
+        impatient = options["impatient"]
 
         # Unzip and zopfli if the content has changed.
         autocompleteroot = os.path.join(settings.BASE_DIR, "songsearch-autocomplete")
@@ -128,10 +150,9 @@ class Command(BaseCommand):
         template = os.path.join(
             contentroot, "_FSCACHE/plog/blogitem-040601-1/index.html"
         )
-        if not os.path.isfile(template):
-            raise SongsearchAutocompleteError(
-                "The file {} does not exist".format(template)
-            )
+        if not impatient:
+            patient_isfile_check(template)
+        assert os.path.isfile(template), template
         with open(template) as f:
             original_content = content = f.read()
 
