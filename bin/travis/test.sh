@@ -7,7 +7,9 @@ curl -v http://localhost:9200/
 
 pytest peterbecom
 
-# Go into the adminui directory and expect to be able to run yarn run build
-pushd adminui
-yarn run build
-popd
+
+# See comment in install.sh for why this commented out.
+# # Go into the adminui directory and expect to be able to run yarn run build
+# pushd adminui
+# yarn run build
+# popd

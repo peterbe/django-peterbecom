@@ -3,7 +3,7 @@
 # Needed to install custom java and elasticsearch
 sudo: required
 
-dist: xenial
+dist: trusty
 
 services:
   - postgresql
@@ -29,8 +29,6 @@ before_install:
   - psql -V
   - psql -c 'create database peterbecom;' -U postgres
   - curl -o- -L https://yarnpkg.com/install.sh | bash
-  - sudo apt-get -y update && sudo apt-get -y install nodejs
-  - node --version
   - export PATH=$HOME/.yarn/bin:$PATH
   - yarn --version
 
