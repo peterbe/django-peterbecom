@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "auth0-js": "9.8.2",
+    "date-fns": "2.0.0-alpha.26",
     "react": "16.6.3",
     "react-copy-to-clipboard": "5.0.1",
     "react-dom": "16.6.3",
@@ -10,6 +12,7 @@
     "react-scripts": "2.1.1",
     "semantic-ui-css": "2.4.1",
     "semantic-ui-react": "0.83.0",
+    "throttle-debounce": "2.0.1",
     "tui-editor": "1.2.8"
   },
   "scripts": {

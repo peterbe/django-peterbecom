@@ -75,11 +75,15 @@ PIPELINE_JS = {
     "base": {
         "source_filenames": (
             "libs/jquery-3.3.1.min.js",
-            "js/prefetcher.js",
             "js/site.js",
             "js/blogitem.js",
         ),
         "output_filename": "js/base.min.js",
+        "extra_context": {"defer": True},
+    },
+    "prefetcher": {
+        "source_filenames": ("js/prefetcher.es6",),
+        "output_filename": "js/prefetcher.min.js",
         "extra_context": {"defer": True},
     },
     "lyrics": {

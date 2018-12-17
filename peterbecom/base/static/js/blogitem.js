@@ -210,7 +210,7 @@ $(function() {
   if ($('#preview-comment-outer').length) {
     $('div.comment a.metadata').each(function() {
       var date = $(this);
-      var reply = $('<a class="metadata reply">Reply</a>');
+      var reply = $('<a class="metadata reply" rel="nofollow">Reply</a>');
       var oid = date.attr('href').split('#')[1];
       reply.attr('href', '#' + oid);
       reply.data('oid', oid);
