@@ -28,6 +28,7 @@ before_install:
   - curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.2.1.deb && sudo dpkg -i --force-confnew elasticsearch-6.2.1.deb && sudo service elasticsearch start
   - psql -V
   - psql -c 'create database peterbecom;' -U postgres
+  - curl -o- -L https://yarnpkg.com/install.sh | bash
 
 install:
   - bin/travis/install.sh

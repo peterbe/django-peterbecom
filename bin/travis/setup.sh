@@ -31,9 +31,6 @@ CACHES = {
 }
 SETTINGS
 
-echo "Installing the node packages"
-yarn
-
 echo "Where is 'babel' installed?"
 which babel
 
