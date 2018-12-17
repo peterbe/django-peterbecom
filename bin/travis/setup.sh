@@ -29,9 +29,14 @@ CACHES = {
         'LOCATION': 'unique-snowflake'
     }
 }
+BABEL_BINARY = "./node_modules/.bin/babel"
 SETTINGS
 
-echo "Where is 'babel' installed?"
-which babel
+echo "Version of babel?"
+./node_modules/.bin/babel --version
+
+
+# echo "Where is 'babel' installed?"
+# which babel
 
 ./manage.py collectstatic --noinput
