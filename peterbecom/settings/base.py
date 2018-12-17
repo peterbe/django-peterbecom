@@ -279,6 +279,8 @@ PIPELINE = {
     # run collectstatic for you on each and every request and
     # pipeline jinja tag.
     "PIPELINE_COLLECTOR_ENABLED": False,
+    # For those .es6 files.
+    "COMPILERS": ("pipeline.compilers.es6.ES6Compiler",),
 }
 
 # REDIS_URL = 'redis://redis:6379/0'
