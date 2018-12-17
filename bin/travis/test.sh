@@ -6,3 +6,8 @@ set -e
 curl -v http://localhost:9200/
 
 pytest peterbecom
+
+# Go into the adminui directory and expect to be able to run yarn run build
+pushd adminui
+yarn run build
+popd
