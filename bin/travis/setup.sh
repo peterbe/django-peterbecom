@@ -34,8 +34,5 @@ SETTINGS
 echo "Version of babel?"
 ./node_modules/.bin/babel --version
 
-
-# echo "Where is 'babel' installed?"
-# which babel
-
+echo "Run collect static to collect all final static assets."
 ./manage.py collectstatic --noinput

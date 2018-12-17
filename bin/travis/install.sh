@@ -10,3 +10,8 @@ pip install -r requirements.txt
 
 echo "Installing the node packages"
 yarn
+
+echo "Install packages for adminui"
+pushd adminui
+yarn
+popd
