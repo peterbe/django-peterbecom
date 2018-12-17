@@ -29,7 +29,6 @@ CACHES = {
         'LOCATION': 'unique-snowflake'
     }
 }
-BABEL_BINARY = "./node_modules/.bin/babel"
 SETTINGS
 
 echo "Version of babel?"

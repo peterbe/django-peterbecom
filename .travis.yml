@@ -29,9 +29,9 @@ before_install:
   - psql -V
   - psql -c 'create database peterbecom;' -U postgres
   - curl -o- -L https://yarnpkg.com/install.sh | bash
-  - which yarn
+  # - which yarn
   - export PATH=$HOME/.yarn/bin:$PATH
-  - which yarn
+  # - which yarn
   - yarn --version
 
 install:
