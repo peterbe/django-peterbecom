@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% block meta_description %}{% if post.summary %}{{ post.summary }}{% else %}{{ super() }}{% endif %}{% endblock %}
+
 {% block extrahead %}
   {% if screenshot_mode %}
     <meta name="robots" content="noindex, nofollow">

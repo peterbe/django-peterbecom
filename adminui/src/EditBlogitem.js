@@ -327,7 +327,8 @@ class EditForm extends React.PureComponent {
     showUnimportantFields: false,
     saving: false,
     categories: null,
-    useTuiEditor: window.sessionStorage.getItem('useTuiEditor') ? true : false
+    useTuiEditor: window.sessionStorage.getItem('useTuiEditor') ? true : false,
+    summaryTouched: false
   };
 
   componentDidMount() {
@@ -520,6 +521,7 @@ class EditForm extends React.PureComponent {
           <Button
             size="mini"
             onClick={event => {
+              event.preventDefault();
               this.setState({ useTuiEditor: !this.state.useTuiEditor }, () => {
                 if (this.state.useTuiEditor) {
                   window.sessionStorage.setItem('useTuiEditor', 'true');
@@ -534,7 +536,31 @@ class EditForm extends React.PureComponent {
         </Form.Field>
         <Form.Field>
           {!hideLabels ? <label>Summary</label> : null}
-          <TextArea ref="summary" placeholder="Optional summary..." rows={4} />
+          <TextArea
+            ref="summary"
+            placeholder="Optional summary..."
+            rows={4}
+            onChange={event => {
+              if (!this.state.summaryTouched) {
+                this.setState({ summaryTouched: true });
+              }
+            }}
+          />
+          {!this.state.summaryTouched && (
+            <Button
+              size="mini"
+              onClick={event => {
+                event.preventDefault();
+                let summary = this.refs.text.ref.value.split(/\n\n+/)[0];
+                while (summary.startsWith('*') && summary.endsWith('*')) {
+                  summary = summary.slice(1, summary.length - 1);
+                }
+                this.refs.summary.ref.value = summary.trim();
+              }}
+            >
+              Suggest Summary
+            </Button>
+          )}
         </Form.Field>
         <Form.Field>
           {!hideLabels ? <label>URL</label> : null}
