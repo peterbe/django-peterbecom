@@ -62,6 +62,7 @@ def blogitems(request):
             "modify_date": item.modify_date,
             "categories": [{"id": x.id, "name": x.name} for x in item.categories.all()],
             "keywords": item.proper_keywords,
+            "summary": item.summary,
         }
 
     page = int(request.GET.get("page", 1))

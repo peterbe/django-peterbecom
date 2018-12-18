@@ -174,6 +174,10 @@ class BlogitemsTable extends React.PureComponent {
                       Published <DisplayDate date={item.pub_date} />
                     </Label>
                   ) : null}
+
+                  {!item.summary && (
+                    <Label circular empty color="brown" title="No summary!" />
+                  )}
                 </Table.Cell>
                 <Table.Cell>
                   <DisplayDate date={item.modify_date} />
