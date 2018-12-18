@@ -91,11 +91,6 @@ PIPELINE_JS = {
         "output_filename": "js/lyrics.min.js",
         "extra_context": {"defer": True},
     },
-    "google_analytics": {
-        "source_filenames": ("js/google-analytics.js",),
-        "output_filename": "js/google-analytics.min.js",
-        "extra_context": {"async": True},
-    },
     "cssrelpreload": {
         "source_filenames": ("js/cssrelpreload.js",),
         "output_filename": "js/cssrelpreload.min.js",

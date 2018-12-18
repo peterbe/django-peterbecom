@@ -18,7 +18,12 @@
   <link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
 
   {% if use_google_analytics %}
-  {% javascript 'google_analytics' %}
+  <script>
+  window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+  ga('create', 'UA-94373-1', 'auto');
+  ga('set', 'transport', 'beacon');
+  ga('send', 'pageview');
+  </script>
   <script src="https://www.google-analytics.com/analytics.js" async></script>
   {% endif %}
 
