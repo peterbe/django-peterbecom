@@ -1,8 +1,9 @@
 import React from 'react';
 import './App.css';
 import { throttle, debounce } from 'throttle-debounce';
-import placeholderImage from './placeholder40x40.png';
 
+const placeholderImage =
+  process.env.PUBLIC_URL + '/static/placeholder40x40.png';
 const SERVER = process.env.REACT_APP_SERVER_URL || 'https://songsear.ch';
 
 function appendSuggestion(text, append) {
@@ -518,7 +519,9 @@ function SongImage({ image, name }) {
     // Don't even bother with lazy loading.
     return <img className="img-rounded" src={placeholderImage} alt={name} />;
   }
-  const absoluteUrl = absolutifyUrl(image.url);
+  const absoluteUrl = absolutifyUrl(
+    image.thumbnail100 ? image.thumbnail100 : image.url
+  );
   if (convertedLazyImagesCache[absoluteUrl]) {
     return <img className="img-rounded" src={absoluteUrl} alt={name} />;
   }
