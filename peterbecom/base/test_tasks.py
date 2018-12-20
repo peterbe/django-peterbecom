@@ -1,8 +1,11 @@
 import os
 
+import pytest
+
 from peterbecom.base import tasks
 
 
+@pytest.mark.django_db
 def test_post_process_cached_html_happy_path(tmpfscacheroot, requestsmock, settings):
     print(settings.MINIMALCSS_SERVER_URL + "/minimize")
     requestsmock.post(
