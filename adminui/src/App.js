@@ -17,6 +17,7 @@ import Dashboard from './Dashboard';
 import { AddBlogitem, EditBlogitem } from './EditBlogitem';
 import OpenGraphImageBlogitem from './OpenGraphImageBlogitem';
 import UploadImages from './UploadImages';
+import PostProcessings from './PostProcessings';
 
 class App extends React.Component {
   state = {
@@ -264,6 +265,12 @@ class App extends React.Component {
               <SecureRoute
                 path="/plog/:oid"
                 component={EditBlogitem}
+                accessToken={this.state.accessToken}
+              />
+              <SecureRoute
+                path="/postprocessings"
+                exact
+                component={PostProcessings}
                 accessToken={this.state.accessToken}
               />
               <Route component={NoMatch} />

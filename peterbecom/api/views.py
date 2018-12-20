@@ -1,3 +1,4 @@
+import datetime
 import os
 import re
 import json
@@ -10,7 +11,9 @@ from django.db.models import Count, Q
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.db.models import Min, Max, Avg
 
+from peterbecom.base.models import PostProcessing
 from peterbecom.plog.models import BlogItem, Category, BlogFile
 from peterbecom.plog.views import PreviewValidationError, preview_by_data
 from .forms import EditBlogForm, BlogFileUpload
@@ -264,3 +267,96 @@ def _post_thumbnails(blogitem):
             }
         images.append(image)
     return images
+
+
+@api_superuser_required
+def postprocessings_statistics(request):
+
+    context = {"groups": []}
+
+    base_qs = PostProcessing.objects.filter(duration__isnull=False)
+
+    ongoing = PostProcessing.ongoing().count()
+    last24h = base_qs.filter(
+        created__gte=timezone.now() - datetime.timedelta(days=1)
+    ).count()
+    last1h = base_qs.filter(
+        created__gte=timezone.now() - datetime.timedelta(seconds=3600)
+    ).count()
+    last7d = base_qs.filter(
+        created__gte=timezone.now() - datetime.timedelta(days=1)
+    ).count()
+
+    def fmt(x):
+        return format(x, ",")
+
+    context["groups"].append(
+        {
+            "label": "Counts",
+            "key": "counts",
+            "items": [
+                {"key": "ongoing", "label": "Ongoing", "value": fmt(ongoing)},
+                {"key": "last1h", "label": "Last 1h", "value": fmt(last1h)},
+                {"key": "last24h", "label": "Last 24h", "value": fmt(last24h)},
+                {"key": "last7d", "label": "Last 7 days", "value": fmt(last7d)},
+            ],
+        }
+    )
+
+    def fmt_seconds(s):
+        return "{:.1f}".format(s)
+
+    last, = base_qs.filter(exception__isnull=True).order_by("-created")[:1]
+    last_duration = last.duration
+
+    context["groups"].append(
+        {
+            "label": "Rates (seconds)",
+            "key": "rates",
+            "items": [
+                {
+                    "key": "last",
+                    "label": "Last one",
+                    "value": fmt_seconds(last_duration.total_seconds()),
+                }
+            ],
+        }
+    )
+
+    avg7d = base_qs.filter(
+        exception__isnull=True, created__gte=timezone.now() - datetime.timedelta(days=7)
+    ).aggregate(duration=Avg("duration"))["duration"]
+    if avg7d:
+        context["groups"][-1]["items"].append(
+            {
+                "key": "avg7d",
+                "label": "Avg (7d)",
+                "value": fmt_seconds(avg7d.total_seconds()),
+            }
+        )
+
+    best7d = base_qs.filter(
+        exception__isnull=True, created__gte=timezone.now() - datetime.timedelta(days=7)
+    ).aggregate(duration=Min("duration"))["duration"]
+    if best7d:
+        context["groups"][-1]["items"].append(
+            {
+                "key": "best7d",
+                "label": "Best (7d)",
+                "value": fmt_seconds(best7d.total_seconds()),
+            }
+        )
+
+    worst7d = base_qs.filter(
+        exception__isnull=True, created__gte=timezone.now() - datetime.timedelta(days=7)
+    ).aggregate(duration=Max("duration"))["duration"]
+    if worst7d:
+        context["groups"][-1]["items"].append(
+            {
+                "key": "worst7d",
+                "label": "Worst (7d)",
+                "value": fmt_seconds(worst7d.total_seconds()),
+            }
+        )
+
+    return _response(context)

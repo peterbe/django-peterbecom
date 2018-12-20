@@ -35,6 +35,9 @@ class DashboardLinks extends React.PureComponent {
         <Segment>
           <Link to="/plog/comments">Comments</Link>
         </Segment>
+        <Segment>
+          <Link to="/postprocessings">Post Processings</Link>
+        </Segment>
       </Segment.Group>
     );
   }

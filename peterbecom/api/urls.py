@@ -14,5 +14,10 @@ urlpatterns = [
     ),
     url("^plog/(.*)$", views.blogitem, name="blogitem"),
     url("^categories/?$", views.categories, name="categories"),
+    url(
+        "^postprocessings/statistics",
+        views.postprocessings_statistics,
+        name="postprocessings_statistics",
+    ),
     url("", views.catch_all, name="catch_all"),
 ]
