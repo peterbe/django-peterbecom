@@ -1,20 +1,51 @@
+import datetime
+import functools
 import gzip
 import os
 import shutil
+import sys
 import time
+import traceback
+from io import StringIO
 
-from huey.contrib.djhuey import task
 from django.conf import settings
 from django.utils import timezone
+from huey.contrib.djhuey import task
 
+from peterbecom.base.models import PostProcessing
 from peterbecom.brotli_file import brotli_file
 from peterbecom.mincss_response import mincss_html
 from peterbecom.minify_html import minify_html
 from peterbecom.zopfli_file import zopfli_file
 
 
+def measure_post_process(func):
+    @functools.wraps(func)
+    def inner(filepath, url):
+        record = PostProcessing.objects.create(filepath=filepath, url=url)
+        t0 = time.perf_counter()
+        _exception = False
+        try:
+            return func(filepath, url, postprocessing=record)
+        except Exception as e:
+            _exception = True
+            raise
+        finally:
+            t1 = time.perf_counter()
+            if _exception:
+                etype, evalue, tb = sys.exc_info()
+                out = StringIO()
+                traceback.print_exception(etype, evalue, tb, file=out)
+                record.exception = out.getvalue()
+            record.duration = datetime.timedelta(seconds=t1 - t0)
+            record.save()
+
+    return inner
+
+
 @task()
-def post_process_cached_html(filepath, url):
+@measure_post_process
+def post_process_cached_html(filepath, url, postprocessing):
     if url.startswith("http://testserver"):
         # do nothing. testing.
         return
@@ -29,7 +60,14 @@ def post_process_cached_html(filepath, url):
         with open(filepath) as f:
             html = f.read()
 
+        t0 = time.perf_counter()
         optimized_html = mincss_html(html, url)
+        t1 = time.perf_counter()
+        postprocessing.notes.append(
+            "mincss_html HTML from {} to {} took {:.1f}s".format(
+                len(html), len(optimized_html), t1 - t0
+            )
+        )
         attempts += 1
         if optimized_html is None:
             print(
@@ -38,6 +76,7 @@ def post_process_cached_html(filepath, url):
             if attempts < 3:
                 print("Will try again!")
                 continue
+            postprocessing.notes.append("Gave up after {} attempts".format(attempts))
             return
 
         if original_ts != os.stat(filepath).st_mtime:
@@ -45,6 +84,7 @@ def post_process_cached_html(filepath, url):
                 "WARNING!! The original HTML file changed ({}) whilst "
                 "running mincss_html".format(filepath)
             )
+            postprocessing.notes.append("The original HTML file changed whilst running")
             continue
 
         shutil.move(filepath, filepath + ".original")
@@ -54,10 +94,20 @@ def post_process_cached_html(filepath, url):
         break
 
     if not url.endswith("/plog/blogitem-040601-1"):
+        t0 = time.perf_counter()
         minified_html = _minify_html(filepath, url)
+        t1 = time.perf_counter()
+        postprocessing.notes.append("Took {:.1f}s to minify HTML".format(t1 - t0))
 
+        t0 = time.perf_counter()
         _zopfli_html(minified_html and minified_html or optimized_html, filepath, url)
+        t1 = time.perf_counter()
+        postprocessing.notes.append("Took {:.1f}s to Zopfli HTML".format(t1 - t0))
+
+        t0 = time.perf_counter()
         _brotli_html(minified_html and minified_html or optimized_html, filepath, url)
+        t1 = time.perf_counter()
+        postprocessing.notes.append("Took {:.1f}s to Brotli HTML".format(t1 - t0))
 
 
 def _minify_html(filepath, url):
