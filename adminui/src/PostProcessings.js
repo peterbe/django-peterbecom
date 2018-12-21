@@ -6,6 +6,7 @@ import {
   Container,
   Loader,
   Statistic,
+  Table,
   Input
 } from 'semantic-ui-react';
 
@@ -17,6 +18,7 @@ class PostProcessings extends React.Component {
     loading: false,
     serverError: null,
     statistics: null,
+    records: null,
     loopSeconds: null
   };
 
@@ -36,7 +38,7 @@ class PostProcessings extends React.Component {
     }
     let response;
     try {
-      response = await fetch('/api/v0/postprocessings/statistics', {
+      response = await fetch('/api/v0/postprocessings/', {
         headers: {
           Authorization: `Bearer ${accessToken}`
         }
@@ -50,7 +52,11 @@ class PostProcessings extends React.Component {
     }
     if (response.ok) {
       const data = await response.json();
-      this.setState({ statistics: data, serverError: null });
+      this.setState({
+        statistics: data.statistics,
+        records: data.records,
+        serverError: null
+      });
     } else {
       this.setState({ serverError: response });
     }
@@ -69,7 +75,7 @@ class PostProcessings extends React.Component {
   };
 
   render() {
-    const { loading, serverError, statistics } = this.state;
+    const { loading, serverError, statistics, records } = this.state;
 
     return (
       <Container textAlign="center">
@@ -88,14 +94,17 @@ class PostProcessings extends React.Component {
         )}
         {statistics && <Statistics statistics={statistics} />}
 
-        {statistics && (
+        <Divider />
+        {records && <Records records={records} />}
+
+        <Divider />
+        {(statistics || records) && (
           <div>
-            <Divider />
             <Checkbox
               toggle
               onChange={event => {
                 if (!this.state.loopSeconds) {
-                  this.setState({ loopSeconds: 5 }, () => {
+                  this.setState({ loopSeconds: 10 }, () => {
                     this.startLoop();
                   });
                 } else {
@@ -198,6 +207,71 @@ class Statistics extends React.PureComponent {
         )}
       </div>
     );
-    // return <Statistic.Group items={statistics.items} />;
+  }
+}
+
+class Records extends React.PureComponent {
+  state = { differentIds: [] };
+  componentDidUpdate(prevProps, prevState) {
+    if (equalArrays(prevState.differentIds, this.state.differentIds)) {
+      const before = prevProps.records.map(r => r.id);
+      const now = this.props.records.map(r => r.id);
+      const differentIds = now.filter(id => !before.includes(id));
+      if (!equalArrays(differentIds, this.state.differentIds)) {
+        this.setState({ differentIds });
+      }
+    }
+  }
+  render() {
+    const { records } = this.props;
+    const { differentIds } = this.state;
+    return (
+      <Table celled>
+        <Table.Header>
+          <Table.Row>
+            <Table.HeaderCell>URL</Table.HeaderCell>
+            <Table.HeaderCell>Duration</Table.HeaderCell>
+            <Table.HeaderCell>Exception</Table.HeaderCell>
+            <Table.HeaderCell>Notes</Table.HeaderCell>
+          </Table.Row>
+        </Table.Header>
+
+        <Table.Body>
+          {records.map(record => {
+            return (
+              <Table.Row
+                key={record.id}
+                negative={record.exception}
+                warning={differentIds.includes(record.id)}
+              >
+                <Table.Cell>
+                  <a
+                    href={record.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={record.filepath}
+                  >
+                    {new URL(record.url).pathname}
+                  </a>
+                </Table.Cell>
+                <Table.Cell>
+                  {record.duration ? `${record.duration.toFixed(1)}s` : 'n/a'}
+                </Table.Cell>
+                <Table.Cell>
+                  {record.exception ? <pre>{record.exception}</pre> : null}
+                </Table.Cell>
+                <Table.Cell>
+                  <ul style={{ margin: 0 }}>
+                    {record.notes.map((note, i) => {
+                      return <li key={i}>{note}</li>;
+                    })}
+                  </ul>
+                </Table.Cell>
+              </Table.Row>
+            );
+          })}
+        </Table.Body>
+      </Table>
+    );
   }
 }
