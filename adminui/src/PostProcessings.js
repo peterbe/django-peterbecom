@@ -258,7 +258,8 @@ class Records extends React.PureComponent {
                   {record._previous && (
                     <span>
                       {' '}
-                      (last time was: <DisplayDate date={record.created} />)
+                      (last time was:{' '}
+                      <DisplayDate date={record._previous.created} />)
                     </span>
                   )}
                 </Table.Cell>
