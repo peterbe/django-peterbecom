@@ -4,6 +4,11 @@ INLINE_RUNTIME_CHUNK=false yarn run build
 
 rm -fr build.zip
 pushd build
+
+# Clean things up first
+find . | grep --color=never '\~$' |  xargs rm -f
+find . -name '\.DS_Store' | xargs rm -fr
+
 time zopfli -i500 static/js/*.js
 time zopfli -i500 static/css/*.css
 time brotli static/js/*.js

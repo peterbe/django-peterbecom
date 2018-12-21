@@ -3,7 +3,8 @@ import './App.css';
 import { throttle, debounce } from 'throttle-debounce';
 
 const placeholderImage =
-  process.env.PUBLIC_URL + '/static/placeholder40x40.png';
+  process.env.PUBLIC_URL +
+  '/static/songsearch-autocomplete-static/placeholder40x40.png';
 const SERVER = process.env.REACT_APP_SERVER_URL || 'https://songsear.ch';
 
 function appendSuggestion(text, append) {
