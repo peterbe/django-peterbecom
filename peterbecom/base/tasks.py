@@ -63,11 +63,17 @@ def post_process_cached_html(filepath, url, postprocessing):
         t0 = time.perf_counter()
         optimized_html = mincss_html(html, url)
         t1 = time.perf_counter()
-        postprocessing.notes.append(
-            "mincss_html HTML from {} to {} took {:.1f}s".format(
-                len(html), len(optimized_html), t1 - t0
+        if optimized_html is None:
+            postprocessing.notes.append(
+                "At attempt number {} the optimized HTML "
+                "became None (Took {:.1f}s)".format(attempts + 1, t1 - t0)
             )
-        )
+        else:
+            postprocessing.notes.append(
+                "mincss_html HTML from {} to {} took {:.1f}s".format(
+                    len(html), len(optimized_html), t1 - t0
+                )
+            )
         attempts += 1
         if optimized_html is None:
             print(
