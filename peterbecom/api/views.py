@@ -270,7 +270,17 @@ def _post_thumbnails(blogitem):
 
 
 @api_superuser_required
-def postprocessings_statistics(request):
+def postprocessings(request):
+
+    context = {
+        "statistics": _postprocessing_statistics(),
+        "records": _postprocessing_records(),
+    }
+
+    return _response(context)
+
+
+def _postprocessing_statistics():
 
     context = {"groups": []}
 
@@ -359,4 +369,23 @@ def postprocessings_statistics(request):
             }
         )
 
-    return _response(context)
+    return context
+
+
+def _postprocessing_records(limit=10):
+    records = []
+
+    for each in PostProcessing.objects.order_by("-created")[:limit]:
+        records.append(
+            {
+                "id": each.id,
+                "url": each.url,
+                "filepath": each.filepath,
+                "duration": each.duration and each.duration.total_seconds() or None,
+                "exception": each.exception,
+                "notes": each.notes and each.notes or [],
+                "created": each.created,
+            }
+        )
+
+    return records
