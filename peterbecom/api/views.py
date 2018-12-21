@@ -375,17 +375,30 @@ def _postprocessing_statistics():
 def _postprocessing_records(limit=10):
     records = []
 
+    def serialize_record(each):
+        return {
+            "id": each.id,
+            "url": each.url,
+            "filepath": each.filepath,
+            "duration": each.duration and each.duration.total_seconds() or None,
+            "exception": each.exception,
+            "notes": each.notes and each.notes or [],
+            "created": each.created,
+            "_previous": None,
+        }
+
     for each in PostProcessing.objects.order_by("-created")[:limit]:
-        records.append(
-            {
-                "id": each.id,
-                "url": each.url,
-                "filepath": each.filepath,
-                "duration": each.duration and each.duration.total_seconds() or None,
-                "exception": each.exception,
-                "notes": each.notes and each.notes or [],
-                "created": each.created,
-            }
-        )
+        record = serialize_record(each)
+        try:
+            previous, = (
+                PostProcessing.objects.exclude(id=each.id)
+                .filter(url=each.url)
+                .order_by("-created")[:1]
+            )
+            record["_previous"] = serialize_record(previous)
+        except ValueError:
+            pass
+
+        records.append(record)
 
     return records

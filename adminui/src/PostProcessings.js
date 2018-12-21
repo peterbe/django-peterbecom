@@ -10,7 +10,7 @@ import {
   Input
 } from 'semantic-ui-react';
 
-import { ShowServerError } from './Common';
+import { DisplayDate, ShowServerError } from './Common';
 
 class PostProcessings extends React.Component {
   state = {
@@ -253,6 +253,14 @@ class Records extends React.PureComponent {
                   >
                     {new URL(record.url).pathname}
                   </a>
+                  <br />
+                  <DisplayDate date={record.created} />
+                  {record._previous && (
+                    <span>
+                      {' '}
+                      (last time was: <DisplayDate date={record.created} />)
+                    </span>
+                  )}
                 </Table.Cell>
                 <Table.Cell>
                   {record.duration ? `${record.duration.toFixed(1)}s` : 'n/a'}
