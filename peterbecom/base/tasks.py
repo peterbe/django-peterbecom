@@ -1,14 +1,17 @@
 import datetime
 import functools
 import gzip
+import hashlib
 import os
 import shutil
 import sys
 import time
 import traceback
+import re
 from io import StringIO
 
 from django.conf import settings
+from django.core.cache import cache
 from django.utils import timezone
 from huey.contrib.djhuey import task
 
@@ -43,6 +46,28 @@ def measure_post_process(func):
     return inner
 
 
+def mincss_html_maybe(html, url):
+    """Return (True, optimized HTML) if the mincss_html() function was run.
+    Return (False, optimized_html) optimized_html could be extracted from the cache.
+    """
+    # Because FSCache always puts a HTML comment with a datetime into html,
+    # it becomes impossible to cache the HTML unless we remove that.
+    cleaned_html = re.sub(r"<!-- FSCache .*? -->", "", html)
+    cache_key = "mincssed_html:{}".format(
+        hashlib.md5((url + cleaned_html).encode("utf-8")).hexdigest()
+    )
+    optimized_html = cache.get(cache_key)
+    miss = False
+    if optimized_html is None:
+        miss = True
+        optimized_html = mincss_html(html, url)
+        cache.set(cache_key, optimized_html, 60 * 60 * 24 * 90)  # 90 days
+    else:
+        print("Benefitted from mincss_html memoization cache", url)
+
+    return miss, optimized_html
+
+
 @task()
 @measure_post_process
 def post_process_cached_html(filepath, url, postprocessing):
@@ -61,7 +86,7 @@ def post_process_cached_html(filepath, url, postprocessing):
             html = f.read()
 
         t0 = time.perf_counter()
-        optimized_html = mincss_html(html, url)
+        created, optimized_html = mincss_html_maybe(html, url)
         t1 = time.perf_counter()
         if optimized_html is None:
             postprocessing.notes.append(
@@ -70,8 +95,11 @@ def post_process_cached_html(filepath, url, postprocessing):
             )
         else:
             postprocessing.notes.append(
-                "mincss_html HTML from {} to {} took {:.1f}s".format(
-                    len(html), len(optimized_html), t1 - t0
+                "mincss_html ({}) HTML from {} to {} took {:.1f}s".format(
+                    created and "not from cache" or "from cache!",
+                    len(html),
+                    len(optimized_html),
+                    t1 - t0,
                 )
             )
         attempts += 1
@@ -147,7 +175,7 @@ def _minify_html(filepath, url):
             format(before_gz - after_gz, ","),
         )
     )
-    shutil.move(filepath, filepath.replace(".html", ".not-minified.html"))
+    # shutil.move(filepath, filepath.replace(".html", ".not-minified.html"))
     with open(filepath, "w") as f:
         f.write(minified_html)
     print("HTML optimized {}".format(filepath))

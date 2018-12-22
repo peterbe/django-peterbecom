@@ -74,12 +74,16 @@ class FSCacheMiddleware:
                 assert os.stat(fs_path).st_size
 
                 # This is a bit temporary
-                with open("/tmp/fscached2.log", "a") as f:
-                    f.write("{}\t{}\n".format(time.time(), fs_path))
+                # with open("/tmp/fscached2.log", "a") as f:
+                #     f.write("{}\t{}\n".format(time.time(), fs_path))
 
                 if os.path.isfile(fs_path + ".gz"):
                     print("Also, removed", fs_path + ".gz")  # TEMPORARY
                     os.remove(fs_path + ".gz")
+
+                if os.path.isfile(fs_path + ".br"):
+                    print("Also, removed", fs_path + ".br")  # TEMPORARY
+                    os.remove(fs_path + ".br")
 
                 with open(fs_path + ".metadata", "w") as f:
                     f.write(metadata_text)

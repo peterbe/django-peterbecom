@@ -231,8 +231,7 @@ class Records extends React.PureComponent {
           <Table.Row>
             <Table.HeaderCell>URL</Table.HeaderCell>
             <Table.HeaderCell>Duration</Table.HeaderCell>
-            <Table.HeaderCell>Exception</Table.HeaderCell>
-            <Table.HeaderCell>Notes</Table.HeaderCell>
+            <Table.HeaderCell>Notes/Exception</Table.HeaderCell>
           </Table.Row>
         </Table.Header>
 
@@ -241,7 +240,7 @@ class Records extends React.PureComponent {
             return (
               <Table.Row
                 key={record.id}
-                negative={record.exception}
+                negative={!!record.exception}
                 warning={differentIds.includes(record.id)}
               >
                 <Table.Cell>
@@ -268,8 +267,7 @@ class Records extends React.PureComponent {
                 </Table.Cell>
                 <Table.Cell>
                   {record.exception ? <pre>{record.exception}</pre> : null}
-                </Table.Cell>
-                <Table.Cell>
+
                   <ul style={{ margin: 0 }}>
                     {record.notes.map((note, i) => {
                       return <li key={i}>{note}</li>;
