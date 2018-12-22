@@ -21,10 +21,11 @@ class Blogitems extends React.Component {
     orderBy: null
   };
   componentDidMount() {
-    this.fetchBlogitems(this.props.accessToken);
+    this.fetchBlogitems();
   }
 
-  fetchBlogitems = async accessToken => {
+  fetchBlogitems = async () => {
+    const { accessToken } = this.props;
     if (!accessToken) {
       throw new Error('No accessToken');
     }
@@ -51,7 +52,7 @@ class Blogitems extends React.Component {
       {
         orderBy: this.state.orderBy === 'pub_date' ? 'modify_date' : 'pub_date'
       },
-      () => this.fetchBlogitems(this.props.accessToken)
+      () => this.fetchBlogitems()
     );
   };
 
