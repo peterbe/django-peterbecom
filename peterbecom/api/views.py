@@ -389,16 +389,8 @@ def _postprocessing_records(limit=10):
 
     for each in PostProcessing.objects.order_by("-created")[:limit]:
         record = serialize_record(each)
-        try:
-            previous, = (
-                PostProcessing.objects.exclude(id=each.id)
-                .filter(url=each.url)
-                .order_by("-created")[:1]
-            )
-            record["_previous"] = serialize_record(previous)
-        except ValueError:
-            pass
-
+        if each.previous:
+            record["_previous"] = serialize_record(each.previous)
         records.append(record)
 
     return records
