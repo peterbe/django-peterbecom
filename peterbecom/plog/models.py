@@ -14,6 +14,7 @@ from django.dispatch import receiver
 from django.urls import reverse
 from django.contrib.postgres.fields import ArrayField
 
+import bleach
 from sorl.thumbnail import ImageField
 
 from . import utils
@@ -193,12 +194,20 @@ class BlogItem(models.Model):
         else:
             categories = [x.name for x in self.categories.all()]
 
+        # print("THIS TEXT...............")
+        # print(repr(self.text_rendered or self.text))
+        cleaned = bleach.clean(self.text_rendered, strip=True, tags=[])
+        # print("CLEANED.................")
+        # print(cleaned)
+        # print(bleach.sanitizer.ALLOWED_TAGS)
+
         doc = {
             "id": self.id,
             "oid": self.oid,
             "title": self.title,
             "title_autocomplete": self.title,
-            "text": self.text_rendered or self.text,
+            # "text": self.text_rendered or self.text,
+            "text": cleaned,
             "pub_date": self.pub_date,
             "categories": categories,
             "keywords": self.proper_keywords,

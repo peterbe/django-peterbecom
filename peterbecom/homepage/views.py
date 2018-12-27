@@ -1,3 +1,4 @@
+import datetime
 import re
 import os
 import time
@@ -20,6 +21,7 @@ from django.conf import settings
 from django.utils.html import strip_tags
 from django.views import static
 
+from peterbecom.base.models import SearchResult
 from peterbecom.plog.models import BlogItem, BlogComment
 from peterbecom.plog.utils import utc_now, view_function_timer
 from .utils import parse_ocs_to_categories, make_categories_q, split_search, STOPWORDS
@@ -286,20 +288,22 @@ def search(request, original_q=None):
 
     search_query = search_query.query(matcher)
 
+    search_query = search_query.highlight_options(
+        pre_tags=["<mark>"], post_tags=["</mark>"],
+    )
+
     search_query = search_query.highlight(
         "text", fragment_size=80, number_of_fragments=2, type="plain"
     )
     search_query = search_query.highlight(
         "title", fragment_size=120, number_of_fragments=1, type="plain"
     )
-    search_query = search_query.highlight_options(
-        pre_tags=["<mark>"], post_tags=["</mark>"]
-    )
+
     search_query = search_query[:LIMIT_BLOG_ITEMS]
     t0 = time.time()
     response = search_query.execute()
     t1 = time.time()
-    search_times.append(t1 - t0)
+    search_times.append(('blogitems', t1 - t0))
 
     for hit in response:
         result = hit.to_dict()
@@ -344,7 +348,7 @@ def search(request, original_q=None):
     t0 = time.time()
     response = search_query.execute()
     t1 = time.time()
-    search_times.append(t1 - t0)
+    search_times.append(('blogcomments', t1 - t0))
 
     context["count_documents"] += response.hits.total
 
@@ -398,7 +402,7 @@ def search(request, original_q=None):
     context["documents"] = documents
     context["count_documents_shown"] = len(documents)
 
-    context["search_time"] = sum(search_times)
+    context["search_time"] = sum(x[1] for x in search_times)
     if not context["q"]:
         page_title = "Search"
     elif context["count_documents"] == 1:
@@ -430,6 +434,18 @@ def search(request, original_q=None):
         "Took",
         "{:.1f}ms".format(context["search_time"] * 1000),
     )
+    if not context["debug_search"]:
+        SearchResult.objects.create(
+            q=context['q'],
+            original_q=context['original_q'],
+            documents_found=context['count_documents'],
+            search_time=datetime.timedelta(seconds=context['search_time']),
+            search_times=search_times,
+            search_terms=[
+                [str(a), b] for a, b in search_terms
+            ],
+            keywords=keyword_search,
+        )
 
     return render(request, "homepage/search.html", context)
 

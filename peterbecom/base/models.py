@@ -1,7 +1,7 @@
 from django.db import models
 
-from jsonfield import JSONField
-from django.contrib.postgres.fields import ArrayField
+from jsonfield import JSONField as LegacyJSONField
+from django.contrib.postgres.fields import ArrayField, JSONField
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
@@ -12,7 +12,7 @@ class CommandRun(models.Model):
     duration = models.DurationField()
     notes = models.TextField(null=True)
     exception = models.TextField(null=True)
-    options = JSONField(default={}, null=True)
+    options = LegacyJSONField(default={}, null=True)
     created = models.DateTimeField(auto_now_add=True)
 
     def __repr__(self):
@@ -51,3 +51,16 @@ def set_previous(sender, instance, **kwargs):
         qs = qs.exclude(id=instance.id)
     for previous in qs.order_by("-created")[:1]:
         instance.previous = previous
+
+
+class SearchResult(models.Model):
+    q = models.CharField(max_length=400)
+    original_q = models.CharField(max_length=400, null=True)
+    documents_found = models.PositiveIntegerField()
+    search_time = models.DurationField()
+    search_times = JSONField(default=dict)
+    search_terms = ArrayField(
+        ArrayField(models.CharField(max_length=400), size=2, default=list), default=list
+    )
+    keywords = JSONField(default=dict)
+    created = models.DateTimeField(auto_now_add=True)
