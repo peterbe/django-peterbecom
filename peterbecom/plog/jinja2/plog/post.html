@@ -11,12 +11,14 @@
     {% if post.proper_keywords %}
       <meta name="keywords" content="{{ ','.join(post.proper_keywords) }}">
     {% endif %}
+    {% if request.path != '/plog/blogitem-040601-1' %}
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ post.title }}">
     {% if post.summary %}
     <meta name="twitter:description" content="{{ post.summary }}">
     {% endif %}
     <meta name="twitter:creator" content="@peterbe">
+    {% endif %}
 
     <meta property="og:url" content="{{ post._absolute_url }}">
     <meta property="og:type" content="article">
@@ -197,6 +199,7 @@
 
     </form>
 
+    {# DONE in JS now
     {% if request.path == '/plog/blogitem-040601-1' %}
     <div class="ui message floating warning" style="margin-top:20px;display:block">
       <div class="header">
@@ -211,6 +214,7 @@
       </p>
     </div>
     {% endif %}
+    #}
   {% endif %}
 
 {% endif %}

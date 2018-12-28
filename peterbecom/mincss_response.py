@@ -104,7 +104,7 @@ def mincss_html(html, abs_uri):
 
     found_link_hrefs = list(result["stylesheetContents"].keys())
 
-    if abs_uri.endswith("/plog/blogitem-040601-1"):
+    if 0 and abs_uri.endswith("/plog/blogitem-040601-1"):
         template = (
             '<link rel="preload" href="{url}" as="style" media="delayed">\n'
             '<noscript><link rel="stylesheet" href="{url}"></noscript>'

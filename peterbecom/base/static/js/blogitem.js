@@ -205,6 +205,31 @@ $(function() {
   // not blog posts. Hence this careful if statement on form.length.
   var form = $('form#comment');
 
+  function preLyricsPostingMessage() {
+    if (document.location.pathname === '/plog/blogitem-040601-1') {
+      if ($('.ui.message.floating.warning').length) return;
+      console.log('PREPARING MESSAGE....');
+      var message = $(
+        '<div class="ui message floating warning" style="margin-top:20px;display:block">'
+      );
+      message.append(
+        $('<div class="header">Before your post a comment...</div>')
+      );
+      message.append(
+        $('<p>')
+          .append(
+            $(
+              '<b>Go to <a href="https://songsear.ch/" title="Search for songs by the lyrics">songsear.ch</a> and do your search</b>'
+            )
+          )
+          .append(
+            ', then copy the link to the search results together with your comment.'
+          )
+      );
+      message.insertAfter(form);
+    }
+  }
+
   // Create a "Reply" link for all existing comments.
   // But only if the post allows comments.
   if ($('#preview-comment-outer').length) {
@@ -221,11 +246,12 @@ $(function() {
     form.on('mouseover', function() {
       $(this).off('mouseover');
       F.prepare();
+      preLyricsPostingMessage();
     });
 
-    form.on('mouseover', function() {
-      $(this).off('mouseover');
-      F.prepare();
+    $('textarea', form).on('focus', function() {
+      $(this).off('focus');
+      preLyricsPostingMessage();
     });
 
     form.on('click', 'button.preview', function() {
