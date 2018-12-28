@@ -91,9 +91,9 @@ PIPELINE_JS = {
         "output_filename": "js/lyrics.min.js",
         "extra_context": {"defer": True},
     },
-    "cssrelpreload": {
-        "source_filenames": ("js/cssrelpreload.js",),
-        "output_filename": "js/cssrelpreload.min.js",
+    "loadcss": {
+        "source_filenames": ("js/loadCSS.js",),
+        "output_filename": "js/loadcss.min.js",
         "extra_context": {"async": True},
     },
     "delayedcss": {
@@ -101,15 +101,6 @@ PIPELINE_JS = {
         "output_filename": "js/delayedcss.min.js",
         "extra_context": {"defer": True},
     },
-    # 'warmup_songsearch': {
-    #     'source_filenames': (
-    #         'plog/js/warmup-songsearch.js',
-    #     ),
-    #     'output_filename': 'js/warmup-songsearch.min.js',
-    #     'extra_context': {
-    #         'defer': True,
-    #     },
-    # },
     "carbonnative": {
         "source_filenames": ("js/carbonnative.js",),
         "output_filename": "js/carbonnative.min.js",

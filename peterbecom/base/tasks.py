@@ -71,6 +71,8 @@ def mincss_html_maybe(html, url):
 @task()
 @measure_post_process
 def post_process_cached_html(filepath, url, postprocessing):
+    if "\n" in url:
+        raise ValueError("URL can't have a linebreak in it ({!r})".format(url))
     if url.startswith("http://testserver"):
         # do nothing. testing.
         return

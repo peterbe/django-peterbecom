@@ -93,6 +93,12 @@ if __name__ == "__main__":
         "--remember", action="store_true", default=False, help="Remember used last URLs"
     )
     parser.add_argument(
+        "--linear",
+        action="store_true",
+        default=False,
+        help="Start at the home page, each post there, then page 2 etc.",
+    )
+    parser.add_argument(
         "--base-url",
         default="https://www.peterbe.com",
         help="Default https://www.peterbe.com",
@@ -116,7 +122,9 @@ if __name__ == "__main__":
             with open(state_file, "w") as f:
                 json.dump([], f)
     urls = get_urls(args.base_url, exclude=exclude)
-    random.shuffle(urls)
+    # urls = [x for x in urls if "040601" in x]
+    if not args.linear:
+        random.shuffle(urls)
     download(
         urls,
         args.base_url,
