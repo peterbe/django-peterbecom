@@ -3,6 +3,7 @@ import re
 import os
 import time
 import logging
+from pathlib import Path
 from urllib.parse import urlencode
 
 from elasticsearch_dsl import Q
@@ -687,3 +688,27 @@ def sample_huey_task_with_orm(a, b, crash=None, output_filepath=None, sleep=0):
             f.write("{}".format(result))
     else:
         return result
+
+
+def slow_static(request, path):
+    """Return a static asset but do it slowly. This makes it possible to pretend
+    that all other assets, except one or two, is being really slow to serve.
+
+    To use this, you might want to use Nginx. E.g. a config like this:
+
+        location = /static/css/lyrics.min.65f02713ff34.css {
+             rewrite (.*) /slowstatic$1;
+             proxy_http_version 1.1;
+             proxy_set_header Host $http_host;
+             proxy_pass http://127.0.0.1:8000;
+             break;
+       }
+
+    """
+    if not path.startswith('static/'):
+        return http.HttpResponseBadRequest("Doesn't start with static/")
+    p = Path(settings.STATIC_ROOT) / Path(path.replace('static/', ''))
+    if not p.is_file():
+        return http.HttpResponseNotFound(path)
+    time.sleep(2)
+    return http.HttpResponse(p.read_bytes(), content_type="text/css")

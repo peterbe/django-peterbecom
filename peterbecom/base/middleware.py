@@ -92,6 +92,12 @@ class FSCacheMiddleware:
                     f.write(str(seconds))
                 if "text/html" in response["Content-Type"]:
                     absolute_url = request.build_absolute_uri()
+                    if "\n" in absolute_url:
+                        raise ValueError(
+                            "An absolute URL with a newline in it ({!r})".format(
+                                absolute_url
+                            )
+                        )
                     # If you're in docker, the right hostname is actually
                     # 'web', not 'localhost'.
                     # absolute_url = absolute_url.replace(
