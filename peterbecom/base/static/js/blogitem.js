@@ -208,7 +208,6 @@ $(function() {
   function preLyricsPostingMessage() {
     if (document.location.pathname === '/plog/blogitem-040601-1') {
       if ($('.ui.message.floating.warning').length) return;
-      console.log('PREPARING MESSAGE....');
       var message = $(
         '<div class="ui message floating warning" style="margin-top:20px;display:block">'
       );
