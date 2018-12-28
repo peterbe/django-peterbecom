@@ -1,4 +1,4 @@
-from django.core.management.base import BaseCommand
+from peterbecom.base.basecommand import BaseCommand
 
 from peterbecom.base.fscache import invalidate_too_old
 

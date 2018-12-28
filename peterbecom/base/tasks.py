@@ -3,17 +3,18 @@ import functools
 import gzip
 import hashlib
 import os
+import re
 import shutil
 import sys
 import time
 import traceback
-import re
 from io import StringIO
 
 from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
 from huey.contrib.djhuey import task
+from requests.exceptions import ReadTimeout
 
 from peterbecom.base.models import PostProcessing
 from peterbecom.brotli_file import brotli_file
@@ -88,29 +89,38 @@ def post_process_cached_html(filepath, url, postprocessing):
             html = f.read()
 
         t0 = time.perf_counter()
-        created, optimized_html = mincss_html_maybe(html, url)
-        t1 = time.perf_counter()
-        if optimized_html is None:
-            postprocessing.notes.append(
-                "At attempt number {} the optimized HTML "
-                "became None (Took {:.1f}s)".format(attempts + 1, t1 - t0)
-            )
-        else:
-            postprocessing.notes.append(
-                "mincss_html ({}) HTML from {} to {} took {:.1f}s".format(
-                    created and "not from cache" or "from cache!",
-                    len(html),
-                    len(optimized_html),
-                    t1 - t0,
+        try:
+            created, optimized_html = mincss_html_maybe(html, url)
+            t1 = time.perf_counter()
+            if optimized_html is None:
+                postprocessing.notes.append(
+                    "At attempt number {} the optimized HTML "
+                    "became None (Took {:.1f}s)".format(attempts + 1, t1 - t0)
                 )
+            else:
+                postprocessing.notes.append(
+                    "Took {:.1f}s mincss_html ({}) HTML from {} to {}".format(
+                        t1 - t0,
+                        created and "not from cache" or "from cache!",
+                        len(html),
+                        len(optimized_html),
+                    )
+                )
+        except ReadTimeout as exception:
+            postprocessing.notes.append(
+                "Timeout on mincss_html() ({})".format(exception)
             )
+            optimized_html = None
+            created = False
+
         attempts += 1
         if optimized_html is None:
-            print(
+            postprocessing.notes.append(
                 "WARNING! mincss_html returned None for {} ({})".format(filepath, url)
             )
             if attempts < 3:
                 print("Will try again!")
+                time.sleep(1)
                 continue
             postprocessing.notes.append("Gave up after {} attempts".format(attempts))
             return

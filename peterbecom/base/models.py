@@ -28,7 +28,7 @@ class PostProcessing(models.Model):
     filepath = models.CharField(max_length=400)
     url = models.URLField(max_length=400, db_index=True)
     duration = models.DurationField(null=True)
-    notes = ArrayField(models.CharField(max_length=100), default=list)
+    notes = ArrayField(models.CharField(max_length=400), default=list)
     exception = models.TextField(null=True)
     created = models.DateTimeField(auto_now_add=True)
     previous = models.ForeignKey(
@@ -51,6 +51,16 @@ def set_previous(sender, instance, **kwargs):
         qs = qs.exclude(id=instance.id)
     for previous in qs.order_by("-created")[:1]:
         instance.previous = previous
+
+
+@receiver(pre_save, sender=PostProcessing)
+def truncate_long_notes(sender, instance, **kwargs):
+    for i, note in enumerate(instance.notes):
+        if len(note) > 400:
+            print(
+                "WARNING! Note ({}) was too long [{}] ({!r})".format(i, len(note), note)
+            )
+            instance.notes[i] = note[:400]
 
 
 class SearchResult(models.Model):

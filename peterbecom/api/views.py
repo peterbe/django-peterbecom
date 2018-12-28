@@ -316,22 +316,24 @@ def _postprocessing_statistics():
     def fmt_seconds(s):
         return "{:.1f}".format(s)
 
-    last, = base_qs.filter(exception__isnull=True).order_by("-created")[:1]
-    last_duration = last.duration
-
-    context["groups"].append(
-        {
-            "label": "Rates (seconds)",
-            "key": "rates",
-            "items": [
-                {
-                    "key": "last",
-                    "label": "Last one",
-                    "value": fmt_seconds(last_duration.total_seconds()),
-                }
-            ],
-        }
-    )
+    try:
+        last, = base_qs.filter(exception__isnull=True).order_by("-created")[:1]
+        last_duration = last.duration
+        context["groups"].append(
+            {
+                "label": "Rates (seconds)",
+                "key": "rates",
+                "items": [
+                    {
+                        "key": "last",
+                        "label": "Last one",
+                        "value": fmt_seconds(last_duration.total_seconds()),
+                    }
+                ],
+            }
+        )
+    except ValueError:
+        last = None
 
     avg7d = base_qs.filter(
         exception__isnull=True, created__gte=timezone.now() - datetime.timedelta(days=7)

@@ -47,6 +47,10 @@ pre {
   overflow: auto;
 }
 
+pre.postprocessing-exception {
+  font-size: 85%;
+}
+
 .ui.header,
 h1,
 h2,
