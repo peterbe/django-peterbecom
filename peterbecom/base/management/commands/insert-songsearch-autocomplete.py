@@ -204,6 +204,19 @@ class Command(BaseCommand):
                 "{}".format(js_files)
             )
 
+        # When it's done it should only be exactly 1 of these bits of strings
+        # in the HTML (actually, it's inside the <style> tag)
+        css_bit = (
+            "License for minified and inlined CSS originally belongs to Semantic UI"
+        )
+        if content.count(css_bit) != 1:
+            print(content)
+            raise SongsearchAutocompleteError(
+                "There is not exactly 1 ({} instead) CSS license strings".format(
+                    content.count(css_bit)
+                )
+            )
+
         if original_content != content:
             if dry_run:
                 print("DRY RUN! ...BUT WILL WRITE NEW CONTENT TO FILE")
