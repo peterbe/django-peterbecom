@@ -17,5 +17,11 @@ def minify_html(html):
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
     )
-    minified = proc.communicate(input=html.encode("utf-8"))[0].decode("utf-8")
+    try:
+        minified = proc.communicate(
+            input=html.encode("utf-8"), timeout=settings.HTML_MINIFIER_TIMEOUT_SECONDS
+        )[0].decode("utf-8")
+    except subprocess.TimeoutExpired:
+        print("WARNING! HTML minifying took too long.")
+        return None
     return minified
