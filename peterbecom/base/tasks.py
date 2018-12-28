@@ -1,9 +1,7 @@
 import datetime
 import functools
 import gzip
-import hashlib
 import os
-import re
 import shutil
 import sys
 import time
@@ -11,7 +9,8 @@ import traceback
 from io import StringIO
 
 from django.conf import settings
-from django.core.cache import cache
+
+# from django.core.cache import cache
 from django.utils import timezone
 from huey.contrib.djhuey import task
 from requests.exceptions import ReadTimeout
@@ -47,28 +46,6 @@ def measure_post_process(func):
     return inner
 
 
-def mincss_html_maybe(html, url):
-    """Return (True, optimized HTML) if the mincss_html() function was run.
-    Return (False, optimized_html) optimized_html could be extracted from the cache.
-    """
-    # Because FSCache always puts a HTML comment with a datetime into html,
-    # it becomes impossible to cache the HTML unless we remove that.
-    cleaned_html = re.sub(r"<!-- FSCache .*? -->", "", html)
-    cache_key = "mincssed_html:{}".format(
-        hashlib.md5((url + cleaned_html).encode("utf-8")).hexdigest()
-    )
-    optimized_html = cache.get(cache_key)
-    miss = False
-    if optimized_html is None:
-        miss = True
-        optimized_html = mincss_html(html, url)
-        cache.set(cache_key, optimized_html, 60 * 60 * 24 * 90)  # 90 days
-    else:
-        print("Benefitted from mincss_html memoization cache", url)
-
-    return miss, optimized_html
-
-
 @task()
 @measure_post_process
 def post_process_cached_html(filepath, url, postprocessing):
@@ -90,7 +67,7 @@ def post_process_cached_html(filepath, url, postprocessing):
 
         t0 = time.perf_counter()
         try:
-            created, optimized_html = mincss_html_maybe(html, url)
+            optimized_html = mincss_html(html, url)
             t1 = time.perf_counter()
             if optimized_html is None:
                 postprocessing.notes.append(
@@ -99,11 +76,8 @@ def post_process_cached_html(filepath, url, postprocessing):
                 )
             else:
                 postprocessing.notes.append(
-                    "Took {:.1f}s mincss_html ({}) HTML from {} to {}".format(
-                        t1 - t0,
-                        created and "not from cache" or "from cache!",
-                        len(html),
-                        len(optimized_html),
+                    "Took {:.1f}s mincss_html HTML from {} to {}".format(
+                        t1 - t0, len(html), len(optimized_html)
                     )
                 )
         except ReadTimeout as exception:
@@ -111,7 +85,7 @@ def post_process_cached_html(filepath, url, postprocessing):
                 "Timeout on mincss_html() ({})".format(exception)
             )
             optimized_html = None
-            created = False
+            # created = False
 
         attempts += 1
         if optimized_html is None:
