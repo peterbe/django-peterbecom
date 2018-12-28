@@ -82,33 +82,15 @@ def _save_mincssed_html(path, html):
         f.write(html)
 
 
-# def mincss_response(response, request):
-#     import warnings
-
-#     warnings.warn(
-#         "Use the post_process_cached_html() task instead.", DeprecationWarning
-#     )
-#     if Processor is None or cssmin is None:
-#         logging.info("No mincss_response() possible")
-#         return response
-
-#     abs_uri = request.build_absolute_uri()
-#     if abs_uri.startswith("http://testserver"):
-#         return response
-
-#     html = response.content.decode("utf-8")
-#     html = mincss_html(html, abs_uri)
-#     response.content = html.encode("utf-8")
-#     return response
-
-
 def mincss_html(html, abs_uri):
     # print("PING: {}".format(
     #     requests.get(settings.MINIMALCSS_SERVER_URL + '/').status_code
     # ))
     t0 = time.time()
     r = requests.post(
-        settings.MINIMALCSS_SERVER_URL + "/minimize", json={"url": abs_uri}
+        settings.MINIMALCSS_SERVER_URL + "/minimize",
+        json={"url": abs_uri},
+        timeout=settings.MINIMALCSS_TIMEOUT_SECONDS,
     )
     if r.status_code != 200:
         print(

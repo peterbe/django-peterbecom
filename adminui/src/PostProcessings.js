@@ -12,6 +12,17 @@ import {
 
 import { DisplayDate, ShowServerError } from './Common';
 
+function defaultLoopSeconds(default_ = 10) {
+  try {
+    return parseInt(
+      window.localStorage.getItem('postprocess-loopseconds') || default_,
+      10
+    );
+  } catch (ex) {
+    return default_;
+  }
+}
+
 class PostProcessings extends React.Component {
   state = {
     ongoing: null,
@@ -19,12 +30,13 @@ class PostProcessings extends React.Component {
     serverError: null,
     statistics: null,
     records: null,
-    loopSeconds: null
+    loopSeconds: defaultLoopSeconds()
   };
 
   componentDidMount() {
     document.title = 'Post Processing';
-    this.fetchPostProcessings(this.props.accessToken);
+    // this.fetchPostProcessings(this.props.accessToken);
+    this.startLoop();
   }
 
   componentWillUnmount() {
@@ -102,6 +114,7 @@ class PostProcessings extends React.Component {
           <div>
             <Checkbox
               toggle
+              defaultChecked={!!this.state.loopSeconds}
               onChange={event => {
                 if (!this.state.loopSeconds) {
                   this.setState({ loopSeconds: 10 }, () => {
@@ -121,7 +134,12 @@ class PostProcessings extends React.Component {
                   onChange={event => {
                     const loopSeconds = parseInt(event.target.value);
                     if (loopSeconds > 0) {
-                      this.setState({ loopSeconds });
+                      this.setState({ loopSeconds }, () => {
+                        window.localStorage.setItem(
+                          'postprocess-loopseconds',
+                          this.state.loopSeconds
+                        );
+                      });
                     }
                   }}
                   value={this.state.loopSeconds}
@@ -266,7 +284,11 @@ class Records extends React.PureComponent {
                   {record.duration ? `${record.duration.toFixed(1)}s` : 'n/a'}
                 </Table.Cell>
                 <Table.Cell>
-                  {record.exception ? <pre>{record.exception}</pre> : null}
+                  {record.exception ? (
+                    <pre className="postprocessing-exception">
+                      {record.exception}
+                    </pre>
+                  ) : null}
 
                   <ul style={{ margin: 0 }}>
                     {record.notes.map((note, i) => {
