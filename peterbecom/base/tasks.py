@@ -133,6 +133,8 @@ def post_process_cached_html(filepath, url, postprocessing):
         t0 = time.perf_counter()
         minified_html = _minify_html(filepath, url)
         t1 = time.perf_counter()
+        if not minified_html:
+            postprocessing.notes.append("Calling minify_html() failed")
         postprocessing.notes.append("Took {:.1f}s to minify HTML".format(t1 - t0))
 
         t0 = time.perf_counter()

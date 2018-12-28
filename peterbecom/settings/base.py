@@ -385,6 +385,7 @@ OIDC_RP_CLIENT_SECRET = ""
 
 
 HTML_MINIFIER_PATH = path("node_modules/.bin/html-minifier")
+HTML_MINIFIER_TIMEOUT_SECONDS = 2.0
 
 # These domains don't need the `rel="nofollow"` attribute when linkified.
 NOFOLLOW_EXCEPTIONS = ("peterbe.com", "www.peterbe.com", "songsear.ch")
