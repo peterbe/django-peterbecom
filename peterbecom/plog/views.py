@@ -302,16 +302,8 @@ def _render_blog_post(request, oid, screenshot_mode=False):
 @cache_page(ONE_WEEK, _blog_post_key_prefixer)
 def all_blog_post_comments(request, oid):
 
-    # temporary debugging
-    if request.method == "GET":
-        print(
-            "all_blog_post_comments.MISS (%r, %r, %s)"
-            % (
-                request.path,
-                request.META.get("QUERY_STRING"),
-                timezone.now().isoformat(),
-            )
-        )
+    if request.path == '/plog/blogitem-040601-1/all-comments':
+        raise http.Http404("No longer supported")
 
     post = get_object_or_404(BlogItem, oid=oid)
     comments = BlogComment.objects.filter(blogitem=post).order_by("add_date")
