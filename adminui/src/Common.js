@@ -93,3 +93,17 @@ export const formatFileSize = (bytes, decimals = 0) => {
   var i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 };
+
+export function filterToQueryString(filterObj, overrides) {
+  const copy = Object.assign(overrides || {}, filterObj);
+  const searchParams = new URLSearchParams();
+  Object.entries(copy).forEach(([key, value]) => {
+    if (Array.isArray(value) && value.length) {
+      value.forEach(v => searchParams.append(key, v));
+    } else if (value) {
+      searchParams.set(key, value);
+    }
+  });
+  searchParams.sort();
+  return searchParams.toString();
+}
