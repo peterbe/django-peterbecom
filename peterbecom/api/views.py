@@ -274,7 +274,7 @@ def postprocessings(request):
 
     context = {
         "statistics": _postprocessing_statistics(),
-        "records": _postprocessing_records(),
+        "records": _postprocessing_records(request.GET),
     }
 
     return _response(context)
@@ -374,7 +374,7 @@ def _postprocessing_statistics():
     return context
 
 
-def _postprocessing_records(limit=10):
+def _postprocessing_records(request_GET, limit=10):
     records = []
 
     def serialize_record(each):
@@ -389,7 +389,27 @@ def _postprocessing_records(limit=10):
             "_previous": None,
         }
 
-    for each in PostProcessing.objects.order_by("-created")[:limit]:
+    duration_regex = re.compile(r"duration:?\s*(>|<)\s*([\d\.]+)s?")
+
+    qs = PostProcessing.objects.all()
+    q = request_GET.get("q")
+    if q:
+        duration = re.findall(duration_regex, q)
+        if duration:
+            operator, seconds = duration[0]
+            seconds = float(seconds)
+            if operator == ">":
+                qs = qs.filter(duration__gt=datetime.timedelta(seconds=seconds))
+            else:
+                qs = qs.filter(duration__lt=datetime.timedelta(seconds=seconds))
+            q = duration_regex.sub("", q)
+
+        if q.endswith("$"):
+            qs = qs.filter(url__endswith=q[:-1])
+        elif q:
+            qs = qs.filter(url__contains=q)
+
+    for each in qs.order_by("-created")[:limit]:
         record = serialize_record(each)
         if each.previous:
             record["_previous"] = serialize_record(each.previous)

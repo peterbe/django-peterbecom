@@ -10,7 +10,7 @@ import {
   Input
 } from 'semantic-ui-react';
 
-import { DisplayDate, ShowServerError } from './Common';
+import { filterToQueryString, DisplayDate, ShowServerError } from './Common';
 
 function defaultLoopSeconds(default_ = 10) {
   try {
@@ -30,12 +30,12 @@ class PostProcessings extends React.Component {
     serverError: null,
     statistics: null,
     records: null,
+    filters: null,
     loopSeconds: defaultLoopSeconds()
   };
 
   componentDidMount() {
     document.title = 'Post Processing';
-    // this.fetchPostProcessings(this.props.accessToken);
     this.startLoop();
   }
 
@@ -49,8 +49,12 @@ class PostProcessings extends React.Component {
       throw new Error('No accessToken');
     }
     let response;
+    let url = '/api/v0/postprocessings/';
+    if (this.state.filters) {
+      url += `?${filterToQueryString(this.state.filters)}`;
+    }
     try {
-      response = await fetch('/api/v0/postprocessings/', {
+      response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${accessToken}`
         }
@@ -87,7 +91,7 @@ class PostProcessings extends React.Component {
   };
 
   render() {
-    const { loading, serverError, statistics, records } = this.state;
+    const { loading, serverError, statistics, records, filters } = this.state;
 
     return (
       <Container textAlign="center">
@@ -107,7 +111,15 @@ class PostProcessings extends React.Component {
         {statistics && <Statistics statistics={statistics} />}
 
         <Divider />
-        {records && <Records records={records} />}
+        {records && (
+          <Records
+            records={records}
+            filters={filters}
+            updateFilters={filters => {
+              this.setState({ filters }, this.startLoop);
+            }}
+          />
+        )}
 
         <Divider />
         {(statistics || records) && (
@@ -241,66 +253,79 @@ class Records extends React.PureComponent {
     }
   }
   render() {
-    const { records } = this.props;
+    const { records, filters, updateFilters } = this.props;
     const { differentIds } = this.state;
     return (
-      <Table celled>
-        <Table.Header>
-          <Table.Row>
-            <Table.HeaderCell>URL</Table.HeaderCell>
-            <Table.HeaderCell>Duration</Table.HeaderCell>
-            <Table.HeaderCell>Notes/Exception</Table.HeaderCell>
-          </Table.Row>
-        </Table.Header>
+      <form
+        onSubmit={event => {
+          event.preventDefault();
+          updateFilters({ q: this.refs.q.inputRef.value });
+        }}
+      >
+        <Table celled>
+          <Table.Header>
+            <Table.Row>
+              <Table.HeaderCell>URL</Table.HeaderCell>
+              <Table.HeaderCell>Duration</Table.HeaderCell>
+              <Table.HeaderCell>Notes/Exception</Table.HeaderCell>
+            </Table.Row>
+          </Table.Header>
 
-        <Table.Body>
-          {records.map(record => {
-            return (
-              <Table.Row
-                key={record.id}
-                negative={!!record.exception}
-                warning={differentIds.includes(record.id)}
-              >
-                <Table.Cell>
-                  <a
-                    href={record.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title={record.filepath}
-                  >
-                    {new URL(record.url).pathname}
-                  </a>
-                  <br />
-                  <DisplayDate date={record.created} />
-                  {record._previous && (
-                    <span>
-                      {' '}
-                      (last time was:{' '}
-                      <DisplayDate date={record._previous.created} />)
-                    </span>
-                  )}
-                </Table.Cell>
-                <Table.Cell>
-                  {record.duration ? `${record.duration.toFixed(1)}s` : 'n/a'}
-                </Table.Cell>
-                <Table.Cell>
-                  {record.exception ? (
-                    <pre className="postprocessing-exception">
-                      {record.exception}
-                    </pre>
-                  ) : null}
+          <Table.Body>
+            {records.map(record => {
+              return (
+                <Table.Row
+                  key={record.id}
+                  negative={!!record.exception}
+                  warning={differentIds.includes(record.id)}
+                >
+                  <Table.Cell>
+                    <a
+                      href={record.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={record.filepath}
+                    >
+                      {new URL(record.url).pathname}
+                    </a>
+                    <br />
+                    <DisplayDate date={record.created} />
+                    {record._previous && (
+                      <span>
+                        {' '}
+                        (last time was:{' '}
+                        <DisplayDate date={record._previous.created} />)
+                      </span>
+                    )}
+                  </Table.Cell>
+                  <Table.Cell>
+                    {record.duration ? `${record.duration.toFixed(1)}s` : 'n/a'}
+                  </Table.Cell>
+                  <Table.Cell>
+                    {record.exception ? (
+                      <pre className="postprocessing-exception">
+                        {record.exception}
+                      </pre>
+                    ) : null}
 
-                  <ul style={{ margin: 0 }}>
-                    {record.notes.map((note, i) => {
-                      return <li key={i}>{note}</li>;
-                    })}
-                  </ul>
-                </Table.Cell>
-              </Table.Row>
-            );
-          })}
-        </Table.Body>
-      </Table>
+                    <ul style={{ margin: 0 }}>
+                      {record.notes.map((note, i) => {
+                        return <li key={i}>{note}</li>;
+                      })}
+                    </ul>
+                  </Table.Cell>
+                </Table.Row>
+              );
+            })}
+          </Table.Body>
+        </Table>
+        <Input
+          ref="q"
+          fluid
+          defaultValue={(filters && filters.q) || ''}
+          placeholder="Search filter..."
+        />
+      </form>
     );
   }
 }
