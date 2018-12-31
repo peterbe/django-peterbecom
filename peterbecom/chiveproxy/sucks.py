@@ -2,6 +2,7 @@ import hashlib
 
 import pyquery
 
+from django.utils import timezone
 from django.conf import settings
 
 
@@ -50,6 +51,7 @@ def get_cards():
             "img": img,
             "date": date,
             "human_time": human_time,
+            "_date": timezone.now(),
         }
 
 
@@ -94,4 +96,4 @@ def get_card(url):
 
         pictures.append({"img": src, "gifsrc": gifsrc, "caption": "\n".join(caption)})
 
-    return {"text": text, "pictures": pictures, "date": date}
+    return {"text": text, "pictures": pictures, "date": date, "_date": timezone.now()}
