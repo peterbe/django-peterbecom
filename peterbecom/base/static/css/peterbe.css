@@ -150,7 +150,7 @@ code {
   border-radius: 3px;
 }
 
-/* Specifically for fusion_ad */
+/* Specifically for fusion_ad
 
 #fusion_ad {
   float: right;
@@ -167,6 +167,9 @@ code {
     display: none;
   }
 }
+*/
+
+
 @media (min-width: 767px) {
   .main.menu .right.dropdown {
     display: none !important;

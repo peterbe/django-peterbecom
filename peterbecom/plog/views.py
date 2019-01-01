@@ -676,7 +676,7 @@ def _plog_index_key_prefixer(request):
     return prefix
 
 
-@cache_control(public=True, max_age=60 * 60 * 2)
+@cache_control(public=True, max_age=60 * 60 * 24)
 @cache_page(ONE_DAY, _plog_index_key_prefixer)
 def plog_index(request):
     groups = defaultdict(list)
