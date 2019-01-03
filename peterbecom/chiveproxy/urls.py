@@ -7,5 +7,5 @@ app_name = "chiveproxy"
 
 urlpatterns = [
     path("api/cards/", views.api_cards, name="api_cards"),
-    re_path(r"api/cards/(?P<hash>[a-f0-9]{8})/", views.api_card, name="api_card"),
+    re_path(r"api/cards/(?P<pk>\d+)/", views.api_card, name="api_card"),
 ]

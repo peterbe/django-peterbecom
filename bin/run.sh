@@ -35,6 +35,7 @@ case $1 in
     python manage.py clear-django-cache
     python manage.py collectstatic --noinput
     python manage.py fscache -v 2  # deletes old FS cached files
+    python manage.py purge-old-postprocessings
     python manage.py migrate --noinput
     # export PYTHONWARNINGS=d
     exec python manage.py runserver 0.0.0.0:8000

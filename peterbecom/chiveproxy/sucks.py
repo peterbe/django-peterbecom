@@ -1,9 +1,13 @@
 import hashlib
+import re
 
 import pyquery
 
-from django.utils import timezone
 from django.conf import settings
+
+
+def make_it_more_iso(datestr):
+    return re.sub(r"\b(\d)\b", r"0\1", datestr)
 
 
 def get_cards():
@@ -25,7 +29,6 @@ def get_cards():
             continue
 
         assert img.startswith("https"), img
-        # print("IMG", img)
         for a in slot("h3.post-title a").items():
             text = a.text().replace("\xa0", " ").strip()
             if text.lower().endswith("(video)"):
@@ -40,7 +43,8 @@ def get_cards():
         human_time = None
         for time_ in slot("time[datetime]").items():
             date = time_.attr("datetime")
-            human_time = time_.text()
+            date = make_it_more_iso(date)
+            human_time = time_.text()  # Not needed?
             break
 
         uri = hashlib.md5(href.encode("utf-8")).hexdigest()[:8]
@@ -51,7 +55,6 @@ def get_cards():
             "img": img,
             "date": date,
             "human_time": human_time,
-            "_date": timezone.now(),
         }
 
 
@@ -61,6 +64,7 @@ def get_card(url):
 
     for h1 in doc("h1#post-title").items():
         text = h1.text()
+        text = text.replace("\xa0", " ").strip()
         break
     else:
         return
@@ -96,4 +100,4 @@ def get_card(url):
 
         pictures.append({"img": src, "gifsrc": gifsrc, "caption": "\n".join(caption)})
 
-    return {"text": text, "pictures": pictures, "date": date, "_date": timezone.now()}
+    return {"text": text, "pictures": pictures, "date": date}
