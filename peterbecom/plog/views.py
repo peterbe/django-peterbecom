@@ -365,8 +365,8 @@ def get_related_posts_by_text(post, limit=5):
 
     # This is a temporary thing just to get insight into the results
     # of this query in production.
-    # with open("/tmp/related-by-text.log", "a") as f:
-    #     f.write("{}|{}\n".format(post.id, ",".join(str(x) for x in ids)))
+    with open("/tmp/related-by-text.log", "a") as f:
+        f.write("{}|{}\n".format(post.id, ",".join(str(x) for x in ids)))
 
     return sorted(objects, key=lambda x: ids.index(x.id))
 
