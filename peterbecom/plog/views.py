@@ -355,10 +355,10 @@ def get_related_posts_by_text(post, limit=5):
     search = search[:limit]
     response = search.execute()
     ids = [int(x._id) for x in response]
-    print('Took {:.1f}ms to find {} related by text'.format(
-        response.took,
-        response.hits.total,
-    ))
+    # print('Took {:.1f}ms to find {} related by text'.format(
+    #     response.took,
+    #     response.hits.total,
+    # ))
     if not ids:
         return []
     objects = BlogItem.objects.filter(pub_date__lt=timezone.now(), id__in=ids)
@@ -367,6 +367,7 @@ def get_related_posts_by_text(post, limit=5):
     # of this query in production.
     with open("/tmp/related-by-text.log", "a") as f:
         f.write("{}|{}\n".format(post.id, ",".join(str(x) for x in ids)))
+
     return sorted(objects, key=lambda x: ids.index(x.id))
 
 
