@@ -81,16 +81,17 @@ def home(request, oc=None, page=1):
     if request.method == "HEAD":
         return http.HttpResponse("")
 
-    BATCH_SIZE = 10
+    batch_size = settings.HOMEPAGE_BATCH_SIZE
+
     try:
         page = max(1, int(page)) - 1
     except ValueError:
         raise http.Http404("invalid page value")
-    n, m = page * BATCH_SIZE, (page + 1) * BATCH_SIZE
+    n, m = page * batch_size, (page + 1) * batch_size
     max_count = qs.count()
-    if page * BATCH_SIZE > max_count:
+    if page * batch_size > max_count:
         return http.HttpResponse("Too far back in time\n", status=404)
-    if (page + 1) * BATCH_SIZE < max_count:
+    if (page + 1) * batch_size < max_count:
         context["next_page"] = page + 2
     context["previous_page"] = page
 

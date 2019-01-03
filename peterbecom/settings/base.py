@@ -315,14 +315,13 @@ INBOUND_EMAIL_ADDRESS = "setup@yourown.com"
 FANCY_REMEMBER_ALL_URLS = True
 FANCY_REMEMBER_STATS_ALL_URLS = True
 
-PHANTOMJS_PATH = "phantomjs"
-
-AUTOCOMPETER_AUTH_KEY = ""
-
 CDNTHIS_DOMAINS = {}
 
 PINGDOM_RUM_ID = None
 
+# Number of blog posts to show on the homepage, per page.
+# Equally used when filtered by category.
+HOMEPAGE_BATCH_SIZE = 6
 
 # Because https://pypi.python.org/pypi/pygments-lexer-babylon isn't
 # particularly flexible. You can only set this via an environment variable.
