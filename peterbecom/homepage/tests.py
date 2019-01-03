@@ -109,9 +109,10 @@ class HomepageTestCase(TestCase):
         url = reverse("home_paged", args=(2,))
         response = self.client.get(url)
         content = response.content.decode("utf-8")
-        for each in visible_titles[:10]:
+        batch_size = settings.HOMEPAGE_BATCH_SIZE
+        for each in visible_titles[:batch_size]:
             assert each not in content
-        for each in not_visible_titles[:10]:
+        for each in not_visible_titles[:batch_size]:
             assert each in content
         assert "/p3" in content
 
