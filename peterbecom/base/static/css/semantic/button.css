@@ -460,7 +460,7 @@
 --------------------*/
 
 
-/* Facebook */
+/* Facebook
 .ui.facebook.button {
   background-color: #3B5998;
   color: #FFFFFF;
@@ -479,6 +479,7 @@
   color: #FFFFFF;
   text-shadow: none;
 }
+*/
 
 /* Twitter */
 .ui.twitter.button {
@@ -500,7 +501,7 @@
   text-shadow: none;
 }
 
-/* Google Plus */
+/* Google Plus
 .ui.google.plus.button {
   background-color: #DD4B39;
   color: #FFFFFF;
@@ -519,8 +520,9 @@
   color: #FFFFFF;
   text-shadow: none;
 }
+*/
 
-/* Linked In */
+/* Linked In
 .ui.linkedin.button {
   background-color: #1F88BE;
   color: #FFFFFF;
@@ -536,8 +538,9 @@
   color: #FFFFFF;
   text-shadow: none;
 }
+*/
 
-/* YouTube */
+/* YouTube
 .ui.youtube.button {
   background-color: #FF0000;
   color: #FFFFFF;
@@ -556,8 +559,9 @@
   color: #FFFFFF;
   text-shadow: none;
 }
+*/
 
-/* Instagram */
+/* Instagram
 .ui.instagram.button {
   background-color: #49769C;
   color: #FFFFFF;
@@ -576,8 +580,9 @@
   color: #FFFFFF;
   text-shadow: none;
 }
+*/
 
-/* Pinterest */
+/* Pinterest
 .ui.pinterest.button {
   background-color: #BD081C;
   color: #FFFFFF;
@@ -596,8 +601,9 @@
   color: #FFFFFF;
   text-shadow: none;
 }
+*/
 
-/* VK */
+/* VK
 .ui.vk.button {
   background-color: #4D7198;
   color: #FFFFFF;
@@ -613,6 +619,7 @@
   background-color: #3c5876;
   color: #FFFFFF;
 }
+*/
 
 /*--------------
      Icon
@@ -3685,4 +3692,3 @@
 /*******************************
          Site Overrides
 *******************************/
-

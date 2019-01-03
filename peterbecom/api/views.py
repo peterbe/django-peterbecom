@@ -286,7 +286,11 @@ def _postprocessing_statistics():
 
     base_qs = PostProcessing.objects.filter(duration__isnull=False)
 
-    ongoing = PostProcessing.ongoing().count()
+    ongoing = (
+        PostProcessing.ongoing()
+        .filter(created__gte=timezone.now() - datetime.timedelta(seconds=3600))
+        .count()
+    )
     last24h = base_qs.filter(
         created__gte=timezone.now() - datetime.timedelta(days=1)
     ).count()
