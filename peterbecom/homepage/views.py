@@ -140,10 +140,7 @@ def home(request, oc=None, page=1):
 
     approved_comments_count = {}
     blog_comments_count_qs = (
-        BlogComment.objects.filter(
-            blogitem__in=context["blogitems"],
-            approved=True,
-        )
+        BlogComment.objects.filter(blogitem__in=context["blogitems"], approved=True)
         .values("blogitem_id")
         .annotate(count=Count("blogitem_id"))
     )
@@ -291,7 +288,7 @@ def search(request, original_q=None):
     search_query = search_query.query(matcher)
 
     search_query = search_query.highlight_options(
-        pre_tags=["<mark>"], post_tags=["</mark>"],
+        pre_tags=["<mark>"], post_tags=["</mark>"]
     )
 
     search_query = search_query.highlight(
@@ -305,7 +302,7 @@ def search(request, original_q=None):
     t0 = time.time()
     response = search_query.execute()
     t1 = time.time()
-    search_times.append(('blogitems', t1 - t0))
+    search_times.append(("blogitems", t1 - t0))
 
     for hit in response:
         result = hit.to_dict()
@@ -350,7 +347,7 @@ def search(request, original_q=None):
     t0 = time.time()
     response = search_query.execute()
     t1 = time.time()
-    search_times.append(('blogcomments', t1 - t0))
+    search_times.append(("blogcomments", t1 - t0))
 
     context["count_documents"] += response.hits.total
 
@@ -436,16 +433,16 @@ def search(request, original_q=None):
         "Took",
         "{:.1f}ms".format(context["search_time"] * 1000),
     )
-    if not context["debug_search"]:
+    if not context["debug_search"] and (
+        context["q"] or keyword_search or context["original_q"]
+    ):
         SearchResult.objects.create(
-            q=context['q'],
-            original_q=context['original_q'],
-            documents_found=context['count_documents'],
-            search_time=datetime.timedelta(seconds=context['search_time']),
+            q=context["q"],
+            original_q=context["original_q"],
+            documents_found=context["count_documents"],
+            search_time=datetime.timedelta(seconds=context["search_time"]),
             search_times=search_times,
-            search_terms=[
-                [str(a), b] for a, b in search_terms
-            ],
+            search_terms=[[str(a), b] for a, b in search_terms],
             keywords=keyword_search,
         )
 
@@ -706,9 +703,9 @@ def slow_static(request, path):
        }
 
     """
-    if not path.startswith('static/'):
+    if not path.startswith("static/"):
         return http.HttpResponseBadRequest("Doesn't start with static/")
-    p = Path(settings.STATIC_ROOT) / Path(path.replace('static/', ''))
+    p = Path(settings.STATIC_ROOT) / Path(path.replace("static/", ""))
     if not p.is_file():
         return http.HttpResponseNotFound(path)
     time.sleep(2)

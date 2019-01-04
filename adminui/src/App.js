@@ -18,6 +18,7 @@ import { AddBlogitem, EditBlogitem } from './EditBlogitem';
 import OpenGraphImageBlogitem from './OpenGraphImageBlogitem';
 import UploadImages from './UploadImages';
 import PostProcessings from './PostProcessings';
+import SearchResults from './SearchResults';
 
 class App extends React.Component {
   state = {
@@ -271,6 +272,12 @@ class App extends React.Component {
                 path="/postprocessings"
                 exact
                 component={PostProcessings}
+                accessToken={this.state.accessToken}
+              />
+              <SecureRoute
+                path="/searchresults"
+                exact
+                component={SearchResults}
                 accessToken={this.state.accessToken}
               />
               <Route component={NoMatch} />

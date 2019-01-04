@@ -13,7 +13,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.db.models import Min, Max, Avg
 
-from peterbecom.base.models import PostProcessing
+from peterbecom.base.models import PostProcessing, SearchResult
 from peterbecom.plog.models import BlogItem, Category, BlogFile
 from peterbecom.plog.views import PreviewValidationError, preview_by_data
 from .forms import EditBlogForm, BlogFileUpload
@@ -298,7 +298,7 @@ def _postprocessing_statistics():
         created__gte=timezone.now() - datetime.timedelta(seconds=3600)
     ).count()
     last7d = base_qs.filter(
-        created__gte=timezone.now() - datetime.timedelta(days=1)
+        created__gte=timezone.now() - datetime.timedelta(days=7)
     ).count()
 
     def fmt(x):
@@ -417,6 +417,138 @@ def _postprocessing_records(request_GET, limit=10):
         record = serialize_record(each)
         if each.previous:
             record["_previous"] = serialize_record(each.previous)
+        records.append(record)
+
+    return records
+
+
+@api_superuser_required
+def searchresults(request):
+
+    context = {
+        "statistics": _searchresults_statistics(),
+        "records": _searchresults_records(request.GET),
+    }
+
+    return _response(context)
+
+
+def _searchresults_statistics():
+
+    context = {"groups": []}
+
+    base_qs = SearchResult.objects.all()
+
+    last24h = base_qs.filter(
+        created__gte=timezone.now() - datetime.timedelta(days=1)
+    ).count()
+    last7d = base_qs.filter(
+        created__gte=timezone.now() - datetime.timedelta(days=7)
+    ).count()
+    last30d = base_qs.filter(
+        created__gte=timezone.now() - datetime.timedelta(days=30)
+    ).count()
+    ever = base_qs.count()
+
+    def fmt(x):
+        return format(x, ",")
+
+    context["groups"].append(
+        {
+            "label": "Counts",
+            "key": "counts",
+            "items": [
+                {"key": "last24h", "label": "Last 24h", "value": fmt(last24h)},
+                {"key": "last7d", "label": "Last 7 days", "value": fmt(last7d)},
+                {"key": "last30d", "label": "Last 30 days", "value": fmt(last30d)},
+                {"key": "ever", "label": "Ever", "value": fmt(ever)},
+            ],
+        }
+    )
+
+    def fmt_seconds(s):
+        return "{:.1f}".format(s * 1000)
+
+    try:
+        last, = base_qs.order_by("-created")[:1]
+        context["groups"].append(
+            {
+                "label": "Rates (milliseconds)",
+                "key": "rates",
+                "items": [
+                    {
+                        "key": "last",
+                        "label": "Last one",
+                        "value": fmt_seconds(last.search_time.total_seconds()),
+                    }
+                ],
+            }
+        )
+    except ValueError:
+        last = None
+
+    avg30d = base_qs.filter(
+        created__gte=timezone.now() - datetime.timedelta(days=30)
+    ).aggregate(search_time=Avg("search_time"))["search_time"]
+    if avg30d:
+        context["groups"][-1]["items"].append(
+            {
+                "key": "avg30d",
+                "label": "Avg (30d)",
+                "value": fmt_seconds(avg30d.total_seconds()),
+            }
+        )
+
+    best30d = base_qs.filter(
+        created__gte=timezone.now() - datetime.timedelta(days=30)
+    ).aggregate(search_time=Min("search_time"))["search_time"]
+    if best30d:
+        context["groups"][-1]["items"].append(
+            {
+                "key": "best30d",
+                "label": "Best (30d)",
+                "value": fmt_seconds(best30d.total_seconds()),
+            }
+        )
+
+    worst30d = base_qs.filter(
+        created__gte=timezone.now() - datetime.timedelta(days=30)
+    ).aggregate(search_time=Max("search_time"))["search_time"]
+    if worst30d:
+        context["groups"][-1]["items"].append(
+            {
+                "key": "worst30d",
+                "label": "Worst (30d)",
+                "value": fmt_seconds(worst30d.total_seconds()),
+            }
+        )
+
+    return context
+
+
+def _searchresults_records(request_GET, limit=10):
+    records = []
+
+    def serialize_record(each):
+        return {
+            "id": each.id,
+            "q": each.q,
+            "original_q": each.original_q,
+            "documents_found": each.documents_found,
+            "search_time": each.search_time.total_seconds(),
+            "search_times": each.search_times,
+            "search_terms": each.search_terms,
+            "keywords": each.keywords,
+            "created": each.created,
+        }
+
+    qs = SearchResult.objects.all()
+    q = request_GET.get("q")
+    if q:
+        qs = qs.filter(q__contains=q)
+
+    for each in qs.order_by("-created")[:limit]:
+        record = serialize_record(each)
         records.append(record)
 
     return records
