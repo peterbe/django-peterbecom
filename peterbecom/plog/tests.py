@@ -188,3 +188,9 @@ code"""
 
         hit, = BlogItemHit.objects.all()
         assert hit.blogitem == blog
+
+    def test_blog_post_with_newline_request_path(self):
+        url = reverse("blog_post", args=["myoid"])
+        url += "\nOtherstuff"
+        response = self.client.get(url)
+        assert response.status_code == 302

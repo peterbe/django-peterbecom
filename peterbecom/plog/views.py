@@ -134,6 +134,8 @@ def _blog_post_key_prefixer(request):
 @cache_control(public=True, max_age=settings.DEBUG and ONE_HOUR or ONE_WEEK)
 @cache_page(settings.DEBUG and ONE_HOUR or ONE_WEEK, _blog_post_key_prefixer)
 def blog_post(request, oid):
+    if '\n' in request.path:
+        return redirect(reverse('blog_post', args=[oid]))
     if request.path.endswith("/ping"):
         # Sometimes this can happen when the URL parsing by Django
         # isn't working out.

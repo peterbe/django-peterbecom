@@ -131,6 +131,15 @@ def cache_request(request, response):
         # XXX TODO: Support JSON and xml
         "text/html" in response["Content-Type"]
     ):
+        # When you have url patterns like `/foo/(?P<oid>.*)` you can get requests
+        # that match but if the URL is something like
+        # "/foo/myslug%0Anextline" which translates to `/foo/myslug\nnextline`.
+        # The Django view will match just fine but the request.path will have a
+        # `\s` character in it.
+        # If that's the case we don't want to cache this request.
+        if "\n" in request.path or "\t" in request.path:
+            return False
+
         # let's iterate through some exceptions
         not_starts = (
             "/plog/edit/",

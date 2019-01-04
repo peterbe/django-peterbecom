@@ -50,3 +50,8 @@ def test_cache_request():
     request._fscache_disable = True
     response = http.HttpResponse()
     assert not fscache.cache_request(request, response)
+
+    request = RequestFactory().get("/\nsomething")
+    request.user = AnonymousUser()
+    response = http.HttpResponse()
+    assert not fscache.cache_request(request, response)
