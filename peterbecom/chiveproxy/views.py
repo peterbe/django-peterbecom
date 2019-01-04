@@ -16,7 +16,7 @@ class ScrapingError(Exception):
     """Something went wrong."""
 
 
-@cache_control(max_age=settings.DEBUG and 10 or 30 * 60, public=True)
+@cache_control(max_age=settings.DEBUG and 10 or 60, public=True)
 def api_cards(request):
     context = {"cards": []}
     qs = Card.objects
@@ -54,15 +54,11 @@ def api_cards(request):
     ]
 
     context["_updating"] = False
-    if not since:
-        if 0 and not context["cards"]:
-            update_cards()
-            return api_cards(request)
-        elif not cache.get("updated-cards-recently"):
-            cache.set("updated-cards-recently", True, settings.DEBUG and 60 or 60 * 60)
-            print("CALLING UPDATE_CARDS!")
-            update_cards_task()
-            context["_updating"] = True
+    if not since and not cache.get("updated-cards-recently"):
+        cache.set("updated-cards-recently", True, settings.DEBUG and 60 or 30 * 60)
+        print("CALLING UPDATE_CARDS!")
+        update_cards_task()
+        context["_updating"] = True
 
     return http.JsonResponse(context)
 
