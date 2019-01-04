@@ -303,9 +303,7 @@ class Records extends React.PureComponent {
                   </Table.Cell>
                   <Table.Cell>
                     {record.exception ? (
-                      <pre className="postprocessing-exception">
-                        {record.exception}
-                      </pre>
+                      <pre className="exception">{record.exception}</pre>
                     ) : null}
 
                     <ul style={{ margin: 0 }}>

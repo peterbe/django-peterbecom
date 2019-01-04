@@ -47,7 +47,7 @@ pre {
   overflow: auto;
 }
 
-pre.postprocessing-exception {
+pre.exception {
   font-size: 85%;
 }
 

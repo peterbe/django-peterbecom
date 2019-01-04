@@ -38,6 +38,9 @@ class DashboardLinks extends React.PureComponent {
         <Segment>
           <Link to="/postprocessings">Post Processings</Link>
         </Segment>
+        <Segment>
+          <Link to="/searchresults">Search Results</Link>
+        </Segment>
       </Segment.Group>
     );
   }
