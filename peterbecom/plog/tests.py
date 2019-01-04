@@ -191,6 +191,10 @@ code"""
 
     def test_blog_post_with_newline_request_path(self):
         url = reverse("blog_post", args=["myoid"])
-        url += "\nOtherstuff"
-        response = self.client.get(url)
-        assert response.status_code == 302
+        response = self.client.get(url + "\n")
+        assert response.status_code == 301
+        assert urlparse(response["location"]).path == url
+
+        response = self.client.get(url + "\nsomething")
+        assert response.status_code == 301
+        assert urlparse(response["location"]).path == url

@@ -1,6 +1,7 @@
 import datetime
 import os
 import shutil
+from urllib.parse import urlparse
 
 from django.urls import reverse
 from django.test import TestCase
@@ -123,3 +124,9 @@ class HomepageTestCase(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTrue(os.path.isfile(fs_path))
+
+    def test_about_page_with_newline_request_path(self):
+        url = reverse("about")
+        response = self.client.get(url + "\n")
+        assert response.status_code == 301
+        assert urlparse(response["location"]).path == url

@@ -113,6 +113,7 @@ MIDDLEWARE = (
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "rollbar.contrib.django.middleware.RollbarNotifierMiddleware",
     "peterbecom.api.middleware.AuthenticationMiddleware",
+    "peterbecom.base.middleware.NoNewlineRequestPaths",
     # Important that this is last
     "peterbecom.base.middleware.FSCacheMiddleware",
     "peterbecom.base.middleware.StatsMiddleware",
