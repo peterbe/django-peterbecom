@@ -50,7 +50,7 @@ from .models import (
     HTMLRenderingError,
     OneTimeAuthKey,
 )
-from .search import BlogItemDoc
+# from .search import BlogItemDoc
 from .utils import (
     json_view,
     rate_blog_comment,
@@ -289,7 +289,7 @@ def _render_blog_post(request, oid, screenshot_mode=False):
     context["all_comments"] = all_comments
     if request.path != "/plog/blogitem-040601-1":
         context["related_by_keyword"] = get_related_posts_by_keyword(post, limit=5)
-        context["related_by_text"] = get_related_posts_by_text(post, limit=5)
+        # context["related_by_text"] = get_related_posts_by_text(post, limit=5)
         context["show_buttons"] = not screenshot_mode
     context["show_carbon_ad"] = not screenshot_mode
     context["home_url"] = request.build_absolute_uri("/")
@@ -329,46 +329,46 @@ def get_related_posts_by_keyword(post, limit=5):
     )
 
 
-def get_related_posts_by_text(post, limit=5):
-    search = BlogItemDoc.search()
-    search.update_from_dict(
-        {
-            "query": {
-                "more_like_this": {
-                    "fields": ["title", "text"],
-                    "like": [
-                        {
-                            "_index": settings.ES_BLOG_ITEM_INDEX,
-                            "_type": "doc",
-                            "_id": post.id,
-                        }
-                    ],
-                    "min_term_freq": 2,
-                    "min_doc_freq": 5,
-                    "min_word_length": 3,
-                    "max_query_terms": 25,
-                }
-            }
-        }
-    )
-    search.update_from_dict({"query": {"range": {"pub_date": {"lt": "now"}}}})
-    search = search[:limit]
-    response = search.execute()
-    ids = [int(x._id) for x in response]
-    # print('Took {:.1f}ms to find {} related by text'.format(
-    #     response.took,
-    #     response.hits.total,
-    # ))
-    if not ids:
-        return []
-    objects = BlogItem.objects.filter(pub_date__lt=timezone.now(), id__in=ids)
+# def get_related_posts_by_text(post, limit=5):
+#     search = BlogItemDoc.search()
+#     search.update_from_dict(
+#         {
+#             "query": {
+#                 "more_like_this": {
+#                     "fields": ["title", "text"],
+#                     "like": [
+#                         {
+#                             "_index": settings.ES_BLOG_ITEM_INDEX,
+#                             "_type": "doc",
+#                             "_id": post.id,
+#                         }
+#                     ],
+#                     "min_term_freq": 2,
+#                     "min_doc_freq": 5,
+#                     "min_word_length": 3,
+#                     "max_query_terms": 25,
+#                 }
+#             }
+#         }
+#     )
+#     search.update_from_dict({"query": {"range": {"pub_date": {"lt": "now"}}}})
+#     search = search[:limit]
+#     response = search.execute()
+#     ids = [int(x._id) for x in response]
+#     # print('Took {:.1f}ms to find {} related by text'.format(
+#     #     response.took,
+#     #     response.hits.total,
+#     # ))
+#     if not ids:
+#         return []
+#     objects = BlogItem.objects.filter(pub_date__lt=timezone.now(), id__in=ids)
 
-    # This is a temporary thing just to get insight into the results
-    # of this query in production.
-    with open("/tmp/related-by-text.log", "a") as f:
-        f.write("{}|{}\n".format(post.id, ",".join(str(x) for x in ids)))
+#     # This is a temporary thing just to get insight into the results
+#     # of this query in production.
+#     with open("/tmp/related-by-text.log", "a") as f:
+#         f.write("{}|{}\n".format(post.id, ",".join(str(x) for x in ids)))
 
-    return sorted(objects, key=lambda x: ids.index(x.id))
+#     return sorted(objects, key=lambda x: ids.index(x.id))
 
 
 def _render_comment(comment):
