@@ -39,8 +39,10 @@ def too_old(fs_path, seconds=None):
 
 
 def invalidate(fs_path):
+    assert "//" not in fs_path, fs_path
     deleted = [fs_path]
-    os.remove(fs_path)
+    if os.path.isfile(fs_path):
+        os.remove(fs_path)
     endings = (".metadata", ".cache_control", ".gz", ".br", ".original")
     for ending in endings:
         fs_path_w = fs_path + ending
@@ -56,7 +58,9 @@ def invalidate(fs_path):
 def invalidate_by_url(url, revisit=False):
     if not url.startswith("/"):
         url = urlparse(url).path
-    fs_path = settings.FSCACHE_ROOT + url + "/index.html"
+    if not url.endswith("/"):
+        url += "/"
+    fs_path = settings.FSCACHE_ROOT + url + "index.html"
     invalidate(fs_path)
     if revisit:
         revisit_url(fs_path)
