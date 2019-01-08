@@ -247,6 +247,7 @@ class BlogComment(models.Model):
     comment = models.TextField()
     comment_rendered = models.TextField(blank=True, null=True)
     add_date = models.DateTimeField(default=utils.utc_now)
+    modify_date = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length=100, blank=True)
     email = models.CharField(max_length=100, blank=True)
     user_agent = models.CharField(max_length=300, blank=True, null=True)
