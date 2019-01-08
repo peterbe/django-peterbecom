@@ -110,7 +110,9 @@ class BlogitemsTable extends React.PureComponent {
       <Table celled>
         <Table.Header>
           <Table.Row>
-            <Table.HeaderCell>Title ({count})</Table.HeaderCell>
+            <Table.HeaderCell>
+              Title ({count.toLocaleString()})
+            </Table.HeaderCell>
             <Table.HeaderCell
               sorted={this.props.orderDirection}
               onClick={event => {

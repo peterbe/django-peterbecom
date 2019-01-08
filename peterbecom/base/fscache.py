@@ -1,10 +1,13 @@
 import os
+import random
 import time
 from urllib.parse import urljoin, urlparse
 
 import requests
+from django.core.cache import cache
 from django.conf import settings
 from django.contrib.sites.models import Site
+from huey.contrib.djhuey import task
 
 
 def path_to_fs_path(path):
@@ -36,8 +39,10 @@ def too_old(fs_path, seconds=None):
 
 
 def invalidate(fs_path):
+    assert "//" not in fs_path, fs_path
     deleted = [fs_path]
-    os.remove(fs_path)
+    if os.path.isfile(fs_path):
+        os.remove(fs_path)
     endings = (".metadata", ".cache_control", ".gz", ".br", ".original")
     for ending in endings:
         fs_path_w = fs_path + ending
@@ -50,14 +55,34 @@ def invalidate(fs_path):
     return deleted
 
 
-def invalidate_by_url(url):
+def invalidate_by_url(url, revisit=False):
     if not url.startswith("/"):
         url = urlparse(url).path
-    fs_path = settings.FSCACHE_ROOT + url + "/index.html"
-    if os.path.isfile(fs_path):
-        invalidate(fs_path)
-    if os.path.isfile(fs_path + ".gz"):
-        invalidate(fs_path + ".gz")
+    if not url.endswith("/"):
+        url += "/"
+    fs_path = settings.FSCACHE_ROOT + url + "index.html"
+    invalidate(fs_path)
+    if revisit:
+        revisit_url(fs_path)
+
+
+def invalidate_by_url_soon(url):
+    slated = cache.get("invalidate_by_url", [])
+    slated.append(url)
+    cache.set("invalidate_by_url", slated, 60)
+    invalidate_by_url_later()
+
+
+@task()
+def invalidate_by_url_later():
+    if not settings.HUEY.get("always_eager"):
+        time.sleep(2 + random.random())
+    slated = list(set(cache.get("invalidate_by_url", [])))
+    if slated:
+        cache.delete("invalidate_by_url")
+    print("After sleeping, there are {} URLs to invalidate".format(len(slated)))
+    for url in slated:
+        invalidate_by_url(url, revisit=True)
 
 
 def delete_empty_directory(filepath):

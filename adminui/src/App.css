@@ -88,3 +88,18 @@ code {
   background-color: rgba(0, 0, 0, 0.05);
   border-radius: 3px;
 }
+
+.ui.comments {
+  max-width: unset;
+}
+.ui.comments .comment .comments {
+  /* Makes it easier to see indentation of nested comments */
+  margin-left: 1.5em;
+}
+.ui.comments .comment .metadata {
+  color: unset;
+}
+.ui.comments .comment .metadata a {
+  font-weight: bold;
+  padding-left: 7px;
+}
