@@ -1,23 +1,34 @@
 import datetime
+import json
 import os
 import re
-import json
 from functools import wraps
 from urllib.parse import urlparse
 
 from django import http
-
-from django.db.models import Count, Q
 from django.conf import settings
+from django.db.models import Avg, Count, Max, Min, Q
 from django.shortcuts import get_object_or_404
+from django.views.decorators.http import require_POST
+from django.urls import reverse
 from django.utils import timezone
-from django.db.models import Min, Max, Avg
 
 from peterbecom.base.models import PostProcessing, SearchResult
-from peterbecom.plog.models import BlogItem, Category, BlogFile
-from peterbecom.plog.views import PreviewValidationError, preview_by_data
-from .forms import EditBlogForm, BlogFileUpload
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
+from peterbecom.plog.models import BlogComment, BlogFile, BlogItem, Category
+from peterbecom.plog.views import (
+    PreviewValidationError,
+    preview_by_data,
+    actually_approve_comment,
+)
+
+from .forms import (
+    BlogFileUpload,
+    EditBlogForm,
+    BlogCommentBatchForm,
+    EditBlogCommentForm,
+)
+from peterbecom.plog.utils import rate_blog_comment  # move this some day
 
 
 def api_superuser_required(view_func):
@@ -552,3 +563,157 @@ def _searchresults_records(request_GET, limit=10):
         records.append(record)
 
     return records
+
+
+@api_superuser_required
+def blogcomments(request):
+    if request.method == "POST":
+        data = json.loads(request.body.decode("utf-8"))
+
+        instance = BlogComment.objects.get(oid=data["oid"])
+        form = EditBlogCommentForm(data, instance=instance)
+        if form.is_valid():
+            item = form.save()
+            # Unsetting this will set it
+            item.comment_rendered = ""
+            item.rendered
+            context = {"comment": item.comment, "rendered": item.rendered}
+            return _response(context, status=200)
+        else:
+            return _response({"errors": form.errors}, status=400)
+
+    all_ids = set()
+
+    all_parent_ids = set()
+    for each in (
+        BlogComment.objects.filter(parent__isnull=False).values("parent_id").distinct()
+    ):
+        all_parent_ids.add(each['parent_id'])
+
+    def _serialize_comment(item, blogitem=None):
+        all_ids.add(item.id)
+        record = {
+            "id": item.id,
+            "oid": item.oid,
+            "approved": item.approved,
+            "comment": item.comment,
+            "rendered": item.rendered,
+            "add_date": item.add_date,
+            "age_seconds": int((timezone.now() - item.add_date).total_seconds()),
+            "name": item.name,
+            "email": item.email,
+            "user_agent": item.user_agent,
+            "ip_address": item.ip_address,
+            "_clues": rate_blog_comment(item),
+            "replies": [],
+        }
+        if blogitem:
+            record["blogitem"] = {
+                "id": blogitem.id,
+                "oid": blogitem.oid,
+                "title": blogitem.title,
+                "_absolute_url": reverse("blog_post", args=[blogitem.oid]),
+            }
+
+        if item.id in all_parent_ids:
+            for reply in BlogComment.objects.filter(parent=item).order_by("add_date"):
+                record["replies"].append(_serialize_comment(reply, blogitem=blogitem))
+        record["max_add_date"] = max(
+            [record["add_date"]] + [x["add_date"] for x in record["replies"]]
+        )
+        return record
+
+    batch_size = settings.ADMINUI_COMMENTS_BATCH_SIZE
+    base_qs = BlogComment.objects
+
+    since = request.GET.get("since")
+    if since == "null":
+        since = None
+    if since:
+        base_qs = base_qs.filter(add_date__lt=since)
+
+    if request.GET.get('unapproved') == 'only':
+        base_qs = base_qs.filter(approved=False)
+
+    search = request.GET.get("search", "").lower().strip()
+    blogitem_regex = re.compile(r"blogitem:([^\s]+)")
+    if search and blogitem_regex.findall(search):
+        blogitem_oid, = blogitem_regex.findall(search)
+        search = blogitem_regex.sub("", search).strip()
+        base_qs = base_qs.filter(blogitem=BlogItem.objects.get(oid=blogitem_oid))
+    if search:
+        base_qs = base_qs.filter(
+            Q(comment__icontains=search) | Q(oid=search) | Q(blogitem__oid=search)
+        )
+
+    # Latest root comments...
+    items = base_qs.filter(parent__isnull=True)
+    items = items.order_by("-add_date")
+    items = items.select_related("blogitem")
+    context = {"comments": [], "count": base_qs.count()}
+    oldest = timezone.now()
+    # n, m = ((page - 1) * batch_size, page * batch_size)
+    # iterator = items[n:m]
+    for item in items.select_related("blogitem")[:batch_size]:
+        # print("ROOT COMMENT", item.comment[:50], repr(item.blogitem))
+        if item.add_date < oldest:
+            oldest = item.add_date
+        context["comments"].append(_serialize_comment(item, blogitem=item.blogitem))
+
+    comment_cache = {}
+    for comment in (
+        BlogComment.objects.all()
+        .select_related("blogitem")
+        .order_by("-add_date")[:1000]
+    ):
+        comment_cache[comment.id] = comment
+
+    def get_parent(comment):
+        if comment.parent_id:
+            if comment.parent_id not in comment_cache:
+                print("CACHE MISS")
+                comment_cache[comment.parent_id] = comment.parent
+            else:
+                print("CACHE HIT")
+            return comment_cache[comment.parent_id]
+
+    # Latest not-root comments that haven't been included yet...
+    new_replies = base_qs.filter(parent__isnull=False).exclude(id__in=all_ids)
+    for comment in new_replies.order_by("-add_date")[:batch_size]:
+        if comment.add_date < oldest:
+            oldest = comment.add_date
+        if comment.id in all_ids:
+            continue
+        while comment.parent_id:
+            comment = get_parent(comment)
+        context["comments"].append(
+            _serialize_comment(comment, blogitem=comment.blogitem)
+        )
+
+    context["comments"].sort(key=lambda c: c["max_add_date"], reverse=True)
+    context["oldest"] = oldest
+
+    return _response(context)
+
+
+@require_POST
+@api_superuser_required
+def blogcomments_batch(request, action):
+    assert action in ("delete", "approve")
+    data = json.loads(request.body.decode("utf-8"))
+    data["comments"] = data.pop("oids")
+    form = BlogCommentBatchForm(data)
+    if form.is_valid():
+        context = {"approved": [], "deleted": []}
+        for comment in form.cleaned_data["comments"]:
+            if action == "approve":
+                assert not comment.approved
+                actually_approve_comment(comment)
+                context["approved"].append(comment.oid)
+            elif action == "delete":
+                context["deleted"].append(comment.oid)
+                comment.delete()
+        return _response(context, status=200)
+    else:
+        print("ERRORS", form.errors)
+        return _response({"errors": form.errors}, status=400)

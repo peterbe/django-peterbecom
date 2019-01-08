@@ -7,7 +7,7 @@ from django.forms.widgets import Textarea
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
-from peterbecom.plog.models import BlogFile, BlogItem, Category
+from peterbecom.plog.models import BlogFile, BlogItem, Category, BlogComment
 
 
 class MultilineTextarea(Textarea):
@@ -111,3 +111,15 @@ class BlogFileUpload(forms.ModelForm):
     class Meta:
         model = BlogFile
         exclude = ("add_date", "modify_date")
+
+
+class BlogCommentBatchForm(forms.Form):
+    comments = forms.ModelMultipleChoiceField(
+        queryset=BlogComment.objects, to_field_name="oid"
+    )
+
+
+class EditBlogCommentForm(forms.ModelForm):
+    class Meta:
+        model = BlogComment
+        fields = ("comment",)

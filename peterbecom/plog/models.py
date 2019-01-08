@@ -20,7 +20,7 @@ from sorl.thumbnail import ImageField
 from . import utils
 
 # from peterbecom.plog import screenshot
-from peterbecom.base.fscache import invalidate_by_url
+from peterbecom.base.fscache import invalidate_by_url_soon
 from peterbecom.base.search import es_retry
 from peterbecom.plog.search import BlogItemDoc, BlogCommentDoc
 
@@ -426,7 +426,7 @@ def invalidate_fscache(sender, instance, **kwargs):
     else:
         raise NotImplementedError(sender)
 
-    invalidate_by_url(url)
+    invalidate_by_url_soon(url)
 
 
 @receiver(models.signals.post_save, sender=BlogItem)

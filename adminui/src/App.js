@@ -13,6 +13,7 @@ import {
   OIDC_DOMAIN
 } from './Config';
 import Blogitems from './Blogitems';
+import Comments from './Comments';
 import Dashboard from './Dashboard';
 import { AddBlogitem, EditBlogitem } from './EditBlogitem';
 import OpenGraphImageBlogitem from './OpenGraphImageBlogitem';
@@ -163,18 +164,13 @@ class App extends React.Component {
                 {/* <Image size="mini" src="/logo.png" style={{ marginRight: '1.5em' }} /> */}
                 <Link to="/">Peterbe.com Admin UI</Link>
               </Menu.Item>
-              <Menu.Item>
-                <Link to="/">Home</Link>
-              </Menu.Item>
-              <Menu.Item>
-                <Link to="/plog">Blogitems</Link>
-              </Menu.Item>
-              <Menu.Item>
-                <Link to="/plog/comments">Comments</Link>
-              </Menu.Item>
-
-              <Dropdown item simple text="Actions">
+              <Dropdown item simple text="Blogitems">
                 <Dropdown.Menu>
+                  <Dropdown.Item>
+                    <Link to="/plog" style={{ color: '#000' }}>
+                      Blogitems
+                    </Link>
+                  </Dropdown.Item>
                   <Dropdown.Item>
                     <Link to="/plog/add" style={{ color: '#000' }}>
                       Add new blogitem
@@ -193,6 +189,15 @@ class App extends React.Component {
                   <Dropdown.Item>List Item</Dropdown.Item> */}
                 </Dropdown.Menu>
               </Dropdown>
+              <Menu.Item>
+                <Link to="/plog/comments">Comments</Link>
+              </Menu.Item>
+              <Menu.Item>
+                <Link to="/postprocessings">Post Processings</Link>
+              </Menu.Item>
+              <Menu.Item>
+                <Link to="/searchresults">Search Results</Link>
+              </Menu.Item>
 
               <Menu.Menu position="right">
                 {this.state.userInfo ? (
@@ -241,6 +246,12 @@ class App extends React.Component {
                 )}
               />
               {/* <Route path="/comments" exact component={Comments} /> */}
+              <SecureRoute
+                path="/plog/comments"
+                exact
+                component={Comments}
+                accessToken={this.state.accessToken}
+              />
               <SecureRoute
                 path="/plog"
                 exact
