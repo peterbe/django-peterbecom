@@ -284,18 +284,19 @@ def _post_thumbnails(blogitem):
 def postprocessings(request):
 
     context = {
-        "statistics": _postprocessing_statistics(),
+        "statistics": _postprocessing_statistics(request.GET),
         "records": _postprocessing_records(request.GET),
     }
 
     return _response(context)
 
 
-def _postprocessing_statistics():
+def _postprocessing_statistics(request_GET):
 
     context = {"groups": []}
 
     base_qs = PostProcessing.objects.filter(duration__isnull=False)
+    base_qs = _filter_postprocessing_queryset(base_qs, request_GET)
 
     ongoing = (
         PostProcessing.ongoing()
@@ -404,10 +405,21 @@ def _postprocessing_records(request_GET, limit=10):
             "_previous": None,
         }
 
-    duration_regex = re.compile(r"duration:?\s*(>|<)\s*([\d\.]+)s?")
-
     qs = PostProcessing.objects.all()
+    qs = _filter_postprocessing_queryset(qs, request_GET)
+
+    for each in qs.order_by("-created")[:limit]:
+        record = serialize_record(each)
+        if each.previous:
+            record["_previous"] = serialize_record(each.previous)
+        records.append(record)
+
+    return records
+
+
+def _filter_postprocessing_queryset(qs, request_GET):
     q = request_GET.get("q")
+    duration_regex = re.compile(r"duration:?\s*(>|<)\s*([\d\.]+)s?")
     if q:
         duration = re.findall(duration_regex, q)
         if duration:
@@ -423,14 +435,7 @@ def _postprocessing_records(request_GET, limit=10):
             qs = qs.filter(url__endswith=q[:-1])
         elif q:
             qs = qs.filter(url__contains=q)
-
-    for each in qs.order_by("-created")[:limit]:
-        record = serialize_record(each)
-        if each.previous:
-            record["_previous"] = serialize_record(each.previous)
-        records.append(record)
-
-    return records
+    return qs
 
 
 @api_superuser_required
@@ -444,7 +449,7 @@ def searchresults(request):
     return _response(context)
 
 
-def _searchresults_statistics():
+def _searchresults_statistics(request_GET):
 
     context = {"groups": []}
 
@@ -588,7 +593,7 @@ def blogcomments(request):
     for each in (
         BlogComment.objects.filter(parent__isnull=False).values("parent_id").distinct()
     ):
-        all_parent_ids.add(each['parent_id'])
+        all_parent_ids.add(each["parent_id"])
 
     def _serialize_comment(item, blogitem=None):
         all_ids.add(item.id)
@@ -604,7 +609,7 @@ def blogcomments(request):
             "email": item.email,
             "user_agent": item.user_agent,
             "ip_address": item.ip_address,
-            "_clues": rate_blog_comment(item),
+            "_clues": not item.approved and rate_blog_comment(item) or None,
             "replies": [],
         }
         if blogitem:
@@ -632,7 +637,7 @@ def blogcomments(request):
     if since:
         base_qs = base_qs.filter(add_date__lt=since)
 
-    if request.GET.get('unapproved') == 'only':
+    if request.GET.get("unapproved") == "only":
         base_qs = base_qs.filter(approved=False)
 
     search = request.GET.get("search", "").lower().strip()

@@ -306,11 +306,11 @@ class Records extends React.PureComponent {
                       <pre className="exception">{record.exception}</pre>
                     ) : null}
 
-                    <ul style={{ margin: 0 }}>
+                    <ol style={{ margin: 0 }}>
                       {record.notes.map((note, i) => {
                         return <li key={i}>{note}</li>;
                       })}
-                    </ul>
+                    </ol>
                   </Table.Cell>
                 </Table.Row>
               );
