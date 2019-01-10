@@ -1,6 +1,5 @@
 import React from 'react';
 import md5 from 'md5';
-// import { Link } from 'react-router-dom';
 import {
   Button,
   Checkbox,
@@ -13,10 +12,6 @@ import {
   Message,
   TextArea,
   Form
-  //   Table,
-  //   Button,
-  //   Label,
-  //   Input
 } from 'semantic-ui-react';
 import { DisplayDate, ShowServerError } from './Common';
 import { BASE_URL } from './Config';
@@ -109,21 +104,6 @@ class Comments extends React.Component {
       this.setState({ approving: {}, approved, checked: {} });
     });
   };
-
-  // deleteComment = async oid => {
-  //   const deleting = Object.assign({}, this.state.deleting);
-  //   deleting[oid] = true;
-  //   return this.setState({ deleting }, this._deleteComments);
-  // };
-
-  // _deleteComments = async () => {
-  //   const data = { oids: [] };
-  //   console.log('DATA:', data);
-  // };
-  // _approveComments = async () => {
-  //   console.warn('NOT YET');
-  //   throw new Error('work harder');
-  // };
 
   _deleteOrApproveComments = async (type, data) => {
     const { accessToken } = this.props;
@@ -225,7 +205,6 @@ class Comments extends React.Component {
           <form
             onSubmit={event => {
               event.preventDefault();
-              console.log(this.refs.q.inputRef.value);
               this.setState(
                 { search: this.refs.q.inputRef.value },
                 this.fetchComments
@@ -358,19 +337,9 @@ class Checked extends React.PureComponent {
 
 class CommentsTree extends React.PureComponent {
   render() {
-    const {
-      comments,
-      count,
-      loading,
-      editing,
-      approving,
-      deleting,
-      approved,
-      deleted,
-      approveComment,
-      deleteComment,
-      editComment
-    } = this.props;
+    const { comments, count } = this.props;
+
+    let lastBlogitem = null;
     return (
       <Comment.Group>
         <Header as="h2" dividing>
@@ -378,26 +347,18 @@ class CommentsTree extends React.PureComponent {
         </Header>
 
         {comments.map(comment => {
-          // XXX Use {...props} instead!
+          const differentBlogitem = lastBlogitem !== comment.blogitem.id;
+          lastBlogitem = comment.blogitem.id;
           return (
             <CommentTree
               key={comment.id}
               comment={comment}
-              editing={editing}
-              approving={approving}
-              deleting={deleting}
-              approved={approved}
-              deleted={deleted}
               root={true}
-              loading={loading}
+              showBlogitem={differentBlogitem}
               addToSearch={term => {
                 this.props.updateFilterSearch(term);
               }}
-              setChecked={this.props.setChecked}
-              setEditing={this.props.setEditing}
-              approveComment={approveComment}
-              deleteComment={deleteComment}
-              editComment={editComment}
+              {...this.props}
             />
           );
         })}
@@ -408,7 +369,8 @@ class CommentsTree extends React.PureComponent {
 
 class CommentTree extends React.PureComponent {
   static defaultProps = {
-    root: false
+    root: false,
+    showBlogitem: false
   };
   hotness = seconds => {
     if (seconds < 60) {
@@ -435,6 +397,7 @@ class CommentTree extends React.PureComponent {
     const {
       comment,
       root,
+      showBlogitem,
       addToSearch,
       setChecked,
       setEditing,
@@ -450,7 +413,7 @@ class CommentTree extends React.PureComponent {
 
     return (
       <Comment>
-        {root && (
+        {root && showBlogitem && (
           <Header as="h4" dividing>
             <a
               href={BASE_URL + comment.blogitem._absolute_url}
@@ -604,7 +567,6 @@ class EditComment extends React.PureComponent {
       <Form
         onSubmit={event => {
           event.preventDefault();
-          console.log(this.state.text);
           this.props.editComment(this.props.comment, this.state.text);
         }}
       >

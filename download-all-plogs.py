@@ -11,15 +11,14 @@ from pyquery import PyQuery
 
 
 def get_urls(base_url, exclude=set()):
+    urls = []
     if base_url.endswith("/"):
         base_url = base_url[:-1]
     doc = PyQuery(base_url + "/plog/")
     doc.make_links_absolute(base_url=base_url)
-    urls = []
     for a in doc("dd a"):
         href = a.attrib["href"]
         if href in exclude:
-            # print("EXCLUDE", href)
             continue
         urls.append(href)
 
@@ -36,7 +35,10 @@ def get_urls(base_url, exclude=set()):
             continue
         if href not in urls and href not in exclude:
             urls.append(href)
-    url_start = base_url + "/?page="
+            urls.append(href)
+            urls.append(href)
+
+    url_start = base_url + "/p"
     for i in range(2, 10):
         url = url_start + str(i)
         if url in exclude:
