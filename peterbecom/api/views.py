@@ -442,7 +442,7 @@ def _filter_postprocessing_queryset(qs, request_GET):
 def searchresults(request):
 
     context = {
-        "statistics": _searchresults_statistics(),
+        "statistics": _searchresults_statistics(request.GET),
         "records": _searchresults_records(request.GET),
     }
 
