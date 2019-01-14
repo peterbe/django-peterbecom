@@ -582,7 +582,12 @@ def blogcomments(request):
             # Unsetting this will set it
             item.comment_rendered = ""
             item.rendered
-            context = {"comment": item.comment, "rendered": item.rendered}
+            context = {
+                "comment": item.comment,
+                "rendered": item.rendered,
+                "name": item.name,
+                "email": item.email,
+            }
             return _response(context, status=200)
         else:
             return _response({"errors": form.errors}, status=400)

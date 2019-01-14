@@ -122,4 +122,4 @@ class BlogCommentBatchForm(forms.Form):
 class EditBlogCommentForm(forms.ModelForm):
     class Meta:
         model = BlogComment
-        fields = ("comment",)
+        fields = ("comment", "name", "email")

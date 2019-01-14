@@ -137,14 +137,17 @@ class Comments extends React.Component {
     }
   };
 
-  editComment = async (comment, text) => {
+  editComment = async (comment, data) => {
     this.setState({ loading: true });
 
     const { accessToken } = this.props;
     if (!accessToken) {
       throw new Error('No accessToken');
     }
-    const data = { comment: text, oid: comment.oid };
+    // const data = { comment: text, oid: comment.oid };
+    // Correct the alias
+    data.comment = data.text;
+    data.oid = comment.oid;
     const url = `/api/v0/plog/comments/`;
     try {
       const response = await fetch(url, {
@@ -162,6 +165,8 @@ class Comments extends React.Component {
           comments.forEach(c => {
             if (c.oid === comment.oid) {
               c.comment = data.comment;
+              c.name = data.name;
+              c.email = data.email;
               c.rendered = data.rendered;
             } else {
               mutateCommentTexts(c.replies);
@@ -561,15 +566,37 @@ class CommentTree extends React.PureComponent {
 }
 
 class EditComment extends React.PureComponent {
-  state = { text: this.props.comment.comment };
+  state = {
+    text: this.props.comment.comment,
+    name: this.props.comment.name || '',
+    email: this.props.comment.email || ''
+  };
   render() {
     return (
       <Form
         onSubmit={event => {
           event.preventDefault();
-          this.props.editComment(this.props.comment, this.state.text);
+          this.props.editComment(this.props.comment, {
+            text: this.state.text,
+            name: this.state.name,
+            email: this.state.email
+          });
         }}
       >
+        <Input
+          value={this.state.name}
+          onChange={(_, data) => {
+            this.setState({ name: data.value });
+          }}
+          placeholder="Name..."
+        />
+        <Input
+          value={this.state.email}
+          onChange={(_, data) => {
+            this.setState({ email: data.value });
+          }}
+          placeholder="Email..."
+        />
         <TextArea
           value={this.state.text}
           onChange={(_, data) => {
