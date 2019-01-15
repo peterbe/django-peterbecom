@@ -24,7 +24,8 @@ div#root {
 
 /* Copied this from GitHub */
 textarea.monospaced {
-  font-family: SFMono-Regular, Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;
+  font-family: SFMono-Regular, Consolas, 'Liberation Mono', Menlo, Courier,
+    monospace !important;
   font-size: 13px;
 }
 
@@ -33,7 +34,6 @@ textarea.monospaced {
   padding-top: 20px;
   border-top: 1px solid #ccc;
 }
-
 
 /* Need some of the CSS from the view site */
 pre {
@@ -83,6 +83,11 @@ pre {
   overflow: auto;
 }
 
+table.hits td a.category {
+  color: #666;
+  font-size: 80%;
+  margin-left: 10px;
+}
 code {
   padding: 0.2em 0.2em;
   background-color: rgba(0, 0, 0, 0.05);

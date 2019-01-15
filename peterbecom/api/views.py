@@ -2,6 +2,8 @@ import datetime
 import json
 import os
 import re
+import statistics
+from collections import defaultdict
 from functools import wraps
 from urllib.parse import urlparse
 
@@ -9,26 +11,26 @@ from django import http
 from django.conf import settings
 from django.db.models import Avg, Count, Max, Min, Q
 from django.shortcuts import get_object_or_404
-from django.views.decorators.http import require_POST
 from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from peterbecom.base.models import PostProcessing, SearchResult
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
 from peterbecom.plog.models import BlogComment, BlogFile, BlogItem, Category
+from peterbecom.plog.utils import rate_blog_comment  # move this some day
 from peterbecom.plog.views import (
     PreviewValidationError,
-    preview_by_data,
     actually_approve_comment,
+    preview_by_data,
 )
 
 from .forms import (
-    BlogFileUpload,
-    EditBlogForm,
     BlogCommentBatchForm,
+    BlogFileUpload,
     EditBlogCommentForm,
+    EditBlogForm,
 )
-from peterbecom.plog.utils import rate_blog_comment  # move this some day
 
 
 def api_superuser_required(view_func):
@@ -727,3 +729,102 @@ def blogcomments_batch(request, action):
     else:
         print("ERRORS", form.errors)
         return _response({"errors": form.errors}, status=400)
+
+
+@api_superuser_required
+def blogitem_hits(request):
+    context = {}
+    limit = int(request.GET.get("limit", 50))
+    today = request.GET.get("today", False)
+    if today == "false":
+        today = False
+    _category_names = dict(
+        (x["id"], x["name"]) for x in Category.objects.all().values("id", "name")
+    )
+    categories = defaultdict(list)
+    qs = BlogItem.categories.through.objects.all().values("blogitem_id", "category_id")
+    for each in qs:
+        categories[each["blogitem_id"]].append(_category_names[each["category_id"]])
+    context["categories"] = categories
+
+    # XXX REFACTOR THIS TO USE THE ORM IF POSSIBLE
+    if today:
+        query = BlogItem.objects.raw(
+            """
+            WITH counts AS (
+                SELECT
+                    blogitem_id, count(blogitem_id) AS count
+                    FROM plog_blogitemhit
+                    WHERE add_date > NOW() - INTERVAL '1 day'
+                    GROUP BY blogitem_id
+
+            )
+            SELECT
+                b.id, b.oid, b.title, count AS hits, b.pub_date,
+                EXTRACT(DAYS FROM (NOW() - b.pub_date))::INT AS age,
+                count AS score
+            FROM counts, plog_blogitem b
+            WHERE
+                blogitem_id = b.id AND (NOW() - b.pub_date) > INTERVAL '1 day'
+            ORDER BY score desc
+            LIMIT {limit}
+        """.format(
+                limit=limit
+            )
+        )
+    else:
+        query = BlogItem.objects.raw(
+            """
+            WITH counts AS (
+                SELECT
+                    blogitem_id, count(blogitem_id) AS count
+                    FROM plog_blogitemhit
+                    GROUP BY blogitem_id
+            )
+            SELECT
+                b.id, b.oid, b.title, count AS hits, b.pub_date,
+                EXTRACT(DAYS FROM (NOW() - b.pub_date))::INT AS age,
+                count / EXTRACT(DAYS FROM (NOW() - b.pub_date)) AS score
+            FROM counts, plog_blogitem b
+            WHERE
+                blogitem_id = b.id AND (NOW() - b.pub_date) > INTERVAL '1 day'
+            ORDER BY score desc
+            LIMIT {limit}
+        """.format(
+                limit=limit
+            )
+        )
+    context["all_hits"] = []
+    category_scores = defaultdict(list)
+    for record in query:
+        context["all_hits"].append(
+            {
+                "id": record.id,
+                "oid": record.id,
+                "title": record.title,
+                "pub_date": record.pub_date,
+                "hits": record.hits,
+                "age": record.age,
+                "score": record.score,
+                "_absolute_url": "/plog/{}".format(record.oid),
+            }
+        )
+        for cat in categories[record.id]:
+            category_scores[cat].append(record.score)
+
+    summed_category_scores = []
+    for name, scores in category_scores.items():
+        count = len(scores)
+        summed_category_scores.append(
+            {
+                "name": name,
+                "count": count,
+                "sum": sum(scores),
+                "avg": sum(scores) / count,
+                "med": statistics.median(scores),
+            }
+        )
+    context["summed_category_scores"] = summed_category_scores
+    # context["today"] = today
+
+    return _response(context)
