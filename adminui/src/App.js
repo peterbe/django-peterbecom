@@ -20,6 +20,7 @@ import OpenGraphImageBlogitem from './OpenGraphImageBlogitem';
 import UploadImages from './UploadImages';
 import PostProcessings from './PostProcessings';
 import SearchResults from './SearchResults';
+import BlogitemHits from './BlogitemHits';
 
 class App extends React.Component {
   state = {
@@ -176,6 +177,11 @@ class App extends React.Component {
                       Add new blogitem
                     </Link>
                   </Dropdown.Item>
+                  <Dropdown.Item>
+                    <Link to="/plog/hits" style={{ color: '#000' }}>
+                      Hits
+                    </Link>
+                  </Dropdown.Item>
                   {/* <Dropdown.Divider />
                   <Dropdown.Header>Header Item</Dropdown.Header>
                   <Dropdown.Item>
@@ -250,6 +256,12 @@ class App extends React.Component {
                 path="/plog/comments"
                 exact
                 component={Comments}
+                accessToken={this.state.accessToken}
+              />
+              <SecureRoute
+                path="/plog/hits"
+                exact
+                component={BlogitemHits}
                 accessToken={this.state.accessToken}
               />
               <SecureRoute
