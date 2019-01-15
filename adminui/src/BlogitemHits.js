@@ -1,5 +1,5 @@
 import React from 'react';
-import { Header, Container, Loader, Table, Divider } from 'semantic-ui-react';
+import { Header, Container, Loader, Table } from 'semantic-ui-react';
 
 import { filterToQueryString, ShowServerError } from './Common';
 import { BASE_URL } from './Config';
@@ -19,11 +19,6 @@ class BlogitemHits extends React.Component {
     document.title = 'Blogitem Hits';
     this.fetchHits();
   }
-
-  //   componentWillUnmount() {
-  //     this.dismounted = true;
-  //     if (this._loop) window.clearTimeout(this._loop);
-  //   }
 
   fetchHits = async () => {
     if (!this.props.accessToken) {
