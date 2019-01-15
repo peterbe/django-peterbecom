@@ -25,7 +25,8 @@ class Comments extends React.Component {
     loading: false,
     search: '',
     unapprovedOnly: false,
-    checked: {},
+    checkedForApproval: {},
+    checkedForDelete: {},
     editing: {},
     approved: {},
     deleted: {},
@@ -86,7 +87,9 @@ class Comments extends React.Component {
       oids.forEach(oid => {
         deleted[oid] = true;
       });
-      this.setState({ deleting: {}, deleted, checked: {} });
+      this.setState({ deleting: {}, deleted }, () => {
+        this._resetChecked(oids);
+      });
     });
   };
 
@@ -101,8 +104,20 @@ class Comments extends React.Component {
       oids.forEach(oid => {
         approved[oid] = true;
       });
-      this.setState({ approving: {}, approved, checked: {} });
+      this.setState({ approving: {}, approved }, () => {
+        this._resetChecked(oids);
+      });
     });
+  };
+
+  _resetChecked = oids => {
+    const checkedForApproval = this.state.checkedForApproval;
+    const checkedForDelete = this.state.checkedForDelete;
+    oids.forEach(oid => {
+      delete checkedForApproval[oid];
+      delete checkedForDelete[oid];
+    });
+    this.setState({ checkedForApproval, checkedForDelete });
   };
 
   _deleteOrApproveComments = async (type, data) => {
@@ -238,7 +253,8 @@ class Comments extends React.Component {
         )}
         {
           <Checked
-            checked={this.state.checked}
+            checkedForApproval={this.state.checkedForApproval}
+            checkedForDelete={this.state.checkedForDelete}
             deleteComments={this.deleteComments}
             approveComments={this.approveComments}
           />
@@ -260,10 +276,23 @@ class Comments extends React.Component {
             deleteComment={oid => {
               this.deleteComments([oid]);
             }}
-            setChecked={(oid, toggle) => {
-              const checked = Object.assign({}, this.state.checked);
-              checked[oid] = toggle;
-              this.setState({ checked });
+            checkedForApproval={this.state.checkedForApproval}
+            checkedForDelete={this.state.checkedForDelete}
+            setCheckedForApproval={(oid, toggle) => {
+              const checkedForApproval = Object.assign(
+                {},
+                this.state.checkedForApproval
+              );
+              checkedForApproval[oid] = toggle;
+              this.setState({ checkedForApproval });
+            }}
+            setCheckedForDelete={(oid, toggle) => {
+              const checkedForDelete = Object.assign(
+                {},
+                this.state.checkedForDelete
+              );
+              checkedForDelete[oid] = toggle;
+              this.setState({ checkedForDelete });
             }}
             setEditing={oid => {
               const editing = Object.assign({}, this.state.editing);
@@ -303,37 +332,48 @@ class Comments extends React.Component {
 
 export default Comments;
 
-class Checked extends React.PureComponent {
+class Checked extends React.Component {
   render() {
-    const { checked, approveComments, deleteComments } = this.props;
-    const oids = Object.entries(checked)
-      .filter(([oid, value]) => value)
-      .map(([key, value]) => key);
-    if (!oids.length) return null;
+    const {
+      checkedForApproval,
+      checkedForDelete,
+      approveComments,
+      deleteComments
+    } = this.props;
+    const oidsForApproval = Object.entries(checkedForApproval)
+      .filter(([_, value]) => value)
+      .map(([key, _]) => key);
+    const oidsForDelete = Object.entries(checkedForDelete)
+      .filter(([_, value]) => value)
+      .map(([key, _]) => key);
+    if (!oidsForApproval.length && !oidsForDelete.length) return null;
     return (
       <Message>
-        <Message.Header>
-          Approve/Delete All <i>{oids.length}</i> Checked Comments
-        </Message.Header>
+        <Message.Header>Batch Operation</Message.Header>
         <Button.Group widths="2">
-          <Button
-            positive
-            type="text"
-            onClick={event => {
-              approveComments(oids);
-            }}
-          >
-            Approve all
-          </Button>
-          <Button
-            negative
-            type="text"
-            onClick={event => {
-              deleteComments(oids);
-            }}
-          >
-            Delete all
-          </Button>
+          {oidsForApproval.length && (
+            <Button
+              positive
+              type="text"
+              onClick={event => {
+                approveComments(oidsForApproval);
+              }}
+            >
+              Approve all ({oidsForApproval.length})
+            </Button>
+          )}
+
+          {oidsForDelete.length && (
+            <Button
+              negative
+              type="text"
+              onClick={event => {
+                deleteComments(oidsForDelete);
+              }}
+            >
+              Delete all ({oidsForDelete.length})
+            </Button>
+          )}
         </Button.Group>
       </Message>
     );
@@ -404,7 +444,10 @@ class CommentTree extends React.PureComponent {
       root,
       showBlogitem,
       addToSearch,
-      setChecked,
+      checkedForApproval,
+      checkedForDelete,
+      setCheckedForApproval,
+      setCheckedForDelete,
       setEditing,
       editing,
       editComment,
@@ -500,8 +543,9 @@ class CommentTree extends React.PureComponent {
                 <Comment.Action>
                   <Checkbox
                     value={comment.oid}
+                    checked={!!checkedForApproval[comment.oid]}
                     onChange={(_, data) => {
-                      setChecked(comment.oid, data.checked);
+                      setCheckedForApproval(comment.oid, data.checked);
                     }}
                     style={{ paddingRight: 30, paddingLeft: 10 }}
                   />
@@ -535,6 +579,14 @@ class CommentTree extends React.PureComponent {
                   >
                     Delete
                   </Button>
+                  <Checkbox
+                    value={comment.oid}
+                    checked={!!checkedForDelete[comment.oid]}
+                    onChange={(_, data) => {
+                      setCheckedForDelete(comment.oid, data.checked);
+                    }}
+                    style={{ paddingRight: 30, paddingLeft: 10 }}
+                  />
                 </Comment.Action>
               )}
           </Comment.Actions>
@@ -546,7 +598,10 @@ class CommentTree extends React.PureComponent {
               <CommentTree
                 comment={reply}
                 key={reply.id}
-                setChecked={setChecked}
+                checkedForApproval={checkedForApproval}
+                checkedForDelete={checkedForDelete}
+                setCheckedForApproval={setCheckedForApproval}
+                setCheckedForDelete={setCheckedForDelete}
                 setEditing={setEditing}
                 approveComment={approveComment}
                 deleteComment={deleteComment}
