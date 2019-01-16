@@ -11,6 +11,12 @@ ES_INDEX = "test_peterbecom"
 
 REDIS_URL = "redis://localhost:6379/9"
 
+CACHES = {
+    "default": {
+        "BACKEND": "peterbecom.cache_backends.LockMemCache",
+        "LOCATION": "unique-snowflake",
+    }
+}
 
 ROLLBAR = {
     "enabled": False,

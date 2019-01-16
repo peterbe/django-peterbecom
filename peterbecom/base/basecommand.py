@@ -13,7 +13,9 @@ from django.core.management.base import BaseCommand as DjangoBaseCommand
 
 from peterbecom.base.models import CommandRun
 
-rollbar.init(settings.ROLLBAR["access_token"], settings.ROLLBAR["environment"])
+ROLLBAR_ENABLED = settings.ROLLBAR.get("enabled", True)
+if ROLLBAR_ENABLED:
+    rollbar.init(settings.ROLLBAR["access_token"], settings.ROLLBAR["environment"])
 
 
 class BaseCommand(DjangoBaseCommand):
@@ -48,7 +50,8 @@ class BaseCommand(DjangoBaseCommand):
             self._handle(**options)
         except Exception:
             if not settings.DEBUG:
-                rollbar.report_exc_info()
+                if ROLLBAR_ENABLED:
+                    rollbar.report_exc_info()
             raise
 
     def execute(self, *args, **kwargs):

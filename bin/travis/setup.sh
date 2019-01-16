@@ -25,7 +25,7 @@ HMAC_KEYS = {'some': 'thing'}
 SECRET_KEY = 'something'
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'BACKEND': 'peterbecom.cache_backends.LockMemCache',
         'LOCATION': 'unique-snowflake'
     }
 }
