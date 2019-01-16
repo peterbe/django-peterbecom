@@ -167,21 +167,6 @@ class BlogItem(models.Model):
             raise cls.DoesNotExist("not found")
         return cls.objects.get(pk=value)
 
-    def update_screenshot_image(self, base_url):
-        raise NotImplementedError
-        # url = base_url + reverse('blog_screenshot', args=(self.oid,))
-        # png_url = screenshot.get_image_url(url)
-        #
-        # img_temp = NamedTemporaryFile(delete=True)
-        # img_temp.write(urllib2.urlopen(png_url).read())
-        # img_temp.flush()
-        #
-        # self.screenshot_image.save(
-        #     'screenshot.{}.png'.format(self.oid),
-        #     File(img_temp)
-        # )
-        # return png_url
-
     def to_search(self, **kwargs):
         doc = self.to_search_doc(**kwargs)
         assert self.id
