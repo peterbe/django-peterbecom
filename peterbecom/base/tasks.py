@@ -147,10 +147,7 @@ def _minify_html(filepath, url):
         html = f.read()
     minified_html = minify_html(html)
     if not minified_html:
-        print(
-            "Something went horribly wrong! The minified HTML is empty! "
-            "filepath={}\turl={}".format(filepath, url)
-        )
+        print("Failed to minify_html({!r}, {!r}).".format(filepath, url))
         with open("/tmp/minifying-trouble.log", "a") as f:
             f.write("{}\t{}\t{}\n".format(timezone.now(), filepath, url))
         if settings.DEBUG:
