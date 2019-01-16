@@ -1,19 +1,18 @@
-import os
-import time
-import re
-import logging
-import hashlib
 import codecs
+import hashlib
+import logging
+import os
+import re
 import tempfile
+import time
 from urllib.parse import urlparse
 
-import requests
 import delegator
-
+import requests
 from django.conf import settings
 from django.core.cache import cache
-
 from mincss.processor import Processor
+from pyquery import PyQuery
 
 try:
     import cssmin
@@ -242,3 +241,16 @@ def _clean_with_csso(cssstring):
             output = f.read()
 
     return output
+
+
+def has_been_css_minified(html):
+    doc = PyQuery(html)
+    for link in doc('link[rel="preload"]').items():
+        if link.attr("href") and link.attr("href").endswith(".css"):
+            # Second test, does it have a big fat style text:
+            for style in doc("style").items():
+                length = len(style.text())
+                if length > 5000:
+                    return True
+
+    return False

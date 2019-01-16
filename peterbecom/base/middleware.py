@@ -66,11 +66,14 @@ class FSCacheMiddleware:
                 fscache.create_parents(fs_path)
                 assert os.path.isdir(os.path.dirname(fs_path)), os.path.dirname(fs_path)
                 with open(fs_path, "w") as f:
-                    f.write(response.content.decode("utf-8"))
+                    content = response.content.decode("utf-8")
+                    # f.write(response.content.decode("utf-8"))
+                    f.write(content)
+                    assert content, "response.content empty!"
                     if "text/html" in response["Content-Type"]:
                         f.write("\n<!-- {} -->\n".format(metadata_text))
 
-                # print("WROTE", fs_path)
+                assert os.path.isfile(fs_path), fs_path
                 assert os.stat(fs_path).st_size
 
                 # This is a bit temporary

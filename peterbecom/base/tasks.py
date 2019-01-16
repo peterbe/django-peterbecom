@@ -10,16 +10,17 @@ from io import StringIO
 
 from django.conf import settings
 
-# from django.core.cache import cache
 from django.utils import timezone
 from huey.contrib.djhuey import task
 from requests.exceptions import ReadTimeout
 
 from peterbecom.base.models import PostProcessing
+from peterbecom.base.decorators import lock_decorator
 from peterbecom.brotli_file import brotli_file
-from peterbecom.mincss_response import mincss_html
+from peterbecom.mincss_response import mincss_html, has_been_css_minified
 from peterbecom.minify_html import minify_html
 from peterbecom.zopfli_file import zopfli_file
+from peterbecom.base import songsearch_autocomplete
 
 
 def measure_post_process(func):
@@ -49,6 +50,13 @@ def measure_post_process(func):
 @task()
 @measure_post_process
 def post_process_cached_html(filepath, url, postprocessing):
+    # Sepearated from true work-horse below. This is so that the task will
+    # *always* fire immediately.
+    return _post_process_cached_html(filepath, url, postprocessing)
+
+
+@lock_decorator(key_maker=lambda *args, **kwargs: args[0])
+def _post_process_cached_html(filepath, url, postprocessing):
     if "\n" in url:
         raise ValueError("URL can't have a linebreak in it ({!r})".format(url))
     if url.startswith("http://testserver"):
@@ -60,11 +68,19 @@ def post_process_cached_html(filepath, url, postprocessing):
         )
 
     attempts = 0
-    while True:
-        original_ts = os.stat(filepath).st_mtime
-        with open(filepath) as f:
-            html = f.read()
+    with open(filepath) as f:
+        html = f.read()
 
+    if has_been_css_minified(html):
+        # This function has a lock decorator on it. That essentially makes sure,
+        # if fired concurrently, at the same time'ish, by two threads, only one
+        # of them will run at a time. In serial. The second thread will still
+        # get to run. This check is to see if it's no point running now.
+        msg = "HTML ({}) already post processed".format(filepath)
+        postprocessing.notes.append(msg)
+        return
+
+    while True:
         t0 = time.perf_counter()
         try:
             optimized_html = mincss_html(html, url)
@@ -99,21 +115,15 @@ def post_process_cached_html(filepath, url, postprocessing):
             postprocessing.notes.append("Gave up after {} attempts".format(attempts))
             return
 
-        if original_ts != os.stat(filepath).st_mtime:
-            print(
-                "WARNING!! The original HTML file changed ({}) whilst "
-                "running mincss_html".format(filepath)
-            )
-            postprocessing.notes.append("The original HTML file changed whilst running")
-            continue
-
         shutil.move(filepath, filepath + ".original")
         with open(filepath, "w") as f:
             f.write(optimized_html)
         print("mincss optimized {}".format(filepath))
         break
 
-    if not url.endswith("/plog/blogitem-040601-1"):
+    if url.endswith("/plog/blogitem-040601-1"):
+        songsearch_autocomplete.insert()
+    else:
         t0 = time.perf_counter()
         minified_html = _minify_html(filepath, url)
         t1 = time.perf_counter()
@@ -173,6 +183,7 @@ def _minify_html(filepath, url):
 def _zopfli_html(html, filepath, url):
     while True:
         original_ts = os.stat(filepath).st_mtime
+        original_size = os.stat(filepath).st_size
         t0 = time.time()
         new_filepath = zopfli_file(filepath)
         t1 = time.time()
@@ -181,7 +192,7 @@ def _zopfli_html(html, filepath, url):
                 "Generated {} ({} bytes, originally {} bytes) Took {:.2f}s".format(
                     new_filepath,
                     format(os.stat(new_filepath).st_size, ","),
-                    format(os.stat(filepath).st_size, ","),
+                    format(original_size, ","),
                     t1 - t0,
                 )
             )
@@ -197,6 +208,7 @@ def _zopfli_html(html, filepath, url):
 def _brotli_html(html, filepath, url):
     while True:
         original_ts = os.stat(filepath).st_mtime
+        original_size = os.stat(filepath).st_size
         t0 = time.time()
         new_filepath = brotli_file(filepath)
         t1 = time.time()
@@ -205,7 +217,7 @@ def _brotli_html(html, filepath, url):
                 "Generated {} ({} bytes, originally {} bytes) Took {:.2f}s".format(
                     new_filepath,
                     format(os.stat(new_filepath).st_size, ","),
-                    format(os.stat(filepath).st_size, ","),
+                    format(original_size, ","),
                     t1 - t0,
                 )
             )
