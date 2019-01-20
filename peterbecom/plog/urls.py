@@ -30,13 +30,6 @@ urlpatterns = [
     url("^hits$", views.plog_hits, name="plog_hits"),
     url("^hits/data$", views.plog_hits_data, name="plog_hits_data"),
     url("^(.*)/submit$", views.submit_json, name="submit"),
-    # url(
-    #     "^all-comments/(?P<action>approve|delete)/$",
-    #     views.approve_delete_blog_post_comments,
-    #     name="approve_delete_blog_post_comments",
-    # ),
-    # url("^(.*)/approve/(.*)", views.approve_comment, name="approve_comment"),
-    # url("^(.*)/delete/(.*)", views.delete_comment, name="delete_comment"),
     url(
         "^(.*)/all-comments$",
         views.all_blog_post_comments,

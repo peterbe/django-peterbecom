@@ -439,81 +439,6 @@ def submit_json(request, oid):
     return response
 
 
-# @require_POST
-# @login_required
-# def approve_delete_blog_post_comments(request, action):
-#     assert action in ("approve", "delete"), action
-#     blogcomments = []
-#     for id in request.POST["ids"].split(","):
-#         blogcomments.append(get_object_or_404(BlogComment, id=id))
-#     approved = []
-#     deleted = []
-#     for blogcomment in blogcomments:
-#         if action == "approve":
-#             actually_approve_comment(blogcomment)
-#             approved.append(blogcomment.id)
-#         elif action == "delete":
-#             deleted.append(blogcomment.id)
-#             blogcomment.delete()
-
-#     response = http.JsonResponse({"approved": approved, "delete": deleted})
-#     return response
-
-
-# @login_required
-# def approve_comment(request, oid, comment_oid):
-#     try:
-#         blogitem = BlogItem.objects.get(oid=oid)
-#     except BlogItem.DoesNotExist:
-#         return http.HttpResponse("BlogItem {!r} can't be found".format(oid),
-# status=404)
-#     try:
-#         blogcomment = BlogComment.objects.get(oid=comment_oid)
-#         if blogcomment.approved:
-#             url = blogitem.get_absolute_url()
-#             if blogcomment.blogitem:
-#                 url += "#%s" % blogcomment.oid
-#             return http.HttpResponse(
-#                 """<html>Comment already approved<br>
-#                 <a href="{}">{}</a>
-#                 </html>
-#                 """.format(
-#                     url, blogitem.title
-#                 )
-#             )
-#     except BlogComment.DoesNotExist:
-#         return http.HttpResponse(
-#             "BlogComment {!r} can't be found".format(comment_oid), status=404
-#         )
-#     if blogcomment.blogitem != blogitem:
-#         raise http.Http404("bad rel")
-
-#     if request.method == "POST":
-#         if not request.user.is_superuser:
-#             return http.HttpResponseForbidden("Not superuser")
-#     else:
-#         forbidden = _check_auth_key(request, blogitem, blogcomment)
-#         if forbidden:
-#             return forbidden
-
-#     actually_approve_comment(blogcomment)
-
-#     if request.META.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest":
-#         return http.HttpResponse("OK")
-#     else:
-#         url = blogitem.get_absolute_url()
-#         if blogcomment.blogitem:
-#             url += "#%s" % blogcomment.oid
-#         return http.HttpResponse(
-#             """<html>Comment approved<br>
-#             <a href="{}">{}</a>
-#             </html>
-#             """.format(
-#                 url, blogitem.title
-#             )
-#         )
-
-
 def _check_auth_key(request, blogitem, blogcomment):
     # Temporary thing. Delete this end of 2017.
     start_date = timezone.make_aware(datetime.datetime(2017, 9, 24))
@@ -583,45 +508,6 @@ def _get_comment_reply_body(blogitem, blogcomment, parent):
     return template.render(context).strip()
 
 
-# @login_required
-# def delete_comment(request, oid, comment_oid):
-#     user = request.user
-#     assert user.is_staff or user.is_superuser
-#     try:
-#         blogitem = BlogItem.objects.get(oid=oid)
-#     except BlogItem.DoesNotExist:
-#         return http.HttpResponse("BlogItem {!r} can't be found".format(oid),
-# status=404)
-#     try:
-#         blogcomment = BlogComment.objects.get(oid=comment_oid)
-#     except BlogComment.DoesNotExist:
-#         return http.HttpResponse(
-#             "BlogComment {!r} can't be found".format(comment_oid), status=404
-#         )
-#     if blogcomment.blogitem != blogitem:
-#         raise http.Http404("bad rel")
-
-#     if request.method == "POST":
-#         if not request.user.is_superuser:
-#             return http.HttpResponseForbidden("Not superuser")
-#     else:
-#         forbidden = _check_auth_key(request, blogitem, blogcomment)
-#         if forbidden:
-#             return forbidden
-
-#     blogcomment.delete()
-
-#     url = blogitem.get_absolute_url()
-#     return http.HttpResponse(
-#         """<html>Comment deleted<br>
-#         <a href="{}">{}</a>
-#         </html>
-#         """.format(
-#             url, blogitem.title
-#         )
-#     )
-
-
 def _plog_index_key_prefixer(request):
     if request.method != "GET":
         return None
@@ -665,22 +551,6 @@ def plog_index(request):
 
     data = {"groups": groups, "group_dates": group_dates, "page_title": "Blog archive"}
     return render(request, "plog/index.html", data)
-
-
-# def _new_comment_key_prefixer(request):
-#     if request.method != "GET":
-#         return None
-#     if request.user.is_authenticated:
-#         return None
-#     prefix = utils.make_prefix(request.GET)
-#     cache_key = "latest_comment_add_date"
-#     latest_date = cache.get(cache_key)
-#     if latest_date is None:
-#         latest, = BlogItem.objects.order_by("-modify_date").values("modify_date")[:1]
-#         latest_date = latest["modify_date"].strftime("%f")
-#         cache.set(cache_key, latest_date, 60 * 60)
-#     prefix += str(latest_date)
-#     return prefix
 
 
 @cache_control(public=True, max_age=60 * 60)

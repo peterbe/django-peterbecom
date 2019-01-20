@@ -3,15 +3,9 @@ from urllib.parse import urlparse
 
 from django.contrib.auth.models import User
 from django.urls import reverse
-from django.test import TestCase, Client
+from django.test import TestCase
 
-from peterbecom.plog.models import (
-    BlogItem,
-    BlogComment,
-    Category,
-    OneTimeAuthKey,
-    BlogItemHit,
-)
+from peterbecom.plog.models import BlogItem, BlogComment, Category, BlogItemHit
 from peterbecom.plog.utils import utc_now
 
 
@@ -73,46 +67,6 @@ class PlogTestCase(TestCase):
         # Need to upgrade fancy-cache thing so that it doesn't
         # call the key prefixer for both the request and the response.
         # assert len(render_counts) == 2, render_counts
-
-    def test_blog_post_with_comment_approval(self):
-        blog = BlogItem.objects.create(
-            oid="some-longish-test-post",
-            title="TITLEX",
-            text="BLABLABLA",
-            display_format="structuredtext",
-            pub_date=utc_now() - datetime.timedelta(seconds=10),
-        )
-        url = reverse("blog_post", args=[blog.oid])
-
-        self._login()
-        loggedin = self.client
-        anonymous = Client()
-        assert len(loggedin.cookies)
-        assert not len(anonymous.cookies)
-
-        comment = BlogComment.objects.create(
-            oid="a1000", blogitem=blog, comment="COMMENTX", name="Mr Anonymous"
-        )
-        # but it hasn't been approved yet
-        response = anonymous.get(url)
-        content = response.content.decode("utf-8")
-        assert response.status_code == 200
-        assert "COMMENTX" not in content
-
-        # let's approve it!
-        approve_url = reverse("approve_comment", args=[blog.oid, comment.oid])
-        response = loggedin.post(approve_url, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
-        assert response.status_code == 403
-        key = OneTimeAuthKey.objects.create(blogitem=blog, blogcomment=comment).key
-        response = loggedin.get(
-            approve_url + "?key={}".format(key), HTTP_X_REQUESTED_WITH="XMLHttpRequest"
-        )
-        assert response.status_code == 200
-        assert response.content.decode("utf-8") == "OK"
-
-        response = anonymous.get(url)
-        assert response.status_code == 200
-        assert "COMMENTX" in str(response.content)
 
     def test_preview_post(self):
         cat = Category.objects.create(name="MyCategory")
