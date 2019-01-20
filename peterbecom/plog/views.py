@@ -50,7 +50,6 @@ from .models import (
 # from .search import BlogItemDoc
 from .utils import (
     json_view,
-    rate_blog_comment,
     render_comment_text,
     utc_now,
     valid_email,
@@ -326,48 +325,6 @@ def get_related_posts_by_keyword(post, limit=5):
     )
 
 
-# def get_related_posts_by_text(post, limit=5):
-#     search = BlogItemDoc.search()
-#     search.update_from_dict(
-#         {
-#             "query": {
-#                 "more_like_this": {
-#                     "fields": ["title", "text"],
-#                     "like": [
-#                         {
-#                             "_index": settings.ES_BLOG_ITEM_INDEX,
-#                             "_type": "doc",
-#                             "_id": post.id,
-#                         }
-#                     ],
-#                     "min_term_freq": 2,
-#                     "min_doc_freq": 5,
-#                     "min_word_length": 3,
-#                     "max_query_terms": 25,
-#                 }
-#             }
-#         }
-#     )
-#     search.update_from_dict({"query": {"range": {"pub_date": {"lt": "now"}}}})
-#     search = search[:limit]
-#     response = search.execute()
-#     ids = [int(x._id) for x in response]
-#     # print('Took {:.1f}ms to find {} related by text'.format(
-#     #     response.took,
-#     #     response.hits.total,
-#     # ))
-#     if not ids:
-#         return []
-#     objects = BlogItem.objects.filter(pub_date__lt=timezone.now(), id__in=ids)
-
-#     # This is a temporary thing just to get insight into the results
-#     # of this query in production.
-#     with open("/tmp/related-by-text.log", "a") as f:
-#         f.write("{}|{}\n".format(post.id, ",".join(str(x) for x in ids)))
-
-#     return sorted(objects, key=lambda x: ids.index(x.id))
-
-
 def _render_comment(comment):
     return render_to_string("plog/comment.html", {"comment": comment})
 
@@ -482,78 +439,79 @@ def submit_json(request, oid):
     return response
 
 
-@require_POST
-@login_required
-def approve_delete_blog_post_comments(request, action):
-    assert action in ("approve", "delete"), action
-    blogcomments = []
-    for id in request.POST["ids"].split(","):
-        blogcomments.append(get_object_or_404(BlogComment, id=id))
-    approved = []
-    deleted = []
-    for blogcomment in blogcomments:
-        if action == "approve":
-            actually_approve_comment(blogcomment)
-            approved.append(blogcomment.id)
-        elif action == "delete":
-            deleted.append(blogcomment.id)
-            blogcomment.delete()
+# @require_POST
+# @login_required
+# def approve_delete_blog_post_comments(request, action):
+#     assert action in ("approve", "delete"), action
+#     blogcomments = []
+#     for id in request.POST["ids"].split(","):
+#         blogcomments.append(get_object_or_404(BlogComment, id=id))
+#     approved = []
+#     deleted = []
+#     for blogcomment in blogcomments:
+#         if action == "approve":
+#             actually_approve_comment(blogcomment)
+#             approved.append(blogcomment.id)
+#         elif action == "delete":
+#             deleted.append(blogcomment.id)
+#             blogcomment.delete()
 
-    response = http.JsonResponse({"approved": approved, "delete": deleted})
-    return response
+#     response = http.JsonResponse({"approved": approved, "delete": deleted})
+#     return response
 
 
-@login_required
-def approve_comment(request, oid, comment_oid):
-    try:
-        blogitem = BlogItem.objects.get(oid=oid)
-    except BlogItem.DoesNotExist:
-        return http.HttpResponse("BlogItem {!r} can't be found".format(oid), status=404)
-    try:
-        blogcomment = BlogComment.objects.get(oid=comment_oid)
-        if blogcomment.approved:
-            url = blogitem.get_absolute_url()
-            if blogcomment.blogitem:
-                url += "#%s" % blogcomment.oid
-            return http.HttpResponse(
-                """<html>Comment already approved<br>
-                <a href="{}">{}</a>
-                </html>
-                """.format(
-                    url, blogitem.title
-                )
-            )
-    except BlogComment.DoesNotExist:
-        return http.HttpResponse(
-            "BlogComment {!r} can't be found".format(comment_oid), status=404
-        )
-    if blogcomment.blogitem != blogitem:
-        raise http.Http404("bad rel")
+# @login_required
+# def approve_comment(request, oid, comment_oid):
+#     try:
+#         blogitem = BlogItem.objects.get(oid=oid)
+#     except BlogItem.DoesNotExist:
+#         return http.HttpResponse("BlogItem {!r} can't be found".format(oid),
+# status=404)
+#     try:
+#         blogcomment = BlogComment.objects.get(oid=comment_oid)
+#         if blogcomment.approved:
+#             url = blogitem.get_absolute_url()
+#             if blogcomment.blogitem:
+#                 url += "#%s" % blogcomment.oid
+#             return http.HttpResponse(
+#                 """<html>Comment already approved<br>
+#                 <a href="{}">{}</a>
+#                 </html>
+#                 """.format(
+#                     url, blogitem.title
+#                 )
+#             )
+#     except BlogComment.DoesNotExist:
+#         return http.HttpResponse(
+#             "BlogComment {!r} can't be found".format(comment_oid), status=404
+#         )
+#     if blogcomment.blogitem != blogitem:
+#         raise http.Http404("bad rel")
 
-    if request.method == "POST":
-        if not request.user.is_superuser:
-            return http.HttpResponseForbidden("Not superuser")
-    else:
-        forbidden = _check_auth_key(request, blogitem, blogcomment)
-        if forbidden:
-            return forbidden
+#     if request.method == "POST":
+#         if not request.user.is_superuser:
+#             return http.HttpResponseForbidden("Not superuser")
+#     else:
+#         forbidden = _check_auth_key(request, blogitem, blogcomment)
+#         if forbidden:
+#             return forbidden
 
-    actually_approve_comment(blogcomment)
+#     actually_approve_comment(blogcomment)
 
-    if request.META.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest":
-        return http.HttpResponse("OK")
-    else:
-        url = blogitem.get_absolute_url()
-        if blogcomment.blogitem:
-            url += "#%s" % blogcomment.oid
-        return http.HttpResponse(
-            """<html>Comment approved<br>
-            <a href="{}">{}</a>
-            </html>
-            """.format(
-                url, blogitem.title
-            )
-        )
+#     if request.META.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest":
+#         return http.HttpResponse("OK")
+#     else:
+#         url = blogitem.get_absolute_url()
+#         if blogcomment.blogitem:
+#             url += "#%s" % blogcomment.oid
+#         return http.HttpResponse(
+#             """<html>Comment approved<br>
+#             <a href="{}">{}</a>
+#             </html>
+#             """.format(
+#                 url, blogitem.title
+#             )
+#         )
 
 
 def _check_auth_key(request, blogitem, blogcomment):
@@ -625,42 +583,43 @@ def _get_comment_reply_body(blogitem, blogcomment, parent):
     return template.render(context).strip()
 
 
-@login_required
-def delete_comment(request, oid, comment_oid):
-    user = request.user
-    assert user.is_staff or user.is_superuser
-    try:
-        blogitem = BlogItem.objects.get(oid=oid)
-    except BlogItem.DoesNotExist:
-        return http.HttpResponse("BlogItem {!r} can't be found".format(oid), status=404)
-    try:
-        blogcomment = BlogComment.objects.get(oid=comment_oid)
-    except BlogComment.DoesNotExist:
-        return http.HttpResponse(
-            "BlogComment {!r} can't be found".format(comment_oid), status=404
-        )
-    if blogcomment.blogitem != blogitem:
-        raise http.Http404("bad rel")
+# @login_required
+# def delete_comment(request, oid, comment_oid):
+#     user = request.user
+#     assert user.is_staff or user.is_superuser
+#     try:
+#         blogitem = BlogItem.objects.get(oid=oid)
+#     except BlogItem.DoesNotExist:
+#         return http.HttpResponse("BlogItem {!r} can't be found".format(oid),
+# status=404)
+#     try:
+#         blogcomment = BlogComment.objects.get(oid=comment_oid)
+#     except BlogComment.DoesNotExist:
+#         return http.HttpResponse(
+#             "BlogComment {!r} can't be found".format(comment_oid), status=404
+#         )
+#     if blogcomment.blogitem != blogitem:
+#         raise http.Http404("bad rel")
 
-    if request.method == "POST":
-        if not request.user.is_superuser:
-            return http.HttpResponseForbidden("Not superuser")
-    else:
-        forbidden = _check_auth_key(request, blogitem, blogcomment)
-        if forbidden:
-            return forbidden
+#     if request.method == "POST":
+#         if not request.user.is_superuser:
+#             return http.HttpResponseForbidden("Not superuser")
+#     else:
+#         forbidden = _check_auth_key(request, blogitem, blogcomment)
+#         if forbidden:
+#             return forbidden
 
-    blogcomment.delete()
+#     blogcomment.delete()
 
-    url = blogitem.get_absolute_url()
-    return http.HttpResponse(
-        """<html>Comment deleted<br>
-        <a href="{}">{}</a>
-        </html>
-        """.format(
-            url, blogitem.title
-        )
-    )
+#     url = blogitem.get_absolute_url()
+#     return http.HttpResponse(
+#         """<html>Comment deleted<br>
+#         <a href="{}">{}</a>
+#         </html>
+#         """.format(
+#             url, blogitem.title
+#         )
+#     )
 
 
 def _plog_index_key_prefixer(request):
@@ -708,53 +667,32 @@ def plog_index(request):
     return render(request, "plog/index.html", data)
 
 
-def _new_comment_key_prefixer(request):
-    if request.method != "GET":
-        return None
-    if request.user.is_authenticated:
-        return None
-    prefix = utils.make_prefix(request.GET)
-    cache_key = "latest_comment_add_date"
-    latest_date = cache.get(cache_key)
-    if latest_date is None:
-        latest, = BlogItem.objects.order_by("-modify_date").values("modify_date")[:1]
-        latest_date = latest["modify_date"].strftime("%f")
-        cache.set(cache_key, latest_date, 60 * 60)
-    prefix += str(latest_date)
-    return prefix
+# def _new_comment_key_prefixer(request):
+#     if request.method != "GET":
+#         return None
+#     if request.user.is_authenticated:
+#         return None
+#     prefix = utils.make_prefix(request.GET)
+#     cache_key = "latest_comment_add_date"
+#     latest_date = cache.get(cache_key)
+#     if latest_date is None:
+#         latest, = BlogItem.objects.order_by("-modify_date").values("modify_date")[:1]
+#         latest_date = latest["modify_date"].strftime("%f")
+#         cache.set(cache_key, latest_date, 60 * 60)
+#     prefix += str(latest_date)
+#     return prefix
 
 
-@cache_page(ONE_HOUR, _new_comment_key_prefixer)
+@cache_control(public=True, max_age=60 * 60)
+@cache_page(ONE_HOUR)
 def new_comments(request):
     context = {}
-    comments = BlogComment.objects.all()
-    if not request.user.is_superuser:
-        comments = comments.filter(approved=True)
-        context["comments"] = comments.order_by("-add_date").select_related("blogitem")[
-            :50
-        ]
-    else:
-        comments = comments.order_by("-add_date").select_related("blogitem")[:50]
-        # bayes_data = BayesData.objects.get(topic="comments")
-        # guesser = default_guesser
-        # with BytesIO(zlib.decompress(bayes_data.pickle_data)) as f:
-        #     guesser.load_handler(f)
-        comments_list = []
-        for comment in comments:
-            # t = comment.name + " " + comment.comment
-            # bayes_guess = dict(guesser.guess(t))
-            # bayes_training = None
-            # try:
-            #     bayes_training = BlogCommentTraining.objects.get(
-            #         comment=comment, bayes_data=bayes_data
-            #     ).tag
-            # except BlogCommentTraining.DoesNotExist:
-            #     pass
-            # comment.bayes_training = bayes_training
-            # comment.bayes_guess = bayes_guess
-            comment._clues = rate_blog_comment(comment)
-            comments_list.append(comment)
-        context["comments"] = comments_list
+    comments = BlogComment.objects.filter(approved=True).exclude(
+        blogitem__oid='blogitem-040601-1'
+    )
+    context["comments"] = comments.order_by("-add_date").select_related("blogitem")[
+        :40
+    ]
     context["page_title"] = "Latest new blog comments"
     return render(request, "plog/new-comments.html", context)
 

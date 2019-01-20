@@ -10,45 +10,16 @@ div.comment {
 div.comment p {
   margin-bottom: 5px;
 }
-div.comments input[type="checkbox"] {
-  margin: 0 20px;
-}
 </style>
 {% endblock %}
-
-{% block extrajs %}
-{% javascript 'new_comments' %}
-{% endblock %}
-
 
 {% block content %}
 
 {% csrf_token %}
-<div class="comments"
-  data-approve-all-url="{{ url("approve_delete_blog_post_comments", "approve") }}"
-  data-delete-all-url="{{ url("approve_delete_blog_post_comments", "delete") }}"
-  >
-
-  {% if request.user.is_superuser %}
-  <input type="checkbox" name="" value="all" class="all-unchecked">
-  <button type="button" class="ui button primary approve-all-button">Approve All</button>
-  <button type="button" class="ui button yellow delete-all-button">Delete All</button>
-  <hr/>
-  {% endif %}
-
+<div class="comments">
   {% for comment in comments %}
   <div class="comment">
     <p>{{ comment.rendered|safe }}</p>
-    <p class="approval">
-      {% if not comment.approved %}
-      <input type="checkbox" name="ids" value="{{ comment.id }}"/>
-      <!-- <a class="ui red small label">Not approved</a> -->
-      <button class="small ui button primary approve-button" data-url="{{ comment.blogitem.get_absolute_url() }}/approve/{{ comment.oid }}">approve</button>
-      <button class="small ui button yellow delete-button" data-url="{{ comment.blogitem.get_absolute_url() }}/delete/{{ comment.oid }}">delete</button>
-      <code>{{ json_print(comment._clues) }}</code>
-      <br>
-      {% endif %}
-    </p>
     <small>{% if comment.name %}<b>{{ comment.name }}</b>{% else %}<em>Anonymous</em>{% endif %}
     on <a href="{{ comment.blogitem.get_absolute_url() }}#{{ comment.oid }}">{{ comment.blogitem.title }}</a>
     {{ timesince(comment.add_date) }} ago
@@ -61,14 +32,6 @@ div.comments input[type="checkbox"] {
     </small>
   </div>
   {% endfor %}
-
-  {% if request.user.is_superuser %}
-  <hr/>
-  <input type="checkbox" name="" value="all" class="all-unchecked">
-  <button type="button" class="ui button primary approve-all-button">Approve All</button>
-  <button type="button" class="ui button yellow delete-all-button">Delete All</button>
-  {% endif %}
-
 </div>
 
 {% endblock %}
