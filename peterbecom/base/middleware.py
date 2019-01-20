@@ -56,6 +56,8 @@ class FSCacheMiddleware:
                 seconds = int(max_age_re.findall(response.get("Cache-Control"))[0])
             except TypeError:
                 # exit early fi the cache-control isn't set
+                with open("/tmp/nofscache-no-cachecontrol.log", "a") as f:
+                    f.write("{}\n".format(request.path))
                 return response
             if seconds > 60:
                 metadata_text = "FSCache {}::{}::{}".format(
