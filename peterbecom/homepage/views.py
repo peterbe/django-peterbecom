@@ -3,6 +3,7 @@ import re
 import os
 import time
 import logging
+import random
 from pathlib import Path
 from urllib.parse import urlencode
 
@@ -10,7 +11,6 @@ from elasticsearch_dsl import Q
 from huey.contrib.djhuey import task
 
 from django import http
-from django.core.cache import cache
 from django.shortcuts import render, redirect
 from django.views.decorators.http import require_POST
 from django.db.models import Count
@@ -23,11 +23,12 @@ from django.utils.html import strip_tags
 from django.views import static
 
 from peterbecom.base.models import SearchResult
+from peterbecom.base.decorators import variable_cache_control
 from peterbecom.plog.models import BlogItem, BlogComment
 from peterbecom.plog.utils import utc_now, view_function_timer
 from .utils import parse_ocs_to_categories, make_categories_q, split_search, STOPWORDS
 from fancy_cache import cache_page
-from peterbecom.plog.utils import make_prefix
+# from peterbecom.plog.utils import make_prefix
 from peterbecom.plog.search import BlogItemDoc, BlogCommentDoc
 
 
@@ -40,32 +41,26 @@ ONE_WEEK = ONE_DAY * 7
 ONE_MONTH = ONE_WEEK * 4
 
 
-def _home_key_prefixer(request):
-    if request.method != "GET":
-        return None
-    prefix = make_prefix(request.GET)
-    cache_key = "latest_comment_add_date"
-    if request.path_info.startswith("/oc-"):
-        categories = parse_ocs_to_categories(request.path_info[len("/oc-") :])
-        cache_key += "".join(str(x.pk) for x in categories)
-    else:
-        categories = None
+def _home_cache_max_age(request, oc=None, page=1):
+    max_age = ONE_HOUR
+    if oc:
+        max_age *= 10
+    if page:
+        try:
+            if int(page) > 1:
+                max_age *= 2
+        except ValueError:
+            return 0
 
-    latest_date = cache.get(cache_key)
-    if latest_date is None:
-        qs = BlogItem.objects.all()
-        if categories:
-            cat_q = make_categories_q(categories)
-            qs = qs.filter(cat_q)
-        latest, = qs.order_by("-modify_date").values("modify_date")[:1]
-        latest_date = latest["modify_date"].strftime("%f")
-        cache.set(cache_key, latest_date, ONE_DAY)
-    prefix += str(latest_date)
+    # Add some jitter to avoid all pages to expire at the same time
+    # if the cache is ever reset.
+    p = random.randint(0, 25) / 100
+    max_age += int(max_age * p)
 
-    return prefix
+    return max_age
 
 
-@cache_control(public=True, max_age=ONE_HOUR * 6)
+@variable_cache_control(public=True, max_age=_home_cache_max_age)
 def home(request, oc=None, page=1):
     context = {}
     qs = BlogItem.objects.filter(pub_date__lt=utc_now())
