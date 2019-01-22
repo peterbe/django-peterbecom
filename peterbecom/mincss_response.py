@@ -12,7 +12,6 @@ import requests
 from django.conf import settings
 from django.core.cache import cache
 
-# from mincss.processor import Processor  # delete mincss from requirements?
 from pyquery import PyQuery
 
 try:
@@ -51,15 +50,6 @@ class DownloadCache:
 
 
 download_cache = DownloadCache()
-
-
-# class CachedProcessor(Processor):
-#     def download(self, url):
-#         downloaded = download_cache.get(url)
-#         if downloaded is None:
-#             downloaded = super(CachedProcessor, self).download(url)
-#             download_cache.set(url, downloaded)
-#         return downloaded
 
 
 def _mincssed_key(path):

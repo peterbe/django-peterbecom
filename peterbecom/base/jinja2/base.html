@@ -61,11 +61,6 @@ var _rollbarConfig = {
     {% endblock %}
   </div>
 
-  {# By putting this invisible element here, mincss will think this
-     DOM element exists and that way it won't discard those CSS
-     selectors. #}
-  {#<div class="ui borderless main menu fixed" style="display:none"></div>#}
-
   {% if request.path != '/plog/blogitem-040601-1' %}
   <div class="ui borderless main menu">
     <div class="ui container">
