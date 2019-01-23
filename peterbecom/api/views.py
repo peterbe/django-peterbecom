@@ -194,8 +194,6 @@ def open_graph_image(request, oid):
     images_used_paths = [urlparse(x).path for x in images_used]
     options = []
     for i, image in enumerate(_post_thumbnails(blogitem)):
-        # from pprint import pprint
-        # pprint(image)
         full_url_path = image["full_url"]
         if "://" in full_url_path:
             full_url_path = urlparse(full_url_path).path
@@ -667,7 +665,6 @@ def blogcomments(request):
     # n, m = ((page - 1) * batch_size, page * batch_size)
     # iterator = items[n:m]
     for item in items.select_related("blogitem")[:batch_size]:
-        # print("ROOT COMMENT", item.comment[:50], repr(item.blogitem))
         if item.add_date < oldest:
             oldest = item.add_date
         context["comments"].append(_serialize_comment(item, blogitem=item.blogitem))
@@ -683,10 +680,7 @@ def blogcomments(request):
     def get_parent(comment):
         if comment.parent_id:
             if comment.parent_id not in comment_cache:
-                print("CACHE MISS")
                 comment_cache[comment.parent_id] = comment.parent
-            else:
-                print("CACHE HIT")
             return comment_cache[comment.parent_id]
 
     # Latest not-root comments that haven't been included yet...

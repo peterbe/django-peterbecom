@@ -3,7 +3,10 @@ from urllib.parse import urlparse
 
 from django.contrib.auth.models import User
 from django.urls import reverse
+from django.conf import settings
+from django.utils import timezone
 from django.test import TestCase
+from django.core import mail
 
 from peterbecom.plog.models import BlogItem, BlogComment, Category, BlogItemHit
 from peterbecom.plog.utils import utc_now
@@ -152,3 +155,80 @@ code"""
         response = self.client.get(url + "\nsomething")
         assert response.status_code == 301
         assert urlparse(response["location"]).path == url
+
+    def test_submit_comment(self):
+        blog = BlogItem.objects.create(
+            oid="myoid",
+            title="TITLEX",
+            text="""
+            ttest test
+            """,
+            display_format="markdown",
+            pub_date=timezone.now() - datetime.timedelta(seconds=10),
+        )
+        url = reverse("submit", args=[blog.oid])
+        response = self.client.get(url)
+        assert response.status_code == 405
+
+        response = self.client.post(url, {})
+        assert response.status_code == 400
+
+        data = {
+            "comment": "Hey there!\n\n",
+            "name": " Peter ",
+            "email": "test@peterbe.com ",
+        }
+        response = self.client.post(url, data)
+        assert response.status_code == 200
+        sent = mail.outbox[-1]
+        assert sent.to[0] == settings.MANAGERS[0][1]
+
+        blog_comment = BlogComment.objects.get(
+            blogitem=blog,
+            parent=None,
+            approved=False,
+            comment=data["comment"].strip(),
+            name=data["name"].strip(),
+            email=data["email"].strip(),
+        )
+        assert blog_comment.comment_rendered
+        response = self.client.post(url, data)
+        assert response.status_code == 200
+        assert len(mail.outbox) == 1
+        assert BlogComment.objects.all().count() == 1
+
+    def test_submit_reply_comment(self):
+        blog = BlogItem.objects.create(
+            oid="myoid",
+            title="TITLEX",
+            text="""
+            ttest test
+            """,
+            display_format="markdown",
+            pub_date=timezone.now() - datetime.timedelta(seconds=10),
+        )
+        blog_comment = BlogComment.objects.create(
+            oid=BlogComment.next_oid(),
+            blogitem=blog,
+            approved=True,
+            comment="Sure!",
+            name="Greger",
+            email="greger@example.com",
+        )
+        assert blog_comment.oid
+        url = reverse("submit", args=[blog.oid])
+
+        response = self.client.post(
+            url,
+            {
+                "parent": blog_comment.oid,
+                "comment": "Hey there!\n\n",
+                "name": " Peter ",
+                "email": "test@peterbe.com ",
+            },
+        )
+        assert response.status_code == 200
+        sent = mail.outbox[-1]
+        assert sent.to[0] == settings.MANAGERS[0][1]
+
+        assert BlogComment.objects.filter(parent=blog_comment)

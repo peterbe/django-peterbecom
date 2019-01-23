@@ -8,12 +8,4 @@ User Agent: {{ comment.user_agent }}
 Comment:
 {{ line_indent(comment.comment) | safe }}
 
-{% if comment.approved %}
-Comment already approved
-{% else %}
-Approve:
-{{ base_url }}{{ approve_url }}
-{% endif %}
-
-Delete:
-{{ base_url }}{{ delete_url }}
+{{ admin_url }}/plog/comments#search={{ comment. oid }}

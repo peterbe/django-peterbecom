@@ -314,6 +314,7 @@ def random_string(length):
     return "".join(pool[:length])
 
 
+# XXX Can this be entirely deleted now?!
 class OneTimeAuthKey(models.Model):
     key = models.CharField(max_length=16, default=functools.partial(random_string, 16))
     blogitem = models.ForeignKey(BlogItem, on_delete=models.CASCADE)
