@@ -45,9 +45,7 @@ from .models import (
     BlogItemHit,
     Category,
     HTMLRenderingError,
-    OneTimeAuthKey,
 )
-# from .search import BlogItemDoc
 from .utils import (
     json_view,
     render_comment_text,
@@ -364,7 +362,7 @@ def submit_json(request, oid):
     post = get_object_or_404(BlogItem, oid=oid)
     if post.disallow_comments:
         return http.HttpResponseBadRequest("No comments please")
-    comment = request.POST["comment"].strip()
+    comment = request.POST.get("comment", '').strip()
     if not comment:
         return http.HttpResponseBadRequest("Missing comment")
 
@@ -414,12 +412,9 @@ def submit_json(request, oid):
             user_agent=request.META.get("HTTP_USER_AGENT"),
         )
 
-        if request.user.is_authenticated:
-            actually_approve_comment(blog_comment)
-            assert blog_comment.approved
-        elif post.oid != "blogitem-040601-1":
+        if post.oid != "blogitem-040601-1":
             # Let's not send an more admin emails for "Find songs by lyrics"
-            tos = [x[1] for x in settings.ADMINS]
+            tos = [x[1] for x in settings.MANAGERS]
             from_ = ["%s <%s>" % x for x in settings.MANAGERS][0]
             body = _get_comment_body(post, blog_comment)
             send_mail("Peterbe.com: New comment on '%s'" % post.title, body, from_, tos)
@@ -437,24 +432,6 @@ def submit_json(request, oid):
 
     response = http.JsonResponse(data)
     return response
-
-
-def _check_auth_key(request, blogitem, blogcomment):
-    # Temporary thing. Delete this end of 2017.
-    start_date = timezone.make_aware(datetime.datetime(2017, 9, 24))
-    if blogcomment.add_date < start_date:
-        return
-    key = request.GET.get("key")
-    if not key:
-        return http.HttpResponseForbidden("No key")
-    try:
-        found = OneTimeAuthKey.objects.get(
-            key=key, blogitem=blogitem, blogcomment=blogcomment, used__isnull=True
-        )
-        found.used = timezone.now()
-        found.save()
-    except OneTimeAuthKey.DoesNotExist:
-        return http.HttpResponseForbidden("Key not found or already used")
 
 
 def actually_approve_comment(blogcomment):
@@ -477,21 +454,15 @@ def actually_approve_comment(blogcomment):
 
 def _get_comment_body(blogitem, blogcomment):
     base_url = "https://%s" % Site.objects.get_current().domain
-    approve_url = reverse("approve_comment", args=[blogitem.oid, blogcomment.oid])
-    approve_url += "?key={}".format(
-        OneTimeAuthKey.objects.create(blogitem=blogitem, blogcomment=blogcomment).key
-    )
-    delete_url = reverse("delete_comment", args=[blogitem.oid, blogcomment.oid])
-    delete_url += "?key={}".format(
-        OneTimeAuthKey.objects.create(blogitem=blogitem, blogcomment=blogcomment).key
-    )
+    if 'peterbecom.local' in base_url:
+        base_url = 'http://localhost:4000'
+    admin_url = base_url.replace('www.', 'admin.')
     template = loader.get_template("plog/comment_body.txt")
     context = {
         "post": blogitem,
         "comment": blogcomment,
-        "approve_url": approve_url,
-        "delete_url": delete_url,
         "base_url": base_url,
+        "admin_url": admin_url,
     }
     return template.render(context).strip()
 

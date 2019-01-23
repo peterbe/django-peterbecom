@@ -23,7 +23,18 @@ class Comments extends React.Component {
     oldest: null,
     serverError: null,
     loading: false,
-    search: '',
+    search: (() => {
+      const hash = this.props.location.hash;
+      if (hash) {
+        const regex = /search=(.*)/;
+        if (regex.test(hash)) {
+          const search = [...regex.exec(hash)][1];
+          document.location.hash = '';
+          return search;
+        }
+      }
+      return '';
+    })(),
     unapprovedOnly: false,
     checkedForApproval: {},
     checkedForDelete: {},
