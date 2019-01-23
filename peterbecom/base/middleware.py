@@ -120,7 +120,9 @@ class FSCacheMiddleware:
                     )
                     if not cache.get(cache_key):
                         cache.set(cache_key, True, 30)
-                        post_process_cached_html(fs_path, absolute_url)
+                        post_process_cached_html(
+                            fs_path, absolute_url, _start_time=time.time()
+                        )
 
         return response
 
