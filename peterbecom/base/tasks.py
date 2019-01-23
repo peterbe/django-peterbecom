@@ -25,12 +25,12 @@ from peterbecom.base import songsearch_autocomplete
 
 def measure_post_process(func):
     @functools.wraps(func)
-    def inner(filepath, url):
+    def inner(filepath, url, *args, **kwargs):
         record = PostProcessing.objects.create(filepath=filepath, url=url)
         t0 = time.perf_counter()
         _exception = False
         try:
-            return func(filepath, url, postprocessing=record)
+            return func(filepath, url, *args, **kwargs, postprocessing=record)
         except Exception as e:
             _exception = True
             raise
@@ -49,7 +49,13 @@ def measure_post_process(func):
 
 @task()
 @measure_post_process
-def post_process_cached_html(filepath, url, postprocessing):
+def post_process_cached_html(filepath, url, postprocessing, _start_time=None):
+    if _start_time:
+        task_delay = time.time() - _start_time
+        print("TASK_DELAY:", task_delay)
+        with open("/tmp/taskdelay.log", "a") as f:
+            f.write("{}\n".format(task_delay))
+        postprocessing.notes.append("Taskdelay {:.2f}s".format(task_delay))
     # Sepearated from true work-horse below. This is so that the task will
     # *always* fire immediately.
     return _post_process_cached_html(filepath, url, postprocessing)
