@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Divider,
   Button,
   Card,
   Message,
@@ -12,7 +13,8 @@ import {
   Form,
   Checkbox,
   TextArea,
-  Select
+  Select,
+  Statistic
 } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
 import { addHours } from 'date-fns/esm';
@@ -203,7 +205,7 @@ export class EditBlogitem extends React.Component {
             </div>
           </Message>
         )}
-        {this.state.blogitem && (
+        {blogitem && (
           <EditForm
             accessToken={this.props.accessToken}
             blogitem={blogitem}
@@ -220,6 +222,13 @@ export class EditBlogitem extends React.Component {
         )}
         {this.renderUpdated()}
         <PreviewBlogitem data={this.state.preview} />
+
+        {this.state.blogitem && (
+          <BlogitemHits
+            accessToken={this.props.accessToken}
+            blogitem={blogitem}
+          />
+        )}
       </Container>
     );
   }
@@ -843,6 +852,56 @@ class Thumbnails extends React.PureComponent {
             </Card.Group>
           );
         })}
+      </div>
+    );
+  }
+}
+
+class BlogitemHits extends React.PureComponent {
+  state = {
+    hits: null,
+    serverError: null
+  };
+  async componentDidMount() {
+    const { blogitem } = this.props;
+    try {
+      const response = await fetch(`/api/v0/plog/${blogitem.oid}/hits`, {
+        headers: {
+          Authorization: `Bearer ${this.props.accessToken}`
+        }
+      });
+      if (response.ok) {
+        const json = await response.json();
+        this.setState({
+          serverError: null,
+          hits: json.hits
+        });
+      } else {
+        this.setState({ serverError: response });
+      }
+    } catch (ex) {
+      this.setState({ serverError: ex });
+    }
+  }
+  render() {
+    if (this.state.serverError)
+      return <ShowServerError error={this.state.serverError} />;
+    const { hits } = this.state;
+    if (!hits) return null;
+    return (
+      <div style={{ marginTop: 100 }}>
+        <Divider />
+        <h3>Hits</h3>
+        <Statistic.Group widths="four">
+          {hits.map(hit => {
+            return (
+              <Statistic key={hit.key}>
+                <Statistic.Value>{hit.value.toLocaleString()}</Statistic.Value>
+                <Statistic.Label>{hit.label}</Statistic.Label>
+              </Statistic>
+            );
+          })}
+        </Statistic.Group>
       </div>
     );
   }

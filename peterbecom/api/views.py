@@ -17,7 +17,13 @@ from django.views.decorators.http import require_POST
 
 from peterbecom.base.models import PostProcessing, SearchResult
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
-from peterbecom.plog.models import BlogComment, BlogFile, BlogItem, Category
+from peterbecom.plog.models import (
+    BlogComment,
+    BlogFile,
+    BlogItem,
+    Category,
+    BlogItemHit,
+)
 from peterbecom.plog.utils import rate_blog_comment  # move this some day
 from peterbecom.plog.views import (
     PreviewValidationError,
@@ -819,6 +825,36 @@ def blogitem_hits(request):
             }
         )
     context["summed_category_scores"] = summed_category_scores
-    # context["today"] = today
+
+    return _response(context)
+
+
+@api_superuser_required
+def hits(request, oid):
+    blogitem = get_object_or_404(BlogItem, oid=oid)
+    qs = BlogItemHit.objects.filter(blogitem=blogitem)
+    today = timezone.now()
+
+    context = {
+        "hits": [
+        ]
+    }
+    keys = (
+        ("last_1_day", 1, "Last 1 day"),
+        ("last_7_days", 7, "Last 7 days"),
+        ("last_30_days", 30, "Last 30 days"),
+        ("total", 0, "Ever"),
+    )
+    for key, days, label in keys:
+        this_qs = qs.all()
+        if days:
+            since = today - datetime.timedelta(days=days)
+            if since < blogitem.pub_date:
+                continue
+            this_qs = this_qs.filter(add_date__gte=since)
+        count = this_qs.aggregate(count=Count("blogitem_id"))["count"]
+        context['hits'].append({
+            'key': key, 'label': label, 'value': count
+        })
 
     return _response(context)
