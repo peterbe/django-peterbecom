@@ -1,28 +1,27 @@
-import hashlib
-import time
-import os
-import uuid
-import random
 import datetime
 import functools
+import hashlib
+import os
+import random
+import time
 import unicodedata
-
-from django.db import models
-from django.core.cache import cache
-from django.db.models.signals import post_save, pre_save, pre_delete
-from django.dispatch import receiver
-from django.urls import reverse
-from django.contrib.postgres.fields import ArrayField
+import uuid
 
 import bleach
+from django.contrib.postgres.fields import ArrayField
+from django.core.cache import cache
+from django.db import models, transaction
+from django.db.models import Count
+from django.db.models.signals import post_save, pre_delete, pre_save
+from django.dispatch import receiver
+from django.urls import reverse
 from sorl.thumbnail import ImageField
 
-from . import utils
-
-# from peterbecom.plog import screenshot
 from peterbecom.base.fscache import invalidate_by_url_soon
 from peterbecom.base.search import es_retry
-from peterbecom.plog.search import BlogItemDoc, BlogCommentDoc
+from peterbecom.plog.search import BlogCommentDoc, BlogItemDoc
+
+from . import utils
 
 
 class HTMLRenderingError(Exception):
@@ -213,6 +212,32 @@ class BlogItemTotalHits(models.Model):
     blogitem = models.OneToOneField(BlogItem, db_index=True, on_delete=models.CASCADE)
     total_hits = models.IntegerField(default=0)
     modify_date = models.DateTimeField(auto_now=True)
+
+    @classmethod
+    def update_all(cls):
+        count_records = 0
+        qs = BlogItemHit.objects.all()
+        with transaction.atomic():
+            existing = {
+                x["blogitem_id"]: x["total_hits"]
+                for x in BlogItemTotalHits.objects.all().values(
+                    "blogitem_id", "total_hits"
+                )
+            }
+            for aggregate in qs.values("blogitem_id").annotate(
+                count=Count("blogitem_id")
+            ):
+                if aggregate["blogitem_id"] not in existing:
+                    cls.objects.create(
+                        blogitem_id=aggregate["blogitem_id"],
+                        total_hits=aggregate["count"],
+                    )
+                elif existing[aggregate["blogitem_id"]] != aggregate["count"]:
+                    cls.objects.filter(blogitem_id=aggregate["blogitem_id"]).update(
+                        total_hits=aggregate["count"]
+                    )
+                count_records += 1
+        return count_records
 
 
 class BlogItemHit(models.Model):

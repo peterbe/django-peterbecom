@@ -16,6 +16,7 @@ urlpatterns = [
     ),
     url("^plog/preview/$", views.preview, name="preview"),
     url("^plog/(.*)/images$", views.images, name="images"),
+    url("^plog/(.*)/hits$", views.hits, name="hits"),
     url(
         "^plog/(.*)/open-graph-image$", views.open_graph_image, name="open_graph_image"
     ),
