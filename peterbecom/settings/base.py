@@ -410,7 +410,8 @@ HUEY = {
     "name": DATABASES["default"]["NAME"],  # Use db name for huey.
     # "result_store": True,  # Store return values of tasks.
     "result_store": False,  # Store return values of tasks.
-    "events": True,  # Consumer emits events allowing real-time monitoring.
+    # XXX enabling this could be very interesting to get insight into Huey.
+    "events": False,  # Consumer emits events allowing real-time monitoring.
     "store_none": False,  # If a task returns None, do not save to results.
     # "always_eager": settings.DEBUG,  # If DEBUG=True, run synchronously.
     "always_eager": False,
@@ -431,7 +432,7 @@ HUEY = {
         "url": REDIS_URL,  # Allow Redis config via a DSN.
     },
     "consumer": {
-        "workers": 1,
+        "workers": 4,
         "worker_type": "thread",
         "initial_delay": 0.1,  # Smallest polling interval, same as -d.
         "backoff": 1.15,  # Exponential backoff using this rate, -b.
