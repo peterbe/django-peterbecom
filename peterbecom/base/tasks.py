@@ -9,7 +9,6 @@ import traceback
 from io import StringIO
 
 from django.conf import settings
-
 from django.utils import timezone
 from huey.contrib.djhuey import task
 from requests.exceptions import ReadTimeout
@@ -52,9 +51,9 @@ def measure_post_process(func):
 def post_process_cached_html(filepath, url, postprocessing, _start_time=None):
     if _start_time:
         task_delay = time.time() - _start_time
-        print("TASK_DELAY:", task_delay)
-        with open("/tmp/taskdelay.log", "a") as f:
-            f.write("{}\n".format(task_delay))
+        # print("TASK_DELAY:post_process_cached_html:", task_delay)
+        # with open("/tmp/taskdelay.log", "a") as f:
+        #     f.write("post_process_cached_html:{}\n".format(task_delay))
         postprocessing.notes.append("Taskdelay {:.2f}s".format(task_delay))
     # Sepearated from true work-horse below. This is so that the task will
     # *always* fire immediately.
