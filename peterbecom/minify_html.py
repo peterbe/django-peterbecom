@@ -17,6 +17,8 @@ def minify_html(html):
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
     )
+    html = html.replace("<pre>", "<pre><!-- htmlmin:ignore -->")
+    html = html.replace("</pre>", "<!-- htmlmin:ignore --></pre>")
     try:
         minified = proc.communicate(
             input=html.encode("utf-8"), timeout=settings.HTML_MINIFIER_TIMEOUT_SECONDS
