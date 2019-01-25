@@ -65,11 +65,17 @@ class FSCacheMiddleware:
                 # might need to be created.
                 fscache.create_parents(fs_path)
                 assert os.path.isdir(os.path.dirname(fs_path)), os.path.dirname(fs_path)
+                raw_content = response.content.decode("utf-8")
+                if not raw_content:
+                    print(
+                        "WARNING! Response content on {!r} was empty!".format(
+                            request.path
+                        )
+                    )
+                    # Bail on these weird ones
+                    return response
                 with open(fs_path, "w") as f:
-                    content = response.content.decode("utf-8")
-                    # f.write(response.content.decode("utf-8"))
-                    f.write(content)
-                    assert content, "response.content empty!"
+                    f.write(raw_content)
                     if "text/html" in response["Content-Type"]:
                         f.write("\n<!-- {} -->\n".format(metadata_text))
 

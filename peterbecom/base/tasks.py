@@ -85,7 +85,8 @@ def _post_process_cached_html(filepath, url, postprocessing):
         postprocessing.notes.append(msg)
         return
 
-    while True:
+    optimized_html = html
+    while True and not url.endswith("/awspa"):
         t0 = time.perf_counter()
         try:
             optimized_html = mincss_html(html, url)
@@ -190,10 +191,15 @@ def _zopfli_html(html, filepath, url):
         new_filepath = zopfli_file(filepath)
         t1 = time.time()
         if new_filepath:
+            new_size = os.stat(new_filepath).st_size
+            if new_size > original_size:
+                print("WARNING! {} became larger after brotli".format(filepath))
+                # XXX delete it?
+
             print(
                 "Generated {} ({} bytes, originally {} bytes) Took {:.2f}s".format(
                     new_filepath,
-                    format(os.stat(new_filepath).st_size, ","),
+                    format(new_size, ","),
                     format(original_size, ","),
                     t1 - t0,
                 )
@@ -215,10 +221,15 @@ def _brotli_html(html, filepath, url):
         new_filepath = brotli_file(filepath)
         t1 = time.time()
         if new_filepath:
+            new_size = os.stat(new_filepath).st_size
+            if new_size > original_size:
+                print("WARNING! {} became larger after brotli".format(filepath))
+                # XXX delete it?
+
             print(
                 "Generated {} ({} bytes, originally {} bytes) Took {:.2f}s".format(
                     new_filepath,
-                    format(os.stat(new_filepath).st_size, ","),
+                    format(new_size, ","),
                     format(original_size, ","),
                     t1 - t0,
                 )

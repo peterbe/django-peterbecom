@@ -46,13 +46,7 @@ from .models import (
     Category,
     HTMLRenderingError,
 )
-from .utils import (
-    json_view,
-    render_comment_text,
-    utc_now,
-    valid_email,
-    view_function_timer,
-)
+from .utils import json_view, render_comment_text, utc_now, valid_email
 
 logger = logging.getLogger("plog.views")
 
@@ -362,7 +356,7 @@ def submit_json(request, oid):
     post = get_object_or_404(BlogItem, oid=oid)
     if post.disallow_comments:
         return http.HttpResponseBadRequest("No comments please")
-    comment = request.POST.get("comment", '').strip()
+    comment = request.POST.get("comment", "").strip()
     if not comment:
         return http.HttpResponseBadRequest("Missing comment")
 
@@ -454,9 +448,9 @@ def actually_approve_comment(blogcomment):
 
 def _get_comment_body(blogitem, blogcomment):
     base_url = "https://%s" % Site.objects.get_current().domain
-    if 'peterbecom.local' in base_url:
-        base_url = 'http://localhost:4000'
-    admin_url = base_url.replace('www.', 'admin.')
+    if "peterbecom.local" in base_url:
+        base_url = "http://localhost:4000"
+    admin_url = base_url.replace("www.", "admin.")
     template = loader.get_template("plog/comment_body.txt")
     context = {
         "post": blogitem,
@@ -529,11 +523,9 @@ def plog_index(request):
 def new_comments(request):
     context = {}
     comments = BlogComment.objects.filter(approved=True).exclude(
-        blogitem__oid='blogitem-040601-1'
+        blogitem__oid="blogitem-040601-1"
     )
-    context["comments"] = comments.order_by("-add_date").select_related("blogitem")[
-        :40
-    ]
+    context["comments"] = comments.order_by("-add_date").select_related("blogitem")[:40]
     context["page_title"] = "Latest new blog comments"
     return render(request, "plog/new-comments.html", context)
 
@@ -955,8 +947,7 @@ def plog_hits_data(request):
     return http.JsonResponse({"hits": hits})
 
 
-@cache_page(ONE_DAY)
-@view_function_timer("inner")
+@cache_control(public=True, max_age=ONE_DAY)
 def blog_post_awspa(request, oid):
     try:
         blogitem = BlogItem.objects.get(oid=oid)
@@ -966,23 +957,22 @@ def blog_post_awspa(request, oid):
         except BlogItem.DoesNotExist:
             raise http.Http404()
 
-    seen = request.GET.getlist("seen")
-
     keywords = blogitem.get_all_keywords()
     if not keywords:
         print("Blog post without any keywords", oid)
-        return http.HttpResponse("")
+        with open("/tmp/no-keywords-awsproducts.log", "a") as f:
+            f.write("{}\n".format(oid))
+        awsproducts = AWSProduct.objects.none()
+    else:
+        awsproducts = AWSProduct.objects.exclude(disabled=True).filter(
+            keyword__in=keywords
+        )
 
-    awsproducts = AWSProduct.objects.exclude(disabled=True).filter(keyword__in=keywords)
-    if seen and awsproducts.count() > 3:
-        awsproducts = awsproducts.exclude(asin__in=seen)
-
-    if not awsproducts.exists():
-        print("No matching AWSProducts", keywords, "Seen:", seen)
-        return http.HttpResponse("")
-
-    # Disable any that don't have a MediumImage any more.
+    instances = []
+    seen = set()
     for awsproduct in awsproducts:
+
+        # Disable any that don't have a MediumImage any more.
         if isinstance(awsproduct.payload, list):
             # Something must have gone wrong
             awsproduct.delete()
@@ -991,12 +981,15 @@ def blog_post_awspa(request, oid):
             awsproduct.disabled = True
             awsproduct.save()
 
-    instances = []
-    seen = set()
-    for awsproduct in awsproducts:
         if awsproduct.asin not in seen:
             instances.append(awsproduct)
             seen.add(awsproduct.asin)
+
+    if not instances:
+        print("No matching AWSProducts!", keywords, "OID:", oid)
+        with open("/tmp/no-matching-awsproducts.log", "a") as f:
+            f.write("{}\n".format(oid))
+
     random.shuffle(instances)
     context = {"awsproducts": instances[:3]}
     return render(request, "plog/post-awspa.html", context)

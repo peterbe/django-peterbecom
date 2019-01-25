@@ -180,7 +180,7 @@ def cache_request(request, response):
             if request.path.startswith(s):
                 return False
 
-        not_ends = ("/awspa", "/ping")
+        not_ends = ("/ping",)
         for s in not_ends:
             if request.path.endswith(s):
                 return False
