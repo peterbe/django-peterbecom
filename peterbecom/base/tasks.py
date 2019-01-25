@@ -85,7 +85,8 @@ def _post_process_cached_html(filepath, url, postprocessing):
         postprocessing.notes.append(msg)
         return
 
-    while True:
+    optimized_html = html
+    while True and not url.endswith("/awspa"):
         t0 = time.perf_counter()
         try:
             optimized_html = mincss_html(html, url)
