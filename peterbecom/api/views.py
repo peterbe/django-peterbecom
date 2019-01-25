@@ -437,10 +437,14 @@ def _filter_postprocessing_queryset(qs, request_GET):
                 qs = qs.filter(duration__lt=datetime.timedelta(seconds=seconds))
             q = duration_regex.sub("", q)
 
+        technique = qs.filter
+        if q.startswith('!'):
+            q = q[1:]
+            technique = qs.exclude
         if q.endswith("$"):
-            qs = qs.filter(url__endswith=q[:-1])
+            qs = technique(url__endswith=q[:-1])
         elif q:
-            qs = qs.filter(url__contains=q)
+            qs = technique(url__contains=q)
     return qs
 
 
