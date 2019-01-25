@@ -1,11 +1,13 @@
 (function() {
+  var container = $('#awspa');
+
   function loadAwspa(url, hidefirst) {
     if (hidefirst) {
-      $('#awspa').hide();
+      container.hide();
     }
-    $('#awspa').load(url, function() {
+    container.load(url, function() {
       if (hidefirst) {
-        $('#awspa').fadeIn(500);
+        container.fadeIn(400);
       }
       var oid = document.location.pathname.split('/')[2];
       if (window.sessionStorage) {
@@ -13,7 +15,7 @@
           window.sessionStorage.getItem('loadedawspa') || '{}'
         );
         var asins = [];
-        $('#awspa .item').each(function(i, item) {
+        $('.item', container).each(function(i, item) {
           asins.push('' + $(item).data('asin'));
         });
         loaded[oid] = asins;
@@ -21,26 +23,27 @@
 
         if (asins.length) {
           url = url.split('?')[0];
-          var newURL = url + "?" + $.param({seen: asins}, true);
+          var newURL = url + '?' + $.param({ seen: asins }, true);
           $('<button class="mini ui button">')
-          .addClass('refresh')
-          .data('prefetcher', 'no')
-          .text('Refresh products')
-          .on('click', function(event) {
-            event.preventDefault();
-            $(this).text('Refreshing...').addClass('disabled');
-            loadAwspa(newURL);
-          })
-          .appendTo($('#awspa'));
+            .addClass('refresh')
+            .data('prefetcher', 'no')
+            .text('Refresh products')
+            .on('click', function(event) {
+              event.preventDefault();
+              $(this)
+                .text('Refreshing...')
+                .addClass('disabled');
+              loadAwspa(newURL);
+            })
+            .appendTo(container);
         }
       }
-
     });
   }
   window.setTimeout(function() {
-    var url = document.location.pathname + '/awspa';
-    if ($) { // only if jQuery has loaded
-      loadAwspa(url, true);
+    if ($) {
+      // only if jQuery has loaded
+      loadAwspa(document.location.pathname + '/awspa', true);
     }
   }, 200);
 })();
