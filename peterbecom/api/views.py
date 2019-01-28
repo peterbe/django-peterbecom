@@ -36,6 +36,7 @@ from .forms import (
     BlogFileUpload,
     EditBlogCommentForm,
     EditBlogForm,
+    BlogitemRealtimeHitsForm,
 )
 
 
@@ -438,7 +439,7 @@ def _filter_postprocessing_queryset(qs, request_GET):
             q = duration_regex.sub("", q)
 
         technique = qs.filter
-        if q.startswith('!'):
+        if q.startswith("!"):
             q = q[1:]
             technique = qs.exclude
         if q.endswith("$"):
@@ -834,15 +835,53 @@ def blogitem_hits(request):
 
 
 @api_superuser_required
+def blogitem_realtimehits(request):
+    context = {"hits": [], "last_add_date": None}
+
+    qs = BlogItemHit.objects.all().order_by("-add_date").select_related("blogitem")
+    form = BlogitemRealtimeHitsForm(request.GET)
+    if not form.is_valid():
+        return _response({"errors": form.errors}, status=400)
+
+    if form.cleaned_data["since"]:
+        qs = qs.filter(add_date__gt=form.cleaned_data["since"])
+    if form.cleaned_data["search"]:
+        qs = qs.filter(
+            Q(blogitem__title__icontains=form.cleaned_data["search"])
+            | Q(blogitem__oid__icontains=form.cleaned_data["search"])
+        )
+
+    for hit in qs[:10]:
+        context["hits"].append(
+            {
+                "id": hit.id,
+                "add_date": hit.add_date,
+                "blogitem": {
+                    "id": hit.blogitem.id,
+                    "oid": hit.blogitem.oid,
+                    "title": hit.blogitem.title,
+                    "_absolute_url": "/plog/{}".format(hit.blogitem.oid),
+                },
+                # 'http_user_agent': hit.http_user_agent,
+                # 'http_referer': hit.http_referer,
+            }
+        )
+
+    if context["hits"]:
+        context["last_add_date"] = max(
+            x["add_date"] for x in context["hits"]
+        ).isoformat()
+
+    return _response(context)
+
+
+@api_superuser_required
 def hits(request, oid):
     blogitem = get_object_or_404(BlogItem, oid=oid)
     qs = BlogItemHit.objects.filter(blogitem=blogitem)
     today = timezone.now()
 
-    context = {
-        "hits": [
-        ]
-    }
+    context = {"hits": []}
     keys = (
         ("last_1_day", 1, "Last 1 day"),
         ("last_7_days", 7, "Last 7 days"),
@@ -857,8 +896,6 @@ def hits(request, oid):
                 continue
             this_qs = this_qs.filter(add_date__gte=since)
         count = this_qs.aggregate(count=Count("blogitem_id"))["count"]
-        context['hits'].append({
-            'key': key, 'label': label, 'value': count
-        })
+        context["hits"].append({"key": key, "label": label, "value": count})
 
     return _response(context)

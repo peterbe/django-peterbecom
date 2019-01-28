@@ -123,3 +123,8 @@ class EditBlogCommentForm(forms.ModelForm):
     class Meta:
         model = BlogComment
         fields = ("comment", "name", "email")
+
+
+class BlogitemRealtimeHitsForm(forms.Form):
+    since = ISODateTimeField(required=False)
+    search = forms.CharField(required=False)

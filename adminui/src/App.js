@@ -21,6 +21,7 @@ import UploadImages from './UploadImages';
 import PostProcessings from './PostProcessings';
 import SearchResults from './SearchResults';
 import BlogitemHits from './BlogitemHits';
+import RealtimeBlogitemHits from './RealtimeBlogitemHits';
 
 class App extends React.Component {
   state = {
@@ -178,6 +179,11 @@ class App extends React.Component {
                     </Link>
                   </Dropdown.Item>
                   <Dropdown.Item>
+                    <Link to="/plog/realtimehits" style={{ color: '#000' }}>
+                      Realtime Hits
+                    </Link>
+                  </Dropdown.Item>
+                  <Dropdown.Item>
                     <Link to="/plog/hits" style={{ color: '#000' }}>
                       Hits
                     </Link>
@@ -262,6 +268,12 @@ class App extends React.Component {
                 path="/plog/hits"
                 exact
                 component={BlogitemHits}
+                accessToken={this.state.accessToken}
+              />
+              <SecureRoute
+                path="/plog/realtimehits"
+                exact
+                component={RealtimeBlogitemHits}
                 accessToken={this.state.accessToken}
               />
               <SecureRoute

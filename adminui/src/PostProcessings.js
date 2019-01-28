@@ -1,16 +1,21 @@
 import React from 'react';
 import {
   Checkbox,
+  Container,
   Divider,
   Header,
-  Container,
+  Input,
   Loader,
   Statistic,
-  Table,
-  Input
+  Table
 } from 'semantic-ui-react';
 
-import { filterToQueryString, DisplayDate, ShowServerError } from './Common';
+import {
+  DisplayDate,
+  equalArrays,
+  filterToQueryString,
+  ShowServerError
+} from './Common';
 
 function defaultLoopSeconds(default_ = 10) {
   try {
@@ -25,13 +30,13 @@ function defaultLoopSeconds(default_ = 10) {
 
 class PostProcessings extends React.Component {
   state = {
-    ongoing: null,
-    loading: false,
-    serverError: null,
-    statistics: null,
-    records: null,
     filters: null,
-    loopSeconds: defaultLoopSeconds()
+    loading: false,
+    loopSeconds: defaultLoopSeconds(),
+    ongoing: null,
+    records: null,
+    serverError: null,
+    statistics: null
   };
 
   componentDidMount() {
@@ -69,9 +74,9 @@ class PostProcessings extends React.Component {
     if (response.ok) {
       const data = await response.json();
       this.setState({
-        statistics: data.statistics,
         records: data.records,
-        serverError: null
+        serverError: null,
+        statistics: data.statistics
       });
     } else {
       this.setState({ serverError: response });
@@ -86,12 +91,12 @@ class PostProcessings extends React.Component {
     if (this.state.loopSeconds) {
       this._loop = window.setTimeout(() => {
         this.startLoop();
-      }, this.state.loopSeconds * 1000);
+      }, 1000 * this.state.loopSeconds);
     }
   };
 
   render() {
-    const { loading, serverError, statistics, records, filters } = this.state;
+    const { filters, loading, records, serverError, statistics } = this.state;
 
     return (
       <Container textAlign="center">
@@ -101,9 +106,9 @@ class PostProcessings extends React.Component {
           <Container>
             <Loader
               active
-              size="massive"
-              inline="centered"
               content="Loading..."
+              inline="centered"
+              size="massive"
               style={{ margin: '200px 0' }}
             />
           </Container>
@@ -113,8 +118,8 @@ class PostProcessings extends React.Component {
         <Divider />
         {records && (
           <Records
-            records={records}
             filters={filters}
+            records={records}
             updateFilters={filters => {
               this.setState({ filters }, this.startLoop);
             }}
@@ -125,7 +130,6 @@ class PostProcessings extends React.Component {
         {(statistics || records) && (
           <div>
             <Checkbox
-              toggle
               defaultChecked={!!this.state.loopSeconds}
               onChange={event => {
                 if (!this.state.loopSeconds) {
@@ -136,13 +140,12 @@ class PostProcessings extends React.Component {
                   this.setState({ loopSeconds: null });
                 }
               }}
+              toggle
             />
             {this.state.loopSeconds && (
               <div>
                 Every{' '}
                 <Input
-                  type="number"
-                  size="small"
                   onChange={event => {
                     const loopSeconds = parseInt(event.target.value);
                     if (loopSeconds > 0) {
@@ -154,6 +157,8 @@ class PostProcessings extends React.Component {
                       });
                     }
                   }}
+                  size="small"
+                  type="number"
                   value={this.state.loopSeconds}
                 />{' '}
                 seconds.
@@ -167,13 +172,6 @@ class PostProcessings extends React.Component {
 }
 
 export default PostProcessings;
-
-function equalArrays(array1, array2) {
-  return (
-    array1.length === array2.length &&
-    array1.every((value, index) => value === array2[index])
-  );
-}
 
 class Statistics extends React.PureComponent {
   state = {
@@ -253,7 +251,7 @@ class Records extends React.PureComponent {
     }
   }
   render() {
-    const { records, filters, updateFilters } = this.props;
+    const { filters, records, updateFilters } = this.props;
     const { differentIds } = this.state;
     return (
       <form
@@ -282,8 +280,8 @@ class Records extends React.PureComponent {
                   <Table.Cell>
                     <a
                       href={record.url}
-                      target="_blank"
                       rel="noopener noreferrer"
+                      target="_blank"
                       title={record.filepath}
                     >
                       {new URL(record.url).pathname}
@@ -318,10 +316,10 @@ class Records extends React.PureComponent {
           </Table.Body>
         </Table>
         <Input
-          ref="q"
-          fluid
           defaultValue={(filters && filters.q) || ''}
+          fluid
           placeholder="Search filter..."
+          ref="q"
         />
       </form>
     );

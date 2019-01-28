@@ -107,3 +107,10 @@ export function filterToQueryString(filterObj, overrides) {
   searchParams.sort();
   return searchParams.toString();
 }
+
+export function equalArrays(array1, array2) {
+  return (
+    array1.length === array2.length &&
+    array1.every((value, index) => value === array2[index])
+  );
+}
