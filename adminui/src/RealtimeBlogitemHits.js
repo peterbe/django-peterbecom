@@ -121,7 +121,7 @@ class RealtimeBlogitemHits extends React.Component {
         }
         return b.count - a.count;
       })
-      .slice(0, 50);
+      .slice(0, 30);
   };
 
   updateFilters = filters => {
