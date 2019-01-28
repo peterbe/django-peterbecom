@@ -8,6 +8,11 @@ app_name = "api"
 urlpatterns = [
     url("^plog/$", views.blogitems, name="blogitems"),
     url("^plog/hits/$", views.blogitem_hits, name="blogitem_hits"),
+    url(
+        "^plog/realtimehits/$",
+        views.blogitem_realtimehits,
+        name="blogitem_realtimehits",
+    ),
     url("^plog/comments/$", views.blogcomments, name="blogcomments"),
     url(
         "^plog/comments/(?P<action>approve|delete)/$",

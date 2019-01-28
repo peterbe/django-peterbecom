@@ -41,7 +41,8 @@ class AuthenticationMiddleware:
                     )
                 cache_key = "bearer-to-user-info:{}".format(access_token[:12])
                 user = cache.get(cache_key)
-                if user is None:
+                was_in_cache = user is not None
+                if not was_in_cache:
                     user_info = self.fetch_oidc_user_profile(access_token)
                     if user_info:
                         user_model = get_user_model()
@@ -57,7 +58,10 @@ class AuthenticationMiddleware:
                         {"error": "access_token invalid"}, status=403
                     )
                 request.user = user
-                user_logged_in.send(sender=user.__class__, request=request, user=user)
+                if not was_in_cache:
+                    user_logged_in.send(
+                        sender=user.__class__, request=request, user=user
+                    )
 
             request.csrf_processing_done = True
 
