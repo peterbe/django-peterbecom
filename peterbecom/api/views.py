@@ -851,7 +851,7 @@ def blogitem_realtimehits(request):
             | Q(blogitem__oid__icontains=form.cleaned_data["search"])
         )
 
-    for hit in qs[:10]:
+    for hit in qs[:30]:
         context["hits"].append(
             {
                 "id": hit.id,
