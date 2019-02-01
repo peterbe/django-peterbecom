@@ -846,11 +846,31 @@ def blogitem_realtimehits(request):
     if form.cleaned_data["since"]:
         qs = qs.filter(add_date__gt=form.cleaned_data["since"])
     if form.cleaned_data["search"]:
-        qs = qs.filter(
-            Q(blogitem__title__icontains=form.cleaned_data["search"])
-            | Q(blogitem__oid__icontains=form.cleaned_data["search"])
+        search = form.cleaned_data["search"]
+        pub_date_regex = re.compile(
+            r"(pub_date\s*([>=<]{1,2})\s*(\d{4})-(\d{2})-(\d{2}))"
         )
+        for found in pub_date_regex.findall(search):
+            whole, operator, yyyy, mm, dd = found
+            date = datetime.datetime.combine(
+                datetime.date(int(yyyy), int(mm), int(dd)), datetime.datetime.min.time()
+            )
+            pub_date = timezone.make_aware(date, timezone.now().tzinfo)
+            orm_operator = {">=": "gte", ">": "gt", "<=": "lte", "<": "lt"}.get(
+                operator, "exact"
+            )
+            qs = qs.filter(**{"blogitem__pub_date__" + orm_operator: pub_date})
+            search = search.replace(whole, "").strip()
+            if search.startswith(","):
+                search = search[1:].strip()
 
+        if search:
+            qs = qs.filter(
+                Q(blogitem__title__icontains=search)
+                | Q(blogitem__oid__icontains=search)
+            )
+
+    today = timezone.now()
     for hit in qs[:30]:
         context["hits"].append(
             {
@@ -860,6 +880,8 @@ def blogitem_realtimehits(request):
                     "id": hit.blogitem.id,
                     "oid": hit.blogitem.oid,
                     "title": hit.blogitem.title,
+                    "pub_date": hit.blogitem.pub_date,
+                    "_is_published": hit.blogitem.pub_date < today,
                     "_absolute_url": "/plog/{}".format(hit.blogitem.oid),
                 },
                 # 'http_user_agent': hit.http_user_agent,

@@ -163,7 +163,6 @@ class App extends React.Component {
           <Menu fixed="top" inverted>
             <Container>
               <Menu.Item header>
-                {/* <Image size="mini" src="/logo.png" style={{ marginRight: '1.5em' }} /> */}
                 <Link to="/">Peterbe.com Admin UI</Link>
               </Menu.Item>
               <Dropdown item simple text="Blogitems">
@@ -188,17 +187,6 @@ class App extends React.Component {
                       Hits
                     </Link>
                   </Dropdown.Item>
-                  {/* <Dropdown.Divider />
-                  <Dropdown.Header>Header Item</Dropdown.Header>
-                  <Dropdown.Item>
-                    <i className="dropdown icon" />
-                    <span className="text">Submenu</span>
-                    <Dropdown.Menu>
-                      <Dropdown.Item>List Item</Dropdown.Item>
-                      <Dropdown.Item>List Item</Dropdown.Item>
-                    </Dropdown.Menu>
-                  </Dropdown.Item>
-                  <Dropdown.Item>List Item</Dropdown.Item> */}
                 </Dropdown.Menu>
               </Dropdown>
               <Menu.Item>
