@@ -30,7 +30,20 @@ class DashboardLinks extends React.PureComponent {
     return (
       <Segment.Group raised>
         <Segment>
-          <Link to="/plog">Blogitems</Link>
+          <Segment.Group>
+            <Segment>
+              <Link to="/plog">Blogitems</Link>
+            </Segment>
+            <Segment>
+              <Link to="/plog/add">Add new blogitem</Link>
+            </Segment>
+            <Segment>
+              <Link to="/plog/realtimehits">Realtime Hits</Link>
+            </Segment>
+            <Segment>
+              <Link to="/plog/hits">Hits</Link>
+            </Segment>
+          </Segment.Group>
         </Segment>
         <Segment>
           <Link to="/plog/comments">Comments</Link>

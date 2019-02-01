@@ -4,11 +4,17 @@ import {
   Container,
   Header,
   Input,
+  Label,
   Loader,
   Table
 } from 'semantic-ui-react';
 
-import { filterToQueryString, ShowServerError, equalArrays } from './Common';
+import {
+  DisplayDate,
+  equalArrays,
+  filterToQueryString,
+  ShowServerError
+} from './Common';
 import { BASE_URL } from './Config';
 
 function defaultLoopSeconds(default_ = 10) {
@@ -126,7 +132,7 @@ class RealtimeBlogitemHits extends React.Component {
 
   updateFilters = filters => {
     this.setState(
-      { filters, hits: [], grouped: null, lastAddDate: null },
+      { filters, grouped: null, hits: [], lastAddDate: null },
       this.startLoop
     );
   };
@@ -254,7 +260,13 @@ class Hits extends React.PureComponent {
                       title={record.blogitem.oid}
                     >
                       {record.blogitem.title}
-                    </a>
+                    </a>{' '}
+                    <Label
+                      color={!record.blogitem._is_published ? 'orange' : null}
+                      size="tiny"
+                    >
+                      Published <DisplayDate date={record.blogitem.pub_date} />
+                    </Label>
                   </Table.Cell>
                   <Table.Cell>{record.count.toLocaleString()}</Table.Cell>
                 </Table.Row>
