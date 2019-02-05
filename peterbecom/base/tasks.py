@@ -192,8 +192,13 @@ def _zopfli_html(html, filepath, url):
         t1 = time.time()
         if new_filepath:
             new_size = os.stat(new_filepath).st_size
+            if not new_size:
+                print("WARNING! {} became 0 bytes after zopfli".format(filepath))
+                os.remove(new_filepath)
+                continue
+
             if new_size > original_size:
-                print("WARNING! {} became larger after brotli".format(filepath))
+                print("WARNING! {} became larger after zopfli".format(filepath))
                 # XXX delete it?
 
             print(
@@ -222,6 +227,10 @@ def _brotli_html(html, filepath, url):
         t1 = time.time()
         if new_filepath:
             new_size = os.stat(new_filepath).st_size
+            if not new_size:
+                print("WARNING! {} became 0 bytes after brotli".format(filepath))
+                os.remove(new_filepath)
+                continue
             if new_size > original_size:
                 print("WARNING! {} became larger after brotli".format(filepath))
                 # XXX delete it?

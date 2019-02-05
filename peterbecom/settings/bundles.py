@@ -8,7 +8,7 @@ PIPELINE_CSS = {
             "css/semantic/container.min.css",
             # "css/semantic/divider.css",
             "css/semantic/header.min.css",
-            "css/semantic/input.min.css",
+            "css/semantic/input.css",  # has custom hacks
             # "css/semantic/label.css",
             "css/semantic/list.min.css",
             "css/semantic/loader.min.css",
@@ -35,13 +35,13 @@ PIPELINE_CSS = {
     },
     "lyrics": {
         "source_filenames": (
-            "css/semantic/reset.css",
-            "css/semantic/site.css",
+            "css/semantic/reset.min.css",
+            "css/semantic/site.min.css",
             # "css/semantic/button.css",
             "css/slim-semantic-button.css",  # My own!
             "css/semantic/container.min.css",
             "css/semantic/header.min.css",
-            "css/semantic/input.min.css",
+            "css/semantic/input.css",
             "css/semantic/loader.min.css",
             "css/semantic/form.min.css",
             # "css/semantic/grid.css",
