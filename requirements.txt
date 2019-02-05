@@ -215,9 +215,9 @@ MarkupSafe==1.1.0 \
     --hash=sha256:1c25694ca680b6919de53a4bb3bdd0602beafc63ff001fea2f2fc16ec3a11834 \
     --hash=sha256:7d263e5770efddf465a9e31b78362d84d015cc894ca2c131901a4445eaa61ee1 \
     --hash=sha256:4e97332c9ce444b0c2c38dd22ddc61c743eb208d916e4265a2a3b575bdccb1d3
-python-dateutil==2.7.5 \
-    --hash=sha256:063df5763652e21de43de7d9e00ccf239f953a832941e37be541614732cdfc93 \
-    --hash=sha256:88f9287c0174266bb0d8cedd395cfba9c58e87e5ad86b2ce58859bc11be3cf02
+python-dateutil==2.8.0 \
+    --hash=sha256:7e6584c74aeed623791615e26efd690f29817a27c73085b78e4bad02493df2fb \
+    --hash=sha256:c89805f6f4d64db21ed966fda138f8a5ed7a4fdbc1a8ee329ce1b74e3c74da9e
 django-appconf==1.0.2 \
     --hash=sha256:6a4d9aea683b4c224d97ab8ee11ad2d29a37072c0c6c509896dd9857466fb261 \
     --hash=sha256:ddab987d14b26731352c01ee69c090a4ebfc9141ed223bef039d79587f22acd9
