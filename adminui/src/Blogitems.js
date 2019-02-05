@@ -11,13 +11,23 @@ import {
 import { debounce } from 'throttle-debounce';
 import { DisplayDate, ShowServerError } from './Common';
 
+function getDefaultSearch() {
+  if (window.location && window.location.search) {
+    const searchParams = new URLSearchParams(
+      window.location.search.slice(1, window.location.search.length)
+    );
+    return searchParams.get('search') || '';
+  }
+  return '';
+}
+
 class Blogitems extends React.Component {
   state = {
     blogitems: null,
     count: 0,
     page: 1,
     serverError: null,
-    search: '',
+    search: getDefaultSearch(),
     orderBy: null
   };
   componentDidMount() {
@@ -87,6 +97,7 @@ class Blogitems extends React.Component {
             orderLabel={this.getOrderLabel()}
             orderDirection={this.getOrderDirection()}
             changeOrderColumn={this.changeOrderColumn}
+            search={this.state.search}
             updateFilterSearch={search => {
               this.setState({ search }, this.fetchBlogitems);
             }}
@@ -101,7 +112,7 @@ export default Blogitems;
 
 class BlogitemsTable extends React.PureComponent {
   state = {
-    search: ''
+    search: this.props.search
   };
 
   render() {
