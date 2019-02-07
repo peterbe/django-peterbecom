@@ -1,3 +1,4 @@
+import copy
 import hashlib
 import time
 import datetime
@@ -52,7 +53,8 @@ def itunes_lookup(itunes_id):
     return response.json()
 
 
-def itunes_search(term, **options):
+def itunes_search(term, **kwargs):
+    options = copy.copy(kwargs)  # so we can use recursion
     timeout = options.pop("timeout", None)
     retry = options.pop("retry", False)
     options.update({"term": term, "entity": "podcast"})
@@ -72,7 +74,7 @@ def itunes_search(term, **options):
         if not retry:
             time.sleep(5)
             options["retry"] = True
-            return itunes_search(term, **options)
+            return itunes_search(term, **kwargs)
     assert response.status_code == 200, response.status_code
     try:
         return response.json()
