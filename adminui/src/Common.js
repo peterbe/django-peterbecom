@@ -18,29 +18,52 @@ export const DisplayDate = ({ date }) => {
   }
 };
 
+// export function ShowServerError({ error }) {
+//   if (!error) {
+//     return null;
+//   }
+//   let errorMessage = (
+//     <p>
+//       <code>{error.toString()}</code>
+//     </p>
+//   );
+//   if (error instanceof window.Response) {
+//     // Let's get fancy
+//     errorMessage = (
+//       <p>
+//         <b>{error.status}</b> on <b>{error.url}</b>
+//         <br />
+//         <small>{error.statusText}</small>
+//       </p>
+//     );
+//   }
+//   return (
+//     <Message negative>
+//       <Message.Header>Server Error</Message.Header>
+//       {errorMessage}
+//     </Message>
+//   );
+// }
+
 export function ShowServerError({ error }) {
   if (!error) {
     return null;
   }
-  let errorMessage = (
-    <p>
-      <code>{error.toString()}</code>
-    </p>
-  );
-  if (error instanceof window.Response) {
-    // Let's get fancy
-    errorMessage = (
-      <p>
-        <b>{error.status}</b> on <b>{error.url}</b>
-        <br />
-        <small>{error.statusText}</small>
-      </p>
-    );
-  }
   return (
     <Message negative>
       <Message.Header>Server Error</Message.Header>
-      {errorMessage}
+
+      {error instanceof window.Response ? (
+        <p>
+          <b>{error.status}</b> on <b>{error.url}</b>
+          <br />
+          <small>{error.statusText}</small>
+        </p>
+      ) : (
+        <p>
+          <code>{error.toString()}</code>
+        </p>
+      )}
     </Message>
   );
 }
@@ -75,6 +98,16 @@ export function BlogitemBreadcrumb({ blogitem, oid, page }) {
           'Images'
         ) : (
           <Link to={`/plog/${oid}/images`}>Images</Link>
+        )}
+      </Breadcrumb.Section>
+      <Breadcrumb.Divider />
+      <Breadcrumb.Section active={page === 'awspa'}>
+        {page === 'awspa' ? (
+          'AWSPA'
+        ) : (
+          <Link to={`/plog/${oid}/awspa`}>
+            AWSPA {blogitem && `(${blogitem.awsproducts_count})`}
+          </Link>
         )}
       </Breadcrumb.Section>
       <Breadcrumb.Divider />

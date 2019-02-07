@@ -10,6 +10,10 @@ from django.contrib.sites.models import Site
 from huey.contrib.djhuey import task
 
 
+class EmptyFSCacheFile(Exception):
+    """No fscache written file should ever be 0 bytes."""
+
+
 def path_to_fs_path(path):
     fs_path = settings.FSCACHE_ROOT
     for directory in path.split("/"):
@@ -110,6 +114,9 @@ def invalidate_too_old(verbose=False, dry_run=False, revisit=False):
             if file_.endswith(".metadata"):
                 continue
             path = os.path.join(root, file_)
+            if not os.stat(path).st_size:
+                if "index.html" in file_:
+                    raise EmptyFSCacheFile(path)
             if os.path.isfile(path + ".metadata"):
                 found.append(os.stat(path).st_size)
                 seconds = None
