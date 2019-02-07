@@ -174,7 +174,14 @@ class Categories extends React.PureComponent {
                       title={`Filter by the '${each.name}' category`}
                     >
                       {each.name}
+                    </a>{' '}
+                    (
+                    <a
+                      href={`/plog?search=cat:${encodeURIComponent(each.name)}`}
+                    >
+                      list
                     </a>
+                    )
                   </Table.Cell>
                   <Table.Cell>{each.count}</Table.Cell>
                   <Table.Cell>{each.sum.toFixed(2)}</Table.Cell>

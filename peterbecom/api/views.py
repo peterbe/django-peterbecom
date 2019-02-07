@@ -99,8 +99,8 @@ def blogitems(request):
     order_by = request.GET.get("order", "modify_date")
     assert order_by in ("modify_date", "pub_date"), order_by
     items = items.order_by("-" + order_by)
-    if search:
-        items = items.filter(Q(title__icontains=search) | Q(oid__icontains=search))
+    items = _amend_blogitems_search(items, search)
+
     items = items.prefetch_related("categories")
     context = {"blogitems": []}
     n, m = ((page - 1) * batch_size, page * batch_size)
@@ -108,6 +108,28 @@ def blogitems(request):
         context["blogitems"].append(_serialize_blogitem(item))
     context["count"] = items.count()
     return _response(context)
+
+
+def _amend_blogitems_search(qs, search):
+    if search:
+        category_names = []
+        cat_regex = re.compile(r'(cat:\s*([\w\s]+))')
+        for found in cat_regex.findall(search):
+            category_names.append(found[1])
+            search = cat_regex.sub('', search).strip().strip(',')
+        if category_names:
+            q = Q()
+            for name in category_names:
+                q |= Q(name__iexact=name)
+            categories = Category.objects.filter(q)
+            cat_q = Q()
+            for category in categories:
+                cat_q |= Q(categories=category)
+            qs = qs.filter(cat_q)
+
+    if search:
+        qs = qs.filter(Q(title__icontains=search) | Q(oid__icontains=search))
+    return qs
 
 
 @api_superuser_required
