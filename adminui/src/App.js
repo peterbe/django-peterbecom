@@ -17,6 +17,7 @@ import Comments from './Comments';
 import Dashboard from './Dashboard';
 import { AddBlogitem, EditBlogitem } from './EditBlogitem';
 import OpenGraphImageBlogitem from './OpenGraphImageBlogitem';
+import AWSPABlogitem from './AWSPABlogitem';
 import UploadImages from './UploadImages';
 import PostProcessings from './PostProcessings';
 import SearchResults from './SearchResults';
@@ -67,14 +68,14 @@ class App extends React.Component {
             authResult = null;
           }
         }
-        if (authResult) {
-          // The contents of authResult depend on which authentication parameters were used.
-          // It can include the following:
-          // authResult.accessToken - access token for the API specified by `audience`
-          // authResult.expiresIn - string with the access token's expiration time in seconds
-          // authResult.idToken - ID token JWT containing user profile information
-          this._postProcessAuthResult(authResult);
-        }
+
+        // The contents of authResult depend on which authentication parameters were used.
+        // It can include the following:
+        // authResult.accessToken - access token for the API specified by `audience`
+        // authResult.expiresIn - string with the access token's expiration time in seconds
+        // authResult.idToken - ID token JWT containing user profile information
+        this._postProcessAuthResult(authResult);
+
         if (startAccessTokenRefreshLoop) {
           this.accessTokenRefreshLoop();
         }
@@ -98,6 +99,10 @@ class App extends React.Component {
       }
       localStorage.setItem('authResult', JSON.stringify(authResult));
       localStorage.setItem('expiresAt', JSON.stringify(expiresAt));
+    } else {
+      if (window.location.pathname !== '/') {
+        this.authorize();
+      }
     }
   };
 
@@ -279,6 +284,11 @@ class App extends React.Component {
               <SecureRoute
                 path="/plog/:oid/open-graph-image"
                 component={OpenGraphImageBlogitem}
+                accessToken={this.state.accessToken}
+              />
+              <SecureRoute
+                path="/plog/:oid/awspa"
+                component={AWSPABlogitem}
                 accessToken={this.state.accessToken}
               />
               <SecureRoute

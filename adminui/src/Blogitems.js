@@ -1,12 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Container,
-  Loader,
-  Table,
   Button,
+  Container,
+  Input,
   Label,
-  Input
+  Loader,
+  Table
 } from 'semantic-ui-react';
 import { debounce } from 'throttle-debounce';
 import { DisplayDate, ShowServerError } from './Common';
@@ -25,10 +25,10 @@ class Blogitems extends React.Component {
   state = {
     blogitems: null,
     count: 0,
+    orderBy: null,
     page: 1,
-    serverError: null,
     search: getDefaultSearch(),
-    orderBy: null
+    serverError: null
   };
   componentDidMount() {
     this.fetchBlogitems();
@@ -84,19 +84,19 @@ class Blogitems extends React.Component {
         {this.state.blogitems === null && this.state.serverError === null ? (
           <Loader
             active
-            size="massive"
-            inline="centered"
             content="Loading Blogitems..."
+            inline="centered"
+            size="massive"
             style={{ margin: '200px 0' }}
           />
         ) : null}
         {this.state.blogitems && (
           <BlogitemsTable
             blogitems={this.state.blogitems}
-            count={this.state.count}
-            orderLabel={this.getOrderLabel()}
-            orderDirection={this.getOrderDirection()}
             changeOrderColumn={this.changeOrderColumn}
+            count={this.state.count}
+            orderDirection={this.getOrderDirection()}
+            orderLabel={this.getOrderLabel()}
             search={this.state.search}
             updateFilterSearch={search => {
               this.setState({ search }, this.fetchBlogitems);
@@ -125,10 +125,10 @@ class BlogitemsTable extends React.PureComponent {
               Title ({count.toLocaleString()})
             </Table.HeaderCell>
             <Table.HeaderCell
-              sorted={this.props.orderDirection}
               onClick={event => {
                 this.props.changeOrderColumn();
               }}
+              sorted={this.props.orderDirection}
             >
               {this.props.orderLabel}
             </Table.HeaderCell>
@@ -137,10 +137,7 @@ class BlogitemsTable extends React.PureComponent {
             <Table.HeaderCell colSpan={2}>
               <Input
                 icon="search"
-                placeholder="Search..."
-                style={{ width: '90%' }}
                 list="search-autofills"
-                value={this.state.search}
                 onChange={event => {
                   this.setState(
                     { search: event.target.value },
@@ -149,6 +146,9 @@ class BlogitemsTable extends React.PureComponent {
                     })
                   );
                 }}
+                placeholder="Search..."
+                style={{ width: '90%' }}
+                value={this.state.search}
               />
               {this.state.search ? (
                 <Button
@@ -173,24 +173,24 @@ class BlogitemsTable extends React.PureComponent {
                   {item.categories.map(category => (
                     <Label
                       key={category.id}
-                      size="tiny"
-                      style={{ cursor: 'pointer' }}
                       onClick={event => {
                         this.updateFilterCategories(category.name);
                       }}
+                      size="tiny"
+                      style={{ cursor: 'pointer' }}
                     >
                       {category.name}
                     </Label>
                   ))}
 
                   {!item._is_published ? (
-                    <Label size="tiny" color="orange">
+                    <Label color="orange" size="tiny">
                       Published <DisplayDate date={item.pub_date} />
                     </Label>
                   ) : null}
 
                   {!item.summary && (
-                    <Label circular empty color="brown" title="No summary!" />
+                    <Label circular color="brown" empty title="No summary!" />
                   )}
                 </Table.Cell>
                 <Table.Cell>

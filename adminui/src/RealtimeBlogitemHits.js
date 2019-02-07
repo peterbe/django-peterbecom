@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import {
   Checkbox,
   Container,
@@ -15,7 +16,6 @@ import {
   filterToQueryString,
   ShowServerError
 } from './Common';
-import { BASE_URL } from './Config';
 
 function defaultLoopSeconds(default_ = 10) {
   try {
@@ -253,14 +253,9 @@ class Hits extends React.PureComponent {
                   warning={differentIds.includes(record.blogitem.id)}
                 >
                   <Table.Cell>
-                    <a
-                      href={BASE_URL + record.blogitem._absolute_url}
-                      rel="noopener noreferrer"
-                      target="_blank"
-                      title={record.blogitem.oid}
-                    >
+                    <Link to={`/plog/${record.blogitem.oid}`}>
                       {record.blogitem.title}
-                    </a>{' '}
+                    </Link>{' '}
                     <Label
                       color={!record.blogitem._is_published ? 'orange' : null}
                       size="tiny"

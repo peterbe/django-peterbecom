@@ -6,7 +6,6 @@ from . import views
 urlpatterns = [
     url("^$", views.plog_index, name="plog_index"),
     url("^edit/(.*)", views.edit_post, name="edit_post"),
-    url("^awspa/(.*)", views.plog_awspa, name="plog_awspa"),
     url(
         "^open-graph-image/(.*)",
         views.plog_open_graph_image,
@@ -26,7 +25,6 @@ urlpatterns = [
     url("^new-comments$", views.new_comments, name="new_comments"),
     url("^prepare.json$", views.prepare_json, name="prepare"),
     url("^preview.json$", views.preview_json, name="preview"),
-    # url('^inbound-email$', views.inbound_email, name='inbound_email'),
     url("^hits$", views.plog_hits, name="plog_hits"),
     url("^hits/data$", views.plog_hits_data, name="plog_hits_data"),
     url("^(.*)/submit$", views.submit_json, name="submit"),

@@ -25,6 +25,7 @@ urlpatterns = [
     url(
         "^plog/(.*)/open-graph-image$", views.open_graph_image, name="open_graph_image"
     ),
+    url("^plog/(.*)/awspa$", views.awspa, name="awspa"),
     url("^plog/(.*)$", views.blogitem, name="blogitem"),
     url("^categories/?$", views.categories, name="categories"),
     url("^postprocessings/", views.postprocessings, name="postprocessings"),

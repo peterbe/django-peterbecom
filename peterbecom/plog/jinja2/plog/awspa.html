@@ -65,7 +65,9 @@
     <h2>{{ keyword }}</h2>
     <div class="ui divided items">
       {% for awsproduct in possible_products[keyword] %}
+      <div class="item">
         {{ awspa_product(awsproduct) }}
+      </div>
       {% endfor %}
     </div>
   </form>

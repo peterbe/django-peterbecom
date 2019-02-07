@@ -1,6 +1,5 @@
 import datetime
 import hashlib
-import json
 import logging
 import os
 import random
@@ -8,7 +7,7 @@ import re
 
 from collections import defaultdict
 
-from urllib.parse import urlencode, urlparse
+from urllib.parse import urlparse
 
 from django import http
 from django.conf import settings
@@ -30,7 +29,7 @@ from fancy_cache import cache_page
 from huey.contrib.djhuey import task
 
 from peterbecom.awspa.models import AWSProduct
-from peterbecom.awspa.search import search as awspa_search
+# from peterbecom.awspa.search import search as awspa_search
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
 
 # from peterbecom.bayes.guesser import default_guesser
@@ -609,99 +608,6 @@ def edit_post(request, oid):
         keyword__in=blogitem.get_all_keywords()
     )
     return render(request, "plog/edit.html", data)
-
-
-@login_required
-@transaction.atomic
-def plog_awspa(request, oid):
-    blogitem = get_object_or_404(BlogItem, oid=oid)
-    context = {"blogitem": blogitem}
-    if request.method == "POST":
-        keyword = request.POST.get("keyword")
-        if keyword:
-            # Load more!
-            url = reverse("plog_awspa", args=(blogitem.oid,))
-            try:
-                new = load_more_awsproducts(
-                    keyword, request.POST.get("searchindex", "All")
-                )
-                params = {"focus": keyword}
-                if new:
-                    params["new"] = [x.title for x in new]
-            except AWSPAError as exception:
-                error = exception.args[0]
-                params = {"error": json.dumps(error)}
-            url += "?" + urlencode(params, True)
-
-            keywords = blogitem.get_all_keywords()
-            if keyword.lower() not in keywords:
-                blogitem.proper_keywords.append(keyword)
-                blogitem.save()
-            return redirect(url)
-
-        asin = request.POST.get("asin")
-        awsproduct = AWSProduct.objects.get(asin=asin)
-        awsproduct.disabled = not awsproduct.disabled
-        awsproduct.save()
-
-        return http.HttpResponse("OK")
-
-    all_keywords = blogitem.get_all_keywords()
-
-    possible_products = {}
-    for keyword in all_keywords:
-        possible_products[keyword] = AWSProduct.objects.filter(
-            keyword__iexact=keyword
-        ).order_by("disabled", "modify_date")
-    context["possible_products"] = possible_products
-
-    context["all_keywords"] = all_keywords
-    context["page_title"] = blogitem.title
-    return render(request, "plog/awspa.html", context)
-
-
-def load_more_awsproducts(keyword, searchindex):
-    items, error = awspa_search(keyword, searchindex=searchindex, sleep=1)
-    if error:
-        raise AWSPAError(error)
-
-    keyword = keyword.lower()
-
-    new = []
-
-    for item in items:
-        item.pop("ImageSets", None)
-        # print('=' * 100)
-        # pprint(item)
-        asin = item["ASIN"]
-        title = item["ItemAttributes"]["Title"]
-        if not item["ItemAttributes"].get("ListPrice"):
-            print("SKIPPING BECAUSE NO LIST PRICE")
-            print(item)
-            continue
-        if not item.get("MediumImage"):
-            print("SKIPPING BECAUSE NO MEDIUM IMAGE")
-            print(item)
-            continue
-        try:
-            awsproduct = AWSProduct.objects.get(
-                asin=asin, keyword=keyword, searchindex=searchindex
-            )
-            awsproduct.title = title
-            awsproduct.payload = item
-            awsproduct.save()
-        except AWSProduct.DoesNotExist:
-            awsproduct = AWSProduct.objects.create(
-                asin=asin,
-                title=title,
-                payload=item,
-                keyword=keyword,
-                searchindex=searchindex,
-                disabled=True,
-            )
-            new.append(awsproduct)
-
-    return new
 
 
 @login_required

@@ -24,6 +24,9 @@ from peterbecom.plog.models import (
     Category,
     BlogItemHit,
 )
+from peterbecom.awspa.models import AWSProduct
+from peterbecom.awspa.search import search as awspa_search
+from peterbecom.awspa.templatetags.jinja_helpers import awspa_product
 from peterbecom.plog.utils import rate_blog_comment  # move this some day
 from peterbecom.plog.views import (
     PreviewValidationError,
@@ -139,6 +142,9 @@ def blogitem(request, oid):
             "modify_date": item.modify_date,
             "open_graph_image": item.open_graph_image,
             "_absolute_url": "/plog/{}".format(item.oid),
+            "awsproducts_count": AWSProduct.objects.exclude(disabled=True)
+            .filter(keyword__in=item.get_all_keywords())
+            .count(),
         }
     }
     return _response(context)
@@ -285,6 +291,97 @@ def _post_thumbnails(blogitem):
             }
         images.append(image)
     return images
+
+
+@api_superuser_required
+def awspa(request, oid):
+    blogitem = get_object_or_404(BlogItem, oid=oid)
+
+    if request.method == "POST":
+        if request.POST.get("keyword"):
+            keyword = request.POST["keyword"]
+            searchindex = request.POST["searchindex"]
+            load_more_awsproducts(keyword, searchindex)
+        else:
+            id = request.POST["id"]
+            awsproduct = get_object_or_404(AWSProduct, id=id)
+            awsproduct.disabled = not awsproduct.disabled
+            awsproduct.save()
+    elif request.method == "DELETE":
+        id = request.GET["id"]
+        awsproduct = get_object_or_404(AWSProduct, id=id)
+        awsproduct.delete()
+
+    context = {"products": {}}
+    all_keywords = blogitem.get_all_keywords()
+    context["products"] = defaultdict(list)
+    for keyword in all_keywords:
+        qs = AWSProduct.objects.filter(keyword__iexact=keyword)
+        recently = timezone.now() - datetime.timedelta(seconds=60)
+        for product in qs.order_by("disabled", "-modify_date"):
+            context["products"][keyword].append(
+                {
+                    "html": awspa_product(product),
+                    "id": product.id,
+                    "searchindex": product.searchindex,
+                    "asin": product.asin,
+                    "disabled": product.disabled,
+                    "title": product.title,
+                    "add_date": product.add_date,
+                    "modify_date": product.modify_date,
+                    "_new": product.add_date > recently,
+                }
+            )
+
+    return _response(context)
+
+
+class AWSPAError(Exception):
+    """happens when we get a Product Links API error"""
+
+
+def load_more_awsproducts(keyword, searchindex):
+    items, error = awspa_search(keyword, searchindex=searchindex, sleep=1)
+    if error:
+        raise AWSPAError(error)
+
+    keyword = keyword.lower()
+
+    new = []
+
+    for item in items:
+        item.pop("ImageSets", None)
+        # print('=' * 100)
+        # pprint(item)
+        asin = item["ASIN"]
+        title = item["ItemAttributes"]["Title"]
+        if not item["ItemAttributes"].get("ListPrice"):
+            print("SKIPPING BECAUSE NO LIST PRICE")
+            print(item)
+            continue
+        if not item.get("MediumImage"):
+            print("SKIPPING BECAUSE NO MEDIUM IMAGE")
+            print(item)
+            continue
+        try:
+            awsproduct = AWSProduct.objects.get(
+                asin=asin, keyword=keyword, searchindex=searchindex
+            )
+            awsproduct.title = title
+            awsproduct.payload = item
+            awsproduct.save()
+        except AWSProduct.DoesNotExist:
+            awsproduct = AWSProduct.objects.create(
+                asin=asin,
+                title=title,
+                payload=item,
+                keyword=keyword,
+                searchindex=searchindex,
+                disabled=True,
+            )
+            new.append(awsproduct)
+
+    return new
 
 
 @api_superuser_required
