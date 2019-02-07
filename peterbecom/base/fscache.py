@@ -114,9 +114,8 @@ def invalidate_too_old(verbose=False, dry_run=False, revisit=False):
             if file_.endswith(".metadata"):
                 continue
             path = os.path.join(root, file_)
-            if not os.stat(path).st_size:
-                if "index.html" in file_:
-                    raise EmptyFSCacheFile(path)
+            if "index.html" in file_ and not os.stat(path).st_size:
+                raise EmptyFSCacheFile(path)
             if os.path.isfile(path + ".metadata"):
                 found.append(os.stat(path).st_size)
                 seconds = None

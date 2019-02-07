@@ -99,7 +99,12 @@ class Blogitems extends React.Component {
             orderLabel={this.getOrderLabel()}
             search={this.state.search}
             updateFilterSearch={search => {
-              this.setState({ search }, this.fetchBlogitems);
+              this.setState({ search }, () => {
+                this.props.history.push({
+                  search: `?search=${encodeURIComponent(this.state.search)}`
+                });
+                this.fetchBlogitems();
+              });
             }}
           />
         )}
