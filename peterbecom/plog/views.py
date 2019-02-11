@@ -373,6 +373,8 @@ def submit_json(request, oid):
         )
     ) or (
         'darknetmarketslink.com/' in comment_lower
+    ) or (
+        "www.gangboard.com/" in comment_lower
     ):
         return http.HttpResponseBadRequest("Looks too spammy")
 
