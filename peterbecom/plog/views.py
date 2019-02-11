@@ -29,11 +29,8 @@ from fancy_cache import cache_page
 from huey.contrib.djhuey import task
 
 from peterbecom.awspa.models import AWSProduct
-# from peterbecom.awspa.search import search as awspa_search
-from peterbecom.base.templatetags.jinja_helpers import thumbnail
 
-# from peterbecom.bayes.guesser import default_guesser
-# from peterbecom.bayes.models import BayesData, BlogCommentTraining
+from peterbecom.base.templatetags.jinja_helpers import thumbnail
 
 from . import utils
 from .forms import BlogFileUpload, BlogForm, CalendarDataForm
@@ -45,6 +42,7 @@ from .models import (
     Category,
     HTMLRenderingError,
 )
+from .spamprevention import contains_spam_url_patterns
 from .utils import json_view, render_comment_text, utc_now, valid_email
 
 logger = logging.getLogger("plog.views")
@@ -372,12 +370,12 @@ def submit_json(request, oid):
             "spell" in comment or "healing" in comment or "call doctor" in comment_lower
         )
     ) or (
-        'darknetmarketslink.com/' in comment_lower
+        contains_spam_url_patterns(comment)
     ):
         return http.HttpResponseBadRequest("Looks too spammy")
 
-    name = request.POST.get("name", u"").strip()
-    email = request.POST.get("email", u"").strip()
+    name = request.POST.get("name", "").strip()
+    email = request.POST.get("email", "").strip()
     parent = request.POST.get("parent")
     if parent:
         parent = get_object_or_404(BlogComment, oid=parent)

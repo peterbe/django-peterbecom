@@ -232,3 +232,22 @@ code"""
         assert sent.to[0] == settings.MANAGERS[0][1]
 
         assert BlogComment.objects.filter(parent=blog_comment)
+
+    def test_spam_prevention(self):
+        settings.SPAM_URL_PATTERNS = ["http*://www.spam.com"]
+
+        blog = BlogItem.objects.create(
+            oid="myoid",
+            title="TITLEX",
+            text="""
+            ttest test
+            """,
+            display_format="markdown",
+            pub_date=timezone.now() - datetime.timedelta(seconds=10),
+        )
+        url = reverse("submit", args=[blog.oid])
+
+        data = {"comment": "This is www.spam.com isn't it", "name": "", "email": ""}
+
+        response = self.client.post(url, data)
+        assert response.status_code == 400
