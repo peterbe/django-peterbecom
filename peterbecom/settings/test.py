@@ -40,3 +40,5 @@ HUEY["always_eager"] = True  # noqa
 MINIMALCSS_SERVER_URL = "http://localhost:55555"
 
 MANAGERS = (("Peter", "test@example.com"),)
+
+SPAM_URL_PATTERNS = ["http://mustbesomething.example.com"]
