@@ -4,6 +4,8 @@ import { formatDistance } from 'date-fns/esm';
 import { BrowserRouter as Router, Link, Route, Switch } from 'react-router-dom';
 import 'semantic-ui-css/semantic.min.css';
 import { Container, Dropdown, Loader, Menu } from 'semantic-ui-react';
+import { SemanticToastContainer } from 'react-semantic-toasts';
+import 'react-semantic-toasts/styles/react-semantic-alert.css';
 import './copy-of-highlight.css';
 import './App.css';
 import {
@@ -165,6 +167,7 @@ class App extends React.Component {
     return (
       <Router>
         <div>
+          <SemanticToastContainer />
           <Menu fixed="top" inverted>
             <Container>
               <Menu.Item header>
