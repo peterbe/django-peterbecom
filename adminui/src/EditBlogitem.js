@@ -19,6 +19,7 @@ import {
 import { Link } from 'react-router-dom';
 import { addHours } from 'date-fns/esm';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { toast } from 'react-semantic-toasts';
 
 import 'codemirror/lib/codemirror.css'; // codemirror
 import 'tui-editor/dist/tui-editor.css'; // editor ui
@@ -32,7 +33,7 @@ import Editor from 'tui-editor';
 import 'tui-editor/dist/tui-editor-extTable.js';
 import 'tui-editor/dist/tui-editor-extScrollSync.js';
 
-import { DisplayDate, ShowServerError, BlogitemBreadcrumb } from './Common';
+import { ShowServerError, BlogitemBreadcrumb } from './Common';
 import { BASE_URL } from './Config';
 
 export class EditBlogitem extends React.Component {
@@ -104,15 +105,20 @@ export class EditBlogitem extends React.Component {
     if (!accessToken) {
       throw new Error('No accessToken');
     }
-    const response = await fetch(`/api/v0/plog/preview/`, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`
-      },
-      body: JSON.stringify(data)
-    });
+    let response;
+    try {
+      response = await fetch(`/api/v0/plog/preview/`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`
+        },
+        body: JSON.stringify(data)
+      });
+    } catch (ex) {
+      return this.setState({ serverError: ex });
+    }
     if (response.ok) {
       const data = await response.json();
       this.setState({ preview: data.blogitem });
@@ -126,53 +132,67 @@ export class EditBlogitem extends React.Component {
       throw new Error('No accessToken');
     }
     const oid = this.state.blogitem.oid;
-    const response = await fetch(`/api/v0/plog/${oid}`, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.props.accessToken}`
-      },
-      body: JSON.stringify(data)
-    });
+    let response;
+    try {
+      response = await fetch(`/api/v0/plog/${oid}`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.props.accessToken}`
+        },
+        body: JSON.stringify(data)
+      });
+    } catch (ex) {
+      return this.setState({ serverError: ex }, () => {
+        toast({
+          type: 'error',
+          title: 'Server Error!',
+          time: 5000
+        });
+      });
+    }
     if (response.ok) {
       const data = await response.json();
       const newOid = data.blogitem.oid !== this.state.blogitem.oid;
-      this.setState({
-        blogitem: data.blogitem,
-        updated: new Date(),
-        validationErrors: null
-      });
+
+      this.setState(
+        {
+          blogitem: data.blogitem,
+          validationErrors: null
+        },
+        () => {
+          toast({
+            type: 'success',
+            title: 'Successfully updated',
+            time: 5000
+          });
+        }
+      );
       if (newOid) {
         window.location.href = `/plog/${data.blogitem.oid}`;
       }
     } else if (response.status === 400) {
       const data = await response.json();
-      this.setState({ serverError: null, validationErrors: data.errors });
+      this.setState(
+        { serverError: null, validationErrors: data.errors },
+        () => {
+          toast({
+            type: 'warning',
+            title: 'Validation Errors!',
+            time: 5000
+          });
+        }
+      );
     } else {
-      this.setState({ serverError: response.status });
+      this.setState({ serverError: response.status }, () => {
+        toast({
+          type: 'error',
+          title: 'Server Error!',
+          time: 5000
+        });
+      });
     }
-  };
-
-  renderUpdated = () => {
-    const { updated } = this.state;
-    if (!updated) return null;
-
-    return (
-      <Message
-        positive
-        onDismiss={() => {
-          this.setState({ updated: null });
-        }}
-      >
-        <Message.Header>Updated</Message.Header>
-        <p>
-          <b>
-            <DisplayDate date={updated} />
-          </b>
-        </p>
-      </Message>
-    );
   };
 
   render() {
@@ -194,7 +214,6 @@ export class EditBlogitem extends React.Component {
       <Container>
         <BlogitemBreadcrumb blogitem={blogitem} page="edit" />
         <ShowServerError error={this.state.serverError} />
-        {this.renderUpdated()}
         {this.state.validationErrors && (
           <Message negative>
             <Message.Header>Validation Errors</Message.Header>
@@ -220,7 +239,6 @@ export class EditBlogitem extends React.Component {
             }}
           />
         )}
-        {this.renderUpdated()}
         <PreviewBlogitem data={this.state.preview} />
 
         {this.state.blogitem && (
