@@ -5,7 +5,6 @@
 const fs = require('fs');
 const minimist = require('minimist');
 const process = require('process');
-// const search = require('./search').search;
 
 const aws = require('aws-lib');
 const env = require('node-env-file');

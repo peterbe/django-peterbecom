@@ -27,6 +27,15 @@ class BadSearchResult(Exception):
     """Happens when the output from the subprocess isn't valid."""
 
 
+class RateLimitedError(Exception):
+    """When the AWS PA API says something like:
+
+        You are submitting requests too quickly.
+        Please retry your requests at a slower rate.
+
+    """
+
+
 def search(keyword, searchindex="All", sleep=0):
     output = _raw_search(keyword=keyword, searchindex=searchindex)
     if sleep > 0:
@@ -74,7 +83,12 @@ def _raw_search(tmpdir, asin=None, keyword=None, searchindex=None):
     # print(command)
     r = delegator.run(command)
     if r.return_code:
-        raise SubprocessError("Return code: {}\tError: {}".format(r.return_code, r.err))
+        err_out = r.err
+        if "You are submitting requests too quickly" in err_out:
+            raise RateLimitedError(err_out)
+        raise SubprocessError(
+            "Return code: {}\tError: {}".format(r.return_code, err_out)
+        )
     with open(filename) as f:
         out = f.read()
     try:

@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from peterbecom.base.basecommand import BaseCommand
 from peterbecom.awspa.models import AWSProduct
-from peterbecom.awspa.search import lookup
+from peterbecom.awspa.search import lookup, RateLimitedError
 
 
 class UpdateAWSError(Exception):
@@ -50,7 +50,11 @@ class Command(BaseCommand):
                 repr(awsproduct.keyword),
                 awsproduct.searchindex,
             )
-            payload, error = lookup(awsproduct.asin, sleep=sleep)
+            try:
+                payload, error = lookup(awsproduct.asin, sleep=sleep)
+            except RateLimitedError as exception:
+                self.out("RateLimitedError", exception)
+                break
             if error:
                 self.error("Error looking up {!r} ({!r})".format(awsproduct, error))
                 if "is not a valid value for ItemId" in error["Message"]:
