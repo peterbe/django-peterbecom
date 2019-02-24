@@ -843,9 +843,11 @@ def blogcomments_batch(request, action):
         context = {"approved": [], "deleted": []}
         for comment in form.cleaned_data["comments"]:
             if action == "approve":
-                assert not comment.approved
-                actually_approve_comment(comment)
-                context["approved"].append(comment.oid)
+                # This if statement is to protect against possible
+                # double submissions from the client.
+                if not comment.approved:
+                    actually_approve_comment(comment)
+                    context["approved"].append(comment.oid)
             elif action == "delete":
                 context["deleted"].append(comment.oid)
                 comment.delete()
