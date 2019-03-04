@@ -382,8 +382,8 @@ bleach==3.1.0 \
 webencodings==0.5.1 \
     --hash=sha256:a0af1213f3c2226497a97e2b3aa01a7e4bee4f403f95be16fc9acd2947514a78 \
     --hash=sha256:b36a1c245f2d304965eb4e0a82848379241dc04b865afcc4aab16748587e1923
-rollbar==0.14.6 \
-    --hash=sha256:07ede5c3f34a37a988159522d4066f8d7bbe853516fdbae39c8bd66f7a386520
+rollbar==0.14.7 \
+    --hash=sha256:ee2dd1a2b512f93e9c0f26c8cf6bb28c4f06ae7e0c33a60e39b49337e0d92d57
 mozilla-django-oidc==1.2.0 \
     --hash=sha256:5a095f054a20893f44d3ac4c32e621765d10902a02393db18915bf77edb95f5f \
     --hash=sha256:1a58be27a73c3aaaec6b27d38341652151edaa4ccf2e659fe5c79896cc6c8269
