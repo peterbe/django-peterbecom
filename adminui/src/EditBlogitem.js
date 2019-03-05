@@ -313,7 +313,6 @@ export class AddBlogitem extends EditBlogitem {
           <Breadcrumb.Section active>Add</Breadcrumb.Section>
         </Breadcrumb>
         <ShowServerError error={this.state.serverError} />
-        {this.renderUpdated()}
         {this.state.validationErrors && (
           <Message negative>
             <Message.Header>Validation Errors</Message.Header>
@@ -334,7 +333,6 @@ export class AddBlogitem extends EditBlogitem {
             this.createBlogitem(data);
           }}
         />
-        {this.renderUpdated()}
       </Container>
     );
   }
