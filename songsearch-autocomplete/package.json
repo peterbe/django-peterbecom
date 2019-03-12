@@ -3,14 +3,22 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "react": "^16.6.0",
-    "react-dom": "^16.6.0",
-    "throttle-debounce": "^2.0.1"
+    "react": "16.8.4",
+    "react-dom": "16.8.4",
+    "throttle-debounce": "2.1.0"
   },
   "devDependencies": {
-    "react-scripts": "^2.1.1"
+    "react-scripts": "2.1.8",
+    "source-map-explorer": "1.7.0"
+  },
+  "resolutions": {
+    "braces": ">=2.3.1",
+    "handlebars": ">=4.0.13",
+    "debug": ">= 3.1.0",
+    "merge": ">=1.2.1"
   },
   "scripts": {
+    "analyze": "source-map-explorer build/static/js/main.*",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
