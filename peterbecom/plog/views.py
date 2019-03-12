@@ -1,18 +1,14 @@
 import datetime
 import hashlib
 import logging
-import os
 import random
 import re
 
 from collections import defaultdict
 
-# from urllib.parse import urlparse
-
 from django import http
 from django.conf import settings
 
-# from django.contrib.auth.decorators import login_required
 from django.contrib.sites.models import Site
 from django.contrib.sites.requests import RequestSite
 from django.core.cache import cache
@@ -35,14 +31,7 @@ from peterbecom.base.templatetags.jinja_helpers import thumbnail
 
 from . import utils
 from .forms import BlogForm, CalendarDataForm
-from .models import (
-    BlogComment,
-    BlogFile,
-    BlogItem,
-    BlogItemHit,
-    Category,
-    # HTMLRenderingError,
-)
+from .models import BlogComment, BlogItem, BlogItemHit, Category
 from .spamprevention import contains_spam_url_patterns
 from .utils import json_view, render_comment_text, utc_now, valid_email
 
@@ -568,48 +557,6 @@ def preview_by_data(data, request):
     template = get_template("plog/_post.html")
     context = Context({"post": post, "request": request})
     return template.render(context)
-
-
-def _post_thumbnails(blogitem):
-    blogfiles = BlogFile.objects.filter(blogitem=blogitem).order_by("add_date")
-
-    images = []
-
-    for blogfile in blogfiles:
-        if not os.path.isfile(blogfile.file.path):
-            continue
-        full_im = thumbnail(blogfile.file, "1000x1000", upscale=False, quality=100)
-        full_url = full_im.url
-        delete_url = reverse("delete_post_thumbnail", args=(blogfile.pk,))
-        image = {
-            "full_url": full_url,
-            "full_size": full_im.size,
-            "delete_url": delete_url,
-        }
-        formats = (
-            ("small", "120x120"),
-            ("big", "230x230"),
-            ("bigger", "370x370"),  # iPhone 6 is 375
-        )
-        for key, geometry in formats:
-            im = thumbnail(blogfile.file, geometry, quality=81)
-            url_ = im.url
-            image[key] = {
-                "url": url_,
-                "alt": getattr(blogfile, "title", blogitem.title),
-                "width": im.width,
-                "height": im.height,
-            }
-        images.append(image)
-    return images
-
-
-# @login_required
-# @require_POST
-# def delete_post_thumbnail(request, pk):
-#     blogfile = get_object_or_404(BlogFile, pk=pk)
-#     blogfile.delete()
-#     return http.JsonResponse({"ok": True})
 
 
 @cache_page(ONE_DAY)
