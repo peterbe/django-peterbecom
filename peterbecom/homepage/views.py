@@ -595,18 +595,6 @@ def humans_txt(request):
     return render(request, "homepage/humans.txt", content_type="text/plain")
 
 
-def signin(request):
-    return render(request, "homepage/signin.html", {"page_title": "Sign In"})
-
-
-@require_POST
-def signout(request):
-    logout(request)
-    url = "https://" + settings.AUTH0_DOMAIN + "/v2/logout"
-    url += "?" + urlencode({"returnTo": settings.AUTH_SIGNOUT_URL})
-    return redirect(url)
-
-
 def huey_test(request):
     a = int(request.GET.get("a", 1))
     b = int(request.GET.get("b", 2))

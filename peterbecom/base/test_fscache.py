@@ -30,16 +30,6 @@ def test_cache_request():
     response = http.HttpResponse()
     assert not fscache.cache_request(request, response)
 
-    request = RequestFactory().get("/plog/edit/")
-    request.user = AnonymousUser()
-    response = http.HttpResponse()
-    assert not fscache.cache_request(request, response)
-
-    request = RequestFactory().get("/")
-    request.user = User()
-    response = http.HttpResponse()
-    assert not fscache.cache_request(request, response)
-
     request = RequestFactory().get("/plog/post/ping")
     request.user = AnonymousUser()
     response = http.HttpResponse()

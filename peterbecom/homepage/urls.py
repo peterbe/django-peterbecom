@@ -14,8 +14,6 @@ urlpatterns = [
     url("^About$", lambda x: HttpResponsePermanentRedirect("/about/")),
     url("^about$", views.about, name="about"),
     url("^contact$", views.contact, name="contact"),
-    url("^signin/$", views.signin, name="signin"),
-    url("^signout/$", views.signout, name="signout"),
     url("^oc-(?P<oc>.*)/p(?P<page>\d+)$", views.home, name="only_category_paged"),
     url("^oc-(?P<oc>.*)", views.home, name="only_category"),
     url("^zitemap.xml$", lambda x: HttpResponsePermanentRedirect("/sitemap.xml")),

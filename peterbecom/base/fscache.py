@@ -161,7 +161,6 @@ def cache_request(request, response):
         # request.path != '/' and
         response.status_code == 200
         and not request.META.get("QUERY_STRING")
-        and not request.user.is_authenticated
         and
         # XXX TODO: Support JSON and xml
         "text/html" in response["Content-Type"]
