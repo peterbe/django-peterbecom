@@ -5,19 +5,16 @@ import time
 import logging
 import random
 from pathlib import Path
-from urllib.parse import urlencode
 
 from elasticsearch_dsl import Q
 from huey.contrib.djhuey import task
 
 from django import http
 from django.shortcuts import render, redirect
-from django.views.decorators.http import require_POST
 from django.db.models import Count
 from django.urls import reverse
 from django.contrib.sites.requests import RequestSite
 from django.views.decorators.cache import cache_control
-from django.contrib.auth import logout
 from django.conf import settings
 from django.utils.html import strip_tags
 from django.views import static
@@ -593,18 +590,6 @@ def blog_post_by_alias(request, alias):
 @cache_page(ONE_MONTH)
 def humans_txt(request):
     return render(request, "homepage/humans.txt", content_type="text/plain")
-
-
-def signin(request):
-    return render(request, "homepage/signin.html", {"page_title": "Sign In"})
-
-
-@require_POST
-def signout(request):
-    logout(request)
-    url = "https://" + settings.AUTH0_DOMAIN + "/v2/logout"
-    url += "?" + urlencode({"returnTo": settings.AUTH_SIGNOUT_URL})
-    return redirect(url)
 
 
 def huey_test(request):

@@ -2,7 +2,7 @@ import os
 
 from django import http
 from django.test import RequestFactory
-from django.contrib.auth.models import AnonymousUser, User
+from django.contrib.auth.models import AnonymousUser
 
 from peterbecom.base import fscache
 
@@ -27,16 +27,6 @@ def test_cache_request():
     assert not fscache.cache_request(request, response)
 
     request = RequestFactory().get("/", {"foo": "bar"})
-    response = http.HttpResponse()
-    assert not fscache.cache_request(request, response)
-
-    request = RequestFactory().get("/plog/edit/")
-    request.user = AnonymousUser()
-    response = http.HttpResponse()
-    assert not fscache.cache_request(request, response)
-
-    request = RequestFactory().get("/")
-    request.user = User()
     response = http.HttpResponse()
     assert not fscache.cache_request(request, response)
 

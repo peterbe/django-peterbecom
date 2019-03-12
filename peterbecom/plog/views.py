@@ -1,17 +1,14 @@
 import datetime
 import hashlib
 import logging
-import os
 import random
 import re
 
 from collections import defaultdict
 
-from urllib.parse import urlparse
-
 from django import http
 from django.conf import settings
-from django.contrib.auth.decorators import login_required
+
 from django.contrib.sites.models import Site
 from django.contrib.sites.requests import RequestSite
 from django.core.cache import cache
@@ -33,15 +30,8 @@ from peterbecom.awspa.models import AWSProduct
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
 
 from . import utils
-from .forms import BlogFileUpload, BlogForm, CalendarDataForm
-from .models import (
-    BlogComment,
-    BlogFile,
-    BlogItem,
-    BlogItemHit,
-    Category,
-    HTMLRenderingError,
-)
+from .forms import BlogForm, CalendarDataForm
+from .models import BlogComment, BlogItem, BlogItemHit, Category
 from .spamprevention import contains_spam_url_patterns
 from .utils import json_view, render_comment_text, utc_now, valid_email
 
@@ -66,8 +56,6 @@ def _blog_post_key_prefixer(request):
         return prefix
     # print("PREFIXED?", getattr(request, '_prefixed', None))
     if request.method != "GET":
-        return None
-    if request.user.is_authenticated:
         return None
     prefix = utils.make_prefix(request.GET)
 
@@ -292,8 +280,7 @@ def all_blog_post_comments(request, oid):
 
     post = get_object_or_404(BlogItem, oid=oid)
     comments = BlogComment.objects.filter(blogitem=post).order_by("add_date")
-    if not request.user.is_staff:
-        comments = comments.filter(approved=True)
+    comments = comments.filter(approved=True)
 
     all_comments = defaultdict(list)
     for comment in comments:
@@ -361,16 +348,20 @@ def submit_json(request, oid):
     # to building a proper classifier.
     comment_lower = comment.lower()
     if (
-        ("whatsapp" in comment_lower or "://" in comment)
-        and ("@gmail.com" in comment_lower or "@yahoo.com" in comment_lower)
-        and re.findall(r"\+\d+", comment)
-    ) or (
-        ("@gmail.com" in comment_lower or "@yahoo.com" in comment_lower)
-        and (
-            "spell" in comment or "healing" in comment or "call doctor" in comment_lower
+        (
+            ("whatsapp" in comment_lower or "://" in comment)
+            and ("@gmail.com" in comment_lower or "@yahoo.com" in comment_lower)
+            and re.findall(r"\+\d+", comment)
         )
-    ) or (
-        contains_spam_url_patterns(comment)
+        or (
+            ("@gmail.com" in comment_lower or "@yahoo.com" in comment_lower)
+            and (
+                "spell" in comment
+                or "healing" in comment
+                or "call doctor" in comment_lower
+            )
+        )
+        or (contains_spam_url_patterns(comment))
     ):
         return http.HttpResponseBadRequest("Looks too spammy")
 
@@ -475,8 +466,6 @@ def _get_comment_reply_body(blogitem, blogcomment, parent):
 def _plog_index_key_prefixer(request):
     if request.method != "GET":
         return None
-    if request.user.is_authenticated:
-        return None
     prefix = utils.make_prefix(request.GET)
     cache_key = "latest_post_modify_date"
     latest_date = cache.get(cache_key)
@@ -529,158 +518,6 @@ def new_comments(request):
     return render(request, "plog/new-comments.html", context)
 
 
-@login_required
-@transaction.atomic
-def add_post(request):
-    context = {}
-    user = request.user
-    assert user.is_staff or user.is_superuser
-    if request.method == "POST":
-        form = BlogForm(data=request.POST)
-        if form.is_valid():
-            assert isinstance(form.cleaned_data["proper_keywords"], list)
-            blogitem = BlogItem.objects.create(
-                oid=form.cleaned_data["oid"],
-                title=form.cleaned_data["title"],
-                text=form.cleaned_data["text"],
-                summary=form.cleaned_data["summary"],
-                display_format=form.cleaned_data["display_format"],
-                codesyntax=form.cleaned_data["codesyntax"],
-                url=form.cleaned_data["url"],
-                pub_date=form.cleaned_data["pub_date"],
-                proper_keywords=form.cleaned_data["proper_keywords"],
-            )
-            for category in form.cleaned_data["categories"]:
-                blogitem.categories.add(category)
-            blogitem.save()
-
-            url = reverse("edit_post", args=[blogitem.oid])
-            return redirect(url)
-    else:
-        initial = {
-            "pub_date": utc_now() + datetime.timedelta(seconds=60 * 60),
-            "display_format": "markdown",
-        }
-        form = BlogForm(initial=initial)
-    context["form"] = form
-    context["page_title"] = "Add post"
-    context["blogitem"] = None
-    context["awsproducts"] = AWSProduct.objects.none()
-    return render(request, "plog/edit.html", context)
-
-
-@login_required
-@transaction.atomic
-def edit_post(request, oid):
-    blogitem = get_object_or_404(BlogItem, oid=oid)
-    data = {}
-    user = request.user
-    assert user.is_staff or user.is_superuser
-    if request.method == "POST":
-        form = BlogForm(instance=blogitem, data=request.POST)
-        if form.is_valid():
-            blogitem.oid = form.cleaned_data["oid"]
-            blogitem.title = form.cleaned_data["title"]
-            blogitem.text = form.cleaned_data["text"]
-            blogitem.text_rendered = ""
-            blogitem.summary = form.cleaned_data["summary"]
-            blogitem.display_format = form.cleaned_data["display_format"]
-            blogitem.codesyntax = form.cleaned_data["codesyntax"]
-            blogitem.pub_date = form.cleaned_data["pub_date"]
-            assert isinstance(form.cleaned_data["proper_keywords"], list)
-            blogitem.proper_keywords = form.cleaned_data["proper_keywords"]
-            blogitem.categories.clear()
-            for category in form.cleaned_data["categories"]:
-                blogitem.categories.add(category)
-            blogitem.save()
-            assert blogitem._render(refresh=True)
-
-            url = reverse("edit_post", args=[blogitem.oid])
-            return redirect(url)
-
-    else:
-        form = BlogForm(instance=blogitem)
-    data["form"] = form
-    data["page_title"] = "Edit post"
-    data["blogitem"] = blogitem
-    data["INBOUND_EMAIL_ADDRESS"] = settings.INBOUND_EMAIL_ADDRESS
-    data["awsproducts"] = AWSProduct.objects.exclude(disabled=True).filter(
-        keyword__in=blogitem.get_all_keywords()
-    )
-    return render(request, "plog/edit.html", data)
-
-
-@login_required
-@transaction.atomic
-def plog_open_graph_image(request, oid):
-    blogitem = get_object_or_404(BlogItem, oid=oid)
-    context = {"blogitem": blogitem}
-    options = []
-
-    images_used = re.findall(r'<a href="(.*?)"', blogitem.text)
-    images_used = [
-        x
-        for x in images_used
-        if x.lower().endswith(".png") or x.lower().endswith(".jpg")
-    ]
-    images_used.extend(re.findall(r'<img src="(.*?)"', blogitem.text))
-    images_used_paths = [urlparse(x).path for x in images_used]
-    # print("IMAGES USED")
-    # print(images_used)
-    # print("IMAGES_USED_PATHS")
-    # print(images_used_paths)
-    for i, image in enumerate(_post_thumbnails(blogitem)):
-        # from pprint import pprint
-        # pprint(image)
-        full_url_path = image["full_url"]
-        if "://" in full_url_path:
-            full_url_path = urlparse(full_url_path).path
-
-        options.append(
-            {
-                "label": "Thumbnail #{}".format(i + 1),
-                "src": image["full_url"],
-                "size": image["full_size"],
-                "current": (
-                    blogitem.open_graph_image
-                    and image["full_url"] == blogitem.open_graph_image
-                ),
-                "used_in_text": full_url_path in images_used_paths,
-            }
-        )
-
-    if request.method == "POST":
-        src = request.POST.get("src")
-        if not src or src not in [x["src"] for x in options]:
-            return http.HttpResponseBadRequest("No src")
-        if blogitem.open_graph_image and blogitem.open_graph_image == src:
-            blogitem.open_graph_image = None
-        else:
-            blogitem.open_graph_image = src
-        blogitem.save()
-        url = reverse("edit_post", args=[blogitem.oid])
-        return redirect(url)
-
-    context["options"] = options
-    context["page_title"] = blogitem.title
-    return render(request, "plog/open-graph-image.html", context)
-
-
-@csrf_exempt
-@login_required
-@require_POST
-def preview_post(request, return_html_string=False):
-    post_data = request.POST.dict()
-    post_data["categories"] = request.POST.getlist("categories[]")
-    try:
-        html_string = preview_by_data(post_data, request)
-        return http.HttpResponse(html_string)
-    except HTMLRenderingError as exception:
-        return http.JsonResponse({"error": str(exception)}, status=400)
-    except PreviewValidationError as form:
-        return http.HttpResponse(str(form.errors))
-
-
 class PreviewValidationError(Exception):
     """When something is wrong with the preview data."""
 
@@ -722,77 +559,6 @@ def preview_by_data(data, request):
     return template.render(context)
 
 
-@login_required
-@transaction.atomic
-def add_file(request):
-    data = {}
-    user = request.user
-    assert user.is_staff or user.is_superuser
-    if request.method == "POST":
-        form = BlogFileUpload(request.POST, request.FILES)
-        if form.is_valid():
-            instance = form.save()
-            url = reverse("edit_post", args=[instance.blogitem.oid])
-            return redirect(url)
-    else:
-        initial = {}
-        if request.GET.get("oid"):
-            blogitem = get_object_or_404(BlogItem, oid=request.GET.get("oid"))
-            initial["blogitem"] = blogitem
-        form = BlogFileUpload(initial=initial)
-    data["form"] = form
-    return render(request, "plog/add_file.html", data)
-
-
-@login_required
-def post_thumbnails(request, oid):
-    blogitem = get_object_or_404(BlogItem, oid=oid)
-    images = _post_thumbnails(blogitem)
-    return http.JsonResponse({"images": images})
-
-
-def _post_thumbnails(blogitem):
-    blogfiles = BlogFile.objects.filter(blogitem=blogitem).order_by("add_date")
-
-    images = []
-
-    for blogfile in blogfiles:
-        if not os.path.isfile(blogfile.file.path):
-            continue
-        full_im = thumbnail(blogfile.file, "1000x1000", upscale=False, quality=100)
-        full_url = full_im.url
-        delete_url = reverse("delete_post_thumbnail", args=(blogfile.pk,))
-        image = {
-            "full_url": full_url,
-            "full_size": full_im.size,
-            "delete_url": delete_url,
-        }
-        formats = (
-            ("small", "120x120"),
-            ("big", "230x230"),
-            ("bigger", "370x370"),  # iPhone 6 is 375
-        )
-        for key, geometry in formats:
-            im = thumbnail(blogfile.file, geometry, quality=81)
-            url_ = im.url
-            image[key] = {
-                "url": url_,
-                "alt": getattr(blogfile, "title", blogitem.title),
-                "width": im.width,
-                "height": im.height,
-            }
-        images.append(image)
-    return images
-
-
-@login_required
-@require_POST
-def delete_post_thumbnail(request, pk):
-    blogfile = get_object_or_404(BlogFile, pk=pk)
-    blogfile.delete()
-    return http.JsonResponse({"ok": True})
-
-
 @cache_page(ONE_DAY)
 def calendar(request):
     context = {"page_title": "Archive calendar"}
@@ -806,10 +572,9 @@ def calendar_data(request):
         return http.HttpResponseBadRequest(form.errors)
     start = form.cleaned_data["start"]
     end = form.cleaned_data["end"]
-    if not request.user.is_authenticated:
-        end = min(end, timezone.now())
-        if end < start:
-            return []
+    end = min(end, timezone.now())
+    if end < start:
+        return []
 
     qs = BlogItem.objects.filter(pub_date__gte=start, pub_date__lt=end)
     items = []
