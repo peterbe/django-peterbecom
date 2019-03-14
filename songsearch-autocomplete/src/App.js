@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 import { throttle, debounce } from 'throttle-debounce';
 
@@ -19,38 +19,6 @@ function absolutifyUrl(uri) {
     return SERVER + uri;
   }
   return uri;
-}
-
-const convertedLazyImagesCache = {};
-
-function convertLazyLoadImages() {
-  function inner() {
-    const nodelist = document.querySelectorAll('img[data-src]');
-    let count = 0;
-    [...nodelist].forEach(img => {
-      const trueSrc = img.dataset.src;
-      delete img.dataset.src;
-      img.src = trueSrc;
-
-      // Use the "module scoped global" to remember that this image url
-      // has been converted from lazy to full load.
-      // Knowing this, in the <SongImage/> component helps because
-      // then we can avoid rendering them as lazy if it's already done the
-      // dance.
-      convertedLazyImagesCache[trueSrc] = 1;
-      if (img.classList) {
-        img.classList.remove('lazyload');
-        img.classList.remove('preview');
-      }
-      count++;
-    });
-    return count;
-  }
-  const wrap = debounce(200, true, inner);
-
-  wrap();
-  // setTimeout(wrap, 40);
-  setTimeout(wrap, 300);
 }
 
 class App extends React.Component {
@@ -92,19 +60,6 @@ class App extends React.Component {
 
   componentWillUnmount() {
     this.dismounted = true;
-  }
-
-  componentDidUpdate() {
-    if (
-      this.state.showAutocompleteSuggestions &&
-      this.state.autocompleteSuggestions
-    ) {
-      if (
-        this.state.autocompleteSuggestions.some(suggestion => !!suggestion.id)
-      ) {
-        convertLazyLoadImages();
-      }
-    }
   }
 
   submitSearch = event => {
@@ -457,7 +412,7 @@ const ShowAutocompleteSuggestions = React.memo(
                     className="total"
                     href={'/q/' + encodeURIComponent(searchSuggestions.term)}
                   >
-                    {numberWithCommas(searchSuggestions.total)}{' '}
+                    {searchSuggestions.total.toLocaleString()}{' '}
                     {searchSuggestions.desperate
                       ? 'approximate matches'
                       : 'good matches'}
@@ -515,6 +470,14 @@ const ShowAutocompleteSuggestionSong = React.memo(({ song }) => {
   );
 });
 
+// Module level "cache" of which image URLs have been successfully inserted
+// into the DOM at least once.
+// By knowing these, we can, on repeat URLs, avoid the whole lazy-load
+// image swapping trick.
+const loadedOnce = new Set();
+
+new Image().src = placeholderImage;
+
 function SongImage({ image, name }) {
   if (!image) {
     // Don't even bother with lazy loading.
@@ -523,24 +486,46 @@ function SongImage({ image, name }) {
   const absoluteUrl = absolutifyUrl(
     image.thumbnail100 ? image.thumbnail100 : image.url
   );
-  if (convertedLazyImagesCache[absoluteUrl]) {
-    return <img className="img-rounded" src={absoluteUrl} alt={name} />;
-  }
-  return (
-    <img
-      className={
-        image.preview ? 'img-rounded lazyload preview' : 'img-rounded lazyload'
-      }
-      src={image.preview ? image.preview : placeholderImage}
-      data-src={absoluteUrl}
-      alt={name}
-    />
-  );
-}
 
-/* http://stackoverflow.com/a/2901298 */
-function numberWithCommas(x) {
-  var parts = x.toString().split('.');
-  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  return parts.join('.');
+  const [src, setSrc] = useState(
+    loadedOnce.has(absoluteUrl) ? absoluteUrl : placeholderImage
+  );
+
+  useEffect(() => {
+    let preloadImg = null;
+    let dismounted = false;
+
+    if (src === placeholderImage) {
+      // We need to preload the eventually needed image.
+      preloadImg = new Image();
+
+      function cb() {
+        if (!dismounted) {
+          setSrc(absoluteUrl);
+        }
+        loadedOnce.add(absoluteUrl);
+      }
+      // This must come before .decode() otherwise Safari will
+      // raise an EncodingError.
+      preloadImg.src = absoluteUrl;
+      // https://html.spec.whatwg.org/multipage/embedded-content.html#dom-img-decode
+      // https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/decode#Browser_compatibility
+      preloadImg.decode
+        ? preloadImg.decode().then(cb)
+        : (preloadImg.onload = cb);
+      // https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/decoding
+      preloadImg.decoding = 'sync';
+    }
+
+    return () => {
+      if (preloadImg) {
+        // Immediately undo the preloading since we might not need this image.
+        // See https://jsfiddle.net/nw34gLgt/ for demo of this technique.
+        preloadImg.src = '';
+      }
+      dismounted = true;
+    };
+  }, []);
+
+  return <img className="img-rounded" src={src} alt={name} />;
 }
