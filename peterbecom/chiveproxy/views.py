@@ -35,6 +35,9 @@ def api_cards(request):
         if age < 60:
             human_time = "{} seconds ago".format(int(age))
         human_time += " ago"
+        if "img" not in card.data:
+            continue
+
         context["cards"].append(
             dict(
                 # card.data,
@@ -70,17 +73,27 @@ def update_cards_task():
 
 def update_cards():
     for card in sorted(get_cards(), key=lambda c: c["date"]):
-        print("CARD", repr(card["date"]))
         url = card.pop("url")
         if not Card.objects.filter(url=url).exists():
-            card.update(get_card(url))
-            print("\tCREATED CARD", url)
-            Card.objects.create(url=url, data=card)
+            data = get_card(url)
+            if data:
+                card.update(data)
+                Card.objects.create(url=url, data=card)
 
 
 @cache_control(max_age=settings.DEBUG and 10 or 60 * 60, public=True)
 def api_card(request, pk):
     card = get_object_or_404(Card, pk=pk)
+    if request.GET.get("url"):
+        if request.GET["url"] != card.url:
+            return http.HttpResponseBadRequest("wrong URL")
+    if not card.data["pictures"]:
+        # Try again! ...if you haven't already
+        retry_cache_key = "retried:{}".format(pk)
+        if not cache.get(retry_cache_key):
+            card.data = get_card(card.url)
+            card.save()
+            cache.set(retry_cache_key, str(timezone.now()), settings.DEBUG and 6 or 60)
     return http.JsonResponse(
         {
             "id": card.id,

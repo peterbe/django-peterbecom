@@ -3,7 +3,10 @@ import re
 
 import pyquery
 
+from django.core.cache import cache
 from django.conf import settings
+
+from . import puppeteer
 
 
 def make_it_more_iso(datestr):
@@ -60,7 +63,14 @@ def get_cards():
 
 def get_card(url):
     assert url.startswith("https://thechive.com"), url
-    doc = pyquery.PyQuery(url)
+
+    puppeteer_cache_key = "puppeteer_sucks:{}".format(url[-50:])
+    html = cache.get(puppeteer_cache_key)
+    if html is None:
+        # This cache is really just for local development.
+        html = puppeteer.suck(url)
+        cache.set(puppeteer_cache_key, html, 60)
+    doc = pyquery.PyQuery(html)
 
     for h1 in doc("h1#post-title").items():
         text = h1.text()
@@ -75,7 +85,8 @@ def get_card(url):
         break
 
     pictures = []
-    for figure in doc("div.gallery figure.gallery-item").items():
+    # for figure in doc("div.gallery figure.gallery-item").items():
+    for figure in doc("figure.gallery-item").items():
         caption = []
         gifsrc = None
         src = None
@@ -93,10 +104,14 @@ def get_card(url):
             # Happens sometimes when it's just a bunch of Twitter quotes.
             if settings.DEBUG:
                 raise Exception("No src on {}".format(url))
+            print("NO PICTURES figuree", figure)
             continue
-        assert src.startswith("https://"), src
+
+        src = src.replace("http://", "https://")
+        # assert src.startswith("https://"), src
         if gifsrc:
-            assert gifsrc.startswith("https://")
+            gifsrc = gifsrc.replace("http://", "https://")
+            # assert gifsrc.startswith("https://")
 
         pictures.append({"img": src, "gifsrc": gifsrc, "caption": "\n".join(caption)})
 
