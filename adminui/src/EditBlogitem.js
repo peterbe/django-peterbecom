@@ -357,29 +357,40 @@ class EditForm extends React.PureComponent {
   };
 
   componentDidMount() {
-    this.setRefs(this.props.blogitem);
+    this.copyToState(this.props.blogitem);
     this.setCategories(this.props.blogitem.categories);
   }
 
   componentDidUpdate(prevProps) {
     if (prevProps.blogitem !== this.props.blogitem) {
-      this.setRefs(this.props.blogitem);
+      this.copyToState(this.props.blogitem);
       this.setCategories(this.props.blogitem.categories);
     }
   }
-  setRefs = blogitem => {
-    const simpleKeys = ['oid', 'title', 'url', 'pub_date'];
+
+  copyToState = blogitem => {
+    const data = {};
+    const simpleKeys = [
+      'oid',
+      'title',
+      'url',
+      'pub_date',
+      'text',
+      'summary',
+      'display_format',
+      'codesyntax'
+    ];
     simpleKeys.forEach(key => {
-      this.refs[key].inputRef.value = blogitem[key];
+      data[key] = blogitem[key] || '';
     });
-    this.refs.text.ref.value = blogitem.text;
-    this.refs.summary.ref.value = blogitem.summary;
-    this.refs.keywords.ref.value = blogitem.keywords.join('\n');
+    data.keywords = blogitem.keywords.join('\n');
+    data.disallow_comments = blogitem.disallow_comments;
+    data.hide_comments = blogitem.hide_comments;
+    this.setState(data);
   };
 
   setCategories = categories => {
     this.setState({ categories: categories.map(category => category.id) });
-    // this.categories = categories;
   };
 
   onTextBlur = () => {
@@ -392,31 +403,7 @@ class EditForm extends React.PureComponent {
   };
 
   _submit = (preview = false) => {
-    const { blogitem } = this.props;
-    const data = {};
-    // data.title = this.state.title;
-    // const simpleKeys = ['oid', 'title', 'url', 'pub_date'];
-    const simpleKeys = ['oid', 'title', 'url', 'pub_date'];
-    simpleKeys.forEach(key => {
-      data[key] = this.refs[key].inputRef.value;
-    });
-    data.text = this.refs.text.ref.value;
-    data.summary = this.refs.summary.ref.value;
-
-    data.categories = this.state.categories;
-    data.keywords = this.refs.keywords.ref.value.trim().split(/\s*[\r\n]+\s*/g);
-    data.display_format = this.displayFormat
-      ? this.displayFormat.value
-      : blogitem.display_format;
-    data.codesyntax = this.codesyntax
-      ? this.codesyntax.value
-      : blogitem.codesyntax;
-    data.disallow_comments = this.disallowComments
-      ? this.disallowComments.checked
-      : blogitem.disallow_comments;
-    data.hide_comments = this.hideComments
-      ? this.hideComments.checked
-      : blogitem.hide_comments;
+    const data = this.state;
 
     if (preview) {
       this.props.onLoadPreview(data);
@@ -427,6 +414,10 @@ class EditForm extends React.PureComponent {
 
   // Assume the OID input field has not been manually edited.
   oidTouched = false;
+
+  handleChange = (e, { name, value }) => {
+    this.setState({ [name]: value });
+  };
 
   render() {
     const { blogitem, allCategories } = this.props;
@@ -445,9 +436,9 @@ class EditForm extends React.PureComponent {
         value: cat.id
       }));
     }
-    const keywords = blogitem.keywords.map(keyword => keyword);
-    this.categories = blogitem.categories.map(category => category.id);
-    const displayFormat = blogitem.display_format;
+    // const keywords = blogitem.keywords.map(keyword => keyword);
+    // this.categories = blogitem.categories.map(category => category.id);
+    // const displayFormat = blogitem.display_format;
     const displayFormatOptions = ['markdown', 'structuredtext'].map(o => {
       return { key: o, text: o, name: o, value: o };
     });
@@ -492,26 +483,31 @@ class EditForm extends React.PureComponent {
         <Form.Field>
           {!hideLabels ? <label>OID</label> : null}
           <Input
-            ref="oid"
+            name="oid"
+            value={this.state.oid || ''}
             error={!!validationErrors.oid}
             placeholder="OID..."
-            onChange={event => {
+            onChange={(event, data) => {
+              // data.oid = event
               if (!this.oidTouched) {
                 this.oidTouched = true;
               }
+              this.handleChange(event, data);
             }}
           />
         </Form.Field>
         <Form.Field>
           {!hideLabels ? <label>Title</label> : null}
           <Input
-            ref="title"
+            name="title"
+            value={this.state.title || ''}
             error={!!validationErrors.title}
             placeholder="Title..."
-            onChange={event => {
+            onChange={(event, data) => {
               if (!this.oidTouched && !this.props.blogitem.oid) {
-                this.refs.oid.inputRef.value = slugify(event.target.value);
+                this.setState({ oid: slugify(data.value) });
               }
+              this.handleChange(event, data);
             }}
           />
         </Form.Field>
@@ -522,22 +518,22 @@ class EditForm extends React.PureComponent {
               onBlur={() => {
                 this.onTextBlur();
               }}
-              onChange={markdown => {
-                this.refs.text.ref.value = markdown;
+              onChange={text => {
+                this.setState({ text });
               }}
-              initial={
-                this.refs.text ? this.refs.text.ref.value : blogitem.text
-              }
+              initial={this.state.text || ''}
             />
           ) : null}
           <TextArea
-            ref="text"
+            name="text"
             className="monospaced"
             rows={25}
             onBlur={event => {
               event.preventDefault(); // is this needed?
               this.onTextBlur();
             }}
+            value={this.state.text || ''}
+            onChange={this.handleChange}
             style={{
               overscrollBehaviorY: 'contain',
               display: this.state.useTuiEditor ? 'none' : null
@@ -562,13 +558,15 @@ class EditForm extends React.PureComponent {
         <Form.Field>
           {!hideLabels ? <label>Summary</label> : null}
           <TextArea
-            ref="summary"
+            name="summary"
             placeholder="Optional summary..."
             rows={4}
-            onChange={event => {
+            value={this.state.summary || ''}
+            onChange={(event, data) => {
               if (!this.state.summaryTouched) {
                 this.setState({ summaryTouched: true });
               }
+              this.handleChange(event, data);
             }}
           />
           {!this.state.summaryTouched && (
@@ -576,11 +574,12 @@ class EditForm extends React.PureComponent {
               size="mini"
               onClick={event => {
                 event.preventDefault();
-                let summary = this.refs.text.ref.value.split(/\n\n+/)[0];
+                let summary = this.state.text.split(/\n\n+/)[0];
+                console.log(summary);
                 while (summary.startsWith('*') && summary.endsWith('*')) {
                   summary = summary.slice(1, summary.length - 1);
                 }
-                this.refs.summary.ref.value = summary.trim();
+                this.setState({ summary: summary.trim() });
               }}
             >
               Suggest Summary
@@ -589,19 +588,27 @@ class EditForm extends React.PureComponent {
         </Form.Field>
         <Form.Field>
           {!hideLabels ? <label>URL</label> : null}
-          <Input ref="url" placeholder="URL" />
+          <Input
+            name="url"
+            placeholder="URL"
+            value={this.state.url || ''}
+            onChange={this.handleChange}
+          />
         </Form.Field>
         <Form.Field>
           {!hideLabels ? <label>Pub Date</label> : null}
           <Input
-            ref="pub_date"
+            name="pub_date"
             placeholder="Pub date"
+            value={this.state.pub_date || ''}
+            onChange={this.handleChange}
             error={!!validationErrors.pub_date}
           />
         </Form.Field>
         <Form.Field>
           {!hideLabels ? <label>Categories</label> : null}
           <Select
+            name="categories"
             value={this.state.categories}
             options={categoryOptions}
             selection
@@ -615,24 +622,24 @@ class EditForm extends React.PureComponent {
         <Form.Field>
           {!hideLabels ? <label>Keywords</label> : null}
           <TextArea
-            ref="keywords"
+            name="keywords"
             placeholder="Keywords"
             rows={5}
-            defaultValue={keywords.join('\n')}
+            onChange={this.handleChange}
+            value={this.state.keywords || ''}
           />
         </Form.Field>
         {showUnimportantFields ? (
           <Form.Field>
             {!hideLabels ? <label>Display Format</label> : null}
             <Select
+              name="display_format"
               error={!!validationErrors.display_format}
               options={displayFormatOptions}
               selection
-              onChange={(event, data) => {
-                this.displayFormat = data;
-              }}
+              onChange={this.handleChange}
               renderLabel={item => item.name}
-              defaultValue={displayFormat}
+              value={this.state.display_format || ''}
             />
           </Form.Field>
         ) : null}
@@ -640,11 +647,10 @@ class EditForm extends React.PureComponent {
           <Form.Field>
             {!hideLabels ? <label>Code Syntax</label> : null}
             <Input
+              name="codesyntax"
               placeholder="Code Syntax"
-              onChange={(event, data) => {
-                this.codesyntax = data;
-              }}
-              defaultValue={blogitem.codesyntax}
+              onChange={this.handleChange}
+              value={this.state.codesyntax || ''}
             />
           </Form.Field>
         ) : null}
@@ -652,11 +658,11 @@ class EditForm extends React.PureComponent {
           <Form.Field>
             <Checkbox
               label="Disallow comments"
-              ref="disallow_comments"
+              name="disallow_comments"
+              checked={this.state.disallow_comments}
               onChange={(event, data) => {
-                this.disallowComments = data;
+                this.handleChange(event, { value: data.checked, ...data });
               }}
-              defaultChecked={!!blogitem.disallow_comments}
             />
           </Form.Field>
         ) : null}
@@ -664,11 +670,11 @@ class EditForm extends React.PureComponent {
           <Form.Field>
             <Checkbox
               label="Hide comments"
-              ref="hide_comments"
+              name="hide_comments"
+              checked={this.state.hide_comments}
               onChange={(event, data) => {
-                this.hideComments = data;
+                this.handleChange(event, { value: data.checked, ...data });
               }}
-              defaultChecked={!!blogitem.hide_comments}
             />
           </Form.Field>
         ) : null}
