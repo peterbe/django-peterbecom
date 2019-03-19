@@ -42,3 +42,6 @@ MINIMALCSS_SERVER_URL = "http://localhost:55555"
 MANAGERS = (("Peter", "test@example.com"),)
 
 SPAM_URL_PATTERNS = ["http://mustbesomething.example.com"]
+
+# From https://github.com/maxmind/MaxMind-DB/tree/master/test-data
+GEOIP_PATH = path("GeoIP2-City-Test.mmdb")  # noqa
