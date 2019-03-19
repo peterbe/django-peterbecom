@@ -71,7 +71,7 @@ def _raw_search(tmpdir, asin=None, keyword=None, searchindex=None):
         f.write(line)
         print("AWSPA_SEARCH:", line)
     filename = os.path.join(tmpdir, "out.json")
-    cli_path = os.path.join(settings.BASE_DIR, "awspa/cli.js")
+    cli_path = settings.BASE_DIR / "awspa/cli.js"
     if asin:
         command = "node {} --asin={} --out={}".format(cli_path, asin, filename)
     else:
