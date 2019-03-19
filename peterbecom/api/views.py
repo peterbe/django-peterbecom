@@ -4,7 +4,7 @@ import os
 import re
 import statistics
 from collections import defaultdict
-from functools import wraps
+from functools import wraps, lru_cache
 from urllib.parse import urlparse
 
 from django import http
@@ -14,6 +14,8 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
+from django.contrib.gis.geoip2 import GeoIP2
+from geoip2.errors import AddressNotFoundError
 
 from peterbecom.base.models import PostProcessing, SearchResult
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
@@ -700,6 +702,19 @@ def _searchresults_records(request_GET, limit=10):
     return records
 
 
+geoip_looker_upper = GeoIP2()
+
+
+@lru_cache()
+def ip_to_city(ip_address):
+    if ip_address == '127.0.0.1':
+        return
+    try:
+        return geoip_looker_upper.city(ip_address)
+    except AddressNotFoundError:
+        return
+
+
 @api_superuser_required
 def blogcomments(request):
     if request.method == "POST":
@@ -717,6 +732,7 @@ def blogcomments(request):
                 "rendered": item.rendered,
                 "name": item.name,
                 "email": item.email,
+                "_clues": rate_blog_comment(item),
             }
             return _response(context, status=200)
         else:
@@ -743,7 +759,7 @@ def blogcomments(request):
             "name": item.name,
             "email": item.email,
             "user_agent": item.user_agent,
-            "ip_address": item.ip_address,
+            "location": item.ip_address and ip_to_city(item.ip_address) or None,
             "_clues": not item.approved and rate_blog_comment(item) or None,
             "replies": [],
         }

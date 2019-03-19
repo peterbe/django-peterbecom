@@ -1,5 +1,3 @@
-import os
-
 from django.conf import settings
 from elasticsearch_dsl import (
     DocType,
@@ -14,8 +12,9 @@ from elasticsearch_dsl import (
 
 from peterbecom.base.search import blog_item_index, blog_comment_index
 
-synonyms_root = os.path.join(settings.BASE_DIR, "peterbecom/es-synonyms")
-american_british_syns_fn = os.path.join(synonyms_root, "be-ae.synonyms")
+synonyms_root = settings.BASE_DIR / "peterbecom/es-synonyms"
+# Use str() here because Python 3.5's open() builtin can't take a PosixPath instance.
+american_british_syns_fn = str(synonyms_root / "be-ae.synonyms")
 all_synonyms = [
     "go => golang",
     "react => reactjs",

@@ -26,3 +26,4 @@ minimalcss/yarn-error.log
 .pytest_cache/
 yarn-error.log
 htmlcov/
+GeoLite2-City.mmdb

@@ -262,7 +262,6 @@ class BlogComment(models.Model):
     email = models.CharField(max_length=100, blank=True)
     user_agent = models.CharField(max_length=300, blank=True, null=True)
     ip_address = models.GenericIPAddressField(blank=True, null=True)
-    akismet_pass = models.NullBooleanField(null=True)
 
     def __repr__(self):
         return "<%s: %r (%sapproved)>" % (
