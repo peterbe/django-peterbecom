@@ -6,6 +6,7 @@ import {
   Container,
   Loader,
   Comment,
+  Flag,
   Header,
   Icon,
   Input,
@@ -194,6 +195,7 @@ class Comments extends React.Component {
               c.name = data.name;
               c.email = data.email;
               c.rendered = data.rendered;
+              c._clues = data._clues;
             } else {
               mutateCommentTexts(c.replies);
             }
@@ -498,7 +500,13 @@ class CommentTree extends React.PureComponent {
         <Comment.Content>
           <Comment.Author as="a">
             {comment.name || <i>No name</i>}{' '}
-            {comment.email ? `<${comment.email}>` : <i>No email</i>}
+            {comment.email ? `<${comment.email}>` : <i>No email</i>}{' '}
+            {comment.location && comment.location.country_code && (
+              <Flag
+                name={comment.location.country_code.toLowerCase()}
+                title={JSON.stringify(comment.location, null, 2)}
+              />
+            )}
           </Comment.Author>
           <Comment.Metadata>
             <div>

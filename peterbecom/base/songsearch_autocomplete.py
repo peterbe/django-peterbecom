@@ -6,6 +6,7 @@ import tempfile
 import time
 import zipfile
 from glob import glob
+from pathlib import Path
 
 from django.conf import settings
 
@@ -80,31 +81,32 @@ def insert(dry_run=False, impatient=False):
     """Primary function."""
 
     # Unzip and zopfli if the content has changed.
-    autocompleteroot = os.path.join(settings.BASE_DIR, "songsearch-autocomplete")
-    contentroot = os.path.join(settings.BASE_DIR, "peterbecom-static-content")
-    assert os.path.isdir(autocompleteroot)
-    zip_path = os.path.join(autocompleteroot, "songsearch-autocomplete.zip")
-    assert os.path.isfile(zip_path)
+    autocompleteroot = settings.BASE_DIR / "songsearch-autocomplete"
+    contentroot = settings.BASE_DIR / "peterbecom-static-content"
+    assert autocompleteroot.is_dir()
+    zip_path = autocompleteroot / "songsearch-autocomplete.zip"
+    assert zip_path.is_file()
     with tempfile.TemporaryDirectory() as tmpdir:
-        with open(zip_path, "rb") as f:
+        # Need str() because Python 3.5
+        with open(str(zip_path), "rb") as f:
             zf = zipfile.ZipFile(f)
             zf.extractall(tmpdir)
-        # print(os.listdir(tmpdir + "/songsearch-autocomplete/js"))
-        assert os.listdir(tmpdir)
-        source = os.path.join(tmpdir, "songsearch-autocomplete")
-        assert os.path.isdir(source), source
-        destination = os.path.join(contentroot, "songsearch-autocomplete")
+        tmppath = Path(tmpdir)
+        assert list(tmppath.iterdir())
+        source = tmppath / "songsearch-autocomplete"
+        assert source.is_dir(), source
+        destination = contentroot / "songsearch-autocomplete"
         # print(os.listdir(destination + "/js"))
-        different = not _are_dir_trees_equal(source, destination)
+        different = not _are_dir_trees_equal(str(source), str(destination))
         if different:
-            shutil.rmtree(destination)
-            shutil.move(source, destination)
-            print("MOVED", source, "TO", destination)
+            shutil.rmtree(str(destination))
+            shutil.move(str(source), str(destination))
+            print("MOVED {} TO {}".format(source, destination))
 
-    assert os.path.isdir(contentroot)
-    csspath, = glob(os.path.join(contentroot, "songsearch-autocomplete/css/*.css"))
-    jspaths = glob(os.path.join(contentroot, "songsearch-autocomplete/js/*.js"))
-    jspaths = [x.replace(contentroot + "/", "") for x in jspaths]
+    assert contentroot.is_dir()
+    csspath, = glob(str(contentroot / "songsearch-autocomplete/css/*.css"))
+    jspaths = glob(str(contentroot / "songsearch-autocomplete/js/*.js"))
+    jspaths = [x.replace("{}/".format(contentroot), "") for x in jspaths]
 
     with open(csspath) as f:
         csspayload = f.read()
@@ -121,10 +123,13 @@ def insert(dry_run=False, impatient=False):
         CSS_BLOCK.replace("{cdn}", CDN).replace("{csspayload}", csspayload)
     ).strip()
 
-    template = os.path.join(contentroot, "_FSCACHE/plog/blogitem-040601-1/index.html")
+    template = contentroot / "_FSCACHE/plog/blogitem-040601-1/index.html"
+    assert template.is_file(), template
+    # more convenient this way. Also, mostly due to Python 3.5 and legacy
+    template = str(template)
     if not impatient:
         patient_isfile_check(template)
-    assert os.path.isfile(template), template
+
     with open(template) as f:
         original_content = content = f.read()
 

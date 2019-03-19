@@ -3,7 +3,7 @@
 import os
 
 from decouple import config
-from unipath import Path
+from pathlib import Path
 import dj_database_url
 
 
@@ -14,7 +14,8 @@ BASE_DIR = Path(__file__).parent.parent.parent
 
 
 def path(*x):
-    return os.path.join(BASE_DIR, *x)
+    # Use str() here because Python 3.5's open() builtin can't take a PosixPath.
+    return str(BASE_DIR.joinpath(*x))
 
 
 DEBUG = False
@@ -451,3 +452,5 @@ OIDC_USER_ENDPOINT = "https://peterbecom.auth0.com/userinfo"
 ADMINUI_COMMENTS_BATCH_SIZE = 15
 
 SPAM_URL_PATTERNS = []
+
+GEOIP_PATH = path("GeoLite2-City.mmdb")

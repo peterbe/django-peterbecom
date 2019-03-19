@@ -42,6 +42,8 @@ def measure_post_process(func):
                 record.exception = out.getvalue()
             record.duration = datetime.timedelta(seconds=t1 - t0)
             record.save()
+            if _exception:
+                raise
 
     return inner
 
