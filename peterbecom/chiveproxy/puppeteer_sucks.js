@@ -1,5 +1,9 @@
 const puppeteer = require('puppeteer');
 
+/* See other great tips on:
+https://hackernoon.com/tips-and-tricks-for-web-scraping-with-puppeteer-ed391a63d952
+*/
+
 if (process.argv.length < 3) {
   console.warn('Missing URL argument');
   process.exit(1);
