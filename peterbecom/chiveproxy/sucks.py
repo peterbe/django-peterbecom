@@ -65,11 +65,17 @@ def get_card(url):
     assert url.startswith("https://thechive.com"), url
 
     puppeteer_cache_key = "puppeteer_sucks:{}".format(url[-50:])
+
+    # This cache is really just for local development.
     html = cache.get(puppeteer_cache_key)
     if html is None:
-        # This cache is really just for local development.
+        print("Sucking", url)
         html = puppeteer.suck(url)
-        cache.set(puppeteer_cache_key, html, 60)
+        print("SUCKED", url)
+        if html:
+            cache.set(puppeteer_cache_key, html, 60)
+    else:
+        print("No need sucking", url, "(cached)")
     doc = pyquery.PyQuery(html)
 
     for h1 in doc("h1#post-title").items():

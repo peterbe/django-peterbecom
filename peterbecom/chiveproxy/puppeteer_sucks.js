@@ -26,8 +26,8 @@ const url = process.argv[2];
       timeout: 25000,
       waitUntil: 'networkidle2'
     });
-  } catch (er) {
-    console.warn(`Failed to goto ${url}`, er);
+  } catch (error) {
+    console.warn(`Failed to goto ${url}`, error);
     await browser.close();
     process.exit(2);
   }
