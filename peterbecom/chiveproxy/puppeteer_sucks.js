@@ -19,11 +19,11 @@ const url = process.argv[2];
     }
   });
   const page = await browser.newPage();
-  page.setDefaultTimeout(10 * 1000);
+  page.setDefaultTimeout(60 * 1000);
   let response;
   try {
     response = await page.goto(url, {
-      timeout: 25000,
+      timeout: 50 * 1000,
       waitUntil: 'networkidle2'
     });
   } catch (error) {
