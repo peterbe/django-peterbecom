@@ -19,7 +19,7 @@ const url = process.argv[2];
     }
   });
   const page = await browser.newPage();
-  page.setDefaultTimeout(15000);
+  page.setDefaultTimeout(10 * 1000);
   let response;
   try {
     response = await page.goto(url, {
@@ -36,7 +36,7 @@ const url = process.argv[2];
     await page.waitFor(2000);
     // await page.screenshot({ path: '/tmp/screenshot.png' });
     let html = await page.content();
-    console.log(html);
+    process.stdout.write(html);
   } else if (!response) {
     console.warn(`Response was null for ${url}`);
     exit = 3;
@@ -45,5 +45,10 @@ const url = process.argv[2];
     exit = 4;
   }
   await browser.close();
-  process.exit(exit);
+
+  // Don't process.exit() if there wasn't a problem. Node might still be busy
+  // writing to stdout.
+  if (exit) {
+    process.exit(exit);
+  }
 })(url);

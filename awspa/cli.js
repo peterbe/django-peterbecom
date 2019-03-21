@@ -66,11 +66,11 @@ if (argv['help']) {
 
 const keyword = argv['keyword'] || argv['_'].join(' ');
 
-const params = {}
+const params = {};
 if (argv['asin']) {
-  params.itemid = argv['asin']
+  params.itemid = argv['asin'];
 } else {
-  params.keywords = keyword
+  params.keywords = keyword;
   if (argv['searchindex']) {
     params.searchindex = argv['searchindex'];
   }
@@ -92,6 +92,5 @@ search(prodAdv, params, (err, result) => {
     } else {
       console.log(out);
     }
-    process.exit(0);
   }
 });

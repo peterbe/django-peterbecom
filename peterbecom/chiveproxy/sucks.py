@@ -64,13 +64,16 @@ def get_cards():
 def get_card(url):
     assert url.startswith("https://thechive.com"), url
 
-    puppeteer_cache_key = "puppeteer_sucks:{}".format(url[-50:])
-
-    # This cache is really just for local development.
+    # The cache is really just to assure we don't run it more than once
+    # in a short timeframe. ...by some accident or local dev.
+    puppeteer_cache_key = "puppeteer_sucks:{}".format(
+        hashlib.md5(url.encode("utf-8")).hexdigest()
+    )
     html = cache.get(puppeteer_cache_key)
     if html is None:
         print("Sucking", url)
         html = puppeteer.suck(url)
+        assert html.strip().endswith("</html>"), html[-100:]
         print("SUCKED", url)
         if html:
             cache.set(puppeteer_cache_key, html, 60)
@@ -83,6 +86,9 @@ def get_card(url):
         text = text.replace("\xa0", " ").strip()
         break
     else:
+        print("NO 'h1#post-title'", url)
+        if settings.DEBUG:
+            raise Exception("Busted DOM queries?")
         return
 
     date = None
