@@ -14,6 +14,7 @@ import {
   TextArea,
   Form
 } from 'semantic-ui-react';
+import { toDate, formatDistance } from 'date-fns/esm';
 import { DisplayDate, ShowServerError } from './Common';
 import { BASE_URL } from './Config';
 
@@ -451,6 +452,17 @@ class CommentTree extends React.PureComponent {
     }
     return default_;
   };
+
+  bumpedIndicator = comment => {
+    if (!comment._bumped) return null;
+    const diff = formatDistance(
+      toDate(comment.add_date),
+      toDate(comment.modify_date)
+    );
+    const title = `Last modified ${comment.modify_date} (difference ${diff})`;
+    return <Icon name="exclamation" color="purple" title={title} />;
+  };
+
   render() {
     const {
       comment,
@@ -520,6 +532,7 @@ class CommentTree extends React.PureComponent {
               >
                 <DisplayDate date={comment.add_date} />
               </a>{' '}
+              {this.bumpedIndicator(comment)}
             </div>
           </Comment.Metadata>
           <Comment.Text>
@@ -565,6 +578,9 @@ class CommentTree extends React.PureComponent {
                     checked={!!checkedForApproval[comment.oid]}
                     onChange={(_, data) => {
                       setCheckedForApproval(comment.oid, data.checked);
+                      if (data.checked) {
+                        setCheckedForDelete(comment.oid, false);
+                      }
                     }}
                     style={{ paddingRight: 30, paddingLeft: 10 }}
                   />
@@ -603,6 +619,9 @@ class CommentTree extends React.PureComponent {
                     checked={!!checkedForDelete[comment.oid]}
                     onChange={(_, data) => {
                       setCheckedForDelete(comment.oid, data.checked);
+                      if (data.checked) {
+                        setCheckedForApproval(comment.oid, false);
+                      }
                     }}
                     style={{ paddingRight: 30, paddingLeft: 10 }}
                   />
