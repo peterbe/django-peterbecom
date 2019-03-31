@@ -205,7 +205,9 @@ def search(request, original_q=None):
     context = {}
     q = request.GET.get("q", "")
     if len(q) > 90:
-        return http.HttpResponse("Search too long")
+        return http.HttpResponse("Search too long", status=400)
+    if '\x00' in q:
+        return http.HttpResponse("Nullbytes in search term", status=400)
 
     LIMIT_BLOG_ITEMS = 30
     LIMIT_BLOG_COMMENTS = 20
