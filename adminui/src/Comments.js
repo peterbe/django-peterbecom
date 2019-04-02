@@ -7,6 +7,7 @@ import {
   Loader,
   Comment,
   Flag,
+  List,
   Header,
   Icon,
   Input,
@@ -82,6 +83,7 @@ class Comments extends React.Component {
         comments: data.comments,
         count: data.count,
         oldest: data.oldest,
+        countries: data.countries,
         loading: false
       });
     } else {
@@ -222,10 +224,11 @@ class Comments extends React.Component {
   };
 
   render() {
+    const { comments, countries, serverError } = this.state;
     return (
       <Container>
-        <ShowServerError error={this.state.serverError} />
-        {this.state.comments === null && this.state.serverError === null ? (
+        <ShowServerError error={serverError} />
+        {comments === null && serverError === null ? (
           <Loader
             active
             size="massive"
@@ -235,7 +238,7 @@ class Comments extends React.Component {
           />
         ) : null}
 
-        {this.state.comments && (
+        {comments && (
           <form
             onSubmit={event => {
               event.preventDefault();
@@ -273,9 +276,9 @@ class Comments extends React.Component {
             approveComments={this.approveComments}
           />
         }
-        {this.state.comments && (
+        {comments && (
           <CommentsTree
-            comments={this.state.comments}
+            comments={comments}
             count={this.state.count}
             loading={this.state.loading}
             editing={this.state.editing}
@@ -327,7 +330,12 @@ class Comments extends React.Component {
             }}
           />
         )}
-        {this.state.comments && (
+
+        {countries && countries.length && (
+          <ShowCountries countries={countries} />
+        )}
+
+        {comments && (
           <Button
             fluid
             type="text"
@@ -698,6 +706,39 @@ class EditComment extends React.PureComponent {
         />
         <Button primary>Save</Button>
       </Form>
+    );
+  }
+}
+
+class ShowCountries extends React.PureComponent {
+  render() {
+    const { countries } = this.props;
+    return (
+      <div style={{ marginBottom: 20 }}>
+        <Header as="h3" dividing>
+          Countries of Commenters
+        </Header>
+        <List>
+          {countries.map(row => {
+            return (
+              <List.Item key={row.name}>
+                <List.Content>
+                  <List.Header>
+                    {[...Array(row.count).keys()].map(i => (
+                      <Flag
+                        key={`${row.country_code}${i}`}
+                        name={row.country_code.toLowerCase()}
+                        title={`${row.count} from ${row.name}`}
+                      />
+                    ))}
+                    {row.name} <small>({row.count})</small>
+                  </List.Header>
+                </List.Content>
+              </List.Item>
+            );
+          })}
+        </List>
+      </div>
     );
   }
 }

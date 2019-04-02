@@ -115,10 +115,10 @@ def blogitems(request):
 def _amend_blogitems_search(qs, search):
     if search:
         category_names = []
-        cat_regex = re.compile(r'(cat:\s*([\w\s]+))')
+        cat_regex = re.compile(r"(cat:\s*([\w\s]+))")
         for found in cat_regex.findall(search):
             category_names.append(found[1])
-            search = cat_regex.sub('', search).strip().strip(',')
+            search = cat_regex.sub("", search).strip().strip(",")
         if category_names:
             q = Q()
             for name in category_names:
@@ -707,7 +707,7 @@ geoip_looker_upper = GeoIP2()
 
 @lru_cache()
 def ip_to_city(ip_address):
-    if ip_address == '127.0.0.1':
+    if ip_address == "127.0.0.1":
         return
     try:
         return geoip_looker_upper.city(ip_address)
@@ -846,6 +846,27 @@ def blogcomments(request):
 
     context["comments"].sort(key=lambda c: c["max_add_date"], reverse=True)
     context["oldest"] = oldest
+
+    countries_map = {}
+
+    def gather_all_countries(comments):
+        for comment in comments:
+            if comment.get("location"):
+                country = comment["location"]["country_name"]
+                if country not in countries_map:
+                    countries_map[country] = {
+                        "count": 0,
+                        "name": country,
+                        "country_code": comment["location"]["country_code"],
+                    }
+                countries_map[country]["count"] += 1
+            if comment.get("replies"):
+                gather_all_countries(comment["replies"])
+
+    gather_all_countries(context["comments"])
+
+    countries = sorted(countries_map.values(), key=lambda x: x["count"], reverse=True)
+    context["countries"] = countries
 
     return _response(context)
 
