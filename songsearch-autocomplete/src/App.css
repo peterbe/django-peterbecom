@@ -84,6 +84,11 @@ mark {
 .autocomplete li.search-suggestion p {
     font-weight: normal;
 }
+
+.autocomplete span.by {
+  color: #666;
+}
+
 .maxlength {
   text-align: right;
   color: #737373;

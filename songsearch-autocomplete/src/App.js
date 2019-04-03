@@ -115,7 +115,7 @@ class App extends React.Component {
       this.setState({
         showAutocompleteSuggestions: false
       });
-    }, 300);
+    }, 30000);
   };
 
   onChangeSearch = event => {
@@ -459,7 +459,7 @@ const ShowAutocompleteSuggestionSong = React.memo(({ song }) => {
       <div className="media-body">
         <h5 className="artist-name">
           <b>{song.name}</b>
-          {' by '}
+          <span className="by">{' by '}</span>
           <span>{song.artist.name}</span>
         </h5>
         {song.fragments.map((fragment, i) => {
