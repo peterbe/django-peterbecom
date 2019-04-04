@@ -27,11 +27,11 @@ class AuthenticationMiddleware:
 
     def process_request(self, request):
         if request.path.startswith("/api/"):
-            if request.META.get("HTTP_AUTHORIZATION") or request.method != "GET":
-                header_value = request.META.get("HTTP_AUTHORIZATION")
+            if request.headers.get("Authorization") or request.method != "GET":
+                header_value = request.headers["Authorization"]
                 if not header_value:
                     return http.JsonResponse(
-                        {"error": "No HTTP_AUTHORIZATION"}, status=403
+                        {"error": "No 'Authorization' header"}, status=403
                     )
                 try:
                     access_token = header_value.split("Bearer")[1].strip()
