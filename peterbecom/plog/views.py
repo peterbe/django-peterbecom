@@ -125,19 +125,19 @@ def blog_post(request, oid):
 @require_http_methods(["PUT"])
 @csrf_exempt
 def blog_post_ping(request, oid):
-    if not utils.is_bot(
-        ua=request.META.get("HTTP_USER_AGENT", ""), ip=request.META.get("REMOTE_ADDR")
-    ):
-        http_referer = request.GET.get("referrer", request.META.get("HTTP_REFERER"))
+    user_agent = request.headers.get("User-Agent", "")
+    remote_addr = request.META.get("REMOTE_ADDR")
+    if not utils.is_bot(ua=user_agent, ip=remote_addr):
+        http_referer = request.GET.get("referrer", request.headers.get("Referer"))
         if http_referer:
             current_url = request.build_absolute_uri().split("/ping")[0]
             if current_url == http_referer:
                 http_referer = None
         increment_blogitem_hit(
             oid,
-            http_user_agent=request.META.get("HTTP_USER_AGENT"),
-            http_accept_language=request.META.get("HTTP_ACCEPT_LANGUAGE"),
-            remote_addr=request.META.get("REMOTE_ADDR"),
+            http_user_agent=user_agent,
+            http_accept_language=request.headers.get("Accept-Language"),
+            remote_addr=remote_addr,
             http_referer=http_referer,
         )
     return http.JsonResponse({"ok": True})
@@ -393,7 +393,7 @@ def submit_json(request, oid):
             name=name,
             email=email,
             ip_address=request.META.get("REMOTE_ADDR"),
-            user_agent=request.META.get("HTTP_USER_AGENT"),
+            user_agent=request.headers.get("User-Agent"),
         )
 
         if post.oid != "blogitem-040601-1":
