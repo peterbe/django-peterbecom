@@ -160,6 +160,7 @@ class RealtimeBlogitemHits extends React.Component {
           <Hits
             filters={filters}
             grouped={grouped}
+            loading={loading}
             updateFilters={this.updateFilters}
           />
         )}
@@ -210,7 +211,13 @@ class RealtimeBlogitemHits extends React.Component {
 export default RealtimeBlogitemHits;
 
 class Hits extends React.PureComponent {
-  state = { differentIds: [] };
+  state = {
+    differentIds: [],
+    search:
+      this.props.filters && this.props.filters.search
+        ? this.props.filters.search
+        : ''
+  };
   componentDidUpdate(prevProps, prevState) {
     if (equalArrays(prevState.differentIds, this.state.differentIds)) {
       const before = prevProps.grouped.map(r => r.blogitem.id);
@@ -222,20 +229,24 @@ class Hits extends React.PureComponent {
     }
   }
   render() {
-    const { filters, grouped, updateFilters } = this.props;
+    const { loading, grouped, updateFilters } = this.props;
     const { differentIds } = this.state;
     return (
       <form
         onSubmit={event => {
           event.preventDefault();
-          updateFilters({ search: this.refs.q.inputRef.value });
+          updateFilters({ search: this.state.search });
         }}
       >
         <Input
-          defaultValue={(filters && filters.search) || ''}
           fluid
           placeholder="Search filter..."
-          ref="q"
+          value={this.state.search}
+          loading={loading}
+          action="Search"
+          onChange={(event, data) => {
+            this.setState({ search: data.value });
+          }}
         />
         <Table celled className="hits">
           <Table.Header>
