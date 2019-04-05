@@ -853,7 +853,10 @@ def blogcomments(request):
         for comment in comments:
             if comment.get("location"):
                 country = comment["location"]["country_name"]
+                if not country:
+                    continue
                 if country not in countries_map:
+                    assert comment["location"]["country_code"], comment
                     countries_map[country] = {
                         "count": 0,
                         "name": country,
