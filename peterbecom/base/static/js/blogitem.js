@@ -69,12 +69,10 @@ var F = (function() {
       form.detach().insertAfter($('p:eq(0)', parent));
       preview.detach().insertBefore(form);
       $('input[name="parent"]', form).val(parent.attr('id'));
-      $('p.cancel:hidden', form).show();
       F.prepare();
     },
     reset: function() {
       form.css('opacity', 1);
-      $('.cancel:visible', form).hide();
       $('textarea', form).val('');
       $('input[name="parent"]', form).val('');
       $('#comments-outer').append(form.detach());
@@ -272,8 +270,6 @@ $(function() {
     });
 
     form.on('submit', F.submit);
-
-    form.on('click', '.cancel a', F.reset);
   }
 
   var commentsOuter = $('#comments-outer');

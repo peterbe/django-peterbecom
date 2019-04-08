@@ -8,9 +8,6 @@
     <link rel="canonical" href="{{ post._absolute_url }}">
   {% else %}
 
-    {% if post.proper_keywords %}
-      <meta name="keywords" content="{{ ','.join(post.proper_keywords) }}">
-    {% endif %}
     {% if request.path != '/plog/blogitem-040601-1' %}
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ post.title }}">
@@ -27,12 +24,14 @@
     <meta property="og:description" content="{{ post.summary }}" />
     {% endif %}
 
+    {% if request.path != '/plog/blogitem-040601-1' %}
     {% if screenshot_image %}
     <meta name="twitter:image" content="{{ screenshot_image }}">
     <meta property="og:image" content="{{ screenshot_image }}">
     {% elif post.open_graph_image %}
     <meta name="twitter:image" content="{{ post.open_graph_image }}">
     <meta property="og:image" content="{{ post.open_graph_image }}">
+    {% endif %}
     {% endif %}
   {% endif %}
 
@@ -42,18 +41,23 @@
 {% endblock %}
 
 
-{% block page_title %}{{ post.title }}{% endblock %}
+{% block title %}
+{%- if request.path == '/plog/blogitem-040601-1' -%}
+Find song by lyrics - Looking for songs by the lyrics
+{%- else -%}
+{{ post.title }} - Peterbe.com
+{%- endif -%}{% endblock %}
 
 
 {% block page_header_extra %}
-  {% set count = post.count_comments() %}
 
   {% if request.path != '/plog/blogitem-040601-1' %}
+  {% set comment_count = post.count_comments() %}
   <p>
     {{ post.pub_date.strftime('%d %B %Y') }}
     &nbsp;
     <span class="comment-count">
-      {{ count }} comment{% if count != 1 %}s{% endif %}
+      {{ comment_count }} comment{% if comment_count != 1 %}s{% endif %}
     </span>
 
     &nbsp;
@@ -140,7 +144,8 @@
   </h2>
 
   {% if post.hide_comments %}
-    {% if count %}
+    {% set comment_count = post.count_comments() %}
+    {% if comment_count %}
     <p><em>Comments hidden. Sorry.</em></p>
     {% endif %}
   {% else %}
@@ -194,9 +199,7 @@
         <p class="note">Your email will never ever be published</p>
       </div>
       <button type="submit" class="ui button primary preview">Preview first</button>
-      <button type="submit" class="ui button post">Post comment</button><br>
-      <p class="cancel" style="display:none"><a href="./" title="Abandon ship!">Cancel</a></p>
-
+      <button type="submit" class="ui button post">Post comment</button>
     </form>
 
     {# DONE in JS now
