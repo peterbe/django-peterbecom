@@ -10,3 +10,6 @@ time brotli static/js/*.js
 time brotli static/css/*.css
 popd
 apack build.zip build
+
+
+scp build.zip django@192.34.57.223:/home/django/django-peterbecom/adminui/
