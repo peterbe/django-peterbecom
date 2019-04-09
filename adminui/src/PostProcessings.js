@@ -239,7 +239,10 @@ class Statistics extends React.PureComponent {
 }
 
 class Records extends React.PureComponent {
-  state = { differentIds: [] };
+  state = {
+    differentIds: [],
+    search: (this.props.filters && this.props.filters.q) || ''
+  };
   componentDidUpdate(prevProps, prevState) {
     if (equalArrays(prevState.differentIds, this.state.differentIds)) {
       const before = prevProps.records.map(r => r.id);
@@ -251,13 +254,13 @@ class Records extends React.PureComponent {
     }
   }
   render() {
-    const { filters, records, updateFilters } = this.props;
+    const { records, updateFilters } = this.props;
     const { differentIds } = this.state;
     return (
       <form
         onSubmit={event => {
           event.preventDefault();
-          updateFilters({ q: this.refs.q.inputRef.value });
+          updateFilters({ q: this.state.search });
         }}
       >
         <Table celled>
@@ -316,10 +319,14 @@ class Records extends React.PureComponent {
           </Table.Body>
         </Table>
         <Input
-          defaultValue={(filters && filters.q) || ''}
           fluid
           placeholder="Search filter..."
-          ref="q"
+          value={this.state.search}
+          action="Search"
+          onChange={(event, data) => {
+            const search = data.value;
+            this.setState({ search });
+          }}
         />
       </form>
     );
