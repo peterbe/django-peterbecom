@@ -85,7 +85,7 @@ def insert(dry_run=False, impatient=False):
     contentroot = settings.BASE_DIR / "peterbecom-static-content"
     assert autocompleteroot.is_dir()
     zip_path = autocompleteroot / "songsearch-autocomplete.zip"
-    assert zip_path.is_file()
+    assert zip_path.is_file(), zip_path
     with tempfile.TemporaryDirectory() as tmpdir:
         # Need str() because Python 3.5
         with open(str(zip_path), "rb") as f:

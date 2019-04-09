@@ -22,4 +22,4 @@ mv songsearch-autocomplete static
 popd
 aunpack -l songsearch-autocomplete.zip
 
-scp songsearch-autocomplete.zip django@192.34.57.223:/home/django/django-peterbecom/adminui/
+scp songsearch-autocomplete.zip django@192.34.57.223:/home/django/django-peterbecom/songsearch-autocomplete/
