@@ -72,10 +72,7 @@ def _save_mincssed_html(path, html):
         f.write(html)
 
 
-def mincss_html(html, abs_uri):
-    # print("PING: {}".format(
-    #     requests.get(settings.MINIMALCSS_SERVER_URL + '/').status_code
-    # ))
+def mincss_html(html, abs_uri, include_minimalcss_stats=True):
     t0 = time.time()
     r = requests.post(
         settings.MINIMALCSS_SERVER_URL + "/minimize",
@@ -168,30 +165,31 @@ def mincss_html(html, abs_uri):
     _total_before = sum(len(v) for v in result["stylesheetContents"].values())
 
     t3 = time.time()
-    template = """
-/*
-Stats from using github.com/peterbe/minimalcss
-----------------------------------------------
-Requests:             %s (now: 0)
-Before:               %.fKb
-After:                %.fKb
-After (minified):     %.fKb
-Saving:               %.fKb
-*/"""
-    stats_css = template % (
-        _requests_before,
-        _total_before / 1024.,
-        _total_after / 1024.,
-        _total_after_min / 1024.,
-        (_total_before - _total_after) / 1024.,
-    )
-    stats_css = stats_css.replace(
-        "*/",
-        "Time to process:      %.2fms\n"
-        "Time to post-process: %.2fms\n"
-        "*/" % ((t1 - t0) * 1000, (t3 - t1) * 1000),
-    )
-    combined_css = "{}\n{}".format(stats_css.strip(), combined_css)
+    if include_minimalcss_stats:
+        template = """
+    /*
+    Stats from using github.com/peterbe/minimalcss
+    ----------------------------------------------
+    Requests:             %s (now: 0)
+    Before:               %.fKb
+    After:                %.fKb
+    After (minified):     %.fKb
+    Saving:               %.fKb
+    */"""
+        stats_css = template % (
+            _requests_before,
+            _total_before / 1024.0,
+            _total_after / 1024.0,
+            _total_after_min / 1024.0,
+            (_total_before - _total_after) / 1024.0,
+        )
+        stats_css = stats_css.replace(
+            "*/",
+            "Time to process:      %.2fms\n"
+            "Time to post-process: %.2fms\n"
+            "*/" % ((t1 - t0) * 1000, (t3 - t1) * 1000),
+        )
+        combined_css = "{}\n{}".format(stats_css.strip(), combined_css)
     new_style = "<style>\n{}\n</style>".format(combined_css)
     html = html.replace("</head>", new_style + "\n</head>")
 

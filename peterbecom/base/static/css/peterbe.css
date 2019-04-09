@@ -148,26 +148,6 @@ code {
   border-radius: 3px;
 }
 
-/* Specifically for fusion_ad
-
-#fusion_ad {
-  float: right;
-  width: 130px;
-  background-color: white;
-  padding-left: 15px;
-  padding-bottom: 15px;
-}
-#fusion_ad .fusionentire {
-  display: block;
-}
-@media (max-width: 900px) {
-  #fusion_ad {
-    display: none;
-  }
-}
-*/
-
-
 @media (min-width: 767px) {
   .main.menu .right.dropdown {
     display: none !important;

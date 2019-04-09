@@ -87,11 +87,18 @@ def _post_process_cached_html(filepath, url, postprocessing):
         postprocessing.notes.append(msg)
         return
 
+    # Squeezing every little byte out of it!
+    # That page doesn't need the little minimalcss stats block.
+    # Otherwise, the default is to include it.
+    include_minimalcss_stats = "/plog/blogitem-040601-1" not in url
+
     optimized_html = html
     while True and not url.endswith("/awspa"):
         t0 = time.perf_counter()
         try:
-            optimized_html = mincss_html(html, url)
+            optimized_html = mincss_html(
+                html, url, include_minimalcss_stats=include_minimalcss_stats
+            )
             t1 = time.perf_counter()
             if optimized_html is None:
                 postprocessing.notes.append(

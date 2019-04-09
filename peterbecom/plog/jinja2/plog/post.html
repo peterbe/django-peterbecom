@@ -35,11 +35,10 @@
     {% endif %}
   {% endif %}
 
-  {% if request.path == '/plog/blogitem-040601-1' %}
+  {% if request.path == '/plog/blogitem-040601-1' -%}
   <link rel="prerender" href="https://songsear.ch/">
-  {% endif %}
+  {%- endif %}
 {% endblock %}
-
 
 {% block title %}
 {%- if request.path == '/plog/blogitem-040601-1' -%}
@@ -47,7 +46,6 @@ Find song by lyrics - Looking for songs by the lyrics
 {%- else -%}
 {{ post.title }} - Peterbe.com
 {%- endif -%}{% endblock %}
-
 
 {% block page_header_extra %}
 
@@ -116,7 +114,6 @@ Find song by lyrics - Looking for songs by the lyrics
 
 {% include "plog/_post.html" %}
 
-
 {% if show_buttons %}
   <p>
     <a href="https://twitter.com/peterbe" class="ui tiny twitter button"
@@ -126,9 +123,7 @@ Find song by lyrics - Looking for songs by the lyrics
   </p>
 {% endif %}
 
-  <div id="awspa" style="margin-top:30px;display:none">
-
-  </div>
+  <div id="awspa" style="margin-top:30px;display:none"></div>
 
 {% if post.hide_comments and post.disallow_comments %}
   {% if request.path != '/plog/blogitem-040601-1' %}
