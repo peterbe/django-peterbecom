@@ -353,24 +353,6 @@ dd small {
   font-size: 54px;
 }
 
-/* Specifically for fusion_ad */
-#fusion_ad {
-  float: right;
-  width: 130px;
-  background-color: white;
-  padding-left: 15px;
-  padding-bottom: 15px;
-}
-
-#fusion_ad .fusionentire {
-  display: block;
-}
-@media (max-width: 900px) {
-  #fusion_ad {
-    display: none;
-  }
-}
-
 .navbar li.navbar-search-link {
   display: none;
 }
