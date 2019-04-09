@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 INLINE_RUNTIME_CHUNK=false yarn run build
 
 rm -fr build.zip
@@ -20,4 +22,4 @@ mv songsearch-autocomplete static
 popd
 aunpack -l songsearch-autocomplete.zip
 
-scp build.zip django@192.34.57.223:/home/django/django-peterbecom/adminui/
+scp songsearch-autocomplete.zip django@192.34.57.223:/home/django/django-peterbecom/adminui/

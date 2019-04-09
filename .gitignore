@@ -28,3 +28,4 @@ yarn-error.log
 htmlcov/
 GeoLite2-City.mmdb
 adminui/build.zip
+songsearch-autocomplete/songsearch-autocomplete.zip
