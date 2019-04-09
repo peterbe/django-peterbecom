@@ -21,6 +21,14 @@ function absolutifyUrl(uri) {
   return uri;
 }
 
+// https://coderwall.com/p/i817wa/one-line-function-to-detect-mobile-devices-with-javascript
+function isMobileDevice() {
+  return (
+    typeof window.orientation !== 'undefined' ||
+    navigator.userAgent.indexOf('IEMobile') !== -1
+  );
+}
+
 class App extends React.Component {
   constructor(props) {
     super(props);
@@ -55,6 +63,9 @@ class App extends React.Component {
     // For example if the React app is slow to load. I.e. async slow.
     if (this.props.initialValue && !this.state.q) {
       this.setState({ q: this.props.initialValue });
+    }
+    if (!isMobileDevice()) {
+      this.refs.q.focus();
     }
   }
 
@@ -115,7 +126,7 @@ class App extends React.Component {
       this.setState({
         showAutocompleteSuggestions: false
       });
-    }, 30000);
+    }, 300);
   };
 
   onChangeSearch = event => {
