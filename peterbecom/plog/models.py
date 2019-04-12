@@ -247,6 +247,7 @@ class BlogItemHit(models.Model):
     http_accept_language = models.TextField(null=True)
     remote_addr = models.GenericIPAddressField(null=True)
     http_referer = models.URLField(max_length=450, null=True)
+    page = models.PositiveIntegerField(null=True)
 
 
 class BlogComment(models.Model):

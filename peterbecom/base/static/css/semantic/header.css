@@ -41,7 +41,7 @@
   font-weight: normal;
   padding: 0em;
   margin: 0em;
-  font-size: 1rem;
+  font-size: 1.1rem;
   line-height: 1.2em;
   color: rgba(0, 0, 0, 0.6);
 }
@@ -724,4 +724,3 @@ a.ui.inverted.grey.header:hover {
 /*******************************
          Site Overrides
 *******************************/
-

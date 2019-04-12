@@ -1,5 +1,5 @@
-import codecs
-import hashlib
+# import codecs
+# import hashlib
 import logging
 import os
 import re
@@ -10,7 +10,8 @@ from urllib.parse import urlparse
 import delegator
 import requests
 from django.conf import settings
-from django.core.cache import cache
+
+# from django.core.cache import cache
 
 from pyquery import PyQuery
 
@@ -29,47 +30,6 @@ _link_regex = re.compile("<link.*?>", re.M | re.DOTALL)
 cache_save_dir = os.path.join(tempfile.gettempdir(), "mincssed_responses")
 if not os.path.isdir(cache_save_dir):
     os.mkdir(cache_save_dir)
-
-
-class DownloadCache:
-    def __init__(self, default_expiry=500):
-        self.default_expiry = default_expiry
-
-    @staticmethod
-    def _key(url):
-        return "downloadcache-{}".format(hashlib.md5(url.encode("utf-8")).hexdigest())
-
-    def get(self, url):
-        key = self._key(url)
-        cached = cache.get(key)
-        if cached is not None:
-            return cached
-
-    def set(self, url, payload):
-        cache.set(self._key(url), payload, self.default_expiry)
-
-
-download_cache = DownloadCache()
-
-
-def _mincssed_key(path):
-    filename = path.replace("/", "_") + ".html"
-    return os.path.join(cache_save_dir, filename)
-
-
-def _get_mincssed_html(path):
-    filepath = _mincssed_key(path)
-    try:
-        with codecs.open(filepath, "r", "utf-8") as f:
-            return f.read(), time.time() - os.stat(filepath).st_mtime
-    except IOError:
-        return None, None
-
-
-def _save_mincssed_html(path, html):
-    print("SAVING MINCSSED HTML", type(html))
-    with codecs.open(_mincssed_key(path), "w", "utf-8") as f:
-        f.write(html)
 
 
 def mincss_html(html, abs_uri, include_minimalcss_stats=True):
@@ -91,7 +51,7 @@ def mincss_html(html, abs_uri, include_minimalcss_stats=True):
 
     found_link_hrefs = list(result["stylesheetContents"].keys())
 
-    if 0 and abs_uri.endswith("/plog/blogitem-040601-1"):
+    if 0 and "/plog/blogitem-040601-1" in abs_uri:
         template = (
             '<link rel="preload" href="{url}" as="style" media="delayed">\n'
             '<noscript><link rel="stylesheet" href="{url}"></noscript>'

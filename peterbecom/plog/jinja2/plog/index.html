@@ -6,7 +6,8 @@
 <style>
 dt { font-size: 1.2em; margin-top:10px; }
 dd a { margin-right: 10px; }
-dd .c { float:right; font-size: 0.9em; color: rgb(153, 153, 153); }
+dd abbr, dd .c { font-size: 0.9em; color: rgb(153, 153, 153); }
+dd .c { float:right; }
 </style>
 {% endblock %}
 
@@ -16,11 +17,15 @@ dd .c { float:right; font-size: 0.9em; color: rgb(153, 153, 153); }
   {% for key, label in group_dates %}
   <dt>{{ label }}</dt>
   {% for item in groups[key] %}
-    <dd><a href="{{ url('blog_post', item.oid) }}">{{ item.title }}</a>
+    <dd>
+      <a href="{{ url('blog_post', item.oid) }}">{{ item.title }}</a>
+      {% if approved_comments_count.get(item.pk) %}
+      <abbr>{{ thousands(approved_comments_count[item.pk]) }} comment{% if approved_comments_count[item.pk] != 1 %}s{% endif %}</abbr>
+      {% endif %}
     <span class="c">{% for category in item.categories %}
     {{ category }}{% if not loop.last %}, {% endif %}
     {% endfor %}</span>
-    </dd>
+    </d)d>
   {% endfor %}
   {% endfor %}
 </dl>

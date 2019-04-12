@@ -2,6 +2,7 @@ import datetime
 import functools
 import gzip
 import os
+import re
 import shutil
 import sys
 import time
@@ -13,13 +14,13 @@ from django.utils import timezone
 from huey.contrib.djhuey import task
 from requests.exceptions import ReadTimeout
 
-from peterbecom.base.models import PostProcessing
+from peterbecom.base import songsearch_autocomplete
 from peterbecom.base.decorators import lock_decorator
+from peterbecom.base.models import PostProcessing
 from peterbecom.brotli_file import brotli_file
-from peterbecom.mincss_response import mincss_html, has_been_css_minified
+from peterbecom.mincss_response import has_been_css_minified, mincss_html
 from peterbecom.minify_html import minify_html
 from peterbecom.zopfli_file import zopfli_file
-from peterbecom.base import songsearch_autocomplete
 
 
 def measure_post_process(func):
@@ -136,8 +137,14 @@ def _post_process_cached_html(filepath, url, postprocessing):
         print("mincss optimized {}".format(filepath))
         break
 
-    if url.endswith("/plog/blogitem-040601-1"):
-        songsearch_autocomplete.insert()
+    try:
+        page, = re.findall(r"/p(\d+)$", url)
+        page = int(page)
+    except ValueError:
+        page = 1
+
+    if "/plog/blogitem-040601-1" in url:
+        songsearch_autocomplete.insert(page=page)
     else:
         t0 = time.perf_counter()
         minified_html = _minify_html(filepath, url)

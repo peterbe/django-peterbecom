@@ -77,7 +77,7 @@ def patient_isfile_check(fp, sleep=5, max_attempts=5, impatient=False):
         break
 
 
-def insert(dry_run=False, impatient=False):
+def insert(dry_run=False, impatient=False, page=1):
     """Primary function."""
 
     # Unzip and zopfli if the content has changed.
@@ -123,7 +123,16 @@ def insert(dry_run=False, impatient=False):
         CSS_BLOCK.replace("{cdn}", CDN).replace("{csspayload}", csspayload)
     ).strip()
 
-    template = contentroot / "_FSCACHE/plog/blogitem-040601-1/index.html"
+    if page > 1:
+        template = (
+            contentroot / "_FSCACHE/plog/blogitem-040601-1/p{}/index.html".format(page)
+        )
+    else:
+        template = contentroot / "_FSCACHE/plog/blogitem-040601-1/index.html"
+    _post_process_template(template, impatient, js_block, css_block, dry_run=dry_run)
+
+
+def _post_process_template(template, impatient, js_block, css_block, dry_run=False):
     assert template.is_file(), template
     # more convenient this way. Also, mostly due to Python 3.5 and legacy
     template = str(template)

@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { Container, Header, Button, Segment } from 'semantic-ui-react';
 
 class Dashboard extends React.Component {
+  componentWillMount() {
+    document.title = 'Peterbe.com Admin UI';
+  }
   render() {
     return (
       <Container>

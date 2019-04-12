@@ -7,7 +7,7 @@
 
   <title>{% block title %}{% block title_prefix %}{{ page_title }}{% endblock %} - Peterbe.com{% endblock %}</title>
 
-  {% if request.path == '/plog/blogitem-040601-1' -%}
+  {% if '/plog/blogitem-040601-1' in request.path -%}
   {% stylesheet 'lyrics' %}
   {% else %}
   {% stylesheet 'base' %}
@@ -29,7 +29,7 @@
 
   {% block extrahead %}{% endblock %}
 
-  {% if not DEBUG and request.path != '/plog/blogitem-040601-1' and ENABLE_CLIENT_SIDE_ROLLBAR %}
+  {% if not DEBUG and '/plog/blogitem-040601-1' not in request.path and ENABLE_CLIENT_SIDE_ROLLBAR %}
 <script>
 var _rollbarConfig = {
     accessToken: "af619cf784e54953b04ceeb7006c6c1e",
@@ -52,7 +52,7 @@ var _rollbarConfig = {
     {% endblock %}
   </div>
 
-  {% if request.path != '/plog/blogitem-040601-1' %}
+  {% if '/plog/blogitem-040601-1' not in request.path %}
   <div class="ui borderless main menu">
     <div class="ui container">
 
@@ -102,14 +102,14 @@ var _rollbarConfig = {
       {% endblock %}
     {% endblock %}
 
-    {% if request.path == '/plog/blogitem-040601-1' %}
+    {% if '/plog/blogitem-040601-1' in request.path %}
     <p class="lyrics-footer">
       &copy; <a href="https://www.peterbe.com">peterbe.com</a> 2003 - {{ THIS_YEAR }}
     </p>
     {% endif %}
   </div>
 
-  {% if request.path != '/plog/blogitem-040601-1' %}
+  {% if '/plog/blogitem-040601-1' not in request.path %}
   <div class="ui inverted vertical footer segment">
     <div class="ui center aligned container">
       <p>
@@ -137,7 +137,7 @@ var _rollbarConfig = {
 
 
   {% block basejs %}
-  {%- if request.path == '/plog/blogitem-040601-1' %}
+  {%- if '/plog/blogitem-040601-1' not in request.path  %}
   {% javascript 'lyrics' %}
   {% javascript 'loadcss' %}
   {% else %}
@@ -149,7 +149,7 @@ var _rollbarConfig = {
   {% endblock %}
 
   {% block extrajs %}{% endblock %}
-  {% if request.path != '/plog/blogitem-040601-1' %}
+  {% if '/plog/blogitem-040601-1' not in request.path %}
   {% javascript 'autocompeter' %}
   {% endif %}
 
