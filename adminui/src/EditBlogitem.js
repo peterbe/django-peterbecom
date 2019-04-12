@@ -253,6 +253,20 @@ export class EditBlogitem extends React.Component {
 }
 
 export class AddBlogitem extends EditBlogitem {
+  state = {
+    skeleton: {
+      oid: '',
+      title: '',
+      summary: '',
+      text: '',
+      url: '',
+      // pub_date: format(new Date(), 'YYYY-MM-dd HH:MM:ss'),
+      pub_date: addHours(new Date(), 1).toISOString(),
+      display_format: 'markdown',
+      categories: [],
+      keywords: []
+    }
+  };
   componentDidMount() {
     document.title = 'Add Blogitem';
 
@@ -263,15 +277,20 @@ export class AddBlogitem extends EditBlogitem {
     if (!this.props.accessToken) {
       throw new Error('No accessToken');
     }
-    const response = await fetch(`/api/v0/plog/`, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.props.accessToken}`
-      },
-      body: JSON.stringify(data)
-    });
+    let response;
+    try {
+      response = await fetch(`/api/v0/plog/`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.props.accessToken}`
+        },
+        body: JSON.stringify(data)
+      });
+    } catch (err) {
+      return this.setState({ serverError: err });
+    }
     if (response.ok) {
       const data = await response.json();
       this.setState(
@@ -289,20 +308,6 @@ export class AddBlogitem extends EditBlogitem {
   };
 
   render() {
-    const defaultPubDate = addHours(new Date(), 1);
-
-    const blogitemSkeleton = {
-      oid: '',
-      title: '',
-      summary: '',
-      text: '',
-      url: '',
-      // pub_date: format(new Date(), 'YYYY-MM-dd HH:MM:ss'),
-      pub_date: defaultPubDate.toISOString(),
-      display_format: 'markdown',
-      categories: [],
-      keywords: []
-    };
     return (
       <Container>
         <Breadcrumb>
@@ -324,12 +329,18 @@ export class AddBlogitem extends EditBlogitem {
           </Message>
         )}
         <EditForm
-          blogitem={blogitemSkeleton}
+          blogitem={this.state.skeleton}
           allCategories={this.state.allCategories}
           validationErrors={this.state.validationErrors}
           onLoadPreview={async data => {}}
           onSubmitData={async data => {
-            this.setState({ updated: null });
+            sessionStorage.setItem(
+              'AddBlogitem',
+              JSON.stringify(data, null, 2)
+            );
+            console.warn(
+              "If anything goes wrong, you can recover from 'sessionStorage.AddBlogitem'."
+            );
             this.createBlogitem(data);
           }}
         />
