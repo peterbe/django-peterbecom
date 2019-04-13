@@ -16,8 +16,10 @@ class Command(BaseCommand):
             default=False,
             help="Exit on errors immediately",
         )
+        parser.add_argument("--page", default=1, help="Which page")
 
     def _handle(self, **options):
         dry_run = options["dry_run"]
         impatient = options["impatient"]
-        insert(dry_run=dry_run, impatient=impatient)
+        page = int(options["page"])
+        insert(dry_run=dry_run, impatient=impatient, page=page)

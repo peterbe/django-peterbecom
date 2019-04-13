@@ -1,33 +1,32 @@
 import datetime
-import re
-import os
-import time
 import logging
+import os
 import random
+import re
+import time
 from pathlib import Path
 
-from elasticsearch_dsl import Q
-from huey.contrib.djhuey import task
-
 from django import http
-from django.shortcuts import render, redirect
-from django.db.models import Count
-from django.urls import reverse
-from django.contrib.sites.requests import RequestSite
-from django.views.decorators.cache import cache_control
 from django.conf import settings
+from django.contrib.sites.requests import RequestSite
+from django.db.models import Count, Max
+from django.shortcuts import redirect, render
+from django.urls import reverse
+from django.utils import timezone
 from django.utils.html import strip_tags
 from django.views import static
-
-from peterbecom.base.models import SearchResult
-from peterbecom.base.decorators import variable_cache_control
-from peterbecom.plog.models import BlogItem, BlogComment
-from peterbecom.plog.utils import utc_now, view_function_timer
-from .utils import parse_ocs_to_categories, make_categories_q, split_search, STOPWORDS
+from django.views.decorators.cache import cache_control
+from elasticsearch_dsl import Q
 from fancy_cache import cache_page
-# from peterbecom.plog.utils import make_prefix
-from peterbecom.plog.search import BlogItemDoc, BlogCommentDoc
+from huey.contrib.djhuey import task
 
+from peterbecom.base.decorators import variable_cache_control
+from peterbecom.base.models import SearchResult
+from peterbecom.plog.models import BlogComment, BlogItem
+from peterbecom.plog.search import BlogCommentDoc, BlogItemDoc
+from peterbecom.plog.utils import utc_now, view_function_timer
+
+from .utils import STOPWORDS, make_categories_q, parse_ocs_to_categories, split_search
 
 logger = logging.getLogger("homepage")
 
@@ -206,7 +205,7 @@ def search(request, original_q=None):
     q = request.GET.get("q", "")
     if len(q) > 90:
         return http.HttpResponse("Search too long", status=400)
-    if '\x00' in q:
+    if "\x00" in q:
         return http.HttpResponse("Nullbytes in search term", status=400)
 
     LIMIT_BLOG_ITEMS = 30
@@ -507,11 +506,10 @@ def sitemap(request):
         url += "</url>"
         urls.append(url)
 
-    now = utc_now()
-    latest_blogitem, = BlogItem.objects.filter(pub_date__lt=now).order_by("-pub_date")[
-        :1
-    ]
-    add("/", priority=1.0, changefreq="daily", lastmod=latest_blogitem.pub_date)
+    now = timezone.now()
+    blogitems = BlogItem.objects.filter(pub_date__lt=now)
+    latest_pub_date = blogitems.aggregate(pub_date=Max("pub_date"))["pub_date"]
+    add("/", priority=1.0, changefreq="daily", lastmod=latest_pub_date)
     add(reverse("about"), changefreq="weekly", priority=0.5)
     add(reverse("contact"), changefreq="weekly", priority=0.5)
 
@@ -520,33 +518,37 @@ def sitemap(request):
     # Then we can sort by a scoring function.
     # This will only work once ALL blogitems have at least 1 hit.
     blogitems = BlogItem.objects.filter(pub_date__lt=now)
-    for blogitem in blogitems.order_by("-pub_date"):
-        if not blogitem.modify_date:
-            # legacy!
-            try:
-                latest_comment, = BlogComment.objects.filter(
-                    approved=True, blogitem=blogitem
-                ).order_by("-add_date")[:1]
-                blogitem.modify_date = latest_comment.add_date
-            except ValueError:
-                blogitem.modify_date = blogitem.pub_date
-            blogitem._modify_date_set = True
-            blogitem.save()
 
+    approved_comments_count = {}
+    blog_comments_count_qs = (
+        BlogComment.objects.filter(blogitem__pub_date__lt=now, approved=True)
+        .values("blogitem_id")
+        .annotate(count=Count("blogitem_id"))
+    )
+    for count in blog_comments_count_qs:
+        approved_comments_count[count["blogitem_id"]] = count["count"]
+
+    for blogitem in blogitems.order_by("-pub_date"):
         age = (now - blogitem.modify_date).days
-        if age < 14:
-            changefreq = "daily"
-        elif age < 60:
-            changefreq = "weekly"
-        elif age < 100:
-            changefreq = "monthly"
-        else:
-            changefreq = None
-        add(
-            reverse("blog_post", args=[blogitem.oid]),
-            lastmod=blogitem.modify_date,
-            changefreq=changefreq,
-        )
+        comment_count = approved_comments_count.get(blogitem.id, 0)
+        pages = comment_count // settings.MAX_RECENT_COMMENTS
+        for page in range(1, pages + 2):
+            if page >= settings.MAX_BLOGCOMMENT_PAGES:
+                break
+            if age < 14:
+                changefreq = "daily"
+            elif age < 60:
+                changefreq = "weekly"
+            elif age < 100:
+                changefreq = "monthly"
+            else:
+                changefreq = None
+
+            if page > 1:
+                url = reverse("blog_post", args=[blogitem.oid, page])
+            else:
+                url = reverse("blog_post", args=[blogitem.oid])
+            add(url, lastmod=blogitem.modify_date, changefreq=changefreq)
 
     urls.append("</urlset>")
     return http.HttpResponse("\n".join(urls), content_type="text/xml")

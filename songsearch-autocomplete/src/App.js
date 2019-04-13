@@ -64,7 +64,7 @@ class App extends React.Component {
     if (this.props.initialValue && !this.state.q) {
       this.setState({ q: this.props.initialValue });
     }
-    if (!isMobileDevice()) {
+    if (!isMobileDevice() && !document.location.hash) {
       this.refs.q.focus();
     }
   }

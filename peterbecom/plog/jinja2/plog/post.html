@@ -8,7 +8,7 @@
     <link rel="canonical" href="{{ post._absolute_url }}">
   {% else %}
 
-    {% if request.path != '/plog/blogitem-040601-1' %}
+    {% if '/plog/blogitem-040601-1' not in request.path  %}
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ post.title }}">
     {% if post.summary %}
@@ -24,7 +24,7 @@
     <meta property="og:description" content="{{ post.summary }}" />
     {% endif %}
 
-    {% if request.path != '/plog/blogitem-040601-1' %}
+    {% if '/plog/blogitem-040601-1' not in request.path %}
     {% if screenshot_image %}
     <meta name="twitter:image" content="{{ screenshot_image }}">
     <meta property="og:image" content="{{ screenshot_image }}">
@@ -35,21 +35,29 @@
     {% endif %}
   {% endif %}
 
-  {% if request.path == '/plog/blogitem-040601-1' -%}
+  {% if '/plog/blogitem-040601-1' not in request.path  -%}
   <link rel="prerender" href="https://songsear.ch/">
   {%- endif %}
 {% endblock %}
 
 {% block title %}
-{%- if request.path == '/plog/blogitem-040601-1' -%}
-Find song by lyrics - Looking for songs by the lyrics
+{%- if '/plog/blogitem-040601-1' in request.path  -%}
+{% if page > 1 -%}Find song by lyrics (Page {{ page }})
+{%- else -%}Find song by lyrics - Looking for songs by the lyrics
+{%- endif %}
+
 {%- else -%}
 {{ post.title }} - Peterbe.com
 {%- endif -%}{% endblock %}
 
+{% block page_title -%}
+{{ page_title }}
+{% if page > 1 %}<span class="sub header">(Page {{ page }})</span>{% endif %}
+{%- endblock %}
+
 {% block page_header_extra %}
 
-  {% if request.path != '/plog/blogitem-040601-1' %}
+  {% if '/plog/blogitem-040601-1' not in request.path  %}
   {% set comment_count = post.count_comments() %}
   <p>
     {{ post.pub_date.strftime('%d %B %Y') }}
@@ -68,7 +76,7 @@ Find song by lyrics - Looking for songs by the lyrics
   </p>
   {% endif %}
 
-  {% if request.path == '/plog/blogitem-040601-1' %}
+  {% if '/plog/blogitem-040601-1' in request.path %}
     {#<h3 class="ui header">Looking for a song you heard, but don't know the name?</h3>#}
     {#<h3 class="ui header">Looking for a song you don't know the name of?</h3>#}
     <h3 class="ui header">I'm looking for a song I don't know the name of. I'm looking for a song that goes like this.</h3>
@@ -81,12 +89,12 @@ Find song by lyrics - Looking for songs by the lyrics
 {% endblock %}
 
 {% block extrajs %}
-  {% if request.path == '/plog/blogitem-040601-1' %}
+  {% if '/plog/blogitem-040601-1' in request.path  %}
   {% else %}
   {% javascript 'plog:post' %}
   {% endif %}
 
-  {% if request.path != '/plog/blogitem-040601-1' %}
+  {% if '/plog/blogitem-040601-1' not in request.path  %}
   {% javascript 'carbonnative' %}
   {% endif %}
 
@@ -94,23 +102,25 @@ Find song by lyrics - Looking for songs by the lyrics
 
 {% block content %}
 
-{% if request.path != '/plog/blogitem-040601-1' %}
+{% if '/plog/blogitem-040601-1' not in request.path %}
 <div class="bsa-cpc"></div>
 {% endif %}
 
-  {% if pub_date_years > 3 and request.path != '/plog/blogitem-040601-1' %}
-  <div class="ui {% if pub_date_years > 6 %}warning{% else %}info{% endif %} message"
-     style="margin-bottom:40px">
-    <div class="header">
-      Mind That Age!
-    </div>
-    <p>
-      This blog post is
-      <b>{{ pub_date_years }} years old!</b> Most likely, its content is outdated.
-      Especially if it's technical.
-    </p>
+{% if pub_date_years > 3 and '/plog/blogitem-040601-1' not in request.path %}
+<div class="ui {% if pub_date_years > 6 %}warning{% else %}info{% endif %} message"
+    style="margin-bottom:40px">
+  <div class="header">
+    Mind That Age!
   </div>
-  {% endif %}
+  <p>
+    This blog post is
+    <b>{{ pub_date_years }} years old!</b> Most likely, its content is outdated.
+    Especially if it's technical.
+  </p>
+</div>
+{% endif %}
+
+
 
 {% include "plog/_post.html" %}
 
@@ -123,19 +133,41 @@ Find song by lyrics - Looking for songs by the lyrics
   </p>
 {% endif %}
 
-  <div id="awspa" style="margin-top:30px;display:none"></div>
+{% if '/plog/blogitem-040601-1' not in request.path %}
+<div id="awspa" style="margin-top:30px;display:none"></div>
+{% endif %}
+
+{% macro pagination() -%}
+  {# XXX Make this link from page1 to page2. That would also require code that figures out if there is a page(N+1) #}
+  {% if page > 1 %}
+
+    Go to: <a href="{{ paginate_uri_previous }}#comments">← Page {{ page - 1 }}</a>
+    &nbsp;
+    <span style="color:#999">(Page {{ page }})</span>
+    &nbsp;
+    {% if paginate_uri_next %}
+      <a href="{{ paginate_uri_next }}#comments">Page {{ page + 1 }} →</a>
+    {% endif %}
+  {% endif %}
+
+{% endmacro %}
+
+
 
 {% if post.hide_comments and post.disallow_comments %}
-  {% if request.path != '/plog/blogitem-040601-1' %}
+  {% if '/plog/blogitem-040601-1' not in request.path %}
   <p><em>Comments closed for this page</em></p>
   {% endif %}
 {% else %}
-  <h2 class="ui dividing header">
+  <h2 class="ui dividing header" id="comments">
     {% if comments_truncated %}
     Recent Comments
     {% else %}
     Comments
     {% endif %}
+    <span class="pagination sub header">
+      {{ pagination() }}
+    </span>
   </h2>
 
   {% if post.hide_comments %}
@@ -145,7 +177,8 @@ Find song by lyrics - Looking for songs by the lyrics
     {% endif %}
   {% else %}
     <div id="comments-outer" class="ui comments">
-      {% if request.path != '/plog/blogitem-040601-1' %}
+      {#
+      {% if '/plog/blogitem-040601-1' not in request.path %}
       {% if comments_truncated %}
       <div class="ui message compact comments-truncated">
         <p>
@@ -156,6 +189,7 @@ Find song by lyrics - Looking for songs by the lyrics
       </div>
       {% endif %}
       {% endif %}
+      #}
 
       {% include "plog/_all_comments.html" %}
 
@@ -197,28 +231,16 @@ Find song by lyrics - Looking for songs by the lyrics
       <button type="submit" class="ui button post">Post comment</button>
     </form>
 
-    {# DONE in JS now
-    {% if request.path == '/plog/blogitem-040601-1' %}
-    <div class="ui message floating warning" style="margin-top:20px;display:block">
-      <div class="header">
-          Before you post a comment...
-      </div>
-      <p>
-        <b>Go to
-          <a href="https://songsear.ch/" title="Search for songs by the lyrics">songsear.ch</a>
-          and do your search</b>,
-          then copy the link to the search results
-        together with your comment.
-      </p>
+    <div class="pagination pagination-footer">
+      {{ pagination() }}
     </div>
-    {% endif %}
-    #}
+
   {% endif %}
 
 {% endif %}
 
 
-{% if request.path != '/plog/blogitem-040601-1' %}
+{% if '/plog/blogitem-040601-1' not in request.path %}
   <h2 class="ui dividing header">Related posts</h2>
 
   <dl>

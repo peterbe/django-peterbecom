@@ -14,6 +14,7 @@ from django.contrib.sites.requests import RequestSite
 from django.core.cache import cache
 from django.core.mail import send_mail
 from django.db import transaction
+from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template import loader
 from django.template.loader import render_to_string
@@ -30,10 +31,10 @@ from peterbecom.awspa.models import AWSProduct
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
 
 from . import utils
-from .forms import BlogForm, CalendarDataForm
+from .forms import CalendarDataForm
 from .models import BlogComment, BlogItem, BlogItemHit, Category
 from .spamprevention import contains_spam_url_patterns
-from .utils import json_view, render_comment_text, utc_now, valid_email
+from .utils import json_view, render_comment_text, utc_now
 
 logger = logging.getLogger("plog.views")
 
@@ -106,7 +107,7 @@ def _blog_post_key_prefixer(request):
 
 @cache_control(public=True, max_age=settings.DEBUG and ONE_HOUR or ONE_WEEK)
 @cache_page(settings.DEBUG and ONE_HOUR or ONE_WEEK, _blog_post_key_prefixer)
-def blog_post(request, oid):
+def blog_post(request, oid, page=None):
     if request.path.endswith("/ping"):
         # Sometimes this can happen when the URL parsing by Django
         # isn't working out.
@@ -119,12 +120,12 @@ def blog_post(request, oid):
             return http.HttpResponseBadRequest("invalid URL")
         return redirect(request.path + "/all-comments", permanent=True)
 
-    return _render_blog_post(request, oid)
+    return _render_blog_post(request, oid, page=page)
 
 
 @require_http_methods(["PUT"])
 @csrf_exempt
-def blog_post_ping(request, oid):
+def blog_post_ping(request, oid, page=None):
     user_agent = request.headers.get("User-Agent", "")
     remote_addr = request.META.get("REMOTE_ADDR")
     if not utils.is_bot(ua=user_agent, ip=remote_addr):
@@ -139,6 +140,7 @@ def blog_post_ping(request, oid):
             http_accept_language=request.headers.get("Accept-Language"),
             remote_addr=remote_addr,
             http_referer=http_referer,
+            page=page,
         )
     return http.JsonResponse({"ok": True})
 
@@ -150,6 +152,7 @@ def increment_blogitem_hit(
     http_accept_language=None,
     remote_addr=None,
     http_referer=None,
+    page=None,
 ):
     if http_referer and len(http_referer) > 450:
         http_referer = http_referer[: 450 - 3] + "..."
@@ -160,6 +163,7 @@ def increment_blogitem_hit(
             http_accept_language=http_accept_language,
             http_referer=http_referer,
             remote_addr=remote_addr,
+            page=page,
         )
     except BlogItem.DoesNotExist:
         print("Can't find BlogItem with oid {!r}".format(oid))
@@ -170,7 +174,7 @@ def blog_screenshot(request, oid):
     return response
 
 
-def _render_blog_post(request, oid, screenshot_mode=False):
+def _render_blog_post(request, oid, page=None, screenshot_mode=False):
     if oid.endswith("/"):
         oid = oid[:-1]
     try:
@@ -189,6 +193,16 @@ def _render_blog_post(request, oid, screenshot_mode=False):
     if post.pub_date > future:
         raise http.Http404("not published yet")
 
+    if page is None:
+        page = 1
+    else:
+        page = int(page)
+        if page == 1:
+            return redirect("blog_post", oid)
+
+    if page >= settings.MAX_BLOGCOMMENT_PAGES:
+        raise http.Http404("Gone too far")
+
     # Reasons for not being here
     if request.method == "HEAD":
         return http.HttpResponse("")
@@ -203,7 +217,7 @@ def _render_blog_post(request, oid, screenshot_mode=False):
     post._absolute_url = base_url + reverse("blog_post", args=(post.oid,))
 
     context = {"post": post, "screenshot_mode": screenshot_mode}
-    if request.path != "/plog/blogitem-040601-1":
+    if "/plog/blogitem-040601-1" not in request.path:
         try:
             context["previous_post"] = post.get_previous_by_pub_date()
         except BlogItem.DoesNotExist:
@@ -242,6 +256,11 @@ def _render_blog_post(request, oid, screenshot_mode=False):
     )
     comments_truncated = False
     count_comments = post.count_comments()
+
+    if page > 1:
+        if (page - 1) * settings.MAX_RECENT_COMMENTS > count_comments:
+            raise http.Http404("Gone too far")
+
     if request.GET.get("comments") != "all":
         slice_m, slice_n = (
             max(0, count_comments - settings.MAX_RECENT_COMMENTS),
@@ -249,25 +268,40 @@ def _render_blog_post(request, oid, screenshot_mode=False):
         )
         if count_comments > settings.MAX_RECENT_COMMENTS:
             comments_truncated = settings.MAX_RECENT_COMMENTS
-        comments = comments = comments[slice_m:slice_n]
+
+        slice_m -= (page - 1) * settings.MAX_RECENT_COMMENTS
+        slice_m = max(0, slice_m)
+        slice_n -= (page - 1) * settings.MAX_RECENT_COMMENTS
+        comments = comments[slice_m:slice_n]
 
     all_comments = defaultdict(list)
     for comment in comments:
         all_comments[comment.parent_id].append(comment)
 
-    # print(all_comments.keys())
-
     context["comments_truncated"] = comments_truncated
     context["count_comments"] = count_comments
     context["all_comments"] = all_comments
-    if request.path != "/plog/blogitem-040601-1":
+    if "/plog/blogitem-040601-1" not in request.path:
         context["related_by_keyword"] = get_related_posts_by_keyword(post, limit=5)
-        # context["related_by_text"] = get_related_posts_by_text(post, limit=5)
         context["show_buttons"] = not screenshot_mode
     context["show_carbon_ad"] = not screenshot_mode
     context["home_url"] = request.build_absolute_uri("/")
     context["page_title"] = post.title
     context["pub_date_years"] = THIS_YEAR - post.pub_date.year
+    context["page"] = page
+    if page + 1 < settings.MAX_BLOGCOMMENT_PAGES:
+        # But is there even a next page?!
+        if page * settings.MAX_RECENT_COMMENTS < count_comments:
+            context["paginate_uri_next"] = reverse(
+                "blog_post", args=(post.oid, page + 1)
+            )
+    if page > 1:
+        if page == 2:
+            context["paginate_uri_previous"] = reverse("blog_post", args=(post.oid,))
+        else:
+            context["paginate_uri_previous"] = reverse(
+                "blog_post", args=(post.oid, page - 1)
+            )
     return render(request, "plog/post.html", context)
 
 
@@ -398,6 +432,7 @@ def submit_json(request, oid):
 
         if post.oid != "blogitem-040601-1":
             # Let's not send an more admin emails for "Find songs by lyrics"
+            # XXX Move to a background task!
             tos = [x[1] for x in settings.MANAGERS]
             from_ = ["%s <%s>" % x for x in settings.MANAGERS][0]
             body = _get_comment_body(post, blog_comment)
@@ -418,24 +453,6 @@ def submit_json(request, oid):
     return response
 
 
-def actually_approve_comment(blogcomment):
-    blogcomment.approved = True
-    blogcomment.save()
-
-    if (
-        blogcomment.parent
-        and blogcomment.parent.email
-        and valid_email(blogcomment.parent.email)
-        and blogcomment.email != blogcomment.parent.email
-    ):
-        parent = blogcomment.parent
-        tos = [parent.email]
-        from_ = "Peterbe.com <mail@peterbe.com>"
-        body = _get_comment_reply_body(blogcomment.blogitem, blogcomment, parent)
-        subject = "Peterbe.com: Reply to your comment"
-        send_mail(subject, body, from_, tos)
-
-
 def _get_comment_body(blogitem, blogcomment):
     base_url = "https://%s" % Site.objects.get_current().domain
     if "peterbecom.local" in base_url:
@@ -447,18 +464,6 @@ def _get_comment_body(blogitem, blogcomment):
         "comment": blogcomment,
         "base_url": base_url,
         "admin_url": admin_url,
-    }
-    return template.render(context).strip()
-
-
-def _get_comment_reply_body(blogitem, blogcomment, parent):
-    base_url = "https://%s" % Site.objects.get_current().domain
-    template = loader.get_template("plog/comment_reply_body.txt")
-    context = {
-        "post": blogitem,
-        "comment": blogcomment,
-        "parent": parent,
-        "base_url": base_url,
     }
     return template.render(context).strip()
 
@@ -490,6 +495,16 @@ def plog_index(request):
         blogitem_categories[cat_item.blogitem_id].append(
             _categories[cat_item.category_id]
         )
+
+    approved_comments_count = {}
+    blog_comments_count_qs = (
+        BlogComment.objects.filter(blogitem__pub_date__lt=now, approved=True)
+        .values("blogitem_id")
+        .annotate(count=Count("blogitem_id"))
+    )
+    for count in blog_comments_count_qs:
+        approved_comments_count[count["blogitem_id"]] = count["count"]
+
     for item in (
         BlogItem.objects.filter(pub_date__lt=now)
         .values("pub_date", "oid", "title", "pk")
@@ -502,7 +517,12 @@ def plog_index(request):
         if tup not in group_dates:
             group_dates.append(tup)
 
-    data = {"groups": groups, "group_dates": group_dates, "page_title": "Blog archive"}
+    data = {
+        "groups": groups,
+        "group_dates": group_dates,
+        "page_title": "Blog archive",
+        "approved_comments_count": approved_comments_count,
+    }
     return render(request, "plog/index.html", data)
 
 
@@ -518,48 +538,6 @@ def new_comments(request):
     return render(request, "plog/new-comments.html", context)
 
 
-class PreviewValidationError(Exception):
-    """When something is wrong with the preview data."""
-
-
-def preview_by_data(data, request):
-    from django.template import Context
-    from django.template.loader import get_template
-
-    post_data = dict()
-    for key, value in data.items():
-        if value:
-            post_data[key] = value
-    post_data["oid"] = "doesntmatter"
-    post_data["keywords"] = []
-    form = BlogForm(data=post_data)
-    if not form.is_valid():
-        raise PreviewValidationError(form.errors)
-
-    class MockPost(object):
-        def count_comments(self):
-            return 0
-
-        @property
-        def rendered(self):
-            return BlogItem.render(
-                self.text, self.display_format, self.codesyntax, strict=True
-            )
-
-    post = MockPost()
-    post.title = form.cleaned_data["title"]
-    post.text = form.cleaned_data["text"]
-    post.display_format = form.cleaned_data["display_format"]
-    post.codesyntax = form.cleaned_data["codesyntax"]
-    post.url = form.cleaned_data["url"]
-    post.pub_date = form.cleaned_data["pub_date"]
-    post.categories = Category.objects.filter(pk__in=form.cleaned_data["categories"])
-    template = get_template("plog/_post.html")
-    context = Context({"post": post, "request": request})
-    return template.render(context)
-
-
-@cache_page(ONE_DAY)
 def calendar(request):
     context = {"page_title": "Archive calendar"}
     return render(request, "plog/calendar.html", context)
@@ -619,7 +597,9 @@ def plog_hits_data(request):
 
 
 @cache_control(public=True, max_age=ONE_DAY)
-def blog_post_awspa(request, oid):
+def blog_post_awspa(request, oid, page=None):
+    if page:
+        return redirect("blog_post_awspa", oid)
     try:
         blogitem = BlogItem.objects.get(oid=oid)
     except BlogItem.DoesNotExist:

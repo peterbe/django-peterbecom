@@ -4,44 +4,45 @@ import os
 import re
 import statistics
 from collections import defaultdict
-from functools import wraps, lru_cache
+from functools import lru_cache, wraps
 from urllib.parse import urlparse
 
 from django import http
 from django.conf import settings
+from django.contrib.sites.models import Site
+from django.contrib.gis.geoip2 import GeoIP2
+from django.template import loader
+from django.core.mail import send_mail
 from django.db.models import Avg, Count, Max, Min, Q
 from django.shortcuts import get_object_or_404
+from django.template import Context
+from django.template.loader import get_template
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
-from django.contrib.gis.geoip2 import GeoIP2
 from geoip2.errors import AddressNotFoundError
 
+from peterbecom.awspa.models import AWSProduct
+from peterbecom.awspa.search import search as awspa_search
+from peterbecom.awspa.templatetags.jinja_helpers import awspa_product
 from peterbecom.base.models import PostProcessing, SearchResult
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
 from peterbecom.plog.models import (
     BlogComment,
     BlogFile,
     BlogItem,
-    Category,
     BlogItemHit,
+    Category,
 )
-from peterbecom.awspa.models import AWSProduct
-from peterbecom.awspa.search import search as awspa_search
-from peterbecom.awspa.templatetags.jinja_helpers import awspa_product
-from peterbecom.plog.utils import rate_blog_comment  # move this some day
-from peterbecom.plog.views import (
-    PreviewValidationError,
-    actually_approve_comment,
-    preview_by_data,
-)
+from peterbecom.plog.utils import rate_blog_comment, valid_email  # move this some day
 
 from .forms import (
     BlogCommentBatchForm,
     BlogFileUpload,
+    BlogitemRealtimeHitsForm,
     EditBlogCommentForm,
     EditBlogForm,
-    BlogitemRealtimeHitsForm,
+    PreviewBlogForm,
 )
 
 
@@ -194,6 +195,10 @@ def categories(request):
     return _response(context)
 
 
+class PreviewValidationError(Exception):
+    """When something is wrong with the preview data."""
+
+
 @api_superuser_required
 def preview(request):
     assert request.method == "POST", request.method
@@ -203,10 +208,44 @@ def preview(request):
         html = preview_by_data(post_data, request)
     except PreviewValidationError as exception:
         form_errors, = exception.args
-        context = {"blogitem": {"errors": str(form_errors)}}
+        context = {"blogitem": {"errors": form_errors}}
         return _response(context)
     context = {"blogitem": {"html": html}}
     return _response(context)
+
+
+def preview_by_data(data, request):
+    post_data = {}
+    for key, value in data.items():
+        if value:
+            post_data[key] = value
+    post_data["oid"] = "doesntmatter"
+    post_data["keywords"] = []
+    form = PreviewBlogForm(data=post_data)
+    if not form.is_valid():
+        raise PreviewValidationError(form.errors)
+
+    class MockPost(object):
+        def count_comments(self):
+            return 0
+
+        @property
+        def rendered(self):
+            return BlogItem.render(
+                self.text, self.display_format, self.codesyntax, strict=True
+            )
+
+    post = MockPost()
+    post.title = form.cleaned_data["title"]
+    post.text = form.cleaned_data["text"]
+    post.display_format = form.cleaned_data["display_format"]
+    post.codesyntax = form.cleaned_data["codesyntax"]
+    post.url = form.cleaned_data["url"]
+    post.pub_date = form.cleaned_data["pub_date"]
+    post.categories = Category.objects.filter(pk__in=form.cleaned_data["categories"])
+    template = get_template("plog/_post.html")
+    context = Context({"post": post, "request": request})
+    return template.render(context)
 
 
 def catch_all(request):
@@ -897,6 +936,38 @@ def blogcomments_batch(request, action):
     else:
         print("ERRORS", form.errors)
         return _response({"errors": form.errors}, status=400)
+
+
+def actually_approve_comment(blogcomment):
+    blogcomment.approved = True
+    blogcomment.save()
+
+    if (
+        blogcomment.parent
+        and blogcomment.parent.email
+        and valid_email(blogcomment.parent.email)
+        and blogcomment.email != blogcomment.parent.email
+    ):
+
+        # XXX Move to background task
+        parent = blogcomment.parent
+        tos = [parent.email]
+        from_ = "Peterbe.com <mail@peterbe.com>"
+        body = _get_comment_reply_body(blogcomment.blogitem, blogcomment, parent)
+        subject = "Peterbe.com: Reply to your comment"
+        send_mail(subject, body, from_, tos)
+
+
+def _get_comment_reply_body(blogitem, blogcomment, parent):
+    base_url = "https://%s" % Site.objects.get_current().domain
+    template = loader.get_template("plog/comment_reply_body.txt")
+    context = {
+        "post": blogitem,
+        "comment": blogcomment,
+        "parent": parent,
+        "base_url": base_url,
+    }
+    return template.render(context).strip()
 
 
 @api_superuser_required

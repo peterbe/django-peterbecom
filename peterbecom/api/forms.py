@@ -33,6 +33,7 @@ class ISODateTimeField(DateTimeField):
 class BlogForm(forms.ModelForm):
 
     pub_date = ISODateTimeField()
+    proper_keywords = forms.CharField()
 
     class Meta:
         model = BlogItem
@@ -91,7 +92,7 @@ class BlogForm(forms.ModelForm):
 
     def clean_proper_keywords(self):
         value = self.cleaned_data["proper_keywords"]
-        return [x.strip() for x in value if x.strip()]
+        return [x.strip() for x in value.splitlines() if x.strip()]
 
     def clean_oid(self):
         value = self.cleaned_data["oid"]
@@ -101,6 +102,10 @@ class BlogForm(forms.ModelForm):
         if filter_.exists():
             raise forms.ValidationError("OID already in use")
         return value
+
+
+class PreviewBlogForm(BlogForm):
+    """Exclusively when previewing."""
 
 
 class EditBlogForm(BlogForm):

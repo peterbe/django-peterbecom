@@ -226,3 +226,8 @@ span.not-approved {
 .ui.comments .comment a.metadata:hover {
   color: rgba(0, 0, 0, 0.8);
 }
+
+.pagination.pagination-footer {
+  text-align: center;
+  margin: 30px;
+}
