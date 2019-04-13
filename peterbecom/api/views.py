@@ -206,6 +206,8 @@ def preview(request):
         html = preview_by_data(post_data, request)
     except PreviewValidationError as exception:
         form_errors, = exception.args
+        print(type(form_errors))
+        print(dir(form_errors))
         context = {"blogitem": {"errors": str(form_errors)}}
         return _response(context)
     context = {"blogitem": {"html": html}}

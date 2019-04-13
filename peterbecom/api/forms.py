@@ -33,6 +33,7 @@ class ISODateTimeField(DateTimeField):
 class BlogForm(forms.ModelForm):
 
     pub_date = ISODateTimeField()
+    proper_keywords = forms.CharField()
 
     class Meta:
         model = BlogItem
@@ -50,6 +51,7 @@ class BlogForm(forms.ModelForm):
             "disallow_comments",
             "hide_comments",
         )
+        # widgets = {"proper_keywords": forms.widgets.Textarea()}
 
     def __init__(self, *args, **kwargs):
         super(BlogForm, self).__init__(*args, **kwargs)
@@ -61,6 +63,8 @@ class BlogForm(forms.ModelForm):
         self.fields["url"].required = False
         self.fields["summary"].required = False
         self.fields["proper_keywords"].required = False
+        print(self.fields["proper_keywords"])
+        print(self.fields["proper_keywords"].widget)
 
         # 10 was default
         self.fields["text"].widget.attrs["rows"] = 20
@@ -91,7 +95,7 @@ class BlogForm(forms.ModelForm):
 
     def clean_proper_keywords(self):
         value = self.cleaned_data["proper_keywords"]
-        return [x.strip() for x in value if x.strip()]
+        return [x.strip() for x in value.splitlines() if x.strip()]
 
     def clean_oid(self):
         value = self.cleaned_data["oid"]

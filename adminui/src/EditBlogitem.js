@@ -43,16 +43,19 @@ export class EditBlogitem extends React.Component {
     serverError: null,
     updated: null,
     validationErrors: null,
-    preview: null
+    preview: null,
+    loading: true
   };
-  componentDidMount() {
+  componentWillMount() {
     document.title = 'Edit Blogitem';
-
-    this.fetchBlogitem(this.props.match.params.oid, this.props.accessToken);
-    this.fetchAllCategories(this.props.accessToken);
   }
 
-  fetchAllCategories = async accessToken => {
+  componentDidMount() {
+    this.fetchBlogitem(this.props.match.params.oid);
+    this.fetchAllCategories();
+  }
+
+  fetchAllCategories = async () => {
     const cacheKey = 'allCategories';
     const allCategories = localStorage.getItem(cacheKey);
     if (allCategories) {
@@ -83,26 +86,26 @@ export class EditBlogitem extends React.Component {
     }
   };
 
-  fetchBlogitem = async (oid, accessToken) => {
+  fetchBlogitem = async oid => {
+    let response;
     try {
-      const response = await fetch(`/api/v0/plog/${encodeURIComponent(oid)}`, {
+      response = await fetch(`/api/v0/plog/${encodeURIComponent(oid)}`, {
         headers: {
-          Authorization: `Bearer ${accessToken}`
+          Authorization: `Bearer ${this.props.accessToken}`
         }
       });
-      if (response.ok) {
-        const json = await response.json();
-        this.setState({ blogitem: json.blogitem });
-      } else {
-        this.setState({ serverError: response });
-      }
     } catch (ex) {
-      this.setState({ serverError: ex });
+      return this.setState({ serverError: ex, loading: false });
     }
+    if (!response.ok) {
+      return this.setState({ serverError: response, loading: false });
+    }
+    const json = await response.json();
+    this.setState({ blogitem: json.blogitem, loading: false });
   };
 
-  previewBlogitem = async (data, accessToken) => {
-    if (!accessToken) {
+  previewBlogitem = async data => {
+    if (!this.props.accessToken) {
       throw new Error('No accessToken');
     }
     let response;
@@ -112,19 +115,18 @@ export class EditBlogitem extends React.Component {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`
+          Authorization: `Bearer ${this.props.accessToken}`
         },
         body: JSON.stringify(data)
       });
     } catch (ex) {
       return this.setState({ serverError: ex });
     }
-    if (response.ok) {
-      const data = await response.json();
-      this.setState({ preview: data.blogitem });
-    } else {
-      this.setState({ serverError: response.status });
+    if (!response.ok) {
+      return this.setState({ serverError: response.status });
     }
+    const result = await response.json();
+    this.setState({ preview: result.blogitem });
   };
 
   updateBlogitem = async data => {
@@ -301,7 +303,16 @@ export class AddBlogitem extends EditBlogitem {
       );
     } else if (response.status === 400) {
       const data = await response.json();
-      this.setState({ validationErrors: data.errors, serverError: null });
+      this.setState(
+        { validationErrors: data.errors, serverError: null },
+        () => {
+          toast({
+            type: 'warning',
+            title: 'Validation Error!',
+            time: 5000
+          });
+        }
+      );
     } else {
       this.setState({ serverError: response.status });
     }
@@ -353,7 +364,7 @@ function slugify(s) {
   return s
     .trim()
     .replace(/\s+/gi, '-')
-    .replace(/'/g, '')
+    .replace(/['?]/g, '')
     .toLowerCase();
 }
 
@@ -586,7 +597,6 @@ class EditForm extends React.PureComponent {
               onClick={event => {
                 event.preventDefault();
                 let summary = this.state.text.split(/\n\n+/)[0];
-                console.log(summary);
                 while (summary.startsWith('*') && summary.endsWith('*')) {
                   summary = summary.slice(1, summary.length - 1);
                 }
