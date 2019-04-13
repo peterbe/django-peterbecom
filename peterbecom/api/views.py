@@ -4,43 +4,45 @@ import os
 import re
 import statistics
 from collections import defaultdict
-from functools import wraps, lru_cache
+from functools import lru_cache, wraps
 from urllib.parse import urlparse
 
 from django import http
 from django.conf import settings
+from django.contrib.sites.models import Site
+from django.contrib.gis.geoip2 import GeoIP2
+from django.template import loader
+from django.core.mail import send_mail
 from django.db.models import Avg, Count, Max, Min, Q
 from django.shortcuts import get_object_or_404
+from django.template import Context
+from django.template.loader import get_template
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
-from django.contrib.gis.geoip2 import GeoIP2
-from django.template import Context
-from django.template.loader import get_template
 from geoip2.errors import AddressNotFoundError
 
+from peterbecom.awspa.models import AWSProduct
+from peterbecom.awspa.search import search as awspa_search
+from peterbecom.awspa.templatetags.jinja_helpers import awspa_product
 from peterbecom.base.models import PostProcessing, SearchResult
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
 from peterbecom.plog.models import (
     BlogComment,
     BlogFile,
     BlogItem,
-    Category,
     BlogItemHit,
+    Category,
 )
-from peterbecom.awspa.models import AWSProduct
-from peterbecom.awspa.search import search as awspa_search
-from peterbecom.awspa.templatetags.jinja_helpers import awspa_product
-from peterbecom.plog.utils import rate_blog_comment  # move this some day
-from peterbecom.plog.views import actually_approve_comment
+from peterbecom.plog.utils import rate_blog_comment, valid_email  # move this some day
 
 from .forms import (
     BlogCommentBatchForm,
     BlogFileUpload,
+    BlogitemRealtimeHitsForm,
     EditBlogCommentForm,
     EditBlogForm,
     PreviewBlogForm,
-    BlogitemRealtimeHitsForm,
 )
 
 
@@ -206,9 +208,7 @@ def preview(request):
         html = preview_by_data(post_data, request)
     except PreviewValidationError as exception:
         form_errors, = exception.args
-        print(type(form_errors))
-        print(dir(form_errors))
-        context = {"blogitem": {"errors": str(form_errors)}}
+        context = {"blogitem": {"errors": form_errors}}
         return _response(context)
     context = {"blogitem": {"html": html}}
     return _response(context)
@@ -936,6 +936,38 @@ def blogcomments_batch(request, action):
     else:
         print("ERRORS", form.errors)
         return _response({"errors": form.errors}, status=400)
+
+
+def actually_approve_comment(blogcomment):
+    blogcomment.approved = True
+    blogcomment.save()
+
+    if (
+        blogcomment.parent
+        and blogcomment.parent.email
+        and valid_email(blogcomment.parent.email)
+        and blogcomment.email != blogcomment.parent.email
+    ):
+
+        # XXX Move to background task
+        parent = blogcomment.parent
+        tos = [parent.email]
+        from_ = "Peterbe.com <mail@peterbe.com>"
+        body = _get_comment_reply_body(blogcomment.blogitem, blogcomment, parent)
+        subject = "Peterbe.com: Reply to your comment"
+        send_mail(subject, body, from_, tos)
+
+
+def _get_comment_reply_body(blogitem, blogcomment, parent):
+    base_url = "https://%s" % Site.objects.get_current().domain
+    template = loader.get_template("plog/comment_reply_body.txt")
+    context = {
+        "post": blogitem,
+        "comment": blogcomment,
+        "parent": parent,
+        "base_url": base_url,
+    }
+    return template.render(context).strip()
 
 
 @api_superuser_required

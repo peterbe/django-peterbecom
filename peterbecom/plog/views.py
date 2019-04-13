@@ -34,7 +34,7 @@ from . import utils
 from .forms import CalendarDataForm
 from .models import BlogComment, BlogItem, BlogItemHit, Category
 from .spamprevention import contains_spam_url_patterns
-from .utils import json_view, render_comment_text, utc_now, valid_email
+from .utils import json_view, render_comment_text, utc_now
 
 logger = logging.getLogger("plog.views")
 
@@ -258,7 +258,7 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
     count_comments = post.count_comments()
 
     if page > 1:
-        if page * settings.MAX_RECENT_COMMENTS > count_comments:
+        if (page - 1) * settings.MAX_RECENT_COMMENTS > count_comments:
             raise http.Http404("Gone too far")
 
     if request.GET.get("comments") != "all":
@@ -270,6 +270,7 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
             comments_truncated = settings.MAX_RECENT_COMMENTS
 
         slice_m -= (page - 1) * settings.MAX_RECENT_COMMENTS
+        slice_m = max(0, slice_m)
         slice_n -= (page - 1) * settings.MAX_RECENT_COMMENTS
         comments = comments[slice_m:slice_n]
 
@@ -431,6 +432,7 @@ def submit_json(request, oid):
 
         if post.oid != "blogitem-040601-1":
             # Let's not send an more admin emails for "Find songs by lyrics"
+            # XXX Move to a background task!
             tos = [x[1] for x in settings.MANAGERS]
             from_ = ["%s <%s>" % x for x in settings.MANAGERS][0]
             body = _get_comment_body(post, blog_comment)
@@ -451,24 +453,6 @@ def submit_json(request, oid):
     return response
 
 
-def actually_approve_comment(blogcomment):
-    blogcomment.approved = True
-    blogcomment.save()
-
-    if (
-        blogcomment.parent
-        and blogcomment.parent.email
-        and valid_email(blogcomment.parent.email)
-        and blogcomment.email != blogcomment.parent.email
-    ):
-        parent = blogcomment.parent
-        tos = [parent.email]
-        from_ = "Peterbe.com <mail@peterbe.com>"
-        body = _get_comment_reply_body(blogcomment.blogitem, blogcomment, parent)
-        subject = "Peterbe.com: Reply to your comment"
-        send_mail(subject, body, from_, tos)
-
-
 def _get_comment_body(blogitem, blogcomment):
     base_url = "https://%s" % Site.objects.get_current().domain
     if "peterbecom.local" in base_url:
@@ -480,18 +464,6 @@ def _get_comment_body(blogitem, blogcomment):
         "comment": blogcomment,
         "base_url": base_url,
         "admin_url": admin_url,
-    }
-    return template.render(context).strip()
-
-
-def _get_comment_reply_body(blogitem, blogcomment, parent):
-    base_url = "https://%s" % Site.objects.get_current().domain
-    template = loader.get_template("plog/comment_reply_body.txt")
-    context = {
-        "post": blogitem,
-        "comment": blogcomment,
-        "parent": parent,
-        "base_url": base_url,
     }
     return template.render(context).strip()
 

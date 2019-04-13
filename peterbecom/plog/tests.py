@@ -1,13 +1,14 @@
 import datetime
 from urllib.parse import urlparse
 
-from django.urls import reverse
+import pytest
 from django.conf import settings
-from django.utils import timezone
-from django.test import TestCase
 from django.core import mail
+from django.test import TestCase
+from django.urls import reverse
+from django.utils import timezone
 
-from peterbecom.plog.models import BlogItem, BlogComment, BlogItemHit
+from peterbecom.plog.models import BlogComment, BlogItem, BlogItemHit
 from peterbecom.plog.utils import utc_now
 
 
@@ -205,3 +206,81 @@ class PlogTestCase(TestCase):
 
         response = self.client.post(url, data)
         assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_paginate_comment_capped(client, settings):
+    settings.MAX_RECENT_COMMENTS = 10
+    settings.MAX_BLOGCOMMENT_PAGES = 9  # as long as it's large
+    blogitem = BlogItem.objects.create(
+        oid="myoid",
+        title="TITLEX",
+        text="Test test",
+        display_format="markdown",
+        pub_date=timezone.now() - datetime.timedelta(seconds=10),
+    )
+    bulk = []
+    _range = settings.MAX_RECENT_COMMENTS * 3 + 1
+    for i in range(_range):
+        bulk.append(
+            BlogComment(
+                blogitem=blogitem,
+                comment="Comment #{0:02}".format(i + 1),
+                comment_rendered="Comment #{0:02}".format(i + 1),
+                oid=BlogComment.next_oid(),
+                approved=True,
+                add_date=timezone.now() - datetime.timedelta(hours=_range - i),
+            )
+        )
+    BlogComment.objects.bulk_create(bulk)
+    cached_count = blogitem.count_comments(refresh=True)
+    actual_count = BlogComment.objects.filter(blogitem=blogitem).count()
+    assert cached_count == actual_count
+    assert actual_count == 31
+
+    url = reverse("blog_post", args=[blogitem.oid])
+    response = client.get(url)
+    assert response.status_code == 200
+    assert "Comment #31" in response.content.decode("utf-8")
+    assert "Comment #30" in response.content.decode("utf-8")
+    assert "Comment #21" not in response.content.decode("utf-8")
+
+    url_page_2 = reverse("blog_post", args=[blogitem.oid, 2])
+    response = client.get(url_page_2)
+    assert response.status_code == 200
+    # Expect page 3 to be there
+    url_page_3 = reverse("blog_post", args=[blogitem.oid, 3])
+    assert url_page_3 in response.content.decode("utf-8")
+    assert "Comment #21" in response.content.decode("utf-8")
+    assert "Comment #20" in response.content.decode("utf-8")
+    assert "Comment #11" not in response.content.decode("utf-8")
+
+    response = client.get(url_page_3)
+    assert response.status_code == 200
+    # Expect page 4 to be there
+    url_page_4 = reverse("blog_post", args=[blogitem.oid, 4])
+    assert url_page_4 in response.content.decode("utf-8")
+    assert "Comment #01" not in response.content.decode("utf-8")
+    assert "Comment #02" in response.content.decode("utf-8")
+    assert "Comment #03" in response.content.decode("utf-8")
+    assert "Comment #12" not in response.content.decode("utf-8")
+
+    response = client.get(url_page_4)
+    assert response.status_code == 200
+    assert "Comment #01" in response.content.decode("utf-8")
+    assert "Comment #02" not in response.content.decode("utf-8")
+
+    # Expect page 5 to NOT be there
+    url_page_5 = reverse("blog_post", args=[blogitem.oid, 5])
+    assert url_page_5 not in response.content.decode("utf-8")
+    # Suppose you try to go there anyway!
+    response = client.get(url_page_5)
+    assert response.status_code == 404
+
+    # Suppose it's capped!
+    settings.MAX_BLOGCOMMENT_PAGES = 3
+    response = client.get(url_page_3)
+    assert response.status_code == 404
+    # But, page 2 should still work
+    response = client.get(url_page_2)
+    assert response.status_code == 200

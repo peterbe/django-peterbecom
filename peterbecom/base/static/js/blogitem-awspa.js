@@ -19,6 +19,7 @@
   }
   if ($) {
     // only if jQuery has loaded
-    loadAwspa(document.location.pathname + '/awspa', true);
+    var url = document.location.pathname.replace(/\/p\d+$/g, '') + '/awspa';
+    loadAwspa(url, true);
   }
 })();

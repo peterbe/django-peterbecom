@@ -51,7 +51,6 @@ class BlogForm(forms.ModelForm):
             "disallow_comments",
             "hide_comments",
         )
-        # widgets = {"proper_keywords": forms.widgets.Textarea()}
 
     def __init__(self, *args, **kwargs):
         super(BlogForm, self).__init__(*args, **kwargs)
@@ -63,8 +62,6 @@ class BlogForm(forms.ModelForm):
         self.fields["url"].required = False
         self.fields["summary"].required = False
         self.fields["proper_keywords"].required = False
-        print(self.fields["proper_keywords"])
-        print(self.fields["proper_keywords"].widget)
 
         # 10 was default
         self.fields["text"].widget.attrs["rows"] = 20

@@ -8,6 +8,12 @@ dt { font-size: 1.2em; margin-top:10px; }
 dd a { margin-right: 10px; }
 dd abbr, dd .c { font-size: 0.9em; color: rgb(153, 153, 153); }
 dd .c { float:right; }
+
+/* On mobile, hide the categories */
+@media only screen and (max-width: 767px) {
+  dd .c { display: none; }
+  dd { margin-left: 15px; }
+}
 </style>
 {% endblock %}
 

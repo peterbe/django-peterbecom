@@ -1,4 +1,3 @@
-
 import datetime
 
 from django.utils import timezone
@@ -6,7 +5,7 @@ from django.utils import timezone
 from peterbecom.base.basecommand import BaseCommand
 from peterbecom.plog.models import BlogComment
 from peterbecom.plog.utils import rate_blog_comment
-from peterbecom.plog.views import actually_approve_comment
+from peterbecom.api.views import actually_approve_comment
 
 
 class Command(BaseCommand):

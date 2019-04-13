@@ -119,10 +119,10 @@ class BlogItem(models.Model):
                 )
         return text_rendered
 
-    def count_comments(self):
+    def count_comments(self, refresh=False):
         cache_key = "nocomments:%s" % self.pk
         count = cache.get(cache_key)
-        if count is None:
+        if count is None or refresh:
             count = self._count_comments()
             cache.set(cache_key, count, 60 * 60 * 24)
         return count
