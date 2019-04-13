@@ -15,6 +15,8 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.contrib.gis.geoip2 import GeoIP2
+from django.template import Context
+from django.template.loader import get_template
 from geoip2.errors import AddressNotFoundError
 
 from peterbecom.base.models import PostProcessing, SearchResult
@@ -30,17 +32,14 @@ from peterbecom.awspa.models import AWSProduct
 from peterbecom.awspa.search import search as awspa_search
 from peterbecom.awspa.templatetags.jinja_helpers import awspa_product
 from peterbecom.plog.utils import rate_blog_comment  # move this some day
-from peterbecom.plog.views import (
-    PreviewValidationError,
-    actually_approve_comment,
-    preview_by_data,
-)
+from peterbecom.plog.views import actually_approve_comment
 
 from .forms import (
     BlogCommentBatchForm,
     BlogFileUpload,
     EditBlogCommentForm,
     EditBlogForm,
+    PreviewBlogForm,
     BlogitemRealtimeHitsForm,
 )
 
@@ -194,6 +193,10 @@ def categories(request):
     return _response(context)
 
 
+class PreviewValidationError(Exception):
+    """When something is wrong with the preview data."""
+
+
 @api_superuser_required
 def preview(request):
     assert request.method == "POST", request.method
@@ -207,6 +210,40 @@ def preview(request):
         return _response(context)
     context = {"blogitem": {"html": html}}
     return _response(context)
+
+
+def preview_by_data(data, request):
+    post_data = {}
+    for key, value in data.items():
+        if value:
+            post_data[key] = value
+    post_data["oid"] = "doesntmatter"
+    post_data["keywords"] = []
+    form = PreviewBlogForm(data=post_data)
+    if not form.is_valid():
+        raise PreviewValidationError(form.errors)
+
+    class MockPost(object):
+        def count_comments(self):
+            return 0
+
+        @property
+        def rendered(self):
+            return BlogItem.render(
+                self.text, self.display_format, self.codesyntax, strict=True
+            )
+
+    post = MockPost()
+    post.title = form.cleaned_data["title"]
+    post.text = form.cleaned_data["text"]
+    post.display_format = form.cleaned_data["display_format"]
+    post.codesyntax = form.cleaned_data["codesyntax"]
+    post.url = form.cleaned_data["url"]
+    post.pub_date = form.cleaned_data["pub_date"]
+    post.categories = Category.objects.filter(pk__in=form.cleaned_data["categories"])
+    template = get_template("plog/_post.html")
+    context = Context({"post": post, "request": request})
+    return template.render(context)
 
 
 def catch_all(request):

@@ -31,7 +31,7 @@ from peterbecom.awspa.models import AWSProduct
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
 
 from . import utils
-from .forms import BlogForm, CalendarDataForm
+from .forms import CalendarDataForm
 from .models import BlogComment, BlogItem, BlogItemHit, Category
 from .spamprevention import contains_spam_url_patterns
 from .utils import json_view, render_comment_text, utc_now, valid_email
@@ -566,48 +566,6 @@ def new_comments(request):
     return render(request, "plog/new-comments.html", context)
 
 
-class PreviewValidationError(Exception):
-    """When something is wrong with the preview data."""
-
-
-def preview_by_data(data, request):
-    from django.template import Context
-    from django.template.loader import get_template
-
-    post_data = dict()
-    for key, value in data.items():
-        if value:
-            post_data[key] = value
-    post_data["oid"] = "doesntmatter"
-    post_data["keywords"] = []
-    form = BlogForm(data=post_data)
-    if not form.is_valid():
-        raise PreviewValidationError(form.errors)
-
-    class MockPost(object):
-        def count_comments(self):
-            return 0
-
-        @property
-        def rendered(self):
-            return BlogItem.render(
-                self.text, self.display_format, self.codesyntax, strict=True
-            )
-
-    post = MockPost()
-    post.title = form.cleaned_data["title"]
-    post.text = form.cleaned_data["text"]
-    post.display_format = form.cleaned_data["display_format"]
-    post.codesyntax = form.cleaned_data["codesyntax"]
-    post.url = form.cleaned_data["url"]
-    post.pub_date = form.cleaned_data["pub_date"]
-    post.categories = Category.objects.filter(pk__in=form.cleaned_data["categories"])
-    template = get_template("plog/_post.html")
-    context = Context({"post": post, "request": request})
-    return template.render(context)
-
-
-@cache_page(ONE_DAY)
 def calendar(request):
     context = {"page_title": "Archive calendar"}
     return render(request, "plog/calendar.html", context)

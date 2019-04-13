@@ -103,6 +103,10 @@ class BlogForm(forms.ModelForm):
         return value
 
 
+class PreviewBlogForm(BlogForm):
+    """Exclusively when previewing."""
+
+
 class EditBlogForm(BlogForm):
     pass
 
