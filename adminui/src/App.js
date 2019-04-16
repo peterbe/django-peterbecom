@@ -88,19 +88,26 @@ class App extends React.Component {
   _postProcessAuthResult = authResult => {
     if (authResult) {
       // Now you have the user's information
-      this.setState({
+      const update = {
         userInfo: authResult.idTokenPayload,
         accessToken: authResult.accessToken
-      });
-
+      };
       const expiresAt = authResult.expiresIn * 1000 + new Date().getTime();
-      if (authResult.state) {
-        // XXX we could use authResult.state to redirect to where you
-        // came from.
-        delete authResult.state;
+      let redirectTo = null;
+      if (authResult.appState) {
+        if (authResult.appState.returnUrl) {
+          redirectTo = authResult.appState.returnUrl;
+        }
+        delete authResult.appState;
       }
       localStorage.setItem('authResult', JSON.stringify(authResult));
       localStorage.setItem('expiresAt', JSON.stringify(expiresAt));
+      this.setState(update, () => {
+        if (redirectTo && redirectTo !== document.location.pathname) {
+          // Horrible! But how are you supposed to do this?!
+          document.location.href = redirectTo;
+        }
+      });
     } else {
       if (window.location.pathname !== '/') {
         this.authorize();
@@ -146,10 +153,12 @@ class App extends React.Component {
     }
   };
 
-  authorize = () => {
+  authorize = (returnUrl = null) => {
+    if (!returnUrl) {
+      returnUrl = document.location.pathname;
+    }
     this.webAuth.authorize({
-      // state: returnUrl,
-      state: '/'
+      appState: { returnUrl }
     });
   };
 
@@ -253,7 +262,6 @@ class App extends React.Component {
                   />
                 )}
               />
-              {/* <Route path="/comments" exact component={Comments} /> */}
               <SecureRoute
                 path="/plog/comments"
                 exact

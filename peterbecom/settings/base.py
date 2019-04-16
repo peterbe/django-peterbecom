@@ -122,11 +122,7 @@ MIDDLEWARE = (
 
 ROOT_URLCONF = "peterbecom.urls"
 
-AUTHENTICATION_BACKENDS = (
-    # "peterbecom.base.auth_backend.AuthBackend",
-    "mozilla_django_oidc.auth.OIDCAuthenticationBackend",
-    "django.contrib.auth.backends.ModelBackend",
-)
+AUTHENTICATION_BACKENDS = ("django.contrib.auth.backends.ModelBackend",)
 
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = "peterbecom.wsgi.application"
@@ -184,8 +180,6 @@ INSTALLED_APPS = (
     "django.contrib.sessions",
     "django.contrib.sites",
     "django.contrib.staticfiles",
-    # 'django.contrib.admin',
-    "mozilla_django_oidc",
     "semanticuiform",
     "sorl.thumbnail",
     "peterbecom.base",
@@ -380,11 +374,11 @@ ENABLE_CLIENT_SIDE_ROLLBAR = False
 LOGIN_REDIRECT_URL = "/signin/?logged=in"
 LOGOUT_REDIRECT_URL = "/signin/?logged=out"
 
-OIDC_OP_AUTHORIZATION_ENDPOINT = "https://peterbecom.auth0.com/authorize"
-OIDC_OP_TOKEN_ENDPOINT = "https://peterbecom.auth0.com/oauth/token"
-OIDC_OP_USER_ENDPOINT = "https://peterbecom.auth0.com/userinfo"
-OIDC_RP_CLIENT_ID = ""
-OIDC_RP_CLIENT_SECRET = ""
+# OIDC_OP_AUTHORIZATION_ENDPOINT = "https://peterbecom.auth0.com/authorize"
+# OIDC_OP_TOKEN_ENDPOINT = "https://peterbecom.auth0.com/oauth/token"
+# OIDC_OP_USER_ENDPOINT = "https://peterbecom.auth0.com/userinfo"
+# OIDC_RP_CLIENT_ID = ""
+# OIDC_RP_CLIENT_SECRET = ""
 
 
 HTML_MINIFIER_PATH = path("node_modules/.bin/html-minifier")

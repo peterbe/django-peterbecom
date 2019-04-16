@@ -28,8 +28,8 @@ ROLLBAR = {
     "exception_level_filters": [(Http404, "ignored")],
 }
 
-OIDC_RP_CLIENT_ID = "bogus"
-OIDC_RP_CLIENT_SECRET = "evenmoresecret"
+# OIDC_RP_CLIENT_ID = "bogus"
+# OIDC_RP_CLIENT_SECRET = "evenmoresecret"
 
 AUTH0_DOMAIN = "peterbecom.auth0.example.com"
 
