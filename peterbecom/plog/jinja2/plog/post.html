@@ -63,7 +63,7 @@
     {{ post.pub_date.strftime('%d %B %Y') }}
     &nbsp;
     <span class="comment-count">
-      {{ comment_count }} comment{% if comment_count != 1 %}s{% endif %}
+      {{ thousands(comment_count) }} comment{% if comment_count != 1 %}s{% endif %}
     </span>
 
     &nbsp;
@@ -177,24 +177,8 @@
     {% endif %}
   {% else %}
     <div id="comments-outer" class="ui comments">
-      {#
-      {% if '/plog/blogitem-040601-1' not in request.path %}
-      {% if comments_truncated %}
-      <div class="ui message compact comments-truncated">
-        <p>
-          Only showing the {{ comments_truncated }} most recent comments.
-          ({{ thousands(count_comments) }} in total).
-          <button class="mini ui button">Load them all</button>
-        </p>
-      </div>
-      {% endif %}
-      {% endif %}
-      #}
-
       {% include "plog/_all_comments.html" %}
-
     </div>
-
   {% endif %}
 
   {% if post.disallow_comments %}

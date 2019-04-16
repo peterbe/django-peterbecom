@@ -363,3 +363,15 @@ def rate_blog_comment(comment):
         result["bad"]["maybe_strings"] = maybe_bad_strings
 
     return result
+
+
+def get_blogcomment_slice(count_comments, page):
+    slice_m, slice_n = (
+        max(0, count_comments - settings.MAX_RECENT_COMMENTS),
+        count_comments,
+    )
+    slice_m -= (page - 1) * settings.MAX_RECENT_COMMENTS
+    slice_m = max(0, slice_m)
+    slice_n -= (page - 1) * settings.MAX_RECENT_COMMENTS
+
+    return (slice_m, slice_n)

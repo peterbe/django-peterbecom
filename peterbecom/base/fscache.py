@@ -1,5 +1,4 @@
 import os
-import random
 import time
 from urllib.parse import urljoin, urlparse
 
@@ -74,17 +73,21 @@ def invalidate_by_url_soon(url):
     slated = cache.get("invalidate_by_url", [])
     slated.append(url)
     cache.set("invalidate_by_url", slated, 60)
-    invalidate_by_url_later()
+    invalidate_by_url_later.schedule((), delay=5)
 
 
 @task()
 def invalidate_by_url_later():
-    if not settings.HUEY.get("immediate"):
-        time.sleep(2 + random.random())
-    slated = list(set(cache.get("invalidate_by_url", [])))
+    # Order preserving uniqify list
+    _seen = set()
+    slated = [
+        x
+        for x in cache.get("invalidate_by_url", [])
+        if x not in _seen and not _seen.add(x)
+    ]
     if slated:
         cache.delete("invalidate_by_url")
-    print("After sleeping, there are {} URLs to invalidate".format(len(slated)))
+    # print("After sleeping, there are {} URLs to invalidate".format(len(slated)))
     for url in slated:
         invalidate_by_url(url, revisit=True)
 
@@ -103,7 +106,9 @@ def revisit_url(path):
     base_url = secure and "https://" or "http://"
     base_url += site.domain
     url = urljoin(base_url, path)
-    print("REVISIT", url, requests.get(url).status_code)
+    requests.get(url)
+    # response = requests.get(url)
+    # print("REVISIT", url, response.status_code)
 
 
 def invalidate_too_old(verbose=False, dry_run=False, revisit=False):

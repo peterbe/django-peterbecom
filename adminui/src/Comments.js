@@ -331,9 +331,9 @@ class Comments extends React.Component {
           />
         )}
 
-        {countries && countries.length && (
+        {countries && countries.length ? (
           <ShowCountries countries={countries} />
-        )}
+        ) : null}
 
         {comments && (
           <Button
