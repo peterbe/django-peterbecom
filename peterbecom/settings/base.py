@@ -410,27 +410,12 @@ PLOG_BAD_STRINGS = ("@",)
 
 HUEY = {
     "name": DATABASES["default"]["NAME"],  # Use db name for huey.
-    # "result_store": True,  # Store return values of tasks.
-    "result_store": False,  # Store return values of tasks.
-    # XXX enabling this could be very interesting to get insight into Huey.
-    "events": False,  # Consumer emits events allowing real-time monitoring.
+    "results": False,  # Store return values of tasks.
     "store_none": False,  # If a task returns None, do not save to results.
-    # "always_eager": settings.DEBUG,  # If DEBUG=True, run synchronously.
-    "always_eager": False,
-    # "store_errors": True,  # Store error info if task throws exception.
-    "store_errors": False,  # Store error info if task throws exception.
-    "blocking": False,  # Poll the queue rather than do blocking pop.
-    "backend_class": "huey.RedisHuey",  # Use path to redis huey by default,
+    "immediate": False,
+    "huey_class": "huey.RedisHuey",  # Use path to redis huey by default,
     "connection": {
-        # 'host': 'localhost',
-        # 'port': 6379,
-        # 'db': 0,
-        # 'connection_pool': None,  # Definitely you should use pooling!
-        # # ... tons of other options, see redis-py for details.
-        # huey-specific connection parameters.
         "read_timeout": 1,  # If not polling (blocking pop), use timeout.
-        "max_errors": 100,  # Only store the 1000 most recent errors.
-        # 'url': None,  # Allow Redis config via a DSN.
         "url": REDIS_URL,  # Allow Redis config via a DSN.
     },
     "consumer": {
@@ -442,7 +427,6 @@ HUEY = {
         "utc": True,  # Treat ETAs and schedules as UTC datetimes.
         "scheduler_interval": 1,  # Check schedule every second, -s.
         "periodic": True,  # Enable crontab feature.
-        # "periodic": False,  # Enable crontab feature.
         "check_worker_health": True,  # Enable worker health checks.
         "health_check_interval": 2,  # Check worker health every second.
     },

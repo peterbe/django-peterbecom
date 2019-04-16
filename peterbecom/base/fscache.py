@@ -79,7 +79,7 @@ def invalidate_by_url_soon(url):
 
 @task()
 def invalidate_by_url_later():
-    if not settings.HUEY.get("always_eager"):
+    if not settings.HUEY.get("immediate"):
         time.sleep(2 + random.random())
     slated = list(set(cache.get("invalidate_by_url", [])))
     if slated:
