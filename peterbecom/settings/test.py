@@ -35,7 +35,7 @@ AUTH0_DOMAIN = "peterbecom.auth0.example.com"
 
 OIDC_USER_ENDPOINT = "https://peterbecom.auth0.example.com/userinfooo"
 
-HUEY["always_eager"] = True  # noqa
+HUEY["immediate"] = True  # noqa
 
 MINIMALCSS_SERVER_URL = "http://localhost:55555"
 
