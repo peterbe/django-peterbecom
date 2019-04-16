@@ -9,14 +9,11 @@ from collections import defaultdict
 from django import http
 from django.conf import settings
 
-from django.contrib.sites.models import Site
 from django.contrib.sites.requests import RequestSite
 from django.core.cache import cache
-from django.core.mail import send_mail
 from django.db import transaction
 from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect, render
-from django.template import loader
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
@@ -32,9 +29,10 @@ from peterbecom.base.templatetags.jinja_helpers import thumbnail
 
 from . import utils
 from .forms import CalendarDataForm
+from .tasks import send_new_comment_email
 from .models import BlogComment, BlogItem, BlogItemHit, Category
 from .spamprevention import contains_spam_url_patterns
-from .utils import json_view, render_comment_text, utc_now
+from .utils import json_view, render_comment_text, get_blogcomment_slice
 
 logger = logging.getLogger("plog.views")
 
@@ -223,7 +221,9 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
         except BlogItem.DoesNotExist:
             context["previous_post"] = None
         try:
-            context["next_post"] = post.get_next_by_pub_date(pub_date__lt=utc_now())
+            context["next_post"] = post.get_next_by_pub_date(
+                pub_date__lt=timezone.now()
+            )
         except BlogItem.DoesNotExist:
             context["next_post"] = None
 
@@ -241,41 +241,43 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
     if post.open_graph_image and "://" not in post.open_graph_image:
         post.open_graph_image = request.build_absolute_uri(post.open_graph_image)
 
-    comments = (
-        BlogComment.objects.filter(blogitem=post, approved=True)
-        .order_by("add_date")
-        .only(
-            "oid",
-            "blogitem_id",
-            "parent_id",
-            "approved",
-            "comment_rendered",
-            "add_date",
-            "name",
-        )
+    blogcomments = BlogComment.objects.filter(blogitem=post, approved=True)
+
+    only = (
+        "oid",
+        "blogitem_id",
+        "parent_id",
+        "approved",
+        "comment_rendered",
+        "add_date",
+        "name",
     )
-    comments_truncated = False
-    count_comments = post.count_comments()
+    root_comments = (
+        blogcomments.filter(parent__isnull=True).order_by("add_date").only(*only)
+    )
+
+    replies = blogcomments.filter(parent__isnull=False).order_by("add_date").only(*only)
+
+    count_comments = blogcomments.count()
+
+    root_comments_count = root_comments.count()
 
     if page > 1:
-        if (page - 1) * settings.MAX_RECENT_COMMENTS > count_comments:
+        if (page - 1) * settings.MAX_RECENT_COMMENTS > root_comments_count:
             raise http.Http404("Gone too far")
 
-    if request.GET.get("comments") != "all":
-        slice_m, slice_n = (
-            max(0, count_comments - settings.MAX_RECENT_COMMENTS),
-            count_comments,
-        )
-        if count_comments > settings.MAX_RECENT_COMMENTS:
-            comments_truncated = settings.MAX_RECENT_COMMENTS
+    slice_m, slice_n = get_blogcomment_slice(root_comments_count, page)
+    root_comments = root_comments[slice_m:slice_n]
 
-        slice_m -= (page - 1) * settings.MAX_RECENT_COMMENTS
-        slice_m = max(0, slice_m)
-        slice_n -= (page - 1) * settings.MAX_RECENT_COMMENTS
-        comments = comments[slice_m:slice_n]
+    comments_truncated = False
+    if root_comments_count > settings.MAX_RECENT_COMMENTS:
+        comments_truncated = settings.MAX_RECENT_COMMENTS
 
     all_comments = defaultdict(list)
-    for comment in comments:
+    for comment in root_comments:
+        all_comments[comment.parent_id].append(comment)
+
+    for comment in replies:
         all_comments[comment.parent_id].append(comment)
 
     context["comments_truncated"] = comments_truncated
@@ -291,7 +293,7 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
     context["page"] = page
     if page + 1 < settings.MAX_BLOGCOMMENT_PAGES:
         # But is there even a next page?!
-        if page * settings.MAX_RECENT_COMMENTS < count_comments:
+        if page * settings.MAX_RECENT_COMMENTS < root_comments_count:
             context["paginate_uri_next"] = reverse(
                 "blog_post", args=(post.oid, page + 1)
             )
@@ -303,7 +305,6 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
                 "blog_post", args=(post.oid, page - 1)
             )
 
-    print("RENDER", repr(render))
     return render(request, "plog/post.html", context)
 
 
@@ -363,7 +364,7 @@ def preview_json(request):
         "name": name,
         "email": email,
         "rendered": html,
-        "add_date": utc_now(),
+        "add_date": timezone.now(),
     }
     html = render_to_string("plog/comment.html", {"comment": comment, "preview": True})
     return {"html": html}
@@ -433,12 +434,7 @@ def submit_json(request, oid):
         )
 
         if post.oid != "blogitem-040601-1":
-            # Let's not send an more admin emails for "Find songs by lyrics"
-            # XXX Move to a background task!
-            tos = [x[1] for x in settings.MANAGERS]
-            from_ = ["%s <%s>" % x for x in settings.MANAGERS][0]
-            body = _get_comment_body(post, blog_comment)
-            send_mail("Peterbe.com: New comment on '%s'" % post.title, body, from_, tos)
+            transaction.on_commit(lambda: send_new_comment_email(blog_comment.id))
 
     html = render_to_string(
         "plog/comment.html", {"comment": blog_comment, "preview": True}
@@ -453,21 +449,6 @@ def submit_json(request, oid):
 
     response = http.JsonResponse(data)
     return response
-
-
-def _get_comment_body(blogitem, blogcomment):
-    base_url = "https://%s" % Site.objects.get_current().domain
-    if "peterbecom.local" in base_url:
-        base_url = "http://localhost:4000"
-    admin_url = base_url.replace("www.", "admin.")
-    template = loader.get_template("plog/comment_body.txt")
-    context = {
-        "post": blogitem,
-        "comment": blogcomment,
-        "base_url": base_url,
-        "admin_url": admin_url,
-    }
-    return template.render(context).strip()
 
 
 def _plog_index_key_prefixer(request):
@@ -488,7 +469,7 @@ def _plog_index_key_prefixer(request):
 @cache_page(ONE_DAY, _plog_index_key_prefixer)
 def plog_index(request):
     groups = defaultdict(list)
-    now = utc_now()
+    now = timezone.now()
     group_dates = []
 
     _categories = dict((x.pk, x.name) for x in Category.objects.all())
@@ -612,9 +593,9 @@ def blog_post_awspa(request, oid, page=None):
 
     keywords = blogitem.get_all_keywords()
     if not keywords:
-        print("Blog post without any keywords", oid)
-        with open("/tmp/no-keywords-awsproducts.log", "a") as f:
-            f.write("{}\n".format(oid))
+        # print("Blog post without any keywords", oid)
+        # with open("/tmp/no-keywords-awsproducts.log", "a") as f:
+        #     f.write("{}\n".format(oid))
         awsproducts = AWSProduct.objects.none()
     else:
         awsproducts = AWSProduct.objects.exclude(disabled=True).filter(

@@ -11,6 +11,7 @@ import bleach
 from django.contrib.postgres.fields import ArrayField
 from django.core.cache import cache
 from django.db import models, transaction
+from django.conf import settings
 from django.db.models import Count
 from django.db.models.signals import post_save, pre_delete, pre_save
 from django.dispatch import receiver
@@ -265,8 +266,9 @@ class BlogComment(models.Model):
     ip_address = models.GenericIPAddressField(blank=True, null=True)
 
     def __repr__(self):
-        return "<%s: %r (%sapproved)>" % (
+        return "<%s: %s %r (%sapproved)>" % (
             self.__class__.__name__,
+            self.id,
             self.oid + " " + self.comment[:20],
             not self.approved and "not" or "",
         )
@@ -427,17 +429,28 @@ def update_modify_date(sender, instance, **kwargs):
 def invalidate_fscache(sender, instance, **kwargs):
     if kwargs["raw"]:
         return
+    urls = []
     if sender is BlogItem:
-        url = reverse("blog_post", args=(instance.oid,))
+        urls.append(reverse("blog_post", args=(instance.oid,)))
     elif sender is BlogComment:
         # Only invalidate if the comment is approved!
         if not instance.approved:
             return
-        url = reverse("blog_post", args=(instance.blogitem.oid,))
+        blogitem = instance.blogitem
+        comment_count = blogitem.count_comments()
+        pages = comment_count // settings.MAX_RECENT_COMMENTS
+        for page in range(1, pages + 2):
+            if page >= settings.MAX_BLOGCOMMENT_PAGES:
+                break
+            if page > 1:
+                urls.append(reverse("blog_post", args=[blogitem.oid, page]))
+            else:
+                urls.append(reverse("blog_post", args=[blogitem.oid]))
     else:
         raise NotImplementedError(sender)
 
-    invalidate_by_url_soon(url)
+    for url in urls:
+        invalidate_by_url_soon(url)
 
 
 @receiver(models.signals.post_save, sender=BlogItem)

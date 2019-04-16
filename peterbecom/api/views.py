@@ -9,10 +9,7 @@ from urllib.parse import urlparse
 
 from django import http
 from django.conf import settings
-from django.contrib.sites.models import Site
 from django.contrib.gis.geoip2 import GeoIP2
-from django.template import loader
-from django.core.mail import send_mail
 from django.db.models import Avg, Count, Max, Min, Q
 from django.shortcuts import get_object_or_404
 from django.template import Context
@@ -35,7 +32,7 @@ from peterbecom.plog.models import (
     Category,
 )
 from peterbecom.plog.utils import rate_blog_comment, valid_email  # move this some day
-
+from .tasks import send_comment_reply_email
 from .forms import (
     BlogCommentBatchForm,
     BlogFileUpload,
@@ -948,26 +945,9 @@ def actually_approve_comment(blogcomment):
         and valid_email(blogcomment.parent.email)
         and blogcomment.email != blogcomment.parent.email
     ):
-
-        # XXX Move to background task
-        parent = blogcomment.parent
-        tos = [parent.email]
-        from_ = "Peterbe.com <mail@peterbe.com>"
-        body = _get_comment_reply_body(blogcomment.blogitem, blogcomment, parent)
-        subject = "Peterbe.com: Reply to your comment"
-        send_mail(subject, body, from_, tos)
-
-
-def _get_comment_reply_body(blogitem, blogcomment, parent):
-    base_url = "https://%s" % Site.objects.get_current().domain
-    template = loader.get_template("plog/comment_reply_body.txt")
-    context = {
-        "post": blogitem,
-        "comment": blogcomment,
-        "parent": parent,
-        "base_url": base_url,
-    }
-    return template.render(context).strip()
+        send_comment_reply_email.schedule(
+            (blogcomment.id,), delay=settings.DELAY_SENDING_BLOGCOMMENT_REPLY_SECONDS
+        )
 
 
 @api_superuser_required

@@ -93,7 +93,7 @@ def test_blog_post_with_newline_request_path(client):
 
 
 @pytest.mark.django_db
-def test_submit_comment(client):
+def test_submit_comment(client, on_commit_immediately):
     blog = BlogItem.objects.create(
         oid="myoid",
         title="TITLEX",
@@ -136,7 +136,7 @@ def test_submit_comment(client):
 
 
 @pytest.mark.django_db
-def test_submit_reply_comment(client):
+def test_submit_reply_comment(client, on_commit_immediately):
     blog = BlogItem.objects.create(
         oid="myoid",
         title="TITLEX",
