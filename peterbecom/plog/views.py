@@ -302,6 +302,8 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
             context["paginate_uri_previous"] = reverse(
                 "blog_post", args=(post.oid, page - 1)
             )
+
+    print("RENDER", repr(render))
     return render(request, "plog/post.html", context)
 
 
