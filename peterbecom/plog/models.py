@@ -431,17 +431,14 @@ def invalidate_fscache(sender, instance, **kwargs):
         return
     urls = []
     if sender is BlogItem:
-        # print("BLOGITEM CHANGED!")
         urls.append(reverse("blog_post", args=(instance.oid,)))
     elif sender is BlogComment:
         # Only invalidate if the comment is approved!
         if not instance.approved:
             return
-        # urls.append(reverse("blog_post", args=(instance.blogitem.oid,)))
         blogitem = instance.blogitem
         comment_count = blogitem.count_comments()
         pages = comment_count // settings.MAX_RECENT_COMMENTS
-        # print("PAGES:", pages)
         for page in range(1, pages + 2):
             if page >= settings.MAX_BLOGCOMMENT_PAGES:
                 break
@@ -452,7 +449,6 @@ def invalidate_fscache(sender, instance, **kwargs):
     else:
         raise NotImplementedError(sender)
 
-    # print("INVALIDATE:", urls)
     for url in urls:
         invalidate_by_url_soon(url)
 

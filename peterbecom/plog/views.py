@@ -434,13 +434,7 @@ def submit_json(request, oid):
         )
 
         if post.oid != "blogitem-040601-1":
-            print("transaction.on_commit", repr(transaction.on_commit))
             transaction.on_commit(lambda: send_new_comment_email(blog_comment.id))
-
-            def foo():
-                print("NOW!! in FOO! *********************************************")
-
-            transaction.on_commit(foo)
 
     html = render_to_string(
         "plog/comment.html", {"comment": blog_comment, "preview": True}
