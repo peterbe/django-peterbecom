@@ -371,15 +371,6 @@ MINIMALCSS_TIMEOUT_SECONDS = 12.0  # Most seem to take about 2-4 seconds in prod
 
 ENABLE_CLIENT_SIDE_ROLLBAR = False
 
-LOGIN_REDIRECT_URL = "/signin/?logged=in"
-LOGOUT_REDIRECT_URL = "/signin/?logged=out"
-
-# OIDC_OP_AUTHORIZATION_ENDPOINT = "https://peterbecom.auth0.com/authorize"
-# OIDC_OP_TOKEN_ENDPOINT = "https://peterbecom.auth0.com/oauth/token"
-# OIDC_OP_USER_ENDPOINT = "https://peterbecom.auth0.com/userinfo"
-# OIDC_RP_CLIENT_ID = ""
-# OIDC_RP_CLIENT_SECRET = ""
-
 
 HTML_MINIFIER_PATH = path("node_modules/.bin/html-minifier")
 HTML_MINIFIER_TIMEOUT_SECONDS = 2.0
