@@ -137,7 +137,7 @@ var _rollbarConfig = {
 
 
   {% block basejs %}
-  {%- if '/plog/blogitem-040601-1' not in request.path  %}
+  {%- if '/plog/blogitem-040601-1' in request.path  %}
   {% javascript 'lyrics' %}
   {% javascript 'loadcss' %}
   {% else %}
