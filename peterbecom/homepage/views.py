@@ -298,6 +298,7 @@ def search(request, original_q=None):
     search_times.append(("blogitems", t1 - t0))
 
     for hit in response:
+
         result = hit.to_dict()
 
         try:
@@ -318,7 +319,7 @@ def search(request, original_q=None):
                 "title": title,
                 "date": result["pub_date"],
                 "summary": summary,
-                "score": hit._score,
+                "score": hit.meta.score,
                 "comment": False,
             }
         )
@@ -366,7 +367,7 @@ def search(request, original_q=None):
                 "title": None,
                 "date": result["add_date"],
                 "summary": summary,
-                "score": hit._score,
+                "score": hit.meta.score,
                 "comment": True,
                 "oid": result["oid"],
             }

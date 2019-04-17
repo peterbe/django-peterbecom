@@ -1,19 +1,6 @@
 import time
 
-from elasticsearch_dsl import Index
 from elasticsearch.exceptions import ConnectionTimeout, NotFoundError
-
-from django.conf import settings
-
-
-blog_item_index = Index(settings.ES_BLOG_ITEM_INDEX)
-blog_item_index.settings(**settings.ES_BLOG_ITEM_INDEX_SETTINGS)
-
-blog_comment_index = Index(settings.ES_BLOG_COMMENT_INDEX)
-blog_comment_index.settings(**settings.ES_BLOG_COMMENT_INDEX_SETTINGS)
-
-podcast_index = Index(settings.ES_PODCAST_INDEX)
-podcast_index.settings(**settings.ES_PODCAST_INDEX_SETTINGS)
 
 
 def es_retry(callable, *args, **kwargs):

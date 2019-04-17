@@ -1,16 +1,14 @@
 from django.conf import settings
 from elasticsearch_dsl import (
-    DocType,
     Boolean,
-    Text,
-    Integer,
     Date,
-    analyzer,
+    Document,
+    Integer,
     Keyword,
+    Text,
+    analyzer,
     token_filter,
 )
-
-from peterbecom.base.search import blog_item_index, blog_comment_index
 
 synonyms_root = settings.BASE_DIR / "peterbecom/es-synonyms"
 # Use str() here because Python 3.5's open() builtin can't take a PosixPath instance.
@@ -65,8 +63,7 @@ text_analyzer = analyzer(
 )
 
 
-@blog_item_index.doc_type
-class BlogItemDoc(DocType):
+class BlogItemDoc(Document):
     id = Keyword(required=True)
     oid = Keyword(required=True)
     title_autocomplete = Text(
@@ -78,12 +75,19 @@ class BlogItemDoc(DocType):
     categories = Text(fields={"raw": Keyword()})
     keywords = Text(fields={"raw": Keyword()})
 
+    class Index:
+        name = settings.ES_BLOG_ITEM_INDEX
+        settings = settings.ES_BLOG_ITEM_INDEX_SETTINGS
 
-@blog_comment_index.doc_type
-class BlogCommentDoc(DocType):
+
+class BlogCommentDoc(Document):
     id = Keyword(required=True)
     oid = Keyword(required=True)
     blogitem_id = Integer(required=True)
     approved = Boolean()
     add_date = Date()
     comment = Text(analyzer=text_analyzer)
+
+    class Index:
+        name = settings.ES_BLOG_COMMENT_INDEX
+        settings = settings.ES_BLOG_COMMENT_INDEX_SETTINGS
