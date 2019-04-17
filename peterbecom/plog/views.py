@@ -297,13 +297,11 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
             context["paginate_uri_next"] = reverse(
                 "blog_post", args=(post.oid, page + 1)
             )
+
     if page > 1:
-        if page == 2:
-            context["paginate_uri_previous"] = reverse("blog_post", args=(post.oid,))
-        else:
-            context["paginate_uri_previous"] = reverse(
-                "blog_post", args=(post.oid, page - 1)
-            )
+        context["paginate_uri_previous"] = reverse(
+            "blog_post", args=(post.oid, page - 1)
+        )
 
     return render(request, "plog/post.html", context)
 
