@@ -8,7 +8,7 @@ from elasticsearch.helpers import streaming_bulk
 
 from peterbecom.base.basecommand import BaseCommand
 from peterbecom.plog.models import BlogItem, Category, BlogComment
-from peterbecom.plog.search import blog_item_index, blog_comment_index
+from peterbecom.plog.search import BlogItemDoc, BlogCommentDoc
 
 
 def _get_doc_type_name(model):
@@ -26,8 +26,13 @@ class Command(BaseCommand):
 
     def _handle(self, *args, **kwargs):
         if kwargs["create_index"]:
+            # See this issue about the use of a private attribute
+            # https://github.com/elastic/elasticsearch-dsl-py/issues/1164
+
+            blog_item_index = BlogItemDoc._index
             blog_item_index.delete(ignore=404)
             blog_item_index.create()
+            blog_comment_index = BlogCommentDoc._index
             blog_comment_index.delete(ignore=404)
             blog_comment_index.create()
 

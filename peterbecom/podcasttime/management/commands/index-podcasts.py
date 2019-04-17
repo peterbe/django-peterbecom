@@ -8,7 +8,7 @@ from elasticsearch.helpers import streaming_bulk
 
 from peterbecom.base.basecommand import BaseCommand
 from peterbecom.podcasttime.models import Podcast, Episode
-from peterbecom.podcasttime.search import podcast_index
+from peterbecom.podcasttime.search import PodcastDoc
 
 
 class Command(BaseCommand):
@@ -45,6 +45,7 @@ class Command(BaseCommand):
                 iterator = iterator.order_by("-modified")[:limit]
 
         if kwargs["create_index"]:  # or not limit:
+            podcast_index = PodcastDoc._index
             podcast_index.delete(ignore=404)
             podcast_index.create()
 

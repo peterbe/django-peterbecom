@@ -99,8 +99,8 @@ class Podcast(models.Model):
             duration = episodes_qs.aggregate(duration=Sum("duration"))["duration"]
 
         if kwargs.get("episodes_count"):
-            if self.id not in kwargs["episodes_count"]:
-                print(repr(self.name), "Has No episodes_count")
+            # if self.id not in kwargs["episodes_count"]:
+            #     print(repr(self.name), "Has No episodes_count")
             episodes_count = kwargs["episodes_count"].get(self.id, 0)
         else:
             episodes_count = episodes_qs.count()
