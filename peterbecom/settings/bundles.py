@@ -75,50 +75,60 @@ PIPELINE_JS = {
         ),
         "output_filename": "js/base.min.js",
         "extra_context": {"defer": True},
+        "template_name": "custom_pipeline/js.html",
     },
     "prefetcher": {
         "source_filenames": ("js/prefetcher.es6",),
         "output_filename": "js/prefetcher.min.js",
         "extra_context": {"defer": True},
+        "template_name": "custom_pipeline/js.html",
     },
     "lyrics": {
         "source_filenames": ("libs/jquery-3.3.1.min.js", "js/blogitem.js"),
         "output_filename": "js/lyrics.min.js",
         "extra_context": {"defer": True},
+        "template_name": "custom_pipeline/js.html",
     },
     "loadcss": {
         "source_filenames": ("js/loadCSS.js",),
         "output_filename": "js/loadcss.min.js",
         "extra_context": {"async": True},
+        "template_name": "custom_pipeline/js.html",
     },
     "delayedcss": {
         "source_filenames": ("js/delayedcss.js",),
         "output_filename": "js/delayedcss.min.js",
         "extra_context": {"defer": True},
+        "template_name": "custom_pipeline/js.html",
     },
     "carbonnative": {
         "source_filenames": ("js/carbonnative.js",),
         "output_filename": "js/carbonnative.min.js",
         "extra_context": {"async": True},
+        "template_name": "custom_pipeline/js.html",
     },
     "autocompeter": {
         "source_filenames": ("js/autocompeter.js",),
         "output_filename": "js/autocompeter.min.js",
         "extra_context": {"defer": True},
+        "template_name": "custom_pipeline/js.html",
     },
     "about": {
         "source_filenames": ("js/about.js",),
         "output_filename": "js/about.min.js",
         "extra_context": {"defer": True},
+        "template_name": "custom_pipeline/js.html",
     },
     "plog:post": {
         "source_filenames": ("js/blogitem-ping.js", "js/blogitem-awspa.js"),
         "output_filename": "js/blogitem-post.min.js",
         "extra_context": {"defer": True},
+        "template_name": "custom_pipeline/js.html",
     },
     "calendar": {
         "source_filenames": ("plog/js/calendar.js",),
         "output_filename": "js/calendar.min.js",
+        "template_name": "custom_pipeline/js.html",
     },
 }
 
