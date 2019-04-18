@@ -27,8 +27,12 @@ def create_parents(fs_path):
     for part in directory.replace(settings.FSCACHE_ROOT, "").split("/"):
         here = os.path.join(here, part)
         if not os.path.isdir(here):
-            os.mkdir(here)
-            os.chmod(here, 0o755)
+            try:
+                os.mkdir(here)
+                os.chmod(here, 0o755)
+            except FileExistsError:
+                # Race conditions
+                pass
 
 
 def too_old(fs_path, seconds=None):
