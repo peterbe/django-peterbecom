@@ -77,9 +77,19 @@
   {% endif %}
 
   {% if '/plog/blogitem-040601-1' in request.path %}
-    {#<h3 class="ui header">Looking for a song you heard, but don't know the name?</h3>#}
-    {#<h3 class="ui header">Looking for a song you don't know the name of?</h3>#}
-    <h3 class="ui header">I'm looking for a song I don't know the name of. I'm looking for a song that goes like this.</h3>
+    <h3 class="ui header">
+      {%- if page == 1 -%}
+      I'm looking for a song I don't know the name of.
+      {%- elif page == 2 -%}
+      Looking for a song you heard, but don't know the name?
+      {%- elif page == 3 -%}
+      I'm looking for a song that goes like this.
+      {%- elif page == 4 -%}
+      Looking for a song you heard, but don't know the name?
+      {%- else -%}
+      Look for a song by its lyrics.
+      {%- endif -%}
+    </h3>
   {% else %}
     {% if post.url %}
     <h4><a href="{{ post.url }}">{{ post.url }}</a></h4>
@@ -138,17 +148,17 @@
 {% endif %}
 
 {% macro pagination() -%}
-  {# XXX Make this link from page1 to page2. That would also require code that figures out if there is a page(N+1) #}
-  {% if page > 1 %}
-
-    Go to: <a href="{{ paginate_uri_previous }}#comments">← Page {{ page - 1 }}</a>
+  {% if paginate_uri_next or paginate_uri_previous -%}
+    {%- if paginate_uri_previous %}
+    Go to <a href="{{ paginate_uri_previous }}#comments">← Page {{ page - 1 }}</a>
     &nbsp;
+    {%- endif -%}
     <span style="color:#999">(Page {{ page }})</span>
     &nbsp;
-    {% if paginate_uri_next %}
+    {%- if paginate_uri_next -%}
       <a href="{{ paginate_uri_next }}#comments">Page {{ page + 1 }} →</a>
-    {% endif %}
-  {% endif %}
+    {%- endif -%}
+  {%- endif -%}
 
 {% endmacro %}
 

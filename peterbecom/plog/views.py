@@ -3,7 +3,7 @@ import hashlib
 import logging
 import random
 import re
-
+from urllib.parse import urlparse
 from collections import defaultdict
 
 from django import http
@@ -53,7 +53,6 @@ def _blog_post_key_prefixer(request):
     prefix = getattr(request, "_prefix", None)
     if prefix is not None:
         return prefix
-    # print("PREFIXED?", getattr(request, '_prefixed', None))
     if request.method != "GET":
         return None
     prefix = utils.make_prefix(request.GET)
@@ -62,8 +61,8 @@ def _blog_post_key_prefixer(request):
     if request.path.endswith("/all-comments"):
         oid = request.path.split("/")[-2]
         # all_comments = True
-    elif request.path.endswith("/"):
-        oid = request.path.split("/")[-2]
+    elif "/plog/" in request.path:
+        oid = urlparse(request.path).path.split("/")[2]
     else:
         oid = request.path.split("/")[-1]
 
@@ -93,7 +92,7 @@ def _blog_post_key_prefixer(request):
         ):
             latest_date = c["add_date"]
         latest_date = latest_date.strftime("%f")
-        cache.set(cache_key, latest_date, ONE_MONTH)
+        cache.set(cache_key, latest_date, ONE_DAY)
     prefix += str(latest_date)
 
     # This is a HACK!
@@ -198,7 +197,7 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
         if page == 1:
             return redirect("blog_post", oid)
 
-    if page >= settings.MAX_BLOGCOMMENT_PAGES:
+    if page > settings.MAX_BLOGCOMMENT_PAGES:
         raise http.Http404("Gone too far")
 
     # Reasons for not being here
@@ -291,21 +290,21 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
     context["page_title"] = post.title
     context["pub_date_years"] = THIS_YEAR - post.pub_date.year
     context["page"] = page
-    if page + 1 < settings.MAX_BLOGCOMMENT_PAGES:
+    if page < settings.MAX_BLOGCOMMENT_PAGES:
         # But is there even a next page?!
         if page * settings.MAX_RECENT_COMMENTS < root_comments_count:
             context["paginate_uri_next"] = reverse(
                 "blog_post", args=(post.oid, page + 1)
             )
-    if page > 1:
-        if page == 2:
-            context["paginate_uri_previous"] = reverse("blog_post", args=(post.oid,))
-        else:
-            context["paginate_uri_previous"] = reverse(
-                "blog_post", args=(post.oid, page - 1)
-            )
 
-    return render(request, "plog/post.html", context)
+    if page > 1:
+        context["paginate_uri_previous"] = reverse(
+            "blog_post", args=(post.oid, page - 1)
+        )
+
+    response = render(request, "plog/post.html", context)
+    response["x-server"] = "django"
+    return response
 
 
 @cache_control(public=True, max_age=7 * 24 * 60 * 60)
@@ -370,7 +369,6 @@ def preview_json(request):
     return {"html": html}
 
 
-# Not using @json_view so I can use response.set_cookie first
 @require_POST
 @transaction.atomic
 def submit_json(request, oid):

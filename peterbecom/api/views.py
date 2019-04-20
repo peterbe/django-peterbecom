@@ -782,6 +782,24 @@ def blogcomments(request):
     ):
         all_parent_ids.add(each["parent_id"])
 
+    @lru_cache()
+    def get_blogitem_comment_add_dates(blogitem_id):
+        qs = BlogComment.objects.filter(blogitem_id=blogitem_id, parent__isnull=True)
+        return list(qs.order_by("-add_date").values_list("id", flat=True))
+
+    def get_comment_page(blog_comment):
+        root_comment = blog_comment
+        while root_comment.parent_id:
+            root_comment = root_comment.parent
+        ids = get_blogitem_comment_add_dates(blog_comment.blogitem_id)
+        per_page = settings.MAX_RECENT_COMMENTS
+        for i in range(settings.MAX_BLOGCOMMENT_PAGES):
+            sub_list = ids[i * per_page : (i + 1) * per_page]
+            if root_comment.id in sub_list:
+                return i + 1
+
+        return 1
+
     def _serialize_comment(item, blogitem=None):
         all_ids.add(item.id)
         record = {
@@ -801,6 +819,13 @@ def blogcomments(request):
             "_clues": not item.approved and rate_blog_comment(item) or None,
             "replies": [],
         }
+        # XXX why would it NOT have a blogitem?!
+        page = get_comment_page(item)
+        if page > 1:
+            blog_post_url = reverse("blog_post", args=[blogitem.oid, page])
+        else:
+            blog_post_url = reverse("blog_post", args=[blogitem.oid])
+        record["_absolute_url"] = blog_post_url + "#{}".format(item.oid)
         if blogitem:
             record["blogitem"] = {
                 "id": blogitem.id,

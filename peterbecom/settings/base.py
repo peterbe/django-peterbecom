@@ -341,6 +341,9 @@ assert not FSCACHE_ROOT.endswith("/")
 
 CSSO_CLI_BINARY = path("node_modules/.bin/csso")
 
+
+CSRF_FAILURE_VIEW = "peterbecom.base.views.csrf_failure"
+
 # ElasticSearch
 
 ES_BLOG_ITEM_INDEX = "blog_item"
@@ -356,9 +359,9 @@ ES_CONNECTIONS = {"default": {"hosts": ["localhost:9200"]}}
 
 LATEST_PODCAST_CUTOFF_DAYS = 300
 
-MAX_RECENT_COMMENTS = 200  # XXX CHANGE THIS TO 100 when pagination works
+MAX_RECENT_COMMENTS = 100
 
-MAX_BLOGCOMMENT_PAGES = 10
+MAX_BLOGCOMMENT_PAGES = 13
 
 MOZJPEG_PATH = "mozjpeg"
 GUETZLI_PATH = "guetzli"
