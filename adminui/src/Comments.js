@@ -532,9 +532,7 @@ class CommentTree extends React.PureComponent {
             <div>
               {this.hotness(comment.age_seconds)}
               <a
-                href={
-                  BASE_URL + comment.blogitem._absolute_url + `#${comment.oid}`
-                }
+                href={BASE_URL + comment._absolute_url}
                 target="_blank"
                 rel="noopener noreferrer"
               >

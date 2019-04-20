@@ -469,7 +469,6 @@ def autocompete(request):
     response = search_query.execute()
     results = []
     for hit in response.hits:
-        # print('\t', hit.oid, hit.pub_date, hit._score)
         results.append([reverse("blog_post", args=(hit.oid,)), hit.title])
 
     response = http.JsonResponse({"results": results, "terms": terms})

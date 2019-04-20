@@ -80,7 +80,15 @@ class FSCacheMiddleware:
                         f.write("\n<!-- {} -->\n".format(metadata_text))
 
                 assert os.path.isfile(fs_path), fs_path
-                assert os.stat(fs_path).st_size
+                if not os.stat(fs_path).st_size:
+                    # Weird! The file does not appear have been written yet!
+                    print(
+                        "WARNING! fscache file {} on {!r} was empty!".format(
+                            fs_path, request.path
+                        )
+                    )
+                    return response
+                # assert os.stat(fs_path).st_size
 
                 # This is a bit temporary
                 # with open("/tmp/fscached2.log", "a") as f:

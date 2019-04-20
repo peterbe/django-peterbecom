@@ -54,8 +54,12 @@ def invalidate(fs_path):
     for ending in endings:
         fs_path_w = fs_path + ending
         if os.path.isfile(fs_path_w):
-            os.remove(fs_path_w)
-            deleted.append(fs_path_w)
+            try:
+                os.remove(fs_path_w)
+                deleted.append(fs_path_w)
+            except FileNotFoundError:
+                # race condition probably.
+                pass
 
     # XXX What about "index.not-minified.html"???
 
