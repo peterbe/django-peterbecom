@@ -292,14 +292,6 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
     context["page"] = page
     if page < settings.MAX_BLOGCOMMENT_PAGES:
         # But is there even a next page?!
-        print(
-            "PAGE",
-            page,
-            "page * settings.MAX_RECENT_COMMENTS",
-            page * settings.MAX_RECENT_COMMENTS,
-            "root_comments_count",
-            root_comments_count,
-        )
         if page * settings.MAX_RECENT_COMMENTS < root_comments_count:
             context["paginate_uri_next"] = reverse(
                 "blog_post", args=(post.oid, page + 1)
