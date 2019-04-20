@@ -22,6 +22,7 @@ def csrf_failure(request, reason=""):
             "POST": post_data,
             "GET": get_data,
             "headers": dict(request.headers),
+            "ip_address": request.META.get("REMOTE_ADDR"),
         }
 
         json.dump(request_data, f, indent=3)
