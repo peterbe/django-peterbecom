@@ -341,6 +341,9 @@ assert not FSCACHE_ROOT.endswith("/")
 
 CSSO_CLI_BINARY = path("node_modules/.bin/csso")
 
+
+CSRF_FAILURE_VIEW = "peterbecom.base.views.csrf_failure"
+
 # ElasticSearch
 
 ES_BLOG_ITEM_INDEX = "blog_item"

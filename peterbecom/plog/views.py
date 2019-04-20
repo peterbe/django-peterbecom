@@ -197,7 +197,7 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
         if page == 1:
             return redirect("blog_post", oid)
 
-    if page >= settings.MAX_BLOGCOMMENT_PAGES:
+    if page > settings.MAX_BLOGCOMMENT_PAGES:
         raise http.Http404("Gone too far")
 
     # Reasons for not being here
@@ -290,8 +290,16 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
     context["page_title"] = post.title
     context["pub_date_years"] = THIS_YEAR - post.pub_date.year
     context["page"] = page
-    if page + 1 < settings.MAX_BLOGCOMMENT_PAGES:
+    if page < settings.MAX_BLOGCOMMENT_PAGES:
         # But is there even a next page?!
+        print(
+            "PAGE",
+            page,
+            "page * settings.MAX_RECENT_COMMENTS",
+            page * settings.MAX_RECENT_COMMENTS,
+            "root_comments_count",
+            root_comments_count,
+        )
         if page * settings.MAX_RECENT_COMMENTS < root_comments_count:
             context["paginate_uri_next"] = reverse(
                 "blog_post", args=(post.oid, page + 1)
@@ -369,7 +377,6 @@ def preview_json(request):
     return {"html": html}
 
 
-# Not using @json_view so I can use response.set_cookie first
 @require_POST
 @transaction.atomic
 def submit_json(request, oid):

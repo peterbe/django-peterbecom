@@ -263,10 +263,49 @@ def test_paginate_comment_capped(client, settings):
     response = client.get(url_page_5)
     assert response.status_code == 404
 
-    # Suppose it's capped!
+
+@pytest.mark.django_db
+def test_paginate_comment_unbound_attempt(client, settings):
+    settings.MAX_RECENT_COMMENTS = 10
     settings.MAX_BLOGCOMMENT_PAGES = 3
-    response = client.get(url_page_3)
-    assert response.status_code == 404
-    # But, page 2 should still work
+    blogitem = BlogItem.objects.create(
+        oid="myoid",
+        title="TITLEX",
+        text="Test test",
+        display_format="markdown",
+        pub_date=timezone.now() - datetime.timedelta(seconds=10),
+    )
+    bulk = []
+    _range = settings.MAX_RECENT_COMMENTS * 3 + 1
+    for i in range(_range):
+        bulk.append(
+            BlogComment(
+                blogitem=blogitem,
+                comment="Comment #{0:02}".format(i + 1),
+                comment_rendered="Comment #{0:02}".format(i + 1),
+                oid=BlogComment.next_oid(),
+                approved=True,
+                add_date=timezone.now() - datetime.timedelta(hours=_range - i),
+            )
+        )
+    BlogComment.objects.bulk_create(bulk)
+    cached_count = blogitem.count_comments(refresh=True)
+    actual_count = BlogComment.objects.filter(blogitem=blogitem).count()
+    assert cached_count == actual_count
+    assert actual_count == 31
+
+    url_page_1 = reverse("blog_post", args=[blogitem.oid])
+    response = client.get(url_page_1)
+    assert response.status_code == 200
+
+    url_page_2 = reverse("blog_post", args=[blogitem.oid, 2])
     response = client.get(url_page_2)
     assert response.status_code == 200
+
+    url_page_3 = reverse("blog_post", args=[blogitem.oid, 3])
+    response = client.get(url_page_3)
+    assert response.status_code == 200
+
+    url_page_4 = reverse("blog_post", args=[blogitem.oid, 4])
+    response = client.get(url_page_4)
+    assert response.status_code == 404
