@@ -187,7 +187,12 @@ var F = (function() {
         },
         error: function(jqXHR, textStatus, errorThrown) {
           $('.dimmer', form).removeClass('active');
-          alert('Error: ' + errorThrown);
+          var msg = 'Error: ' + errorThrown;
+          if (jqXHR.status === 403) {
+            F.prepare();
+            msg += ' (try submitting again?)';
+          }
+          alert(msg);
           submitting = false;
         }
       });
