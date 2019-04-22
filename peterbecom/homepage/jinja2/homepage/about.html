@@ -62,6 +62,29 @@ on various tools that help the development of Firefox and my other Mozilla proje
 
 <h2>Side projects</h2>
 
+<div class="project" id="sockshootout">
+  <div class="screenshot">
+    <a href="https://sockshootout.app" title="WebSockets vs. XHR (2019)">
+      <img src="{{ static('images/sockshootout-scr.png') }}" alt="Screenshot"/>
+    </a>
+  </div>
+  <div class="rest">
+    <h3>WebSockets vs. XHR (2019)</h3>
+    <h4><a href="https://sockshootout.app">https://sockshootout.app</a></h4>
+    <p>
+      WebSockets are promising because the connection is
+      kept open so that sending new data has lower overheads than a regular XHR request.
+      This app is a demo/playground to really test this in a production-grade setting.
+      You can run your own test from <i>your</i> location and it will effectively
+      give you an insight into the latency vs. overheads balance.<br/>
+      This is <a href="/plog/websockets-vs-xhr-2019">the full blog post about the
+      experiment</a>.
+      The code <a href="https://github.com/peterbe/sockshootout2019">github.com/peterbe/sockshootout2019</a>
+      is a mix of React, Tornado, and Django.
+    </p>
+  </div>
+</div>
+
 <div class="project" id="minimalcssapp">
   <div class="screenshot">
     <a href="https://minimalcss.app" title="minimalcss web app">
