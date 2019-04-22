@@ -3,8 +3,14 @@ import time
 
 from django.http import HttpResponseForbidden
 
+TRACKBACK_REASON = "Referer checking failed - Referer is insecure while host is secure."
+
 
 def csrf_failure(request, reason=""):
+    if reason == TRACKBACK_REASON and request.path.endswith("/trackback"):
+        print("Ignored CSRF reason", repr(reason))
+        return HttpResponseForbidden(reason)
+
     fn = "/tmp/csrf_failure_{}.json".format(int(time.time()))
     with open(fn, "w") as f:
         post_data = {}

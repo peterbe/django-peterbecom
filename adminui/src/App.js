@@ -25,6 +25,7 @@ import PostProcessings from './PostProcessings';
 import SearchResults from './SearchResults';
 import BlogitemHits from './BlogitemHits';
 import RealtimeBlogitemHits from './RealtimeBlogitemHits';
+import CDN from './CDN';
 
 class App extends React.Component {
   state = {
@@ -215,6 +216,9 @@ class App extends React.Component {
               <Menu.Item>
                 <Link to="/searchresults">Search Results</Link>
               </Menu.Item>
+              <Menu.Item>
+                <Link to="/cdn">CDN</Link>
+              </Menu.Item>
 
               <Menu.Menu position="right">
                 {this.state.userInfo ? (
@@ -324,32 +328,15 @@ class App extends React.Component {
                 component={SearchResults}
                 accessToken={this.state.accessToken}
               />
+              <SecureRoute
+                path="/cdn"
+                exact
+                component={CDN}
+                accessToken={this.state.accessToken}
+              />
               <Route component={NoMatch} />
             </Switch>
           </Container>
-
-          {/* <Segment
-            inverted
-            vertical
-            style={{ margin: '5em 0em 0em', padding: '5em 0em' }}
-          >
-            <Container textAlign="center">
-              <List horizontal inverted divided link>
-                <List.Item as="a" href="#">
-                  Site Map
-                </List.Item>
-                <List.Item as="a" href="#">
-                  Contact Us
-                </List.Item>
-                <List.Item as="a" href="#">
-                  Terms and Conditions
-                </List.Item>
-                <List.Item as="a" href="#">
-                  Privacy Policy
-                </List.Item>
-              </List>
-            </Container>
-          </Segment> */}
         </div>
       </Router>
     );
