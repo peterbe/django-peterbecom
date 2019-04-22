@@ -57,6 +57,9 @@ class DashboardLinks extends React.PureComponent {
         <Segment>
           <Link to="/searchresults">Search Results</Link>
         </Segment>
+        <Segment>
+          <Link to="/cdn">CDN</Link>
+        </Segment>
       </Segment.Group>
     );
   }
