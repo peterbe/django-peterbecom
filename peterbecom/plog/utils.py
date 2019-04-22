@@ -322,8 +322,8 @@ def rate_blog_comment(comment):
 
     result = {"good": {}, "bad": {}}
 
-    if len(comment.comment) > 500:
-        result["bad"]["length"] = ">500 characters"
+    if len(comment.comment) > 800:
+        result["bad"]["length"] = ">800 characters"
 
     # Exclude comments that have links in them unless the links are to
     # www.peterbe.com or songsear.ch.
