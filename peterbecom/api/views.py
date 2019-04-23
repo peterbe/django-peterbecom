@@ -336,7 +336,7 @@ def _post_thumbnails(blogitem):
     for blogfile in blogfiles:
         if not os.path.isfile(blogfile.file.path):
             continue
-        full_im = thumbnail(blogfile.file, "1000x1000", upscale=False, quality=100)
+        full_im = thumbnail(blogfile.file, "2000x2000", upscale=False, quality=100)
         full_url = full_im.url
         image = {"full_url": full_url, "full_size": full_im.size}
         formats = (
