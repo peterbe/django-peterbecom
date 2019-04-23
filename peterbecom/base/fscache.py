@@ -49,7 +49,11 @@ def invalidate(fs_path):
     assert "//" not in fs_path, fs_path
     deleted = [fs_path]
     if os.path.isfile(fs_path):
-        os.remove(fs_path)
+        try:
+            os.remove(fs_path)
+        except FileNotFoundError:
+            # race condition probably.
+            pass
     endings = (".metadata", ".cache_control", ".gz", ".br", ".original")
     for ending in endings:
         fs_path_w = fs_path + ending
