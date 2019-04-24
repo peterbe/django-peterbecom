@@ -24,8 +24,8 @@ class CDN extends React.Component {
     return (
       <Container textAlign="center">
         <Header as="h1">CDN</Header>
-        <ProbeUrl accessToken={this.props.accessToken} />
-        <ZoneConfig accessToken={this.props.accessToken} />
+        <ProbeUrl {...this.props} />
+        <ZoneConfig {...this.props} />
       </Container>
     );
   }
@@ -41,6 +41,19 @@ class ProbeUrl extends React.PureComponent {
     url: '',
     purgeResult: null
   };
+
+  componentDidMount() {
+    const { location } = this.props;
+    if (location.search) {
+      const searchParams = new URLSearchParams(
+        location.search.slice(1, location.search.length)
+      );
+      const url = searchParams.get('url') || '';
+      if (url) {
+        this.setState({ loading: true, url }, this.probeUrl);
+      }
+    }
+  }
 
   probeUrl = async () => {
     if (!this.props.accessToken) {
@@ -120,6 +133,9 @@ class ProbeUrl extends React.PureComponent {
       <form
         onSubmit={event => {
           event.preventDefault();
+          this.props.history.push({
+            search: `?url=${encodeURI(this.state.url)}`
+          });
           this.probeUrl();
         }}
       >
@@ -137,19 +153,45 @@ class ProbeUrl extends React.PureComponent {
         />
         <ShowServerError error={serverError} />
         {result && (
-          <Button
-            primary
-            loading={loading}
-            disabled={loading}
-            onClick={event => {
-              event.preventDefault();
-              this.setState({ loading: true }, () => {
-                this.purgeUrl(result.absolute_url);
-              });
-            }}
-          >
-            Purge
-          </Button>
+          <p style={{ marginTop: 20 }}>
+            <Button
+              primary
+              loading={loading}
+              disabled={loading}
+              onClick={event => {
+                event.preventDefault();
+                this.setState({ loading: true, purgeResult: null }, () => {
+                  this.purgeUrl(result.absolute_url);
+                });
+              }}
+            >
+              Purge
+            </Button>
+            <Button
+              primary
+              loading={loading}
+              disabled={loading}
+              onClick={event => {
+                event.preventDefault();
+                this.setState(
+                  { loading: true, result: null, purgeResult: null },
+                  this.probeUrl
+                );
+              }}
+            >
+              Probe Again
+            </Button>{' '}
+            <a
+              style={{ paddingLeft: 10 }}
+              href={`https://tools.keycdn.com/performance?url=${encodeURI(
+                result.absolute_url
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Icon name="external" /> KeyCDN Performance Test
+            </a>
+          </p>
         )}
         {purgeResult && (
           <div style={{ textAlign: 'left' }}>
@@ -188,51 +230,48 @@ function ShowProbeResult({ result }) {
           </Table.Row>
           <Table.Row>
             <Table.Cell>
-              <b>Status Code</b>
+              <b>Status Code (HTTP/1.1)</b>
             </Table.Cell>
             <Table.Cell>
-              <code>{result.status_code}</code>
+              <code>{result.http_1.status_code}</code>
+              <small style={{ paddingLeft: 10 }}>
+                (Took {(1000 * result.http_1.took).toFixed(1)}ms)
+              </small>
             </Table.Cell>
           </Table.Row>
-          {result.x_cache && (
+          {result.http_1.x_cache && (
             <Table.Row>
               <Table.Cell>
-                <b>X-Cache</b>
+                <b>X-Cache (HTTP/1.1)</b>
               </Table.Cell>
               <Table.Cell>
-                <code>{result.x_cache}</code>
+                <code>{result.http_1.x_cache}</code>
               </Table.Cell>
             </Table.Row>
           )}
         </Table.Body>
       </Table>
 
-      {result.headers && <ShowHeaders headers={result.headers} />}
+      {result.http_1.headers && (
+        <ShowHeaders title="HTTP/1.1" headers={result.http_1.headers} />
+      )}
+      {result.http_2.headers && (
+        <ShowHeaders title="HTTP/2" headers={result.http_2.headers} />
+      )}
     </div>
   );
 }
 
-function ShowHeaders({ headers }) {
+function ShowHeaders({ title, headers }) {
   let keys = Object.keys(headers);
   keys.sort();
 
   function pretty(key, v) {
-    // if (v === 'enabled') {
-    //   return <Icon color="green" name="checkmark" />;
-    // } else if (v === 'disabled') {
-    //   return <Icon color="red" name="dont" />;
-    // }
-    // if (key === 'Date') {
-    //   return (
-    //     <span>
-    //       <code>{v}</code> <DisplayDate date={v} />
-    //     </span>
-    //   );
-    // }
     return <code>{v}</code>;
   }
   return (
     <div style={{ marginTop: 20 }}>
+      <Header as="h3">{title}</Header>
       <Table basic="very" celled collapsing>
         <Table.Header>
           <Table.Row>

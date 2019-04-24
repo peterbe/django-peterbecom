@@ -533,7 +533,7 @@ def sitemap(request):
         comment_count = approved_comments_count.get(blogitem.id, 0)
         pages = comment_count // settings.MAX_RECENT_COMMENTS
         for page in range(1, pages + 2):
-            if page >= settings.MAX_BLOGCOMMENT_PAGES:
+            if page > settings.MAX_BLOGCOMMENT_PAGES:
                 break
             if age < 14:
                 changefreq = "daily"
