@@ -86,15 +86,12 @@ def mincss_html(html, abs_uri, include_minimalcss_stats=True):
         for each in found_link_hrefs:
             # 'each' is always a full absolute URL, but the
             # link tag might be something like "/static/foo.css"
-            # print('\tEACH {!r}'.format(each))
             if equal_uris(each, href):
-                return template.format(url=each)
+                return template.format(url=href)
         return bail
 
     html = _link_regex.sub(link_remover, html)
-    #
-    # _total_after = sum(len(x) for x in combined_css)
-    # combined_css = '\n'.join([cssmin.cssmin(x) for x in combined_css])
+
     combined_css = result["finalCss"]
     _total_after = len(combined_css)
 
@@ -103,8 +100,6 @@ def mincss_html(html, abs_uri, include_minimalcss_stats=True):
     except Exception as exception:
         print("Failure calling _clean_repeated_license_preambles: {}".format(exception))
     _total_after_min = len(combined_css)
-
-    # t2 = time.time()
 
     style_tags_regex = re.compile(r"<style>(.*?)</style>", re.DOTALL)
 
