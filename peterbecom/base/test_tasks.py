@@ -11,7 +11,9 @@ def test_post_process_cached_html_happy_path(tmpfscacheroot, requestsmock, setti
         settings.MINIMALCSS_SERVER_URL + "/minimize",
         json={
             "result": {
-                "stylesheetContents": {"foo.css": "body { color: blue; }"},
+                "stylesheetContents": {
+                    "https://example.com/foo.css": "body { color: blue; }"
+                },
                 "finalCss": "body{color:blue}h1{font-weight:bold}",
             }
         },
@@ -43,5 +45,8 @@ def test_post_process_cached_html_happy_path(tmpfscacheroot, requestsmock, setti
         optimized_html = f.read()
 
     assert "<h1 class=header>Header</h1>" in optimized_html
+
+    # The loadCSS *and* the html minification at work.
+    assert "<link rel=preload href=/foo.css" in optimized_html
 
     assert "body{color:blue}h1{font-weight:bold}</style>" in optimized_html
