@@ -101,7 +101,7 @@ class Blogitems extends React.Component {
             updateFilterSearch={search => {
               this.setState({ search }, () => {
                 this.props.history.push({
-                  search: `?search=${encodeURIComponent(this.state.search)}`
+                  search: `?search=${encodeURI(this.state.search)}`
                 });
                 this.fetchBlogitems();
               });

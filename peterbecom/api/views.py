@@ -3,6 +3,7 @@ import json
 import os
 import re
 import statistics
+import time
 from collections import defaultdict
 from functools import lru_cache, wraps
 from urllib.parse import urlparse
@@ -11,7 +12,6 @@ import requests
 from django import http
 from django.conf import settings
 from django.contrib.gis.geoip2 import GeoIP2
-from django.core.cache import cache
 from django.db.models import Avg, Count, Max, Min, Q
 from django.shortcuts import get_object_or_404
 from django.template import Context
@@ -20,13 +20,13 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 from geoip2.errors import AddressNotFoundError
-from keycdn import keycdn  # https://github.com/keycdn/python-keycdn-api/issues/4
 
 from peterbecom.awspa.models import AWSProduct
 from peterbecom.awspa.search import search as awspa_search
 from peterbecom.awspa.templatetags.jinja_helpers import awspa_product
 from peterbecom.base.models import PostProcessing, SearchResult
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
+from peterbecom.base.cdn import get_cdn_config, purge_cdn_urls
 from peterbecom.plog.models import (
     BlogComment,
     BlogFile,
@@ -1168,19 +1168,9 @@ def hits(request, oid):
 
 @api_superuser_required
 def cdn_config(request):
-    r = _get_cdn_config()
+    r = get_cdn_config()
     context = {"data": r["data"]}
     return _response(context)
-
-
-def _get_cdn_config():
-    api = keycdn.Api(settings.KEYCDN_API_KEY)
-    cache_key = "cdn_config:{}".format(settings.KEYCDN_ZONE_ID)
-    r = cache.get(cache_key)
-    if r is None:
-        r = api.get("zones/{}.json".format(settings.KEYCDN_ZONE_ID))
-        cache.set(cache_key, r, 60 * 5)
-    return r
 
 
 @require_POST
@@ -1203,11 +1193,20 @@ def cdn_probe(request):
         return _response({"error": "Invalid search"}, status=400)
 
     context = {"absolute_url": absolute_url}
+
+    t0 = time.time()
     r = requests.get(absolute_url)
-    context["status_code"] = r.status_code
+    t1 = time.time()
+    context["http_1"] = {}
+    context["http_1"]["took"] = t1 - t0
+    context["http_1"]["status_code"] = r.status_code
     if r.status_code == 200:
-        context["x_cache"] = r.headers.get("x-cache")
-        context["headers"] = dict(r.headers)
+        context["http_1"]["x_cache"] = r.headers.get("x-cache")
+        context["http_1"]["headers"] = dict(r.headers)
+
+    # Do a http2 GET too when requests3 or hyper has a new release
+    # See https://github.com/Lukasa/hyper/issues/364
+    context["http_2"] = {}
     return _response(context)
 
 
@@ -1215,19 +1214,5 @@ def cdn_probe(request):
 @api_superuser_required
 def cdn_purge(request):
     urls = request.POST.getlist("urls")
-
-    config = _get_cdn_config()
-    # See https://www.keycdn.com/api#purge-zone-url
-    cachebr = config["data"]["zone"]["cachebr"] == "enabled"
-    all_urls = []
-    for absolute_url in urls:
-        url = settings.KEYCDN_HOST + urlparse(absolute_url).path
-        all_urls.append(url)
-        if cachebr:
-            all_urls.append(url + "br")
-    api = keycdn.Api(settings.KEYCDN_API_KEY)
-    call = "zones/purgeurl/{}.json".format(settings.KEYCDN_ZONE_ID)
-    params = {"urls": all_urls}
-    r = api.delete(call, params)
-    context = {"purge": {"result": r, "all_urls": all_urls}}
+    context = {"purge": purge_cdn_urls(urls)}
     return _response(context)
