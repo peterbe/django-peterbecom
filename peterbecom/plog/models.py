@@ -273,10 +273,15 @@ class BlogComment(models.Model):
             not self.approved and "not" or "",
         )
 
+    @classmethod
+    def get_rendered_comment(cls, comment):
+        return utils.render_comment_text(comment)
+
     @property
     def rendered(self):
         if not self.comment_rendered:
-            self.comment_rendered = utils.render_comment_text(self.comment)
+            print("DEPRECATED! THIS SHOULDN'T BE USED ANY MORE")
+            self.comment_rendered = self.__class__.get_rendered_comment(self.comment)
             self.save()
         return self.comment_rendered
 
@@ -308,6 +313,11 @@ class BlogComment(models.Model):
             "comment": self.comment_rendered or self.comment,
         }
         return doc
+
+
+@receiver(pre_save, sender=BlogComment)
+def update_comment_rendered(sender, instance, **kwargs):
+    instance.comment_rendered = sender.get_rendered_comment(instance.comment)
 
 
 def _uploader_dir(instance, filename):
@@ -431,26 +441,27 @@ def invalidate_fscache(sender, instance, **kwargs):
         return
     urls = []
     if sender is BlogItem:
-        urls.append(reverse("blog_post", args=(instance.oid,)))
+        blogitem = instance
     elif sender is BlogComment:
         # Only invalidate if the comment is approved!
         if not instance.approved:
             return
         blogitem = instance.blogitem
-        comment_count = blogitem.count_comments()
-        pages = comment_count // settings.MAX_RECENT_COMMENTS
-        for page in range(1, pages + 2):
-            if page >= settings.MAX_BLOGCOMMENT_PAGES:
-                break
-            if page > 1:
-                urls.append(reverse("blog_post", args=[blogitem.oid, page]))
-            else:
-                urls.append(reverse("blog_post", args=[blogitem.oid]))
     else:
         raise NotImplementedError(sender)
 
-    for url in urls:
-        invalidate_by_url_soon(url)
+    comment_count = blogitem.count_comments()
+    pages = comment_count // settings.MAX_RECENT_COMMENTS
+    for page in range(1, pages + 2):
+        if page >= settings.MAX_BLOGCOMMENT_PAGES:
+            break
+        if page > 1:
+            urls.append(reverse("blog_post", args=[blogitem.oid, page]))
+        else:
+            urls.append(reverse("blog_post", args=[blogitem.oid]))
+
+    if urls:
+        invalidate_by_url_soon(urls)
 
 
 @receiver(models.signals.post_save, sender=BlogItem)

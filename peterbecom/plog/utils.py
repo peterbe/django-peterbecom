@@ -77,7 +77,7 @@ whitespace_start_regex = re.compile(r"^\n*(\s+)", re.M)
 
 def render_comment_text(text):
 
-    html = bleach.clean(text)
+    html = bleach.clean(text, tags=[])
 
     def custom_nofollow_maker(attrs, new=False):
         href_key = (None, "href")

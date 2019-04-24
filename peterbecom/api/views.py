@@ -764,9 +764,6 @@ def blogcomments(request):
         form = EditBlogCommentForm(data, instance=instance)
         if form.is_valid():
             item = form.save()
-            # Unsetting this will set it
-            item.comment_rendered = ""
-            item.rendered
             context = {
                 "comment": item.comment,
                 "rendered": item.rendered,

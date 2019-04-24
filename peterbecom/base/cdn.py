@@ -28,6 +28,7 @@ def purge_cdn_urls(urls):
             all_urls.append(url + "br")
     call = "zones/purgeurl/{}.json".format(settings.KEYCDN_ZONE_ID)
     params = {"urls": all_urls}
-    r = api.delete(call, params)
 
+    r = api.delete(call, params)
+    print("SENT CDN PURGE FOR", all_urls, "RESULT:", r)
     return {"result": r, "all_urls": all_urls}

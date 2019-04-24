@@ -1,5 +1,6 @@
 import os
 import time
+import random
 from urllib.parse import urljoin, urlparse
 
 import requests
@@ -7,6 +8,8 @@ from django.core.cache import cache
 from django.conf import settings
 from django.contrib.sites.models import Site
 from huey.contrib.djhuey import task
+
+from peterbecom.base.cdn import purge_cdn_urls
 
 
 class EmptyFSCacheFile(Exception):
@@ -45,7 +48,7 @@ def too_old(fs_path, seconds=None):
     return age > seconds
 
 
-def invalidate(fs_path):
+def _invalidate(fs_path):
     assert "//" not in fs_path, fs_path
     deleted = [fs_path]
     if os.path.isfile(fs_path):
@@ -76,16 +79,33 @@ def invalidate_by_url(url, revisit=False):
     if not url.endswith("/"):
         url += "/"
     fs_path = settings.FSCACHE_ROOT + url + "index.html"
-    invalidate(fs_path)
+    _invalidate(fs_path)
     if revisit:
         revisit_url(fs_path)
 
 
-def invalidate_by_url_soon(url):
+def invalidate_by_url_soon(urls):
+    if not urls:
+        return
+    if isinstance(urls, str):
+        urls = [urls]
     slated = cache.get("invalidate_by_url", [])
-    slated.append(url)
+    for url in urls:
+        if url not in slated:
+            slated.append(url)
     cache.set("invalidate_by_url", slated, 60)
-    invalidate_by_url_later.schedule((), delay=5)
+    # The added jitter to the delay is there to avoid race conditions.
+    # If this task is sent twice (which can happen) and two Huey workers
+    # (two completely separate workers/threads) both start at the same time
+    # they might both do...
+    #   Timestamp 1 Thread 1. Get URLs from cache, got 5
+    #   Timestamp 2 Thread 2. Get URLs from cache, got 5
+    #   Timestamp 3 Thread 1. Got it, now delete from the cache
+    #   ...
+    # That means that second thread that is a millisecond behind, gets the same
+    # result as the first thread one when it asks the cache because thread one
+    # hasn't yet had a chance to tell it to delete.
+    invalidate_by_url_later.schedule((), delay=3 + 2 * random.random())
 
 
 @task()
@@ -99,9 +119,9 @@ def invalidate_by_url_later():
     ]
     if slated:
         cache.delete("invalidate_by_url")
-    # print("After sleeping, there are {} URLs to invalidate".format(len(slated)))
-    for url in slated:
-        invalidate_by_url(url, revisit=True)
+        for url in slated:
+            invalidate_by_url(url, revisit=True)
+        purge_cdn_urls(slated)
 
 
 def delete_empty_directory(filepath):
@@ -148,7 +168,7 @@ def invalidate_too_old(verbose=False, dry_run=False, revisit=False):
                         print("INVALIDATE", path)
                     if not dry_run:
                         deleted.append(os.stat(path).st_size)
-                        deleted = invalidate(path)
+                        deleted = _invalidate(path)
                         if verbose:
                             print("\tDELETED", deleted)
                         delete_empty_directory(path)
