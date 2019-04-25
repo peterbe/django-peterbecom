@@ -70,6 +70,7 @@ var F = (function() {
       preview.detach().insertBefore(form);
       $('input[name="parent"]', form).val(parent.attr('id'));
       F.prepare();
+      $('textarea', form).focus();
     },
     reset: function() {
       form.css('opacity', 1);
