@@ -11,7 +11,7 @@ def contains_spam_url_patterns(text):
 
     problems = []
 
-    regex = re.compile(r"|".join(settings.SPAM_URL_PATTERNS))
+    regex = re.compile(r"|".join([re.escape(x) for x in settings.SPAM_URL_PATTERNS]))
 
     def scrutinize_link(attrs, new, **kwargs):
         href_key = (None, "href")
