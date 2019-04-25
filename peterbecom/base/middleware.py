@@ -87,6 +87,7 @@ class FSCacheMiddleware:
                             fs_path, request.path
                         )
                     )
+                    os.remove(fs_path)
                     return response
                 # assert os.stat(fs_path).st_size
 
