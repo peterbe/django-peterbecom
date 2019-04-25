@@ -1,6 +1,9 @@
 from peterbecom.base.basecommand import BaseCommand
-
-from peterbecom.base.fscache import invalidate_too_old
+from peterbecom.base.fscache import (
+    find_missing_compressions,
+    invalidate_too_old,
+    purge_outdated_cdn_urls,
+)
 
 
 class Command(BaseCommand):
@@ -12,16 +15,37 @@ class Command(BaseCommand):
             help="Print instead of deleting",
         )
         parser.add_argument(
+            "--skip-cdn-purge",
+            action="store_true",
+            default=False,
+            help="Don't bother executing CDN purge commands",
+        )
+        parser.add_argument(
             "--revisit",
             action="store_true",
             default=False,
             help="Try to request the original URL again",
         )
+        parser.add_argument(
+            "--max-files", default=100, help="Max number of URLs to purge (possibly)"
+        )
 
     def handle(self, **options):
-        # Might want to do more here
         invalidate_too_old(
             verbose=options["verbosity"] > 1,
             dry_run=options["dry_run"],
             revisit=options["revisit"],
         )
+
+        find_missing_compressions(
+            verbose=options["verbosity"] > 1,
+            max_files=int(options["max_files"]),
+            revisit=options["revisit"],
+        )
+
+        if not options["skip_cdn_purge"]:
+            purge_outdated_cdn_urls(
+                verbose=options["verbosity"] > 1,
+                revisit=options["revisit"],
+                max_files=int(options["max_files"]),
+            )

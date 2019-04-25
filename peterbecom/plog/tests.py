@@ -175,7 +175,7 @@ def test_submit_reply_comment(client, on_commit_immediately):
 
 @pytest.mark.django_db
 def test_spam_prevention(client, settings):
-    settings.SPAM_URL_PATTERNS = ["http*://www.spam.com"]
+    settings.SPAM_URL_PATTERNS = ["www.spam.com"]
 
     blog = BlogItem.objects.create(
         oid="myoid",

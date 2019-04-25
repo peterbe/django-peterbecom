@@ -34,7 +34,7 @@ case $1 in
     # echo "STARTING WEB-DEV"
     python manage.py clear-django-cache
     python manage.py collectstatic --noinput
-    python manage.py fscache -v 2  # deletes old FS cached files
+    python manage.py fscache -v 2  --skip-cdn-purge
     python manage.py purge-old-postprocessings
     python manage.py migrate --noinput
     # export PYTHONWARNINGS=d
