@@ -1175,7 +1175,7 @@ def cdn_config(request):
 def cdn_probe(request):
     url = request.POST["url"]
     if url.startswith("http://") or url.startswith("https://"):
-        absolute_url = url
+        absolute_url = url.split('#')[0]
     elif "/" not in url:
         try:
             blogitem = BlogItem.objects.get(oid=url)
