@@ -209,7 +209,12 @@ def _zopfli_html(html, filepath, url):
         new_filepath = zopfli_file(filepath)
         t1 = time.time()
         if new_filepath:
-            new_size = os.stat(new_filepath).st_size
+            try:
+                new_size = os.stat(new_filepath).st_size
+            except FileNotFoundError:
+                # Race conditions probably
+                print("WARNING! {} is now gone".format(filepath))
+                continue
             if not new_size:
                 print("WARNING! {} became 0 bytes after zopfli".format(filepath))
                 os.remove(new_filepath)
@@ -244,7 +249,12 @@ def _brotli_html(html, filepath, url):
         new_filepath = brotli_file(filepath)
         t1 = time.time()
         if new_filepath:
-            new_size = os.stat(new_filepath).st_size
+            try:
+                new_size = os.stat(new_filepath).st_size
+            except FileNotFoundError:
+                # Race conditions probably
+                print("WARNING! {} is now gone".format(filepath))
+                continue
             if not new_size:
                 print("WARNING! {} became 0 bytes after brotli".format(filepath))
                 os.remove(new_filepath)
