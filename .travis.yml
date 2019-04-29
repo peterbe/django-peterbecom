@@ -41,5 +41,5 @@ before_script:
   - bin/travis/setup.sh
 
 script:
-  - bin/travis/test.sh
   - bin/travis/lint.sh
+  - bin/travis/test.sh
