@@ -155,7 +155,7 @@ def stx_to_html(text, codesyntax):
         new_inner = inner
         new_inner = new_inner.replace("&gt;", ">").replace("&lt;", "<")
         lines = new_inner.splitlines()
-        lines = [re.sub("^\s", "", x) for x in lines]
+        lines = [re.sub(r"^\s", "", x) for x in lines]
         new_inner = "\n".join(lines)
         if lexer:
             new_inner = highlight(new_inner, lexer, HtmlFormatter())
@@ -245,8 +245,8 @@ def markdown_to_html(text, codesyntax):
     return html
 
 
-_SRC_regex = re.compile('(src|href)="([^"]+)"')
-_image_extension_regex = re.compile("\.(png|jpg|jpeg|gif)$", re.I)
+_SRC_regex = re.compile(r'(src|href)="([^"]+)"')
+_image_extension_regex = re.compile(r"\.(png|jpg|jpeg|gif)$", re.I)
 
 
 # Note: this is quite experimental still

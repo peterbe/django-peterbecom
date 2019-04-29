@@ -143,7 +143,7 @@ class Podcast(models.Model):
         img_temp = NamedTemporaryFile(delete=True)
         try:
             r = realistic_request(image_url, timeout=timeout)
-        except (TooManyRedirects, ConnectionError) as exception:
+        except (TooManyRedirects, ConnectionError):
             if self.itunes_lookup and self.itunes_lookup.get("artworkUrl600"):
                 return self.download_image(
                     timeout=timeout, image_url=self.itunes_lookup["artworkUrl600"]

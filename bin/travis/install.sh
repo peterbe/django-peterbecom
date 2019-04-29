@@ -8,6 +8,10 @@ pip install -U pip wheel
 echo "Install Python dependencies"
 pip install -r requirements.txt
 
+echo "Install latest flake8"
+# Perhaps this should be in some dev-requirements.txt but YOLO
+pip install flake8
+
 echo "Installing the node packages"
 yarn
 

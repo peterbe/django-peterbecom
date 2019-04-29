@@ -18,7 +18,7 @@ def gfm(text):
     def italic_callback(matchobj):
         s = matchobj.group(0)
         if list(s).count("_") >= 2:
-            return s.replace("_", "\_")
+            return s.replace("_", "\\_")
         return s
 
     text = re.sub(r"^(?! {4}|\t)\w+_\w+_\w[\w_]*", italic_callback, text)

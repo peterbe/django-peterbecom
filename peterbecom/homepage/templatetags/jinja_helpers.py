@@ -5,8 +5,8 @@ from django.template import defaultfilters
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django_jinja import library
 
-image_tags_regex = re.compile('(<img src="([^"]+)"[^>]+>)')
-width_or_height_regex = re.compile('(width|height)="\d+"')
+image_tags_regex = re.compile(r'(<img src="([^"]+)"[^>]+>)')
+width_or_height_regex = re.compile(r'(width|height)="\d+"')
 
 
 @library.global_function

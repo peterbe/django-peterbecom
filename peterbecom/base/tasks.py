@@ -31,7 +31,7 @@ def measure_post_process(func):
         _exception = False
         try:
             return func(filepath, url, *args, **kwargs, postprocessing=record)
-        except Exception as e:
+        except Exception:
             _exception = True
             raise
         finally:

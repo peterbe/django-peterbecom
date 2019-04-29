@@ -20,7 +20,7 @@ def index(request):
 
 
 simple_user_agent_regex = re.compile(
-    """
+    r"""
     Firefox/\d+ |
     Chrome/\d+ |
     Safari/\d+
@@ -42,7 +42,7 @@ def parse_user_agent(ua):
         browser = "SeaMonkey "
     elif "Trident/" in ua:
         browser = "Internet Explorer"
-        version = re.findall("rv:(\d+)", ua)[0]
+        version = re.findall(r"rv:(\d+)", ua)[0]
 
     for match in simple_user_agent_regex.findall(ua):
         browser += match.split("/")[0]
@@ -63,7 +63,7 @@ def stats(request):
         sdsq = sum([(i - avg) ** 2 for i in r])
         s = list(r)
         s.sort()
-        return s[len(s) // 2], avg, (sdsq / (len(r) - 1 or 1)) ** .5
+        return s[len(s) // 2], avg, (sdsq / (len(r) - 1 or 1)) ** 0.5
 
     def wrap_sequence(data):
         items = []

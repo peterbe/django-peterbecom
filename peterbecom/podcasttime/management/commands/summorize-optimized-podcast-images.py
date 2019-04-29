@@ -84,13 +84,13 @@ class Command(BaseCommand):
         return number
 
     def _mozjpeged(self, content):
-        found = re.findall("From ([\d,]+) bytes to ([\d,]+) bytes", content)
+        found = re.findall(r"From ([\d,]+) bytes to ([\d,]+) bytes", content)
         try:
             before, after = [int(x.replace(",", "")) for x in found[0]]
         except IndexError:
             try:
                 found = re.findall(
-                    "From ([\d\.]+)\s+(\w+) to ([\d\.]+)\s+(\w+)", content
+                    r"From ([\d\.]+)\s+(\w+) to ([\d\.]+)\s+(\w+)", content
                 )[0]
                 before = self._parse_filesize(found[0], found[1])
                 after = self._parse_filesize(found[2], found[3])
@@ -100,9 +100,9 @@ class Command(BaseCommand):
         return before - after
 
     def _optimized(self, content):
-        found = re.findall("\((([\d,]+)\sbytes)\)", content)
+        found = re.findall(r"\((([\d,]+)\sbytes)\)", content)
         if not found:
-            found = re.findall("From (\d+) to (\d+)", content)[0]
+            found = re.findall(r"From (\d+) to (\d+)", content)[0]
         before, after = [int(x[1].replace(",", "")) for x in found]
         return before - after
 
@@ -110,19 +110,19 @@ class Command(BaseCommand):
         if content.startswith("skipped because it got larger"):
             return
         # print(repr(content))
-        found = re.findall("From ([\d\.]+)\s+(\w+) to ([\d\.]+)\s+(\w+)", content)[0]
+        found = re.findall(r"From ([\d\.]+)\s+(\w+) to ([\d\.]+)\s+(\w+)", content)[0]
         before = self._parse_filesize(found[0], found[1])
         after = self._parse_filesize(found[2], found[3])
         return before - after
 
     def _pillow(self, content):
         try:
-            found = re.findall("From ([\d\.]+)\s+(\w+) to ([\d\.]+)\s+(\w+)", content)[
+            found = re.findall(r"From ([\d\.]+)\s+(\w+) to ([\d\.]+)\s+(\w+)", content)[
                 0
             ]
         except IndexError:
             found = re.findall(
-                "From ([\d\.]+)\s+(\w+) bytes to ([\d\.]+)\s+(\w+) bytes", content
+                r"From ([\d\.]+)\s+(\w+) bytes to ([\d\.]+)\s+(\w+) bytes", content
             )[0]
         before = self._parse_filesize(found[0], found[1])
         after = self._parse_filesize(found[2], found[3])
@@ -133,7 +133,7 @@ class Command(BaseCommand):
             return
         # print(repr(content))
         try:
-            found = re.findall("From ([\d\.]+)\s+(\w+) to ([\d\.]+)\s+(\w+)", content)[
+            found = re.findall(r"From ([\d\.]+)\s+(\w+) to ([\d\.]+)\s+(\w+)", content)[
                 0
             ]
             before = self._parse_filesize(found[0], found[1])
@@ -141,12 +141,12 @@ class Command(BaseCommand):
         except IndexError:
             try:
                 found = re.findall(
-                    "From ([\d\.]+)\s+(\w+) bytes to ([\d\.]+)\s+(\w+) bytes", content
+                    r"From ([\d\.]+)\s+(\w+) bytes to ([\d\.]+)\s+(\w+) bytes", content
                 )[0]
                 before = self._parse_filesize(found[0], found[1])
                 after = self._parse_filesize(found[2], found[3])
             except IndexError:
-                found = re.findall("From ([\d,]+) bytes to ([\d,]+) bytes", content)
+                found = re.findall(r"From ([\d,]+) bytes to ([\d,]+) bytes", content)
                 before, after = [int(x.replace(",", "")) for x in found[0]]
         return before - after
 
