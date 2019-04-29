@@ -38,8 +38,8 @@ install:
   - bin/travis/install.sh
 
 before_script:
-  - bin/travis/lint.sh
   - bin/travis/setup.sh
 
 script:
   - bin/travis/test.sh
+  - bin/travis/lint.sh
