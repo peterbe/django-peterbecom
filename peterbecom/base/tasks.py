@@ -71,9 +71,11 @@ def _post_process_cached_html(filepath, url, postprocessing):
         # do nothing. testing.
         return
     if not os.path.exists(filepath):
-        raise ValueError(
-            "{!r} does not exist and can't be post-processed".format(filepath)
-        )
+        postprocessing.notes.append("{} no longer exists".format(filepath))
+        return
+        # raise ValueError(
+        #     "{!r} does not exist and can't be post-processed".format(filepath)
+        # )
 
     attempts = 0
     with open(filepath) as f:
