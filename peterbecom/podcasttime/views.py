@@ -522,9 +522,8 @@ def podcast_data(request, id, slug=None):
     )
     if podcast.error:
         context["_has_error"] = True
-    if (
-        not podcast.last_fetch or
-        podcast.last_fetch < timezone.now() - datetime.timedelta(days=7)
+    if not podcast.last_fetch or podcast.last_fetch < timezone.now() - datetime.timedelta(
+        days=7
     ):
         cache_key = "updating:episodes:{}".format(podcast.id)
         if not cache.get(cache_key):

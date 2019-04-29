@@ -100,7 +100,7 @@ def parse_duration_ffmpeg(media_url):
             out, err = wrap_subprocess(command)
         except subprocess.TimeoutExpired as exception:
             return None, exception
-        REGEX = re.compile("Duration: (\d+):(\d+):(\d+).(\d+)")
+        REGEX = re.compile(r"Duration: (\d+):(\d+):(\d+).(\d+)")
         matches = REGEX.findall(err.decode("utf-8"))
         try:
             found, = matches

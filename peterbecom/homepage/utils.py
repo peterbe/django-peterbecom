@@ -21,8 +21,8 @@ STOPWORDS_TUPLE = tuple(STOPWORDS.split())
 def split_search(q, keywords):
     params = {}
     s = []
-    if re.findall("[^\w]", "".join(keywords)):
-        raise ValueError("keywords can not contain non \w characters")
+    if re.findall(r"[^\w]", "".join(keywords)):
+        raise ValueError("keywords can not contain non \\w characters")
 
     regex = re.compile(r"\b(%s):" % "|".join(keywords), re.I)
     bits = regex.split(q)
@@ -45,10 +45,10 @@ def split_search(q, keywords):
 
 
 def parse_ocs_to_categories(oc, strict_matching=False):
-    oc = re.sub("/p\d+$", "", oc)
+    oc = re.sub(r"/p\d+$", "", oc)
     ocs = [
         x.strip().replace("/", "").replace("+", " ")
-        for x in re.split("oc-(.*?)", oc)
+        for x in re.split(r"oc-(.*?)", oc)
         if x.strip()
     ]
     categories = Category.objects.filter(name__in=ocs)

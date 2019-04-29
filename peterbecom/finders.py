@@ -30,7 +30,7 @@ class LeftoverPipelineFinder(PipelineFinder):
                         )
                     )
 
-        if settings.DEBUG and re.findall("\.[a-f0-9]{12}\.", path):
+        if settings.DEBUG and re.findall(r"\.[a-f0-9]{12}\.", path):
             # E.g. images/favicon-32.2f7785a88cef.png
             return
         # If the file can't be found AND it's not in bundles, there's

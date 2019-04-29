@@ -17,7 +17,7 @@ urlpatterns = [
     url("^stats/episodes$", views.stats_episodes, name="stats_episodes"),
     url("^picked$", views.picked, name="picked"),
     url(
-        "^podcasts/episodes/(?P<id>\d+)$",
+        r"^podcasts/episodes/(?P<id>\d+)$",
         views.podcast_episodes,
         name="podcast_episodes",
     ),

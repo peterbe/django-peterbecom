@@ -13,7 +13,7 @@ from peterbecom.base import fscache
 from peterbecom.base.tasks import post_process_cached_html
 
 
-max_age_re = re.compile("max-age=(\d+)")
+max_age_re = re.compile(r"max-age=(\d+)")
 
 
 def _is_too_new(fs_path, timeout=5):

@@ -91,14 +91,10 @@ class Command(BaseCommand):
                 h2 = int(w2 * h / w)
                 try:
                     img.thumbnail((w2, h2))
-                except OSError as exception:
+                except OSError:
                     podcast.image = None
                     podcast.save()
                     continue
-                    # raise ImageError('{!r} CAUSED {}'.format(
-                    #     podcast,
-                    #     exception
-                    # ))
                 options = {"quality": 95}
 
                 if ext in (".jpg", ".jpeg"):
