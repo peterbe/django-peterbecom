@@ -562,6 +562,7 @@ def _postprocessing_records(request_GET, limit=10):
     records = []
 
     def serialize_record(each):
+
         return {
             "id": each.id,
             "url": each.url,
@@ -571,6 +572,7 @@ def _postprocessing_records(request_GET, limit=10):
             "notes": each.notes and each.notes or [],
             "created": each.created,
             "_previous": None,
+            "_latest": None,
         }
 
     qs = PostProcessing.objects.all()
@@ -580,6 +582,17 @@ def _postprocessing_records(request_GET, limit=10):
         record = serialize_record(each)
         if each.previous:
             record["_previous"] = serialize_record(each.previous)
+        if each.exception:
+            # Search for a successful one that looks just like this
+            sub_qs = PostProcessing.objects.filter(
+                url=each.url,
+                filepath=each.filepath,
+                exception__isnull=True,
+                created__gt=each.created,
+            )
+            for better in sub_qs.order_by('-created')[:1]:
+                record['_latest'] = serialize_record(better)
+                break
         records.append(record)
 
     return records
@@ -607,6 +620,9 @@ def _filter_postprocessing_queryset(qs, request_GET):
             qs = technique(url__endswith=q[:-1])
         elif q:
             qs = technique(url__contains=q)
+
+    if request_GET.get('exceptions'):
+        qs = qs.filter(exception__isnull=False)
     return qs
 
 

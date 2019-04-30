@@ -6,6 +6,7 @@ import {
   Header,
   Input,
   Loader,
+  Message,
   Statistic,
   Table
 } from 'semantic-ui-react';
@@ -241,8 +242,10 @@ class Statistics extends React.PureComponent {
 class Records extends React.PureComponent {
   state = {
     differentIds: [],
-    search: (this.props.filters && this.props.filters.q) || ''
+    search: (this.props.filters && this.props.filters.q) || '',
+    exceptionsOnly: false
   };
+
   componentDidUpdate(prevProps, prevState) {
     if (equalArrays(prevState.differentIds, this.state.differentIds)) {
       const before = prevProps.records.map(r => r.id);
@@ -253,6 +256,7 @@ class Records extends React.PureComponent {
       }
     }
   }
+
   render() {
     const { records, updateFilters } = this.props;
     const { differentIds } = this.state;
@@ -303,6 +307,20 @@ class Records extends React.PureComponent {
                     {record.duration ? `${record.duration.toFixed(1)}s` : 'n/a'}
                   </Table.Cell>
                   <Table.Cell>
+                    {record.exception && record._latest && (
+                      <Message warning>
+                        <p>
+                          <b>Note!</b> A more recent, successful, post
+                          processing exists.
+                        </p>
+                        <p>
+                          Last one was{' '}
+                          <b>
+                            <DisplayDate date={record._latest.created} />
+                          </b>
+                        </p>
+                      </Message>
+                    )}
                     {record.exception ? (
                       <pre className="exception">{record.exception}</pre>
                     ) : null}
@@ -318,16 +336,31 @@ class Records extends React.PureComponent {
             })}
           </Table.Body>
         </Table>
-        <Input
-          fluid
-          placeholder="Search filter..."
-          value={this.state.search}
-          action="Search"
-          onChange={(event, data) => {
-            const search = data.value;
-            this.setState({ search });
-          }}
-        />
+        <div style={{ textAlign: 'left' }}>
+          <Input
+            fluid
+            placeholder="Search filter..."
+            value={this.state.search}
+            action="Search"
+            onChange={(event, data) => {
+              const search = data.value;
+              this.setState({ search });
+            }}
+          />
+          <Checkbox
+            toggle
+            defaultChecked={this.state.exceptionsOnly}
+            onChange={(event, data) => {
+              this.setState({ exceptionsOnly: data.checked }, () => {
+                updateFilters({
+                  q: this.state.search,
+                  exceptions: this.state.exceptionsOnly
+                });
+              });
+            }}
+            label="Exceptions only"
+          />
+        </div>
       </form>
     );
   }
