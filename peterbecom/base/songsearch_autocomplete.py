@@ -236,22 +236,24 @@ def _post_process_template(template, impatient, js_block, css_block, dry_run=Fal
             print("Going to brotli a new index.html")
             _brotli(template)
 
-    # The zopfli file should always be younger than the not-zopflied file.
-    age_html = os.stat(template).st_mtime
-    if os.path.isfile(template + ".gz"):
-        age_gz = os.stat(template + ".gz").st_mtime
-        if age_html > age_gz:
-            os.remove(template + ".gz")
-            raise SongsearchAutocompleteError(
-                "The index.html.gz file was older than the index.html file"
-            )
-    if os.path.isfile(template + ".br"):
-        age_br = os.stat(template + ".br").st_mtime
-        if age_html > age_br:
-            os.remove(template + ".br")
-            raise SongsearchAutocompleteError(
-                "The index.html.br file was older than the index.html file"
-            )
+    # XXX Commented out because now the index.html's mtime gets automatically
+    # updated sometimes.
+    # # The zopfli file should always be younger than the not-zopflied file.
+    # age_html = os.stat(template).st_mtime
+    # if os.path.isfile(template + ".gz"):
+    #     age_gz = os.stat(template + ".gz").st_mtime
+    #     if age_html > age_gz:
+    #         os.remove(template + ".gz")
+    #         raise SongsearchAutocompleteError(
+    #             "The index.html.gz file was older than the index.html file"
+    #         )
+    # if os.path.isfile(template + ".br"):
+    #     age_br = os.stat(template + ".br").st_mtime
+    #     if age_html > age_br:
+    #         os.remove(template + ".br")
+    #         raise SongsearchAutocompleteError(
+    #             "The index.html.br file was older than the index.html file"
+    #         )
 
 
 def _zopfli(filepath):
