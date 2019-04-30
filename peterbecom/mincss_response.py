@@ -193,7 +193,10 @@ def has_been_css_minified(html):
         if link.attr("href") and link.attr("href").endswith(".css"):
             # Second test, does it have a big fat style text:
             for style in doc("style").items():
-                length = len(style.text())
+                style_text = style.text()
+                length = len(style_text)
+                if style_text.startswith("/*") and style_text.endswith("*/"):
+                    raise ValueError("The found style tag is only a comment")
                 if length > 5000:
                     return True
 

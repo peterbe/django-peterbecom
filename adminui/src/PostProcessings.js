@@ -292,6 +292,14 @@ class Records extends React.PureComponent {
                       title={record.filepath}
                     >
                       {new URL(record.url).pathname}
+                    </a>{' '}
+                    <a
+                      href={`/cdn?url=${encodeURI(record.url)}`}
+                      rel="noopener noreferrer"
+                      target="_blank"
+                      title="Do a CDN probe"
+                    >
+                      <small>(CDN probe)</small>
                     </a>
                     <br />
                     <DisplayDate date={record.created} />
