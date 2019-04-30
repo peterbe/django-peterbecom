@@ -326,6 +326,7 @@ def find_missing_compressions(verbose=False, revisit=False, max_files=100):
                 and os.path.isfile(path)
                 and not os.stat(path).st_size
             ):
+                print("HAD TO DELETE {}".format(path))
                 os.remove(path)
                 continue
             if os.path.isfile(path + ".metadata"):
@@ -336,10 +337,12 @@ def find_missing_compressions(verbose=False, revisit=False, max_files=100):
                     if verbose:
                         print("{} didn't exist!".format(path + ".br"))
                     os.remove(path)
+                    print("HAD TO DELETE {} BECAUSE .br FILE DOESNT EXIST".format(path))
                 elif not os.path.isfile(path + ".gz"):
                     if verbose:
                         print("{} didn't exist!".format(path + ".gz"))
                     os.remove(path)
+                    print("HAD TO DELETE {} BECAUSE .gz FILE DOESNT EXIST".format(path))
                 else:
                     continue
 
