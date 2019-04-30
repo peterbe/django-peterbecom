@@ -133,6 +133,9 @@ def insert(dry_run=False, impatient=False, page=1):
 
 
 def _post_process_template(template, impatient, js_block, css_block, dry_run=False):
+    if not template.is_file():
+        print("WARNING! {} does not exist".format(template))
+        return
     assert template.is_file(), template
     # more convenient this way. Also, mostly due to Python 3.5 and legacy
     template = str(template)
