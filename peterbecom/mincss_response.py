@@ -164,6 +164,7 @@ def _clean_repeated_license_preambles(cssstring):
         "*/"
     )
     cssstring = regex.sub("", cssstring)
+    assert cssstring.strip(), "How can it be empty!?"
     return new_preamble + "\n" + cssstring
 
 

@@ -29,6 +29,10 @@ class SongsearchAutocompleteError(Exception):
     """Something terrible happened."""
 
 
+class CSSMinifiedCheckError(Exception):
+    """When there's something wrong with checking the CSS minified."""
+
+
 def _are_dir_trees_equal(dir1, dir2):
     """
     Compare two directories recursively. Files in each directory are
@@ -149,9 +153,12 @@ def _post_process_template(template, impatient, js_block, css_block, dry_run=Fal
     # been done can we insert (or not insert) the autocomplete snippets.
     # The simplest way to check is if there's a `<link rel="preload" href="*.css"`
     # tag and a big blob of <style>
-    if not has_been_css_minified(content):
-        print("WARNING! The HTML file hasn't been CSS minified yet.")
-        return
+    try:
+        if not has_been_css_minified(content):
+            print("WARNING! The HTML file hasn't been CSS minified yet.")
+            return
+    except ValueError:
+        raise CSSMinifiedCheckError("Template with problem: {}".format(template))
 
     # Inject the JS code
     js_header = "<!-- songsearch-autocomplete -->"
