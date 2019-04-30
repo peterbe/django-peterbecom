@@ -15,8 +15,8 @@ def get_cdn_config(api=None):
     return r
 
 
-def purge_cdn_urls(urls):
-    api = keycdn.Api(settings.KEYCDN_API_KEY)
+def purge_cdn_urls(urls, api=None):
+    api = api or keycdn.Api(settings.KEYCDN_API_KEY)
     config = get_cdn_config(api)
     # See https://www.keycdn.com/api#purge-zone-url
     cachebr = config["data"]["zone"]["cachebr"] == "enabled"
