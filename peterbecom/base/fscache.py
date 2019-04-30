@@ -323,7 +323,8 @@ def purge_outdated_cdn_urls(verbose=False, revisit=False, max_files=100):
             print("******* PURGE *******", cdn_url)
 
 
-def find_missing_compressions(verbose=False, revisit=False, max_files=100):
+def find_missing_compressions(verbose=False, revisit=False, max_files=500):
+    deleted = revisits = 0
     for root, dirs, files in os.walk(settings.FSCACHE_ROOT):
         for file_ in files:
             if file_.endswith(".metadata"):
@@ -336,6 +337,7 @@ def find_missing_compressions(verbose=False, revisit=False, max_files=100):
             ):
                 print("HAD TO DELETE {}".format(path))
                 os.remove(path)
+                deleted += 1
                 continue
             if os.path.isfile(path + ".metadata"):
                 # If it ends with .metadata it has to be the index.html
@@ -345,14 +347,20 @@ def find_missing_compressions(verbose=False, revisit=False, max_files=100):
                     if verbose:
                         print("{} didn't exist!".format(path + ".br"))
                     os.remove(path)
+                    deleted += 1
                     print("HAD TO DELETE {} BECAUSE .br FILE DOESNT EXIST".format(path))
                 elif not os.path.isfile(path + ".gz"):
                     if verbose:
                         print("{} didn't exist!".format(path + ".gz"))
                     os.remove(path)
+                    deleted += 1
                     print("HAD TO DELETE {} BECAUSE .gz FILE DOESNT EXIST".format(path))
                 else:
                     continue
 
                 if revisit:
                     revisit_url(path, verbose=verbose)
+                    revisits += 1
+
+    if verbose:
+        print("Deleted {:,} files and revisited {:,} paths".format(deleted, revisit))
