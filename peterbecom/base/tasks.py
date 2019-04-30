@@ -133,7 +133,13 @@ def _post_process_cached_html(filepath, url, postprocessing):
             postprocessing.notes.append("Gave up after {} attempts".format(attempts))
             return
 
-        shutil.move(filepath, filepath + ".original")
+        try:
+            shutil.move(filepath, filepath + ".original")
+        except FileNotFoundError:
+            postprocessing.notes.append(
+                "Can't move to .original {} no longer exists".format(filepath)
+            )
+            return
         with open(filepath, "w") as f:
             f.write(optimized_html)
         print("mincss optimized {}".format(filepath))
