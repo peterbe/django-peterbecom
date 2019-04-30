@@ -260,11 +260,19 @@ def purge_outdated_cdn_urls(verbose=False, revisit=False, max_files=100):
             if file_.endswith(".metadata"):
                 continue
             path = os.path.join(root, file_)
-            if (
-                "index.html" in file_
-                and os.path.isfile(path)
-                and not os.stat(path).st_size
-            ):
+            for attempt in range(3):
+                if (
+                    "index.html" in file_
+                    and os.path.isfile(path)
+                    and not os.stat(path).st_size
+                ):
+                    # If this happens, give it "one more chance" by sleeping
+                    # a little and only raise the error if it file still isn't
+                    # there after some sleeping.
+                    time.sleep(1)
+                    continue
+                break
+            else:
                 raise EmptyFSCacheFile(path)
             if os.path.isfile(path + ".metadata") and "/awspa" not in path:
                 paths.append((os.stat(path).st_mtime, path))
