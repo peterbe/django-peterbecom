@@ -29,3 +29,6 @@ htmlcov/
 GeoLite2-City.mmdb
 adminui/build.zip
 songsearch-autocomplete/songsearch-autocomplete.zip
+cdn-crawl/cdn-crawler-report-every
+cdn-crawl/cdn-crawler-sleeptime
+cdn-crawl/cdn-crawler-stats.json
