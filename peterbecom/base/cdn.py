@@ -22,7 +22,7 @@ def purge_cdn_urls(urls, api=None):
     cachebr = config["data"]["zone"]["cachebr"] == "enabled"
     all_urls = []
     for absolute_url in urls:
-        url = settings.KEYCDN_ZONE_NAME + urlparse(absolute_url).path
+        url = settings.KEYCDN_ZONE_URL + urlparse(absolute_url).path
         all_urls.append(url)
         if cachebr:
             all_urls.append(url + "br")
