@@ -208,9 +208,14 @@ def _minify_html(filepath, url):
 
 
 def _zopfli_html(html, filepath, url):
-    while True:
-        original_ts = os.stat(filepath).st_mtime
-        original_size = os.stat(filepath).st_size
+    for _ in range(5):
+        try:
+            original_ts = os.stat(filepath).st_mtime
+            original_size = os.stat(filepath).st_size
+        except FileNotFoundError:
+            # Try again in a second.
+            time.sleep(1)
+            continue
         t0 = time.time()
         new_filepath = zopfli_file(filepath)
         t1 = time.time()
@@ -248,9 +253,14 @@ def _zopfli_html(html, filepath, url):
 
 
 def _brotli_html(html, filepath, url):
-    while True:
-        original_ts = os.stat(filepath).st_mtime
-        original_size = os.stat(filepath).st_size
+    for _ in range(5):
+        try:
+            original_ts = os.stat(filepath).st_mtime
+            original_size = os.stat(filepath).st_size
+        except FileNotFoundError:
+            # Try again in a second.
+            time.sleep(1)
+            continue
         t0 = time.time()
         new_filepath = brotli_file(filepath)
         t1 = time.time()
