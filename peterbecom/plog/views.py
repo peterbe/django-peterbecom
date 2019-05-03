@@ -210,7 +210,13 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
 
     # attach a field called `_absolute_url` which depends on the request
     base_url = "https://" if request.is_secure() else "http://"
-    base_url += RequestSite(request).domain
+    if (
+        request.headers.get("X-Forwarded-Host")
+        and request.headers.get("X-Forwarded-Host") in settings.ALLOWED_HOSTS
+    ):
+        base_url += request.headers.get("X-Forwarded-Host")
+    else:
+        base_url += RequestSite(request).domain
     post._absolute_url = base_url + reverse("blog_post", args=(post.oid,))
 
     context = {"post": post, "screenshot_mode": screenshot_mode}

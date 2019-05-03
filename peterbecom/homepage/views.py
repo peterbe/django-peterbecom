@@ -213,7 +213,14 @@ def search(request, original_q=None):
 
     documents = []
     search_times = []
-    context["base_url"] = "https://%s" % RequestSite(request).domain
+    context["base_url"] = "https://"
+    if (
+        request.headers.get("X-Forwarded-Host")
+        and request.headers.get("X-Forwarded-Host") in settings.ALLOWED_HOSTS
+    ):
+        context["base_url"] += request.headers.get("X-Forwarded-Host")
+    else:
+        context["base_url"] += RequestSite(request).domain
 
     context["q"] = q
 
@@ -489,7 +496,14 @@ def contact(request):
 
 @cache_control(public=True, max_age=ONE_WEEK)
 def sitemap(request):
-    base_url = "https://%s" % RequestSite(request).domain
+    base_url = "https://"
+    if (
+        request.headers.get("X-Forwarded-Host")
+        and request.headers.get("X-Forwarded-Host") in settings.ALLOWED_HOSTS
+    ):
+        base_url += request.headers.get("X-Forwarded-Host")
+    else:
+        base_url += RequestSite(request).domain
 
     urls = []
     urls.append('<?xml version="1.0" encoding="iso-8859-1"?>')

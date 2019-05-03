@@ -45,7 +45,14 @@ def make_absolute_url(uri, request):
         # we only need the prefix
         return "%s:%s" % (prefix, uri)
     else:
-        return "%s://%s%s" % (prefix, RequestSite(request).domain, uri)
+        if (
+            request.headers.get("X-Forwarded-Host")
+            and request.headers.get("X-Forwarded-Host") in settings.ALLOWED_HOSTS
+        ):
+            domain = request.headers.get("X-Forwarded-Host")
+        else:
+            domain = RequestSite(request).domain
+        return "%s://%s%s" % (prefix, domain, uri)
 
 
 def index(request):
