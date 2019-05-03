@@ -430,4 +430,6 @@ GEOIP_PATH = path("GeoLite2-City.mmdb")
 
 DELAY_SENDING_BLOGCOMMENT_REPLY_SECONDS = 60
 
-KEYCDN_HOST = 'www.peterbe.com'
+KEYCDN_HOST = "www.peterbe.com"
+# https://app.keycdn.com/zones/index
+KEYCDN_ZONE_NAME = "www"
