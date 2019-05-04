@@ -55,6 +55,17 @@ class ProbeUrl extends React.PureComponent {
     }
   }
 
+  componentDidUpdate(prevProps, prevState) {
+    if (
+      prevState !== this.state.url ||
+      prevState.result !== this.state.result
+    ) {
+      if (this.state.purgeResult) {
+        this.setState({ purgeResult: null });
+      }
+    }
+  }
+
   probeUrl = async () => {
     if (!this.props.accessToken) {
       throw new Error('No accessToken');
