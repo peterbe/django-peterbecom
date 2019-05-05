@@ -154,8 +154,10 @@ def increment_blogitem_hit(
     if http_referer and len(http_referer) > 450:
         http_referer = http_referer[: 450 - 3] + "..."
     try:
+        blogitem_id = BlogItem.objects.values_list("id", flat=True).get(oid=oid)
         BlogItemHit.objects.create(
-            blogitem=BlogItem.objects.get(oid=oid),
+            # blogitem=BlogItem.objects.get(oid=oid),
+            blogitem_id=blogitem_id,
             http_user_agent=http_user_agent,
             http_accept_language=http_accept_language,
             http_referer=http_referer,
