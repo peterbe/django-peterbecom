@@ -50,6 +50,10 @@ export class EditBlogitem extends React.Component {
     document.title = 'Edit Blogitem';
   }
 
+  componentWillUnmount() {
+    this.dismounted = true;
+  }
+
   componentDidMount() {
     this.fetchBlogitem(this.props.match.params.oid);
     this.fetchAllCategories();
@@ -70,6 +74,7 @@ export class EditBlogitem extends React.Component {
           Authorization: `Bearer ${this.props.accessToken}`
         }
       });
+      if (this.dismounted) return;
       if (response.ok) {
         const json = await response.json();
         this.setState({ allCategories: json.categories }, () => {
@@ -97,6 +102,7 @@ export class EditBlogitem extends React.Component {
     } catch (ex) {
       return this.setState({ serverError: ex, loading: false });
     }
+    if (this.dismounted) return;
     if (!response.ok) {
       return this.setState({ serverError: response, loading: false });
     }
@@ -119,6 +125,7 @@ export class EditBlogitem extends React.Component {
         },
         body: JSON.stringify(data)
       });
+      if (this.dismounted) return;
     } catch (ex) {
       return this.setState({ serverError: ex });
     }
