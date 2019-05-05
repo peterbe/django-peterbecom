@@ -186,7 +186,7 @@ function ShowKeywordProduct({
   const [searching, setSearching] = React.useState(false);
   React.useEffect(() => {
     if (searching) setSearching(false);
-  }, [products]);
+  }, [products, searching]);
   const searchIndexOptions = [
     { key: 'Books', text: 'Books', value: 'Books' },
     { key: 'All', text: 'All', value: 'All' }

@@ -31,7 +31,21 @@ class Blogitems extends React.Component {
     serverError: null
   };
   componentDidMount() {
+    let cached = sessionStorage.getItem(this._getStorageCacheKey());
+    if (cached) {
+      this.setState(JSON.parse(cached));
+      cached = '';
+    }
     this.fetchBlogitems();
+  }
+
+  _getStorageCacheKey() {
+    let cacheKey = 'blogitems';
+    const { orderBy, page, search } = this.state;
+    cacheKey += `:orderBy${orderBy}`;
+    cacheKey += `:page${page}`;
+    cacheKey += `:search${search}`;
+    return cacheKey;
   }
 
   fetchBlogitems = async () => {
@@ -39,10 +53,10 @@ class Blogitems extends React.Component {
     if (!accessToken) {
       throw new Error('No accessToken');
     }
-    const { page, search } = this.state;
+    const { page, search, orderBy } = this.state;
     let url = `/api/v0/plog/?page=${page}&search=${encodeURIComponent(search)}`;
-    if (this.state.orderBy) {
-      url += `&order=${encodeURIComponent(this.state.orderBy)}`;
+    if (orderBy) {
+      url += `&order=${encodeURIComponent(orderBy)}`;
     }
     const response = await fetch(url, {
       headers: {
@@ -51,7 +65,15 @@ class Blogitems extends React.Component {
     });
     if (response.ok) {
       const data = await response.json();
-      this.setState({ blogitems: data.blogitems, count: data.count });
+      this.setState({ blogitems: data.blogitems, count: data.count }, () => {
+        sessionStorage.setItem(
+          this._getStorageCacheKey(),
+          JSON.stringify({
+            blogitems: this.state.blogitems,
+            count: this.state.count
+          })
+        );
+      });
     } else {
       this.setState({ serverError: response });
     }
