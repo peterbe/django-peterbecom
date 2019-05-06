@@ -81,9 +81,10 @@ def invalidate_by_url(url, revisit=False):
     if not url.endswith("/"):
         url += "/"
     fs_path = settings.FSCACHE_ROOT + url + "index.html"
-    _invalidate(fs_path)
+    deleted = _invalidate(fs_path)
     if revisit:
         revisit_url(fs_path)
+    return deleted
 
 
 def invalidate_by_url_soon(urls):

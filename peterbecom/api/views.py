@@ -27,6 +27,7 @@ from peterbecom.awspa.templatetags.jinja_helpers import awspa_product
 from peterbecom.base.models import PostProcessing, SearchResult
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
 from peterbecom.base.cdn import get_cdn_config, purge_cdn_urls
+from peterbecom.base.fscache import invalidate_by_url
 from peterbecom.plog.models import (
     BlogComment,
     BlogFile,
@@ -590,8 +591,8 @@ def _postprocessing_records(request_GET, limit=10):
                 exception__isnull=True,
                 created__gt=each.created,
             )
-            for better in sub_qs.order_by('-created')[:1]:
-                record['_latest'] = serialize_record(better)
+            for better in sub_qs.order_by("-created")[:1]:
+                record["_latest"] = serialize_record(better)
                 break
         records.append(record)
 
@@ -621,7 +622,7 @@ def _filter_postprocessing_queryset(qs, request_GET):
         elif q:
             qs = technique(url__contains=q)
 
-    if request_GET.get('exceptions'):
+    if request_GET.get("exceptions"):
         qs = qs.filter(exception__isnull=False)
     return qs
 
@@ -1191,7 +1192,7 @@ def cdn_config(request):
 def cdn_probe(request):
     url = request.POST["url"]
     if url.startswith("http://") or url.startswith("https://"):
-        absolute_url = url.split('#')[0]
+        absolute_url = url.split("#")[0]
     elif "/" not in url:
         try:
             blogitem = BlogItem.objects.get(oid=url)
@@ -1226,6 +1227,13 @@ def cdn_probe(request):
 @require_POST
 @api_superuser_required
 def cdn_purge(request):
+    context = {"deleted": []}
     urls = request.POST.getlist("urls")
-    context = {"purge": purge_cdn_urls(urls)}
+    if request.POST.get("fscache"):
+        # Need to find FSCache files by URL
+        for url in urls:
+            deleted = invalidate_by_url(url)
+            context["deleted"].extend(deleted)
+
+    context["purge"] = purge_cdn_urls(urls)
     return _response(context)

@@ -6,7 +6,8 @@ import {
   Icon,
   Input,
   Loader,
-  Table
+  Table,
+  Checkbox
 } from 'semantic-ui-react';
 
 import { ShowServerError } from './Common';
@@ -39,7 +40,9 @@ class ProbeUrl extends React.PureComponent {
     result: null,
     serverError: null,
     url: '',
-    purgeResult: null
+    purgeResult: null,
+    purgeFSCache: true,
+    deletedFSCacheFiles: null
   };
 
   componentDidMount() {
@@ -51,17 +54,6 @@ class ProbeUrl extends React.PureComponent {
       const url = searchParams.get('url') || '';
       if (url) {
         this.setState({ loading: true, url }, this.probeUrl);
-      }
-    }
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    if (
-      prevState !== this.state.url ||
-      prevState.result !== this.state.result
-    ) {
-      if (this.state.purgeResult) {
-        this.setState({ purgeResult: null });
       }
     }
   }
@@ -110,7 +102,9 @@ class ProbeUrl extends React.PureComponent {
     let url = '/api/v0/cdn/purge';
     const formData = new FormData();
     formData.append('urls', absoluteUrl);
-
+    if (this.state.purgeFSCache) {
+      formData.append('fscache', true);
+    }
     try {
       response = await fetch(url, {
         method: 'POST',
@@ -131,6 +125,7 @@ class ProbeUrl extends React.PureComponent {
       this.setState({
         loading: false,
         purgeResult: result.purge,
+        deletedFSCacheFiles: result.deleted,
         serverError: null
       });
     } else {
@@ -139,7 +134,15 @@ class ProbeUrl extends React.PureComponent {
   };
 
   render() {
-    const { loading, result, serverError, url, purgeResult } = this.state;
+    const {
+      loading,
+      result,
+      serverError,
+      url,
+      purgeResult,
+      purgeFSCache,
+      deletedFSCacheFiles
+    } = this.state;
     return (
       <form
         onSubmit={event => {
@@ -147,7 +150,16 @@ class ProbeUrl extends React.PureComponent {
           this.props.history.push({
             search: `?url=${encodeURI(this.state.url)}`
           });
-          this.probeUrl();
+          this.setState(
+            {
+              loading: true,
+              purgeResult: null,
+              deletedFSCacheFiles: null
+            },
+            () => {
+              this.probeUrl();
+            }
+          );
         }}
       >
         <Header as="h2">URL Probe</Header>
@@ -164,16 +176,31 @@ class ProbeUrl extends React.PureComponent {
         />
         <ShowServerError error={serverError} />
         {result && (
-          <p style={{ marginTop: 20 }}>
+          <div style={{ marginTop: 20 }}>
+            <Checkbox
+              defaultChecked={purgeFSCache}
+              toggle
+              onChange={(event, data) => {
+                this.setState({ purgeFSCache: data.checked });
+              }}
+              label="Purge FSCache too"
+            />{' '}
             <Button
               primary
               loading={loading}
               disabled={loading}
               onClick={event => {
                 event.preventDefault();
-                this.setState({ loading: true, purgeResult: null }, () => {
-                  this.purgeUrl(result.absolute_url);
-                });
+                this.setState(
+                  {
+                    loading: true,
+                    purgeResult: null,
+                    deletedFSCacheFiles: null
+                  },
+                  () => {
+                    this.purgeUrl(result.absolute_url);
+                  }
+                );
               }}
             >
               Purge
@@ -185,24 +212,19 @@ class ProbeUrl extends React.PureComponent {
               onClick={event => {
                 event.preventDefault();
                 this.setState(
-                  { loading: true, result: null, purgeResult: null },
+                  {
+                    loading: true,
+                    result: null,
+                    purgeResult: null,
+                    deletedFSCacheFiles: null
+                  },
                   this.probeUrl
                 );
               }}
             >
               Probe Again
             </Button>{' '}
-            <a
-              style={{ paddingLeft: 10 }}
-              href={`https://tools.keycdn.com/performance?url=${encodeURI(
-                result.absolute_url
-              )}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Icon name="external" /> KeyCDN Performance Test
-            </a>
-          </p>
+          </div>
         )}
         {purgeResult && (
           <div style={{ textAlign: 'left' }}>
@@ -220,6 +242,21 @@ class ProbeUrl extends React.PureComponent {
             <pre>{JSON.stringify(purgeResult.result, null, 2)}</pre>
           </div>
         )}
+        {deletedFSCacheFiles ? (
+          <div style={{ textAlign: 'left' }}>
+            <h5>FSCache Files Deleted</h5>
+            {!deletedFSCacheFiles.length && <i>No FSCache files deleted</i>}
+            <ul>
+              {deletedFSCacheFiles.map(path => {
+                return (
+                  <li key={path}>
+                    <code>{path}</code>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ) : null}
         {result && <ShowProbeResult result={result} />}
       </form>
     );
@@ -236,7 +273,17 @@ function ShowProbeResult({ result }) {
               <b>Absolute URL</b>
             </Table.Cell>
             <Table.Cell>
-              <a href={result.absolute_url}>{result.absolute_url}</a>
+              <a href={result.absolute_url}>{result.absolute_url}</a>{' '}
+              <a
+                style={{ paddingLeft: 10 }}
+                href={`https://tools.keycdn.com/performance?url=${encodeURI(
+                  result.absolute_url
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Icon name="external" /> KeyCDN Performance Test
+              </a>
             </Table.Cell>
           </Table.Row>
           <Table.Row>
