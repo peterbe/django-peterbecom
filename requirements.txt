@@ -441,5 +441,6 @@ geoip2==2.9.0 \
     --hash=sha256:f7ffe9d258e71a42cf622ce6350d976de1d0312b9f2fbce3975c7d838b57ecf0
 pywatchman==1.4.1 \
     --hash=sha256:d0047eb275deafb0011eda0a1a815fbd9742478c3d2b5ad6956d300e447dc2f9
-keycdn==0.3 \
-    --hash=sha256:023e9500cd95fe02394de92c5124d73b1397c07993c7ccf1720afc942cb87baa
+keycdn==0.4.2 \
+    --hash=sha256:34a3222d50e4401b29766b2a8b3d4a07822e9ab6a28f0cf83a833379d48cedb4 \
+    --hash=sha256:7fa72fb6f79a2de83df12fa78978fe30335df1f4255d3c0f1bfb5c322eadabe2
