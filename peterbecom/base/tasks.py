@@ -173,8 +173,14 @@ def _post_process_cached_html(filepath, url, postprocessing):
 
 
 def _minify_html(filepath, url):
-    with open(filepath) as f:
-        html = f.read()
+    for _ in range(3):
+        try:
+            with open(filepath) as f:
+                html = f.read()
+            break
+        except FileNotFoundError:
+            # Try again in a second
+            time.sleep(1)
     minified_html = minify_html(html)
     if not minified_html:
         print("Failed to minify_html({!r}, {!r}).".format(filepath, url))
