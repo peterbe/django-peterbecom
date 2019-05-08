@@ -27,6 +27,7 @@ class CommandRun(models.Model):
 class PostProcessing(models.Model):
     filepath = models.CharField(max_length=400)
     url = models.URLField(max_length=400, db_index=True)
+    original_url = models.URLField(max_length=400, null=True)
     duration = models.DurationField(null=True)
     notes = ArrayField(models.CharField(max_length=400), default=list)
     exception = models.TextField(null=True)

@@ -3,6 +3,7 @@ import hashlib
 import datetime
 import re
 import time
+from urllib.parse import urlparse
 
 from django import http
 from django.conf import settings
@@ -109,7 +110,15 @@ class FSCacheMiddleware:
                 with open(fs_path + ".cache_control", "w") as f:
                     f.write(str(seconds))
                 if "text/html" in response["Content-Type"]:
-                    absolute_url = request.build_absolute_uri()
+                    original_url = absolute_url = request.build_absolute_uri()
+                    forwarded_host = request.headers.get("X-Forwarded-Host")
+                    if forwarded_host and forwarded_host in settings.ALLOWED_HOSTS:
+                        # Edit absolute_url using X-Forwarded-Host
+                        absolute_url_parsed = urlparse(absolute_url)._replace(
+                            netloc=forwarded_host
+                        )
+                        absolute_url = absolute_url_parsed.geturl()
+
                     if "\n" in absolute_url:
                         raise ValueError(
                             "An absolute URL with a newline in it ({!r})".format(
@@ -134,7 +143,10 @@ class FSCacheMiddleware:
                     if not cache.get(cache_key):
                         cache.set(cache_key, True, 30)
                         post_process_cached_html(
-                            fs_path, absolute_url, _start_time=time.time()
+                            fs_path,
+                            absolute_url,
+                            _start_time=time.time(),
+                            original_url=original_url,
                         )
 
         return response

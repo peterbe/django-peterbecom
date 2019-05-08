@@ -26,7 +26,9 @@ from peterbecom.zopfli_file import zopfli_file
 def measure_post_process(func):
     @functools.wraps(func)
     def inner(filepath, url, *args, **kwargs):
-        record = PostProcessing.objects.create(filepath=filepath, url=url)
+        record = PostProcessing.objects.create(
+            filepath=filepath, url=url, original_url=kwargs.pop("original_url", None)
+        )
         t0 = time.perf_counter()
         _exception = False
         try:
