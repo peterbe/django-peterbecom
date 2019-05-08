@@ -27,7 +27,7 @@ from peterbecom.awspa.templatetags.jinja_helpers import awspa_product
 from peterbecom.base.models import PostProcessing, SearchResult
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
 from peterbecom.base.cdn import get_cdn_config, purge_cdn_urls
-from peterbecom.base.fscache import invalidate_by_url
+from peterbecom.base.fscache import invalidate_by_url, path_to_fs_path
 from peterbecom.plog.models import (
     BlogComment,
     BlogFile,
@@ -1190,9 +1190,29 @@ def cdn_config(request):
 @require_POST
 @api_superuser_required
 def cdn_probe(request):
-    url = request.POST["url"]
+    url = request.POST["url"].strip()
+    blogitem = None
+
+    base_url = 'http'
+    if request.is_secure():
+        base_url += 's'
+    base_url += '://' + request.get_host()
+
+    if url.startswith('/'):  # rewrite to absolute URL
+        url = base_url + url
+
     if url.startswith("http://") or url.startswith("https://"):
         absolute_url = url.split("#")[0]
+        if (
+            urlparse(absolute_url).netloc == request.get_host()
+            and "/plog/" in absolute_url
+            and urlparse(absolute_url).path not in ("/plog/", "/plog")
+        ):
+            oid = urlparse(absolute_url).path.split("/")[-1]
+            try:
+                blogitem = BlogItem.objects.get(oid=oid)
+            except BlogItem.DoesNotExist:
+                pass
     elif "/" not in url:
         try:
             blogitem = BlogItem.objects.get(oid=url)
@@ -1207,6 +1227,39 @@ def cdn_probe(request):
         return _response({"error": "Invalid search"}, status=400)
 
     context = {"absolute_url": absolute_url}
+
+    fscache_path = path_to_fs_path(urlparse(absolute_url).path)
+    fscache_path_dir = os.path.dirname(fscache_path)
+    context["fscache"] = {
+        "fspath": fscache_path,
+        "exists": os.path.isfile(fscache_path),
+    }
+    if context["fscache"]["exists"]:
+        context["fscache"]["files"] = [
+            x
+            for x in os.listdir(fscache_path_dir)
+            if os.path.isfile(os.path.join(fscache_path_dir, x))
+        ]
+
+    if blogitem and not re.findall(r"/p\d+$", absolute_url):
+        comment_count = BlogComment.objects.filter(
+            blogitem=blogitem, approved=True
+        ).count()
+        pages = comment_count // settings.MAX_RECENT_COMMENTS
+        other_pages = []
+        for page in range(2, pages + 2):
+            if page > settings.MAX_BLOGCOMMENT_PAGES:
+                break
+            url = reverse("blog_post", args=[blogitem.oid, page])
+            fspath = path_to_fs_path(url)
+            other_pages.append({
+                'url': base_url + url,
+                'fspath': fspath,
+                'fspath_exists': os.path.isfile(fspath),
+            })
+
+        if other_pages:
+            context['other_pages'] = other_pages
 
     t0 = time.time()
     r = requests.get(absolute_url)

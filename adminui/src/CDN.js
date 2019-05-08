@@ -42,7 +42,8 @@ class ProbeUrl extends React.PureComponent {
     url: '',
     purgeResult: null,
     purgeFSCache: true,
-    deletedFSCacheFiles: null
+    deletedFSCacheFiles: null,
+    purgeAllPages: true
   };
 
   componentDidMount() {
@@ -105,6 +106,13 @@ class ProbeUrl extends React.PureComponent {
     if (this.state.purgeFSCache) {
       formData.append('fscache', true);
     }
+    if (this.state.purgeAllPages) {
+      if (this.state.result.other_pages) {
+        this.state.result.other_pages.forEach(page => {
+          formData.append('urls', page.url);
+        });
+      }
+    }
     try {
       response = await fetch(url, {
         method: 'POST',
@@ -141,6 +149,7 @@ class ProbeUrl extends React.PureComponent {
       url,
       purgeResult,
       purgeFSCache,
+      purgeAllPages,
       deletedFSCacheFiles
     } = this.state;
     return (
@@ -177,6 +186,18 @@ class ProbeUrl extends React.PureComponent {
         <ShowServerError error={serverError} />
         {result && (
           <div style={{ marginTop: 20 }}>
+            {result.other_pages && result.other_pages.length && (
+              <Checkbox
+                defaultChecked={purgeAllPages}
+                toggle
+                onChange={(event, data) => {
+                  this.setState({ purgeAllPages: data.checked });
+                }}
+                label={`Purge all (${
+                  result.other_pages.length
+                }) other pages too`}
+              />
+            )}{' '}
             <Checkbox
               defaultChecked={purgeFSCache}
               toggle
@@ -244,7 +265,7 @@ class ProbeUrl extends React.PureComponent {
         )}
         {deletedFSCacheFiles ? (
           <div style={{ textAlign: 'left' }}>
-            <h5>FSCache Files Deleted</h5>
+            <h4>Deleted FSCache Files</h4>
             {!deletedFSCacheFiles.length && <i>No FSCache files deleted</i>}
             <ul>
               {deletedFSCacheFiles.map(path => {
@@ -257,6 +278,69 @@ class ProbeUrl extends React.PureComponent {
             </ul>
           </div>
         ) : null}
+
+        {result && result.fscache && (
+          <div style={{ textAlign: 'left' }}>
+            <h4>FSCache Files</h4>
+            <code>{result.fscache.fspath}</code>{' '}
+            {result.fscache.exists ? (
+              <Icon name="check" color="green" title="Exists!" />
+            ) : (
+              <Icon name="dont" color="orange" title="Doest not exist" />
+            )}
+            {result.fscache.files && result.fscache.files.length ? (
+              <ul>
+                {result.fscache.files.map(p => (
+                  <li key={p}>
+                    <code>{p}</code>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <i>No other files</i>
+            )}
+          </div>
+        )}
+
+        {result && result.other_pages && result.other_pages.length && (
+          <div style={{ textAlign: 'left' }}>
+            <h4>Other Pages ({result.other_pages.length})</h4>
+            <ul>
+              {result.other_pages.map(page => {
+                return (
+                  <li key={page.url}>
+                    <a
+                      href={`?url=${encodeURI(page.url)}`}
+                      onClick={event => {
+                        event.preventDefault();
+                        this.setState(
+                          {
+                            url: page.url,
+                            result: null,
+                            loading: true
+                          },
+                          this.probeUrl
+                        );
+                      }}
+                    >
+                      {page.url}
+                    </a>{' '}
+                    {page.fspath_exists ? (
+                      <Icon name="check" color="green" title="Exists!" />
+                    ) : (
+                      <Icon
+                        name="dont"
+                        color="orange"
+                        title="Doest not exist"
+                      />
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+
         {result && <ShowProbeResult result={result} />}
       </form>
     );
