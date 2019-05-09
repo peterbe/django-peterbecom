@@ -20,6 +20,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 from geoip2.errors import AddressNotFoundError
+from django.views.decorators.cache import never_cache
 
 from peterbecom.awspa.models import AWSProduct
 from peterbecom.awspa.search import search as awspa_search
@@ -450,13 +451,12 @@ def load_more_awsproducts(keyword, searchindex):
 
 
 @api_superuser_required
+@never_cache
 def postprocessings(request):
-
     context = {
         "statistics": _postprocessing_statistics(request.GET),
         "records": _postprocessing_records(request.GET),
     }
-
     return _response(context)
 
 
@@ -773,6 +773,7 @@ def ip_to_city(ip_address):
 
 
 @api_superuser_required
+@never_cache
 def blogcomments(request):
     if request.method == "POST":
         data = json.loads(request.body.decode("utf-8"))

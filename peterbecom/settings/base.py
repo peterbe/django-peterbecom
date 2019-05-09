@@ -433,3 +433,10 @@ DELAY_SENDING_BLOGCOMMENT_REPLY_SECONDS = 60
 KEYCDN_HOST = "www.peterbe.com"
 # https://app.keycdn.com/zones/index
 KEYCDN_ZONE_URL = "www-2916.kxcdn.com"
+
+# This means, it will use the Nginx way instead.
+# Essential when using Nginx proxy_cache for local development.
+USE_NGINX_BYPASS = False
+# When Huey gets a request to purge URLs and you have enabled 'USE_NGINX_BYPASS'
+# it might need a base_url if the request URL is just the path.
+NGINX_BYPASS_BASEURL = None

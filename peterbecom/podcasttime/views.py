@@ -12,11 +12,11 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import transaction
-from django.contrib.sites.requests import RequestSite
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import cache_page
 from django.conf import settings
 
+from peterbecom.base.utils import get_base_url
 from peterbecom.podcasttime.models import Podcast, Episode, Picked
 from peterbecom.podcasttime.search import PodcastDoc
 from peterbecom.podcasttime.forms import PodcastsForm
@@ -40,19 +40,12 @@ def random_string(length):
 
 
 def make_absolute_url(uri, request):
-    prefix = request.is_secure() and "https" or "http"
     if uri.startswith("//"):
         # we only need the prefix
-        return "%s:%s" % (prefix, uri)
+        prefix = request.is_secure() and "https" or "http"
+        return prefix + uri
     else:
-        if (
-            request.headers.get("X-Forwarded-Host")
-            and request.headers.get("X-Forwarded-Host") in settings.ALLOWED_HOSTS
-        ):
-            domain = request.headers.get("X-Forwarded-Host")
-        else:
-            domain = RequestSite(request).domain
-        return "%s://%s%s" % (prefix, domain, uri)
+        return get_base_url(request) + uri
 
 
 def index(request):

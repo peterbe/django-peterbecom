@@ -8,7 +8,6 @@ from pathlib import Path
 
 from django import http
 from django.conf import settings
-from django.contrib.sites.requests import RequestSite
 from django.db.models import Count, Max
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -20,6 +19,7 @@ from elasticsearch_dsl import Q
 from fancy_cache import cache_page
 from huey.contrib.djhuey import task
 
+from peterbecom.base.utils import get_base_url
 from peterbecom.base.decorators import variable_cache_control
 from peterbecom.base.models import SearchResult
 from peterbecom.plog.models import BlogComment, BlogItem
@@ -213,15 +213,7 @@ def search(request, original_q=None):
 
     documents = []
     search_times = []
-    context["base_url"] = "https://"
-    if (
-        request.headers.get("X-Forwarded-Host")
-        and request.headers.get("X-Forwarded-Host") in settings.ALLOWED_HOSTS
-    ):
-        context["base_url"] += request.headers.get("X-Forwarded-Host")
-    else:
-        context["base_url"] += RequestSite(request).domain
-
+    context["base_url"] = get_base_url(request)
     context["q"] = q
 
     keyword_search = {}
@@ -496,15 +488,7 @@ def contact(request):
 
 @cache_control(public=True, max_age=ONE_WEEK)
 def sitemap(request):
-    base_url = "https://"
-    if (
-        request.headers.get("X-Forwarded-Host")
-        and request.headers.get("X-Forwarded-Host") in settings.ALLOWED_HOSTS
-    ):
-        base_url += request.headers.get("X-Forwarded-Host")
-    else:
-        base_url += RequestSite(request).domain
-
+    base_url = get_base_url(request)
     urls = []
     urls.append('<?xml version="1.0" encoding="iso-8859-1"?>')
     urls.append('<urlset xmlns="http://www.google.com/schemas/sitemap/0.84">')
@@ -708,3 +692,7 @@ def slow_static(request, path):
         return http.HttpResponseNotFound(path)
     time.sleep(2)
     return http.HttpResponse(p.read_bytes(), content_type="text/css")
+
+
+def dynamic_page(request):
+    return http.HttpResponse("Current time is: {}\n".format(timezone.now()))

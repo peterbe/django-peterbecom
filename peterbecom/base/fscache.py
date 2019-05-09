@@ -96,6 +96,7 @@ def invalidate_by_url_soon(urls):
     for url in urls:
         if url not in slated:
             slated.append(url)
+
     cache.set("invalidate_by_url", slated, 60)
     # The added jitter to the delay is there to avoid race conditions.
     # If this task is sent twice (which can happen) and two Huey workers
