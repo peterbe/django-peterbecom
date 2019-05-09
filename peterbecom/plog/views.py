@@ -3,13 +3,11 @@ import hashlib
 import logging
 import random
 import re
-from urllib.parse import urlparse
 from collections import defaultdict
+from urllib.parse import urlparse
 
 from django import http
 from django.conf import settings
-
-from django.contrib.sites.requests import RequestSite
 from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Count
@@ -24,15 +22,15 @@ from fancy_cache import cache_page
 from huey.contrib.djhuey import task
 
 from peterbecom.awspa.models import AWSProduct
-
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
+from peterbecom.base.utils import get_base_url
 
 from . import utils
 from .forms import CalendarDataForm
-from .tasks import send_new_comment_email
 from .models import BlogComment, BlogItem, BlogItemHit, Category
 from .spamprevention import contains_spam_url_patterns
-from .utils import json_view, render_comment_text, get_blogcomment_slice
+from .tasks import send_new_comment_email
+from .utils import get_blogcomment_slice, json_view, render_comment_text
 
 logger = logging.getLogger("plog.views")
 
@@ -211,14 +209,7 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
         return http.HttpResponsePermanentRedirect(request.path)
 
     # attach a field called `_absolute_url` which depends on the request
-    base_url = "https://" if request.is_secure() else "http://"
-    if (
-        request.headers.get("X-Forwarded-Host")
-        and request.headers.get("X-Forwarded-Host") in settings.ALLOWED_HOSTS
-    ):
-        base_url += request.headers.get("X-Forwarded-Host")
-    else:
-        base_url += RequestSite(request).domain
+    base_url = get_base_url(request)
     post._absolute_url = base_url + reverse("blog_post", args=(post.oid,))
 
     context = {"post": post, "screenshot_mode": screenshot_mode}

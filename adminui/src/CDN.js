@@ -259,7 +259,6 @@ class ProbeUrl extends React.PureComponent {
                 );
               })}
             </ul>
-
             <pre>{JSON.stringify(purgeResult.result, null, 2)}</pre>
           </div>
         )}

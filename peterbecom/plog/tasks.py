@@ -9,7 +9,6 @@ from peterbecom.plog.models import BlogComment
 
 @task()
 def send_new_comment_email(blogcomment_id):
-    print("SEND_NEW_COMMENT_EMAIL", repr(blogcomment_id))
     blogcomment = BlogComment.objects.get(id=blogcomment_id)
     tos = [x[1] for x in settings.MANAGERS]
     from_ = ["%s <%s>" % x for x in settings.MANAGERS][0]

@@ -15,6 +15,7 @@ from huey.contrib.djhuey import task
 from requests.exceptions import ReadTimeout
 
 from peterbecom.base import songsearch_autocomplete
+from peterbecom.base.cdn import purge_cdn_urls
 from peterbecom.base.decorators import lock_decorator
 from peterbecom.base.models import PostProcessing
 from peterbecom.brotli_file import brotli_file
@@ -27,7 +28,7 @@ def measure_post_process(func):
     @functools.wraps(func)
     def inner(filepath, url, *args, **kwargs):
         record = PostProcessing.objects.create(
-            filepath=filepath, url=url, original_url=kwargs.pop("original_url", None)
+            filepath=filepath, url=url, original_url=kwargs.get("original_url")
         )
         t0 = time.perf_counter()
         _exception = False
@@ -53,7 +54,9 @@ def measure_post_process(func):
 
 @task()
 @measure_post_process
-def post_process_cached_html(filepath, url, postprocessing, _start_time=None):
+def post_process_cached_html(
+    filepath, url, postprocessing, _start_time=None, original_url=None
+):
     if _start_time:
         task_delay = time.time() - _start_time
         # print("TASK_DELAY:post_process_cached_html:", task_delay)
@@ -62,11 +65,11 @@ def post_process_cached_html(filepath, url, postprocessing, _start_time=None):
         postprocessing.notes.append("Taskdelay {:.2f}s".format(task_delay))
     # Sepearated from true work-horse below. This is so that the task will
     # *always* fire immediately.
-    return _post_process_cached_html(filepath, url, postprocessing)
+    return _post_process_cached_html(filepath, url, postprocessing, original_url)
 
 
 @lock_decorator(key_maker=lambda *args, **kwargs: args[0])
-def _post_process_cached_html(filepath, url, postprocessing):
+def _post_process_cached_html(filepath, url, postprocessing, original_url):
     if "\n" in url:
         raise ValueError("URL can't have a linebreak in it ({!r})".format(url))
     if url.startswith("http://testserver"):
@@ -101,8 +104,11 @@ def _post_process_cached_html(filepath, url, postprocessing):
     while True and not url.endswith("/awspa"):
         t0 = time.perf_counter()
         try:
+            print("CALLING mincss_html FOR", original_url or url)
             optimized_html = mincss_html(
-                html, url, include_minimalcss_stats=include_minimalcss_stats
+                html,
+                original_url or url,
+                include_minimalcss_stats=include_minimalcss_stats,
             )
             t1 = time.perf_counter()
             if optimized_html is None:
@@ -172,6 +178,8 @@ def _post_process_cached_html(filepath, url, postprocessing):
         _brotli_html(minified_html and minified_html or optimized_html, filepath, url)
         t1 = time.perf_counter()
         postprocessing.notes.append("Took {:.1f}s to Brotli HTML".format(t1 - t0))
+
+    purge_cdn_urls([url])
 
 
 def _minify_html(filepath, url):

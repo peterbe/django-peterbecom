@@ -1,8 +1,9 @@
 from urllib.parse import urlparse
 
-from django.core.cache import cache
+import requests
 from django.conf import settings
-from keycdn import keycdn  # https://github.com/keycdn/python-keycdn-api/issues/4
+from django.core.cache import cache
+import keycdn
 
 
 def get_cdn_config(api=None):
@@ -16,6 +17,18 @@ def get_cdn_config(api=None):
 
 
 def purge_cdn_urls(urls, api=None):
+    if settings.USE_NGINX_BYPASS:
+        # Note! This Nginx trick will not just purge the proxy_cache, it will
+        # immediately trigger a refetch.
+        x_cache_headers = []
+        for url in urls:
+            if "://" not in url:
+                url = settings.NGINX_BYPASS_BASEURL + url
+            r = requests.get(url, headers={"secret-header": "true"})
+            r.raise_for_status()
+            x_cache_headers.append({"url": url, "x-cache": r.headers.get("x-cache")})
+        print("X-CACHE-HEADERS", x_cache_headers)
+        return {"all_urls": urls, "result": x_cache_headers}
     api = api or keycdn.Api(settings.KEYCDN_API_KEY)
     config = get_cdn_config(api)
     # See https://www.keycdn.com/api#purge-zone-url

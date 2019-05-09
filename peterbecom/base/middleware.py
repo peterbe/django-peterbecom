@@ -125,16 +125,7 @@ class FSCacheMiddleware:
                                 absolute_url
                             )
                         )
-                    # If you're in docker, the right hostname is actually
-                    # 'web', not 'localhost'.
-                    # absolute_url = absolute_url.replace(
-                    #     '//localhost:8000',
-                    #     '//web:8000'
-                    # )
-                    # absolute_url = absolute_url.replace(
-                    #     '//peterbecom.local',
-                    #     '//web:8000'
-                    # )
+
                     assert os.path.exists(fs_path), fs_path
                     cache_key = "post_process_cached_html:{}:{}".format(
                         hashlib.md5(force_bytes(fs_path)).hexdigest(),
