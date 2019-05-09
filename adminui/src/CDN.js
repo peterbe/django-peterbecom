@@ -281,13 +281,21 @@ class ProbeUrl extends React.PureComponent {
         {result && result.fscache && (
           <div style={{ textAlign: 'left' }}>
             <h4>FSCache Files</h4>
-            <code>{result.fscache.fspath}</code>{' '}
+
             {result.fscache.exists ? (
-              <Icon name="check" color="green" title="Exists!" />
+              <span>
+                <code>{result.fscache.fspath}</code>{' '}
+                <Icon name="check" color="green" title="Exists!" />
+              </span>
             ) : (
-              <Icon name="dont" color="orange" title="Doest not exist" />
+              <span>
+                Does not exist
+                <Icon name="dont" color="orange" title="Doest not exist" />
+              </span>
             )}
-            {result.fscache.files && result.fscache.files.length ? (
+            {result.fscache.exists &&
+            result.fscache.files &&
+            result.fscache.files.length ? (
               <ul>
                 {result.fscache.files.map(p => (
                   <li key={p}>
