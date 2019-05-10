@@ -16,7 +16,7 @@ def get_cdn_config(api=None):
     r = cache.get(cache_key)
     if r is None:
         r = api.get("zones/{}.json".format(settings.KEYCDN_ZONE_ID))
-        cache.set(cache_key, r, 60 * 5)
+        cache.set(cache_key, r, 60 * 15)
     return r
 
 
