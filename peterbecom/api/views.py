@@ -27,7 +27,7 @@ from peterbecom.awspa.search import search as awspa_search
 from peterbecom.awspa.templatetags.jinja_helpers import awspa_product
 from peterbecom.base.models import PostProcessing, SearchResult
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
-from peterbecom.base.cdn import get_cdn_config, purge_cdn_urls
+from peterbecom.base.cdn import get_cdn_config, purge_cdn_urls, keycdn_zone_check
 from peterbecom.base.fscache import invalidate_by_url, path_to_fs_path
 from peterbecom.plog.models import (
     BlogComment,
@@ -1194,12 +1194,12 @@ def cdn_probe(request):
     url = request.POST["url"].strip()
     blogitem = None
 
-    base_url = 'http'
+    base_url = "http"
     if request.is_secure():
-        base_url += 's'
-    base_url += '://' + request.get_host()
+        base_url += "s"
+    base_url += "://" + request.get_host()
 
-    if url.startswith('/'):  # rewrite to absolute URL
+    if url.startswith("/"):  # rewrite to absolute URL
         url = base_url + url
 
     if url.startswith("http://") or url.startswith("https://"):
@@ -1253,14 +1253,16 @@ def cdn_probe(request):
                 break
             url = reverse("blog_post", args=[blogitem.oid, page])
             fspath = path_to_fs_path(url)
-            other_pages.append({
-                'url': base_url + url,
-                'fspath': fspath,
-                'fspath_exists': os.path.isfile(fspath),
-            })
+            other_pages.append(
+                {
+                    "url": base_url + url,
+                    "fspath": fspath,
+                    "fspath_exists": os.path.isfile(fspath),
+                }
+            )
 
         if other_pages:
-            context['other_pages'] = other_pages
+            context["other_pages"] = other_pages
 
     t0 = time.time()
     r = requests.get(absolute_url)
@@ -1289,5 +1291,20 @@ def cdn_purge(request):
             deleted = invalidate_by_url(url)
             context["deleted"].extend(deleted)
 
-    context["purge"] = purge_cdn_urls(urls)
+    purged = purge_cdn_urls(urls)
+    if purged is None:
+        context["purge"] = {
+            "error": (
+                "Got None from purge_cdn_urls() which probably means KeyCDN's "
+                "API is broken at the moment"
+            )
+        }
+    else:
+        context["purge"] = purged
     return _response(context)
+
+
+@api_superuser_required
+def cdn_check(request):
+    checked = keycdn_zone_check(refresh=True)
+    return _response({"checked": checked})

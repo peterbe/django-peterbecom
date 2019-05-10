@@ -1,13 +1,14 @@
 import React from 'react';
 import {
   Button,
+  Checkbox,
   Container,
   Header,
   Icon,
   Input,
   Loader,
-  Table,
-  Checkbox
+  Message,
+  Table
 } from 'semantic-ui-react';
 
 import { ShowServerError } from './Common';
@@ -26,6 +27,7 @@ class CDN extends React.Component {
       <Container textAlign="center">
         <Header as="h1">CDN</Header>
         <ProbeUrl {...this.props} />
+        <CDNCheck {...this.props} />
         <ZoneConfig {...this.props} />
       </Container>
     );
@@ -34,16 +36,78 @@ class CDN extends React.Component {
 
 export default CDN;
 
+class CDNCheck extends React.PureComponent {
+  state = {
+    loading: true,
+    result: null,
+    serverError: null
+  };
+  async componentDidMount() {
+    if (!this.props.accessToken) {
+      throw new Error('No accessToken');
+    }
+    let response;
+    let url = '/api/v0/cdn/check';
+    try {
+      response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${this.props.accessToken}`
+        }
+      });
+    } catch (ex) {
+      return this.setState({ loading: false, serverError: ex });
+    }
+
+    if (this.dismounted) {
+      return;
+    }
+    if (response.ok) {
+      const result = await response.json();
+      this.setState({
+        loading: false,
+        result,
+        serverError: null
+      });
+    } else {
+      this.setState({ loading: false, serverError: response });
+    }
+  }
+  render() {
+    const { loading, result, serverError } = this.state;
+    if (!loading && !result && !serverError) {
+      return null;
+    }
+    return (
+      <div style={{ marginTop: 50 }}>
+        <Header as="h3">CDN Check</Header>
+        <ShowServerError error={serverError} />
+        {loading && <i>Loading CDN Check...</i>}
+        {!loading && result && (
+          <Message
+            negative={!result.checked}
+            size="tiny"
+            success={!!result.checked}
+          >
+            {result.checked
+              ? `CDN Looks fine (${result.checked})`
+              : 'CDN Check failed!'}
+          </Message>
+        )}
+      </div>
+    );
+  }
+}
+
 class ProbeUrl extends React.PureComponent {
   state = {
+    deletedFSCacheFiles: null,
     loading: false,
+    purgeAllPages: true,
+    purgeFSCache: true,
+    purgeResult: null,
     result: null,
     serverError: null,
-    url: '',
-    purgeResult: null,
-    purgeFSCache: true,
-    deletedFSCacheFiles: null,
-    purgeAllPages: true
+    url: ''
   };
 
   componentDidMount() {
@@ -131,9 +195,9 @@ class ProbeUrl extends React.PureComponent {
     if (response.ok) {
       const result = await response.json();
       this.setState({
+        deletedFSCacheFiles: result.deleted,
         loading: false,
         purgeResult: result.purge,
-        deletedFSCacheFiles: result.deleted,
         serverError: null
       });
     } else {
@@ -143,14 +207,14 @@ class ProbeUrl extends React.PureComponent {
 
   render() {
     const {
+      deletedFSCacheFiles,
       loading,
+      purgeAllPages,
+      purgeFSCache,
+      purgeResult,
       result,
       serverError,
-      url,
-      purgeResult,
-      purgeFSCache,
-      purgeAllPages,
-      deletedFSCacheFiles
+      url
     } = this.state;
     return (
       <form
@@ -189,27 +253,26 @@ class ProbeUrl extends React.PureComponent {
             {result.other_pages && result.other_pages.length && (
               <Checkbox
                 defaultChecked={purgeAllPages}
-                toggle
-                onChange={(event, data) => {
-                  this.setState({ purgeAllPages: data.checked });
-                }}
                 label={`Purge all (${
                   result.other_pages.length
                 }) other pages too`}
+                onChange={(event, data) => {
+                  this.setState({ purgeAllPages: data.checked });
+                }}
+                toggle
               />
             )}{' '}
             <Checkbox
               defaultChecked={purgeFSCache}
-              toggle
+              label="Purge FSCache too"
               onChange={(event, data) => {
                 this.setState({ purgeFSCache: data.checked });
               }}
-              label="Purge FSCache too"
+              toggle
             />{' '}
             <Button
-              primary
-              loading={loading}
               disabled={loading}
+              loading={loading}
               onClick={event => {
                 event.preventDefault();
                 this.setState(
@@ -223,13 +286,13 @@ class ProbeUrl extends React.PureComponent {
                   }
                 );
               }}
+              primary
             >
               Purge
             </Button>
             <Button
-              primary
-              loading={loading}
               disabled={loading}
+              loading={loading}
               onClick={event => {
                 event.preventDefault();
                 this.setState(
@@ -242,6 +305,7 @@ class ProbeUrl extends React.PureComponent {
                   this.probeUrl
                 );
               }}
+              primary
             >
               Probe Again
             </Button>{' '}
@@ -285,12 +349,12 @@ class ProbeUrl extends React.PureComponent {
             {result.fscache.exists ? (
               <span>
                 <code>{result.fscache.fspath}</code>{' '}
-                <Icon name="check" color="green" title="Exists!" />
+                <Icon color="green" name="check" title="Exists!" />
               </span>
             ) : (
               <span>
                 Does not exist
-                <Icon name="dont" color="orange" title="Doest not exist" />
+                <Icon color="orange" name="dont" title="Doest not exist" />
               </span>
             )}
             {result.fscache.exists &&
@@ -333,11 +397,11 @@ class ProbeUrl extends React.PureComponent {
                       {page.url}
                     </a>{' '}
                     {page.fspath_exists ? (
-                      <Icon name="check" color="green" title="Exists!" />
+                      <Icon color="green" name="check" title="Exists!" />
                     ) : (
                       <Icon
-                        name="dont"
                         color="orange"
+                        name="dont"
                         title="Doest not exist"
                       />
                     )}
@@ -366,12 +430,12 @@ function ShowProbeResult({ result }) {
             <Table.Cell>
               <a href={result.absolute_url}>{result.absolute_url}</a>{' '}
               <a
-                style={{ paddingLeft: 10 }}
                 href={`https://tools.keycdn.com/performance?url=${encodeURI(
                   result.absolute_url
                 )}`}
-                target="_blank"
                 rel="noopener noreferrer"
+                style={{ paddingLeft: 10 }}
+                target="_blank"
               >
                 <Icon name="external" /> KeyCDN Performance Test
               </a>
@@ -402,16 +466,16 @@ function ShowProbeResult({ result }) {
       </Table>
 
       {result.http_1.headers && (
-        <ShowHeaders title="HTTP/1.1" headers={result.http_1.headers} />
+        <ShowHeaders headers={result.http_1.headers} title="HTTP/1.1" />
       )}
       {result.http_2.headers && (
-        <ShowHeaders title="HTTP/2" headers={result.http_2.headers} />
+        <ShowHeaders headers={result.http_2.headers} title="HTTP/2" />
       )}
     </div>
   );
 }
 
-function ShowHeaders({ title, headers }) {
+function ShowHeaders({ headers, title }) {
   let keys = Object.keys(headers);
   keys.sort();
 

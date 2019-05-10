@@ -1,9 +1,10 @@
-from peterbecom.base.basecommand import BaseCommand
+from peterbecom.base.basecommand import BaseCommand, CommandError
 from peterbecom.base.fscache import (
     find_missing_compressions,
     invalidate_too_old,
     purge_outdated_cdn_urls,
 )
+from peterbecom.base.cdn import keycdn_zone_check
 
 
 class Command(BaseCommand):
@@ -44,6 +45,8 @@ class Command(BaseCommand):
         )
 
         if not options["skip_cdn_purge"]:
+            if not keycdn_zone_check():
+                raise CommandError("KeyCDN Zone Check failed!")
             purge_outdated_cdn_urls(
                 verbose=options["verbosity"] > 1,
                 revisit=options["revisit"],
