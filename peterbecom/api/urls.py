@@ -30,6 +30,7 @@ urlpatterns = [
     url(r"^categories/?$", views.categories, name="categories"),
     url(r"^postprocessings/", views.postprocessings, name="postprocessings"),
     url(r"^searchresults/", views.searchresults, name="searchresults"),
+    url(r"^cdn/check", views.cdn_check, name="cdn_check"),
     url(r"^cdn/config", views.cdn_config, name="cdn_config"),
     url(r"^cdn/purge", views.cdn_purge, name="cdn_purge"),
     url(r"^cdn/probe", views.cdn_probe, name="cdn_probe"),
