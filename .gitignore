@@ -32,3 +32,8 @@ songsearch-autocomplete/songsearch-autocomplete.zip
 cdn-crawl/cdn-crawler-report-every
 cdn-crawl/cdn-crawler-sleeptime
 cdn-crawl/cdn-crawler-stats.json
+venv
+peterbecom/cache/
+peterbecom/collected/
+peterbecom/static/
+.env
