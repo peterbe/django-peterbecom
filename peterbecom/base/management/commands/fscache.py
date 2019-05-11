@@ -1,4 +1,6 @@
-from peterbecom.base.basecommand import BaseCommand, CommandError
+from django.core.management import CommandError
+
+from peterbecom.base.basecommand import BaseCommand
 from peterbecom.base.fscache import (
     find_missing_compressions,
     invalidate_too_old,

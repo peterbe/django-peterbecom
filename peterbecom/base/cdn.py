@@ -73,7 +73,6 @@ def keycdn_zone_check(refresh=False):
                 + "zones/{}.json".format(settings.KEYCDN_ZONE_ID),
                 auth=(settings.KEYCDN_API_KEY, ""),
             )
-            print(response)
             response.raise_for_status()
             works = timezone.now()
         except RetryError as exception:
