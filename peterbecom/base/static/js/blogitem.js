@@ -22,44 +22,99 @@ var F = (function() {
     };
   }
 
+  // http://youmightnotneedjquery.com/#fade_in
+  function fadeIn(el) {
+    el.style.opacity = 0;
+
+    var last = +new Date();
+    var tick = function() {
+      el.style.opacity = +el.style.opacity + (new Date() - last) / 400;
+      last = +new Date();
+
+      if (+el.style.opacity < 1) {
+        (window.requestAnimationFrame && requestAnimationFrame(tick)) ||
+          setTimeout(tick, 16);
+      }
+    };
+    tick();
+  }
+
   return {
     prepare: function(callback) {
       if (preparing) {
         return; // to avoid excessive calls
       }
       preparing = true;
-      $.getJSON('/plog/prepare.json', function(response) {
-        $('input[name="csrfmiddlewaretoken"]', form).val(response.csrf_token);
-        if (response.name && !$('input[name="name"]', form).val()) {
-          $('input[name="name"]', form)
-            .attr('placeholder', '')
-            .val(response.name);
-        } else {
-          var name = localStorage.getItem('name');
-          if (name) {
+
+      // $.getJSON('/plog/prepare.json', function(response) {
+      //   $('input[name="csrfmiddlewaretoken"]', form).val(response.csrf_token);
+      //   if (response.name && !$('input[name="name"]', form).val()) {
+      //     $('input[name="name"]', form)
+      //       .attr('placeholder', '')
+      //       .val(response.name);
+      //   } else {
+      //     var name = localStorage.getItem('name');
+      //     if (name) {
+      //       $('input[name="name"]', form)
+      //         .attr('placeholder', '')
+      //         .val(name);
+      //     }
+      //   }
+      //   if (response.email && !$('input[name="email"]', form).val()) {
+      //     $('input[name="email"]', form)
+      //       .attr('placeholder', '')
+      //       .val(response.email);
+      //   } else {
+      //     var email = localStorage.getItem('email');
+      //     if (email) {
+      //       $('input[name="email"]', form)
+      //         .attr('placeholder', '')
+      //         .val(email);
+      //     }
+      //   }
+
+      //   preparing = false;
+      //   if (callback) {
+      //     callback();
+      //   }
+      // });
+      fetch('/plog/prepare.json')
+        .then(function(r) {
+          return r.json();
+        })
+        .then(function(response) {
+          $('input[name="csrfmiddlewaretoken"]', form).val(response.csrf_token);
+
+          if (response.name && !$('input[name="name"]', form).val()) {
             $('input[name="name"]', form)
               .attr('placeholder', '')
-              .val(name);
+              .val(response.name);
+          } else {
+            var name = localStorage.getItem('name');
+            if (name) {
+              $('input[name="name"]', form)
+                .attr('placeholder', '')
+                .val(name);
+            }
           }
-        }
-        if (response.email && !$('input[name="email"]', form).val()) {
-          $('input[name="email"]', form)
-            .attr('placeholder', '')
-            .val(response.email);
-        } else {
-          var email = localStorage.getItem('email');
-          if (email) {
+          if (response.email && !$('input[name="email"]', form).val()) {
             $('input[name="email"]', form)
               .attr('placeholder', '')
-              .val(email);
+              .val(response.email);
+          } else {
+            var email = localStorage.getItem('email');
+            if (email) {
+              $('input[name="email"]', form)
+                .attr('placeholder', '')
+                .val(email);
+            }
           }
-        }
 
-        preparing = false;
-        if (callback) {
-          callback();
-        }
-      });
+          preparing = false;
+          if (callback) {
+            callback();
+          }
+        });
     },
     setupReply: function(parent) {
       preparing = false;
@@ -96,20 +151,31 @@ var F = (function() {
         return false;
       }
 
-      $.ajax({
-        url: '/plog/preview.json',
+      fetch('/plog/preview.json', {
         data: data,
-        type: 'POST',
-        dataType: 'json',
-        success: function(response) {
-          preview.html(response.html).fadeIn(300);
-
+        method: 'POST'
+      })
+        .then(function(response) {
+          preview.html(response.html);
           callback();
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-          alert('Error: ' + errorThrown);
-        }
-      });
+        })
+        .catch(function(ex) {
+          alert('Error: ' + ex);
+        });
+      // $.ajax({
+      //   url: '/plog/preview.json',
+      //   data: data,
+      //   type: 'POST',
+      //   dataType: 'json',
+      //   success: function(response) {
+      //     preview.html(response.html).fadeIn(300);
+
+      //     callback();
+      //   },
+      //   error: function(jqXHR, textStatus, errorThrown) {
+      //     alert('Error: ' + errorThrown);
+      //   }
+      // });
     },
     submit: function() {
       var data = commentData();
@@ -209,8 +275,9 @@ $(function() {
   // not blog posts. Hence this careful if statement on form.length.
   var form = $('form#comment');
 
-  if (!window.fetch || true) {
-    form.html("<i>Your browser doesn't support posting comments</i>");
+  if (!window.fetch) {
+    form.html("<h4><i>Your browser doesn't support posting comments.</i></h4>");
+    return;
   }
 
   function preLyricsPostingMessage() {
