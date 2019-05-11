@@ -2,6 +2,7 @@ from urllib.parse import urlparse
 
 import keycdn
 import requests
+from requests.exceptions import RequestException
 from django.utils import timezone
 from django.conf import settings
 from django.core.cache import cache
@@ -77,6 +78,13 @@ def keycdn_zone_check(refresh=False):
             works = timezone.now()
         except RetryError as exception:
             print("WARNING! Retry error checking KeyCDN Zone: {}".format(exception))
+            works = False
+        except RequestException as exception:
+            print(
+                "WARNING! RequestException error checking KeyCDN Zone: {}".format(
+                    exception
+                )
+            )
             works = False
 
         cache.set(cache_key, works, 60)
