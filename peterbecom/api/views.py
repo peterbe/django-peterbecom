@@ -1183,8 +1183,12 @@ def hits(request, oid):
 
 @api_superuser_required
 def cdn_config(request):
-    r = get_cdn_config()
-    context = {"data": r["data"]}
+    context = {}
+    if keycdn_zone_check():
+        r = get_cdn_config()
+        context["data"] = r["data"]
+    else:
+        context['error'] = "KeyCDN Zone Check currently failing"
     return _response(context)
 
 

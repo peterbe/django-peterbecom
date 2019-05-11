@@ -28,7 +28,6 @@ class CDN extends React.Component {
         <Header as="h1">CDN</Header>
         <ProbeUrl {...this.props} />
         <CDNCheck {...this.props} />
-        <ZoneConfig {...this.props} />
       </Container>
     );
   }
@@ -78,22 +77,26 @@ class CDNCheck extends React.PureComponent {
       return null;
     }
     return (
-      <div style={{ marginTop: 50 }}>
-        <Header as="h3">CDN Check</Header>
-        <ShowServerError error={serverError} />
-        {loading && <i>Loading CDN Check...</i>}
-        {!loading && result && (
-          <Message
-            negative={!result.checked}
-            size="tiny"
-            success={!!result.checked}
-          >
-            {result.checked
-              ? `CDN Looks fine (${result.checked})`
-              : 'CDN Check failed!'}
-          </Message>
-        )}
-      </div>
+      <>
+        <div style={{ marginTop: 50 }}>
+          <Header as="h3">CDN Check</Header>
+          <ShowServerError error={serverError} />
+          {loading && <i>Loading CDN Check...</i>}
+          {!loading && result && (
+            <Message
+              negative={!result.checked}
+              size="tiny"
+              success={!!result.checked}
+            >
+              {result.checked
+                ? `CDN Looks fine (${result.checked})`
+                : 'CDN Check failed!'}
+            </Message>
+          )}
+        </div>
+
+        {!loading && result && result.checked && <ZoneConfig {...this.props} />}
+      </>
     );
   }
 }
