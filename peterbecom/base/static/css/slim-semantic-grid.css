@@ -355,7 +355,7 @@
 --------------------*/
 
 
-/* Sizing Combinations */
+/* Sizing Combinations
 .ui.grid > .row > [class*="one wide"].column,
 .ui.grid > .column.row > [class*="one wide"].column,
 .ui.grid > [class*="one wide"].column,
@@ -452,13 +452,14 @@
 .ui.column.grid > [class*="sixteen wide"].column {
   width: 100% !important;
 }
+*/
 
 /*----------------------
     Width per Device
 -----------------------*/
 
 
-/* Mobile Sizing Combinations */
+/* Mobile Sizing Combinations
 @media only screen and (min-width: 320px) and (max-width: 767px) {
   .ui.grid > .row > [class*="one wide mobile"].column,
   .ui.grid > .column.row > [class*="one wide mobile"].column,
@@ -557,8 +558,9 @@
     width: 100% !important;
   }
 }
+*/
 
-/* Tablet Sizing Combinations */
+/* Tablet Sizing Combinations
 @media only screen and (min-width: 768px) and (max-width: 991px) {
   .ui.grid > .row > [class*="one wide tablet"].column,
   .ui.grid > .column.row > [class*="one wide tablet"].column,
@@ -657,8 +659,9 @@
     width: 100% !important;
   }
 }
+*/
 
-/* Computer/Desktop Sizing Combinations */
+/* Computer/Desktop Sizing Combinations
 @media only screen and (min-width: 992px) {
   .ui.grid > .row > [class*="one wide computer"].column,
   .ui.grid > .column.row > [class*="one wide computer"].column,
@@ -757,8 +760,9 @@
     width: 100% !important;
   }
 }
+*/
 
-/* Large Monitor Sizing Combinations */
+/* Large Monitor Sizing Combinations
 @media only screen and (min-width: 1200px) and (max-width: 1919px) {
   .ui.grid > .row > [class*="one wide large screen"].column,
   .ui.grid > .column.row > [class*="one wide large screen"].column,
@@ -857,8 +861,9 @@
     width: 100% !important;
   }
 }
+*/
 
-/* Widescreen Sizing Combinations */
+/* Widescreen Sizing Combinations
 @media only screen and (min-width: 1920px) {
   .ui.grid > .row > [class*="one wide widescreen"].column,
   .ui.grid > .column.row > [class*="one wide widescreen"].column,
@@ -957,10 +962,11 @@
     width: 100% !important;
   }
 }
+*/
 
 /*----------------------
         Centered
------------------------*/
+-----------------------
 
 .ui.centered.grid,
 .ui.centered.grid > .row,
@@ -981,10 +987,11 @@
   margin-left: auto;
   margin-right: auto;
 }
+*/
 
 /*----------------------
         Relaxed
------------------------*/
+-----------------------
 
 .ui.relaxed.grid > .column:not(.row),
 .ui.relaxed.grid > .row > .column,
@@ -998,8 +1005,9 @@
   padding-left: 2.5rem;
   padding-right: 2.5rem;
 }
+*/
 
-/* Coupling with UI Divider */
+/* Coupling with UI Divider
 .ui.relaxed.grid .row + .ui.divider,
 .ui.grid .relaxed.row + .ui.divider {
   margin-left: 1.5rem;
@@ -1010,10 +1018,11 @@
   margin-left: 2.5rem;
   margin-right: 2.5rem;
 }
+*/
 
 /*----------------------
         Padded
------------------------*/
+-----------------------
 
 .ui.padded.grid:not(.vertically):not(.horizontally) {
   margin: 0em !important;
@@ -1026,10 +1035,11 @@
   margin-top: 0em !important;
   margin-bottom: 0em !important;
 }
+*/
 
 /*----------------------
        "Floated"
------------------------*/
+-----------------------
 
 .ui.grid [class*="left floated"].column {
   margin-right: auto;
@@ -1037,18 +1047,21 @@
 .ui.grid [class*="right floated"].column {
   margin-left: auto;
 }
+*/
 
 /*----------------------
         Divided
 -----------------------*/
 
+/*
 .ui.divided.grid:not([class*="vertically divided"]) > .column:not(.row),
 .ui.divided.grid:not([class*="vertically divided"]) > .row > .column {
   -webkit-box-shadow: -1px 0px 0px 0px rgba(34, 36, 38, 0.15);
           box-shadow: -1px 0px 0px 0px rgba(34, 36, 38, 0.15);
 }
+*/
 
-/* Swap from padding to margin on columns to have dividers align */
+/* Swap from padding to margin on columns to have dividers align
 .ui[class*="vertically divided"].grid > .column:not(.row),
 .ui[class*="vertically divided"].grid > .row > .column {
   margin-top: 1rem;
@@ -1060,20 +1073,23 @@
   margin-top: 0em;
   margin-bottom: 0em;
 }
+*/
 
-/* No divider on first column on row */
+/* No divider on first column on row
 .ui.divided.grid:not([class*="vertically divided"]) > .column:first-child,
 .ui.divided.grid:not([class*="vertically divided"]) > .row > .column:first-child {
   -webkit-box-shadow: none;
           box-shadow: none;
 }
+*/
 
-/* No space on top of first row */
+/* No space on top of first row
 .ui[class*="vertically divided"].grid > .row:first-child > .column {
   margin-top: 0em;
 }
+*/
 
-/* Divided Row */
+/* Divided Row
 .ui.grid > .divided.row > .column {
   -webkit-box-shadow: -1px 0px 0px 0px rgba(34, 36, 38, 0.15);
           box-shadow: -1px 0px 0px 0px rgba(34, 36, 38, 0.15);
@@ -1082,8 +1098,9 @@
   -webkit-box-shadow: none;
           box-shadow: none;
 }
+*/
 
-/* Vertically Divided */
+/* Vertically Divided
 .ui[class*="vertically divided"].grid > .row {
   position: relative;
 }
@@ -1098,20 +1115,23 @@
   -webkit-box-shadow: 0px -1px 0px 0px rgba(34, 36, 38, 0.15);
           box-shadow: 0px -1px 0px 0px rgba(34, 36, 38, 0.15);
 }
+*/
 
-/* Padded Horizontally Divided */
+/* Padded Horizontally Divided
 [class*="horizontally padded"].ui.divided.grid,
 .ui.padded.divided.grid:not(.vertically):not(.horizontally) {
   width: 100%;
 }
+*/
 
-/* First Row Vertically Divided */
+/* First Row Vertically Divided
 .ui[class*="vertically divided"].grid > .row:first-child:before {
   -webkit-box-shadow: none;
           box-shadow: none;
 }
+*/
 
-/* Inverted Divided */
+/* Inverted Divided
 .ui.inverted.divided.grid:not([class*="vertically divided"]) > .column:not(.row),
 .ui.inverted.divided.grid:not([class*="vertically divided"]) > .row > .column {
   -webkit-box-shadow: -1px 0px 0px 0px rgba(255, 255, 255, 0.1);
@@ -1126,8 +1146,9 @@
   -webkit-box-shadow: 0px -1px 0px 0px rgba(255, 255, 255, 0.1);
           box-shadow: 0px -1px 0px 0px rgba(255, 255, 255, 0.1);
 }
+*/
 
-/* Relaxed */
+/* Relaxed
 .ui.relaxed[class*="vertically divided"].grid > .row:before {
   margin-left: 1.5rem;
   margin-right: 1.5rem;
@@ -1138,11 +1159,13 @@
   margin-right: 5rem;
   width: calc(100% -  5rem );
 }
+ */
 
 /*----------------------
          Celled
 -----------------------*/
 
+/*
 .ui.celled.grid {
   width: 100%;
   margin: 1em 0em;
@@ -1178,8 +1201,9 @@
 .ui[class*="very relaxed"].celled.grid > .row > .column {
   padding: 2em;
 }
+*/
 
-/* Internally Celled */
+/* Internally Celled
 .ui[class*="internally celled"].grid {
   -webkit-box-shadow: none;
           box-shadow: none;
@@ -1193,13 +1217,14 @@
   -webkit-box-shadow: none;
           box-shadow: none;
 }
+*/
 
 /*----------------------
    Vertically Aligned
 -----------------------*/
 
 
-/* Top Aligned */
+/* Top Aligned
 .ui[class*="top aligned"].grid > .column:not(.row),
 .ui[class*="top aligned"].grid > .row > .column,
 .ui.grid > [class*="top aligned"].row > .column,
@@ -1213,8 +1238,9 @@
   -ms-flex-item-align: start !important;
       align-self: flex-start !important;
 }
+*/
 
-/* Middle Aligned */
+/* Middle Aligned
 .ui[class*="middle aligned"].grid > .column:not(.row),
 .ui[class*="middle aligned"].grid > .row > .column,
 .ui.grid > [class*="middle aligned"].row > .column,
@@ -1228,8 +1254,9 @@
   -ms-flex-item-align: center !important;
       align-self: center !important;
 }
+*/
 
-/* Bottom Aligned */
+/* Bottom Aligned
 .ui[class*="bottom aligned"].grid > .column:not(.row),
 .ui[class*="bottom aligned"].grid > .row > .column,
 .ui.grid > [class*="bottom aligned"].row > .column,
@@ -1243,8 +1270,9 @@
   -ms-flex-item-align: end !important;
       align-self: flex-end !important;
 }
+*/
 
-/* Stretched */
+/* Stretched
 .ui.stretched.grid > .row > .column,
 .ui.stretched.grid > .column,
 .ui.grid > .stretched.row > .column,
@@ -1269,13 +1297,14 @@
       -ms-flex-positive: 1;
           flex-grow: 1;
 }
+*/
 
 /*----------------------
   Horizontally Centered
 -----------------------*/
 
 
-/* Left Aligned */
+/* Left Aligned
 .ui[class*="left aligned"].grid > .column,
 .ui[class*="left aligned"].grid > .row > .column,
 .ui.grid > [class*="left aligned"].row > .column,
@@ -1285,6 +1314,7 @@
   -ms-flex-item-align: inherit;
       align-self: inherit;
 }
+*/
 
 /* Center Aligned */
 .ui[class*="center aligned"].grid > .column,
@@ -1302,7 +1332,7 @@
           justify-content: center;
 }
 
-/* Right Aligned */
+/* Right Aligned
 .ui[class*="right aligned"].grid > .column,
 .ui[class*="right aligned"].grid > .row > .column,
 .ui.grid > [class*="right aligned"].row > .column,
@@ -1312,8 +1342,9 @@
   -ms-flex-item-align: inherit;
       align-self: inherit;
 }
+*/
 
-/* Justified */
+/* Justified
 .ui.justified.grid > .column,
 .ui.justified.grid > .row > .column,
 .ui.grid > .justified.row > .column,
@@ -1324,6 +1355,7 @@
       -ms-hyphens: auto;
           hyphens: auto;
 }
+*/
 
 
 

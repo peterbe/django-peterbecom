@@ -113,13 +113,14 @@
 
 
 
-/* Tag */
+/* Tag
 .ui.labeled.button > .tag.label:before {
   width: 1.85em;
   height: 1.85em;
 }
+*/
 
-/* Right */
+/* Right
 .ui.labeled.button:not([class*="left labeled"]) > .button {
   border-top-right-radius: 0px;
   border-bottom-right-radius: 0px;
@@ -128,8 +129,9 @@
   border-top-left-radius: 0px;
   border-bottom-left-radius: 0px;
 }
+*/
 
-/* Left Side */
+/* Left Side
 .ui[class*="left labeled"].button > .button {
   border-top-left-radius: 0px;
   border-bottom-left-radius: 0px;
@@ -138,30 +140,8 @@
   border-top-right-radius: 0px;
   border-bottom-right-radius: 0px;
 }
+*/
 
-/*-------------------
-       Social
---------------------*/
-
-/* Twitter */
-.ui.twitter.button {
-  background-color: #55ACEE;
-  color: #FFFFFF;
-  text-shadow: none;
-  background-image: none;
-  -webkit-box-shadow: 0px 0em 0px 0px rgba(34, 36, 38, 0.15) inset;
-          box-shadow: 0px 0em 0px 0px rgba(34, 36, 38, 0.15) inset;
-}
-.ui.twitter.button:hover {
-  background-color: #35a2f4;
-  color: #FFFFFF;
-  text-shadow: none;
-}
-.ui.twitter.button:active {
-  background-color: #2795e9;
-  color: #FFFFFF;
-  text-shadow: none;
-}
 
 
 
@@ -222,19 +202,10 @@
 .ui.big.button {
   font-size: 1.28571429rem;
 }
-.ui.huge.buttons .button,
-.ui.huge.buttons .or,
-.ui.huge.button {
-  font-size: 1.42857143rem;
-}
-.ui.massive.buttons .button,
-.ui.massive.buttons .or,
-.ui.massive.button {
-  font-size: 1.71428571rem;
-}
 
 
-/* Inverted */
+
+/* Inverted
 .ui.inverted.black.buttons .button,
 .ui.inverted.black.button {
   background-color: transparent;
@@ -270,8 +241,9 @@
 .ui.inverted.black.button:active {
   background-color: #000000;
 }
+*/
 
-/* Inverted Basic */
+/* Inverted Basic
 .ui.inverted.black.basic.buttons .button,
 .ui.inverted.black.buttons .basic.button,
 .ui.inverted.black.basic.button {
@@ -308,8 +280,9 @@
           box-shadow: 0px 0px 0px 2px #000000 inset !important;
   color: #FFFFFF !important;
 }
+*/
 
-/*--- Grey ---*/
+/*--- Grey ---
 
 .ui.grey.buttons .button,
 .ui.grey.button {
@@ -348,8 +321,9 @@
   color: #FFFFFF;
   text-shadow: none;
 }
+*/
 
-/* Basic */
+/* Basic
 .ui.basic.grey.buttons .button,
 .ui.basic.grey.button {
   -webkit-box-shadow: 0px 0px 0px 1px #767676 inset !important;
@@ -386,9 +360,10 @@
 .ui.buttons:not(.vertical) > .basic.grey.button:not(:first-child) {
   margin-left: -1px;
 }
+*/
 
 
-/* Basic */
+/* Basic
 .ui.basic.brown.buttons .button,
 .ui.basic.brown.button {
   -webkit-box-shadow: 0px 0px 0px 1px #A5673F inset !important;
@@ -425,8 +400,9 @@
 .ui.buttons:not(.vertical) > .basic.brown.button:not(:first-child) {
   margin-left: -1px;
 }
+*/
 
-/*--- Blue ---*/
+/*--- Blue ---
 
 .ui.blue.buttons .button,
 .ui.blue.button {
@@ -465,8 +441,9 @@
   color: #FFFFFF;
   text-shadow: none;
 }
+*/
 
-/* Basic */
+/* Basic
 .ui.basic.blue.buttons .button,
 .ui.basic.blue.button {
   -webkit-box-shadow: 0px 0px 0px 1px #2185D0 inset !important;
@@ -503,6 +480,7 @@
 .ui.buttons:not(.vertical) > .basic.blue.button:not(:first-child) {
   margin-left: -1px;
 }
+*/
 
 /*-------------------
        Primary
@@ -592,7 +570,7 @@
 --------------------*/
 
 
-/* Standard */
+/* Standard
 .ui.secondary.buttons .button,
 .ui.secondary.button {
   background-color: #1B1C1D;
@@ -630,8 +608,9 @@
   color: #FFFFFF;
   text-shadow: none;
 }
+*/
 
-/* Basic */
+/* Basic
 .ui.basic.secondary.buttons .button,
 .ui.basic.secondary.button {
   -webkit-box-shadow: 0px 0px 0px 1px #1B1C1D inset !important;
@@ -668,3 +647,4 @@
 .ui.buttons:not(.vertical) > .basic.primary.button:not(:first-child) {
   margin-left: -1px;
 }
+*/
