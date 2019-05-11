@@ -209,6 +209,10 @@ $(function() {
   // not blog posts. Hence this careful if statement on form.length.
   var form = $('form#comment');
 
+  if (!window.fetch || true) {
+    form.html("<i>Your browser doesn't support posting comments</i>");
+  }
+
   function preLyricsPostingMessage() {
     if (document.location.pathname.indexOf('/plog/blogitem-040601-1') > -1) {
       if ($('.ui.message.floating.warning').length) return;
