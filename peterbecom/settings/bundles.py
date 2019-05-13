@@ -71,7 +71,8 @@ PIPELINE_CSS = {
 PIPELINE_JS = {
     "base": {
         "source_filenames": (
-            "libs/jquery-3.4.1.min.js",
+            # "libs/jquery-3.4.1.min.js",
+            "libs/cash-4.0.0.min.js",
             "js/site.js",
             "js/blogitem.js",
         ),

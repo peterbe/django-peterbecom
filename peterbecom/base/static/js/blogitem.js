@@ -25,6 +25,7 @@ var F = (function() {
   // http://youmightnotneedjquery.com/#fade_in
   function fadeIn(el) {
     el.style.opacity = 0;
+    el.style.display = ''; // peterbe added
 
     var last = +new Date();
     var tick = function() {
@@ -121,11 +122,12 @@ var F = (function() {
       if (parent.length !== 1) {
         throw new Error('Must be exactly 1 parent');
       }
-      form.detach().insertAfter($('p:eq(0)', parent));
+      // form.detach().insertAfter($('p:eq(0)', parent));
+      form.detach().insertAfter($('p', parent).eq(0));
       preview.detach().insertBefore(form);
       $('input[name="parent"]', form).val(parent.attr('id'));
       F.prepare();
-      $('textarea', form).focus();
+      $('textarea', form)[0].focus();
     },
     reset: function() {
       form.css('opacity', 1);
@@ -155,9 +157,16 @@ var F = (function() {
         data: data,
         method: 'POST'
       })
-        .then(function(response) {
-          preview.html(response.html);
-          callback();
+        .then(function(r) {
+          if (r.ok) {
+            r.json().then(function(response) {
+              preview.html(response.html);
+              callback();
+            });
+          } else {
+            // Should deal with this better
+            console.error(r);
+          }
         })
         .catch(function(ex) {
           alert('Error: ' + ex);
@@ -185,7 +194,6 @@ var F = (function() {
         return false;
       }
       if (!$.trim(data.comment).length) {
-        // alert('Please first write something');
         return false;
       }
       if (submitting) {
@@ -203,12 +211,76 @@ var F = (function() {
           .prependTo(form);
       }
       $('.dimmer', form).addClass('active');
-      $.ajax({
-        url: form.attr('action'),
-        data: data,
-        type: 'POST',
-        dataType: 'json',
-        success: function(response) {
+      //   $.ajax({
+      //     url: form.attr('action'),
+      //     data: data,
+      //     type: 'POST',
+      //     dataType: 'json',
+      //     success: function(response) {
+      //       var parent;
+      //       if (response.parent) {
+      //         parent = $('.comments', '#' + response.parent).eq(1);
+      //         if (!parent.length) {
+      //           // need to create this container
+      //           parent = $('<div class="comments">');
+      //           parent.appendTo('#' + response.parent);
+      //         }
+      //       } else {
+      //         parent = $('#comments-outer');
+      //       }
+      //       // Put a slight delay on these updates so it "feels"
+      //       // slightly more realistic if the POST manages to happen
+      //       // too fast.
+      //       setTimeout(function() {
+      //         parent
+      //           .hide()
+      //           .append(response.html)
+      //           .fadeIn(300);
+      //         $('textarea', form).val('');
+      //         $('.dimmer', form).removeClass('active');
+      //       }, 500);
+
+      //       F.reset();
+      //       $('span.comment-count').fadeOut(400, function() {
+      //         var text;
+      //         if (response.comment_count === 1) {
+      //           text = '1 comment';
+      //         } else {
+      //           text = response.comment_count + ' comments';
+      //         }
+      //         $(this)
+      //           .text(text)
+      //           .fadeIn(800);
+      //       });
+      //       // save the name and email if possible
+      //       if (data.name) {
+      //         localStorage.setItem('name', data.name);
+      //       }
+      //       if (data.email) {
+      //         localStorage.setItem('email', data.email);
+      //       }
+      //     },
+      //     error: function(jqXHR, textStatus, errorThrown) {
+      //       $('.dimmer', form).removeClass('active');
+      //       var msg = 'Error: ' + errorThrown;
+      //       if (jqXHR.status === 403) {
+      //         F.prepare();
+      //         msg += ' (try submitting again?)';
+      //       }
+      //       alert(msg);
+      //       submitting = false;
+      //     }
+      //   });
+      //   return false;
+      // }
+      fetch(form.attr('action'), {
+        method: 'POST',
+        data: data
+      })
+        .then(function(r) {
+          return r.json();
+        })
+        .then(function(response) {
           var parent;
           if (response.parent) {
             parent = $('.comments', '#' + response.parent).eq(1);
@@ -224,10 +296,8 @@ var F = (function() {
           // slightly more realistic if the POST manages to happen
           // too fast.
           setTimeout(function() {
-            parent
-              .hide()
-              .append(response.html)
-              .fadeIn(300);
+            parent.hide().append(response.html);
+            fadeIn(parent[0]);
             $('textarea', form).val('');
             $('.dimmer', form).removeClass('active');
           }, 500);
@@ -240,9 +310,8 @@ var F = (function() {
             } else {
               text = response.comment_count + ' comments';
             }
-            $(this)
-              .text(text)
-              .fadeIn(800);
+            $(this).text(text);
+            fadeIn(this);
           });
           // save the name and email if possible
           if (data.name) {
@@ -251,8 +320,9 @@ var F = (function() {
           if (data.email) {
             localStorage.setItem('email', data.email);
           }
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
+        })
+        .catch(function(ex) {
+          console.log(ex);
           $('.dimmer', form).removeClass('active');
           var msg = 'Error: ' + errorThrown;
           if (jqXHR.status === 403) {
@@ -261,8 +331,7 @@ var F = (function() {
           }
           alert(msg);
           submitting = false;
-        }
-      });
+        });
       return false;
     }
   };
@@ -297,7 +366,7 @@ $(function() {
             )
           )
           .append(
-            ', then copy the link to the search results together with your comment.'
+            '<span>, then copy the link to the search results together with your comment.</span>'
           )
       );
       message.insertAfter(form);
