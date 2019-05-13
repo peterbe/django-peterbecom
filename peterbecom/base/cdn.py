@@ -11,6 +11,10 @@ from requests.exceptions import RetryError
 from peterbecom.base.utils import requests_retry_session
 
 
+class BrokenKeyCDNConfig(Exception):
+    """When the response from KeyCDN zone config isn't right."""
+
+
 def get_cdn_config(api=None):
     if not api:
         api = keycdn.Api(settings.KEYCDN_API_KEY)
@@ -51,7 +55,10 @@ def purge_cdn_urls(urls, api=None):
         api.session = requests_retry_session()
     config = get_cdn_config(api)
     # See https://www.keycdn.com/api#purge-zone-url
-    cachebr = config["data"]["zone"]["cachebr"] == "enabled"
+    try:
+        cachebr = config["data"]["zone"]["cachebr"] == "enabled"
+    except KeyError:
+        raise BrokenKeyCDNConfig("Config={!r}".format(config))
     all_urls = []
     for absolute_url in urls:
         url = settings.KEYCDN_ZONE_URL + urlparse(absolute_url).path
