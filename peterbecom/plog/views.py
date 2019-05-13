@@ -465,6 +465,7 @@ def new_comments(request):
     return render(request, "plog/new-comments.html", context)
 
 
+@cache_control(public=True, max_age=60 * 60 * 24)
 def calendar(request):
     context = {"page_title": "Archive calendar"}
     return render(request, "plog/calendar.html", context)

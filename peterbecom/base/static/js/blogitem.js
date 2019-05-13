@@ -153,6 +153,7 @@ var F = (function() {
         return false;
       }
 
+      console.log('DATA:', data);
       fetch('/plog/preview.json', {
         data: data,
         method: 'POST'
@@ -165,6 +166,7 @@ var F = (function() {
             });
           } else {
             // Should deal with this better
+
             console.error(r);
           }
         })
@@ -296,6 +298,7 @@ var F = (function() {
           // slightly more realistic if the POST manages to happen
           // too fast.
           setTimeout(function() {
+            // XXX does this work?!
             parent.hide().append(response.html);
             fadeIn(parent[0]);
             $('textarea', form).val('');
@@ -303,6 +306,7 @@ var F = (function() {
           }, 500);
 
           F.reset();
+          // # Needs to change!
           $('span.comment-count').fadeOut(400, function() {
             var text;
             if (response.comment_count === 1) {
@@ -320,6 +324,9 @@ var F = (function() {
           if (data.email) {
             localStorage.setItem('email', data.email);
           }
+
+          // If it's there, let's delete it.
+          $('.ui.message.floating.warning').delete();
         })
         .catch(function(ex) {
           console.log(ex);
