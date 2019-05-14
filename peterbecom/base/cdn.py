@@ -11,6 +11,10 @@ from requests.exceptions import RetryError
 from peterbecom.base.utils import requests_retry_session
 
 
+def get_requests_retry_session():
+    return requests_retry_session(status_forcelist=(500, 502, 504, 429))
+
+
 class BrokenKeyCDNConfig(Exception):
     """When the response from KeyCDN zone config isn't right."""
 
@@ -21,13 +25,15 @@ def get_cdn_config(api=None):
         # Whilst waiting for
         # https://github.com/keycdn/python-keycdn-api/commit/9165aa164f4a837f8419044ae64d26f5f65d0857
         # we'll just have to set it afterwards.
-        api.session = requests_retry_session()
+        api.session = get_requests_retry_session()
 
     cache_key = "cdn_config:{}".format(settings.KEYCDN_ZONE_ID)
     r = cache.get(cache_key)
     if r is None:
+        with open("/tmp/get_cdn_config.log", "a") as f:
+            f.write("{}\n".format(timezone.now()))
         r = api.get("zones/{}.json".format(settings.KEYCDN_ZONE_ID))
-        cache.set(cache_key, r, 60 * 15)
+        cache.set(cache_key, r, 60 * 60)
     return r
 
 
@@ -49,10 +55,9 @@ def purge_cdn_urls(urls, api=None):
         print("WARNING! Unable to use KeyCDN API at the moment :(")
         return
 
-    # api = api or keycdn.Api(settings.KEYCDN_API_KEY)
     if not api:
         api = keycdn.Api(settings.KEYCDN_API_KEY)
-        api.session = requests_retry_session()
+        api.session = get_requests_retry_session()
     config = get_cdn_config(api)
     # See https://www.keycdn.com/api#purge-zone-url
     try:
@@ -68,7 +73,10 @@ def purge_cdn_urls(urls, api=None):
     call = "zones/purgeurl/{}.json".format(settings.KEYCDN_ZONE_ID)
     params = {"urls": all_urls}
 
+    with open("/tmp/purge_cdn_urls.log", "a") as f:
+        f.write("{}\t{!r}\n".format(timezone.now(), all_urls))
     r = api.delete(call, params)
+
     print("SENT CDN PURGE FOR", all_urls, "RESULT:", r)
     return {"result": r, "all_urls": all_urls}
 
@@ -83,7 +91,9 @@ def keycdn_zone_check(refresh=False):
     cache_key = "keycdn_check:{}".format(settings.KEYCDN_ZONE_ID)
     works = cache.get(cache_key)
     if works is None or refresh:
-        session = requests_retry_session()
+        with open("/tmp/keycdn_zone_check.log", "a") as f:
+            f.write("{}\n".format(timezone.now()))
+        session = get_requests_retry_session()
         try:
             response = session.get(
                 "https://api.keycdn.com/"
@@ -102,7 +112,6 @@ def keycdn_zone_check(refresh=False):
                 )
             )
             works = False
-
         cache.set(cache_key, works, 60)
 
     return works
