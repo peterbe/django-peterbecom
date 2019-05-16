@@ -11,7 +11,9 @@ from io import StringIO
 
 from django.conf import settings
 from django.utils import timezone
-from huey.contrib.djhuey import task
+from django.core.cache import cache
+from huey import crontab
+from huey.contrib.djhuey import periodic_task, task
 from requests.exceptions import ReadTimeout
 
 from peterbecom.base import songsearch_autocomplete
@@ -179,7 +181,27 @@ def _post_process_cached_html(filepath, url, postprocessing, original_url):
         t1 = time.perf_counter()
         postprocessing.notes.append("Took {:.1f}s to Brotli HTML".format(t1 - t0))
 
-    purge_cdn_urls([url])
+    purge_cdn_urls_later([url])
+
+
+@task()
+def purge_cdn_urls_later(urls):
+    queue = cache.get("purge_cdn_urls_later", [])
+    queue.extend(urls)
+    cache.set("purge_cdn_urls_later", list(set(queue)), 60 * 60)
+
+
+@periodic_task(crontab(minute="*"))
+def run_purge_cdn_urls():
+    queue = cache.get("purge_cdn_urls_later", [])
+    print("QUEUE:", timezone.now(), queue)  # Temporary
+    cache.delete("purge_cdn_urls_later")
+    if queue:
+        try:
+            purge_cdn_urls(queue)
+        except Exception:
+            cache.set("purge_cdn_urls_later", queue, 60 * 60)
+            raise
 
 
 def _minify_html(filepath, url):

@@ -11,7 +11,7 @@ from django.contrib.sites.models import Site
 from django.core.cache import cache
 from huey.contrib.djhuey import task
 
-from peterbecom.base.cdn import purge_cdn_urls
+from peterbecom.base.tasks import purge_cdn_urls_later
 
 
 class EmptyFSCacheFile(Exception):
@@ -125,7 +125,7 @@ def invalidate_by_url_later():
         cache.delete("invalidate_by_url")
         for url in slated:
             invalidate_by_url(url, revisit=True)
-        purge_cdn_urls(slated)
+        purge_cdn_urls_later(slated)
 
 
 def delete_empty_directory(filepath):
