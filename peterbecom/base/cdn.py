@@ -49,7 +49,6 @@ def get_cdn_config(api=None):
 
 
 def purge_cdn_urls(urls, api=None):
-    print("PURGE URLS:", urls)
     if settings.USE_NGINX_BYPASS:
         # Note! This Nginx trick will not just purge the proxy_cache, it will
         # immediately trigger a refetch.
@@ -82,6 +81,8 @@ def purge_cdn_urls(urls, api=None):
         all_urls.append(url)
         if cachebr:
             all_urls.append(url + "br")
+    # Make absolutely sure nothing's repeated.
+    all_urls = sorted(list(set(all_urls)))
     call = "zones/purgeurl/{}.json".format(settings.KEYCDN_ZONE_ID)
     params = {"urls": all_urls}
 
