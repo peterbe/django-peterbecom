@@ -15,7 +15,11 @@ from peterbecom.base.utils import requests_retry_session
 def get_stack_signature():
     frames = []
     for frame in inspect.stack()[1:]:
-        if "site-packages" in frame.filename or "Cellar" in frame.filename:
+        if (
+            "site-packages" in frame.filename
+            or "Cellar" in frame.filename
+            or "python3.5" in frame.filename
+        ):
             continue
         split = frame.filename.split("/")
         frames.append("{}:{}".format("/".join(split[-3:]), frame.lineno))
