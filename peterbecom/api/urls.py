@@ -13,6 +13,16 @@ urlpatterns = [
         views.blogitem_realtimehits,
         name="blogitem_realtimehits",
     ),
+    url(
+        r"^plog/spam/patterns$",
+        views.spam_comment_patterns,
+        name="spam_comment_patterns",
+    ),
+    url(
+        r"^plog/spam/patterns/(?P<id>\d+)$",
+        views.spam_comment_patterns,
+        name="spam_comment_patterns",
+    ),
     url(r"^plog/comments/$", views.blogcomments, name="blogcomments"),
     url(
         r"^plog/comments/(?P<action>approve|delete)/$",

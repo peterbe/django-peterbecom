@@ -1,17 +1,20 @@
 import re
 
 import bleach
-from django.conf import settings
+
+from peterbecom.plog.models import SpamCommentPattern
 
 
 def contains_spam_url_patterns(text):
-    assert settings.SPAM_URL_PATTERNS, "Don't use it without some patterns"
 
     html = bleach.clean(text)
 
     problems = []
 
-    regex = re.compile(r"|".join([re.escape(x) for x in settings.SPAM_URL_PATTERNS]))
+    qs = SpamCommentPattern.objects.filter(is_url_pattern=True).values_list(
+        "pattern", flat=True
+    )
+    regex = re.compile(r"|".join([re.escape(x) for x in qs]))
 
     def scrutinize_link(attrs, new, **kwargs):
         href_key = (None, "href")

@@ -46,6 +46,9 @@ class DashboardLinks extends React.PureComponent {
             <Segment>
               <Link to="/plog/hits">Hits</Link>
             </Segment>
+            <Segment>
+              <Link to="/plog/spam/patterns">Spam Comment Patterns</Link>
+            </Segment>
           </Segment.Group>
         </Segment>
         <Segment>

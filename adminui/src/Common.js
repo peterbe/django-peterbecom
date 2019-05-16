@@ -22,21 +22,32 @@ export function ShowServerError({ error }) {
   if (!error) {
     return null;
   }
+  let err;
+  if (error instanceof window.Response) {
+    err = (
+      <p>
+        <b>{error.status}</b> on <b>{error.url}</b>
+        <br />
+        <small>{error.statusText}</small>
+      </p>
+    );
+  } else if (error instanceof Error) {
+    err = (
+      <p>
+        <code>{error.toString()}</code>
+      </p>
+    );
+  } else {
+    err = (
+      <pre style={{ textAlign: 'left' }}>
+        {JSON.stringify(error.errors ? error.errors : error, null, 3)}
+      </pre>
+    );
+  }
   return (
     <Message negative>
       <Message.Header>Server Error</Message.Header>
-
-      {error instanceof window.Response ? (
-        <p>
-          <b>{error.status}</b> on <b>{error.url}</b>
-          <br />
-          <small>{error.statusText}</small>
-        </p>
-      ) : (
-        <p>
-          <code>{error.toString()}</code>
-        </p>
-      )}
+      {err}
     </Message>
   );
 }

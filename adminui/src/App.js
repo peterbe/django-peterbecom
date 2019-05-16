@@ -26,6 +26,7 @@ import SearchResults from './SearchResults';
 import BlogitemHits from './BlogitemHits';
 import RealtimeBlogitemHits from './RealtimeBlogitemHits';
 import CDN from './CDN';
+import SpamCommentPatterns from './SpamCommentPatterns';
 
 class App extends React.Component {
   state = {
@@ -205,6 +206,11 @@ class App extends React.Component {
                       Hits
                     </Link>
                   </Dropdown.Item>
+                  <Dropdown.Item>
+                    <Link to="/plog/spam/patterns" style={{ color: '#000' }}>
+                      Spam Comment Patterns
+                    </Link>
+                  </Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>
               <Menu.Item>
@@ -265,6 +271,12 @@ class App extends React.Component {
                     accessToken={this.state.accessToken}
                   />
                 )}
+              />
+              <SecureRoute
+                path="/plog/spam/patterns"
+                exact
+                component={SpamCommentPatterns}
+                accessToken={this.state.accessToken}
               />
               <SecureRoute
                 path="/plog/comments"
@@ -334,6 +346,7 @@ class App extends React.Component {
                 component={CDN}
                 accessToken={this.state.accessToken}
               />
+
               <Route component={NoMatch} />
             </Switch>
           </Container>

@@ -476,3 +476,24 @@ def update_es(sender, instance, **kwargs):
 def delete_from_es(sender, instance, **kwargs):
     doc = instance.to_search()
     es_retry(doc.delete, _ignore_not_found=True)
+
+
+class SpamCommentPattern(models.Model):
+    pattern = models.CharField(max_length=200)
+    is_regex = models.BooleanField(default=False)
+    is_url_pattern = models.BooleanField(default=False)
+    kills = models.PositiveIntegerField(default=0)
+    add_date = models.DateTimeField(auto_now_add=True)
+    modify_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("pattern", "is_regex", "is_url_pattern")
+
+    def __str__(self):
+        return (
+            "{!r}{}{}".format(
+                self.pattern,
+                self.is_regex and " (regex)" or "",
+                self.is_url_pattern and " (url pattern)" or "",
+            )
+        ).strip()

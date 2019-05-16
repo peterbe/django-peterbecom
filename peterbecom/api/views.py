@@ -35,6 +35,7 @@ from peterbecom.plog.models import (
     BlogItem,
     BlogItemHit,
     Category,
+    SpamCommentPattern,
 )
 from peterbecom.plog.utils import rate_blog_comment, valid_email  # move this some day
 
@@ -45,6 +46,7 @@ from .forms import (
     EditBlogCommentForm,
     EditBlogForm,
     PreviewBlogForm,
+    SpamCommentPatternForm,
 )
 from .tasks import send_comment_reply_email
 
@@ -1312,3 +1314,36 @@ def cdn_purge(request):
 def cdn_check(request):
     checked = keycdn_zone_check(refresh=True)
     return _response({"checked": checked})
+
+
+@api_superuser_required
+def spam_comment_patterns(request, id=None):
+
+    if request.method == "DELETE":
+        assert id
+        SpamCommentPattern.objects.get(id=id).delete()
+
+    elif request.method == 'POST':
+        data = json.loads(request.body.decode("utf-8"))
+        form = SpamCommentPatternForm(data)
+        if form.is_valid():
+            form.save()
+        else:
+            return _response({"errors": form.errors}, status=400)
+
+    patterns = []
+    qs = SpamCommentPattern.objects.all()
+    for pattern in qs.order_by('add_date'):
+        patterns.append({
+            'id': pattern.id,
+            'add_date': pattern.add_date,
+            'modify_date': pattern.modify_date,
+            'pattern': pattern.pattern,
+            'is_regex': pattern.is_regex,
+            'is_url_pattern': pattern.is_url_pattern,
+            'kills': pattern.kills,
+        })
+    context = {
+        'patterns': patterns
+    }
+    return _response(context)

@@ -7,7 +7,13 @@ from django.forms.widgets import Textarea
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
-from peterbecom.plog.models import BlogFile, BlogItem, Category, BlogComment
+from peterbecom.plog.models import (
+    BlogFile,
+    BlogItem,
+    Category,
+    BlogComment,
+    SpamCommentPattern,
+)
 
 
 class MultilineTextarea(Textarea):
@@ -133,3 +139,9 @@ class EditBlogCommentForm(forms.ModelForm):
 class BlogitemRealtimeHitsForm(forms.Form):
     since = ISODateTimeField(required=False)
     search = forms.CharField(required=False)
+
+
+class SpamCommentPatternForm(forms.ModelForm):
+    class Meta:
+        model = SpamCommentPattern
+        fields = ("pattern", "is_regex", "is_url_pattern")
