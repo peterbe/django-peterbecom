@@ -1,3 +1,4 @@
+import inspect
 from urllib.parse import urlparse
 
 import keycdn
@@ -9,6 +10,16 @@ from django.core.cache import cache
 from requests.exceptions import RetryError
 
 from peterbecom.base.utils import requests_retry_session
+
+
+def get_stack_signature():
+    frames = []
+    for frame in inspect.stack()[1:]:
+        if "site-packages" in frame.filename or "Cellar" in frame.filename:
+            continue
+        split = frame.filename.split("/")
+        frames.append("{}:{}".format("/".join(split[-3:]), frame.lineno))
+    return ";".join(frames)
 
 
 def get_requests_retry_session():
@@ -31,7 +42,7 @@ def get_cdn_config(api=None):
     r = cache.get(cache_key)
     if r is None:
         with open("/tmp/get_cdn_config.log", "a") as f:
-            f.write("{}\n".format(timezone.now()))
+            f.write("{}\t{}\n".format(timezone.now(), get_stack_signature()))
         r = api.get("zones/{}.json".format(settings.KEYCDN_ZONE_ID))
         cache.set(cache_key, r, 60 * 60)
     return r
@@ -74,7 +85,9 @@ def purge_cdn_urls(urls, api=None):
     params = {"urls": all_urls}
 
     with open("/tmp/purge_cdn_urls.log", "a") as f:
-        f.write("{}\t{!r}\n".format(timezone.now(), all_urls))
+        f.write(
+            "{}\t{!r}\t{}\n".format(timezone.now(), all_urls, get_stack_signature())
+        )
     r = api.delete(call, params)
 
     print("SENT CDN PURGE FOR", all_urls, "RESULT:", r)
@@ -92,7 +105,7 @@ def keycdn_zone_check(refresh=False):
     works = cache.get(cache_key)
     if works is None or refresh:
         with open("/tmp/keycdn_zone_check.log", "a") as f:
-            f.write("{}\n".format(timezone.now()))
+            f.write("{}\t{}\n".format(timezone.now(), get_stack_signature()))
         session = get_requests_retry_session()
         try:
             response = session.get(
