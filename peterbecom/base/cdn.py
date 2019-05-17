@@ -86,18 +86,27 @@ def purge_cdn_urls(urls, api=None):
         if cachebr:
             all_urls.append(url + "br")
     # Make absolutely sure nothing's repeated.
-    all_urls = sorted(list(set(all_urls)))
-    call = "zones/purgeurl/{}.json".format(settings.KEYCDN_ZONE_ID)
-    params = {"urls": all_urls}
+    all_all_urls = sorted(list(set(all_urls)))
 
-    with open("/tmp/purge_cdn_urls.log", "a") as f:
-        f.write(
-            "{}\t{!r}\t{}\n".format(timezone.now(), all_urls, get_stack_signature())
-        )
-    r = api.delete(call, params)
+    # Break it up into lists of 100
+    def chunks(l, n):
+        # For item i in a range that is a length of l,
+        for i in range(0, len(l), n):
+            # Create an index range for l of n items:
+            yield l[i : i + n]
 
-    print("SENT CDN PURGE FOR", all_urls, "RESULT:", r)
-    return {"result": r, "all_urls": all_urls}
+    for all_urls in chunks(all_all_urls, 100):
+        call = "zones/purgeurl/{}.json".format(settings.KEYCDN_ZONE_ID)
+        params = {"urls": all_urls}
+
+        with open("/tmp/purge_cdn_urls.log", "a") as f:
+            f.write(
+                "{}\t{!r}\t{}\n".format(timezone.now(), all_urls, get_stack_signature())
+            )
+        r = api.delete(call, params)
+
+        print("SENT CDN PURGE FOR", all_urls, "RESULT:", r)
+    return {"result": r, "all_urls": all_all_urls}
 
 
 def keycdn_zone_check(refresh=False):

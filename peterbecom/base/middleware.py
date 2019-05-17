@@ -1,6 +1,6 @@
-import os
-import hashlib
 import datetime
+import hashlib
+import os
 import re
 import time
 from urllib.parse import urlparse
@@ -12,7 +12,6 @@ from django.utils.encoding import force_bytes
 
 from peterbecom.base import fscache
 from peterbecom.base.tasks import post_process_cached_html
-
 
 max_age_re = re.compile(r"max-age=(\d+)")
 
