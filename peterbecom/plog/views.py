@@ -289,20 +289,19 @@ def _render_comment(comment):
 
 
 @ensure_csrf_cookie
-@json_view
 def prepare_json(request):
     data = {"csrf_token": request.META["CSRF_COOKIE"]}
     return http.JsonResponse(data)
 
 
+@ensure_csrf_cookie
 @require_POST
-@json_view
 def preview_json(request):
     comment = request.POST.get("comment", u"").strip()
     name = request.POST.get("name", u"").strip()
     email = request.POST.get("email", u"").strip()
     if not comment:
-        return {}
+        return http.JsonResponse({})
 
     html = render_comment_text(comment.strip())
     comment = {
@@ -313,7 +312,7 @@ def preview_json(request):
         "add_date": timezone.now(),
     }
     html = render_to_string("plog/comment.html", {"comment": comment, "preview": True})
-    return {"html": html}
+    return http.JsonResponse({"html": html})
 
 
 @require_POST

@@ -24,6 +24,9 @@ var F = (function() {
 
   // http://youmightnotneedjquery.com/#fade_in
   function fadeIn(el) {
+    if (!el) {
+      throw new Error('Element is null');
+    }
     el.style.opacity = 0;
     el.style.display = ''; // peterbe added
 
@@ -152,21 +155,23 @@ var F = (function() {
         F.prepare(F.preview);
         return false;
       }
-
-      console.log('DATA:', data);
+      var formData = new FormData();
+      for (var key in data) {
+        formData.append(key, data[key]);
+      }
       fetch('/plog/preview.json', {
-        data: data,
+        body: formData,
         method: 'POST'
       })
         .then(function(r) {
           if (r.ok) {
             r.json().then(function(response) {
               preview.html(response.html);
+              fadeIn(preview[0]);
               callback();
             });
           } else {
             // Should deal with this better
-
             console.error(r);
           }
         })
@@ -195,7 +200,7 @@ var F = (function() {
         F.prepare(F.submit);
         return false;
       }
-      if (!$.trim(data.comment).length) {
+      if (!data.comment.trim().length) {
         return false;
       }
       if (submitting) {
@@ -275,67 +280,78 @@ var F = (function() {
       //   });
       //   return false;
       // }
+
+      var formData = new FormData();
+      for (var key in data) {
+        formData.append(key, data[key]);
+      }
+
       fetch(form.attr('action'), {
         method: 'POST',
-        data: data
+        body: formData
       })
         .then(function(r) {
-          return r.json();
-        })
-        .then(function(response) {
-          var parent;
-          if (response.parent) {
-            parent = $('.comments', '#' + response.parent).eq(1);
-            if (!parent.length) {
-              // need to create this container
-              parent = $('<div class="comments">');
-              parent.appendTo('#' + response.parent);
-            }
+          // console.log('R:', r);
+          if (r.ok) {
+            return r.json().then(function(response) {
+              var parent;
+              if (response.parent) {
+                parent = $('.comments', '#' + response.parent).eq(1);
+                if (!parent.length) {
+                  // need to create this container
+                  parent = $('<div class="comments">');
+                  parent.appendTo('#' + response.parent);
+                }
+              } else {
+                parent = $('#comments-outer');
+              }
+              // Put a slight delay on these updates so it "feels"
+              // slightly more realistic if the POST manages to happen
+              // too fast.
+              setTimeout(function() {
+                parent.hide().append(response.html);
+                fadeIn(parent[0]);
+                $('textarea', form).val('');
+                $('.dimmer', form).removeClass('active');
+              }, 500);
+
+              F.reset();
+              var $count = $('span.comment-count');
+              if ($count.length) {
+                var text;
+                if (response.comment_count === 1) {
+                  text = '1 comment';
+                } else {
+                  text = response.comment_count + ' comments';
+                }
+                $count.text(text);
+                fadeIn($count[0]);
+              }
+
+              // save the name and email if possible
+              if (data.name) {
+                localStorage.setItem('name', data.name);
+              }
+              if (data.email) {
+                localStorage.setItem('email', data.email);
+              }
+
+              // If it's there, let's delete it.
+              $('.ui.message.floating.warning').remove();
+            });
           } else {
-            parent = $('#comments-outer');
+            // XXX needs to be better!
+            alert(r.statusText);
           }
-          // Put a slight delay on these updates so it "feels"
-          // slightly more realistic if the POST manages to happen
-          // too fast.
-          setTimeout(function() {
-            // XXX does this work?!
-            parent.hide().append(response.html);
-            fadeIn(parent[0]);
-            $('textarea', form).val('');
-            $('.dimmer', form).removeClass('active');
-          }, 500);
-
-          F.reset();
-          // # Needs to change!
-          $('span.comment-count').fadeOut(400, function() {
-            var text;
-            if (response.comment_count === 1) {
-              text = '1 comment';
-            } else {
-              text = response.comment_count + ' comments';
-            }
-            $(this).text(text);
-            fadeIn(this);
-          });
-          // save the name and email if possible
-          if (data.name) {
-            localStorage.setItem('name', data.name);
-          }
-          if (data.email) {
-            localStorage.setItem('email', data.email);
-          }
-
-          // If it's there, let's delete it.
-          $('.ui.message.floating.warning').delete();
         })
         .catch(function(ex) {
           console.log(ex);
           $('.dimmer', form).removeClass('active');
-          var msg = 'Error: ' + errorThrown;
-          if (jqXHR.status === 403) {
-            F.prepare();
-            msg += ' (try submitting again?)';
-          }
+          var msg = 'Error: ' + ex.toString();
+          // if (jqXHR.status === 403) {
+          //   F.prepare();
+          //   msg += ' (try submitting again?)';
+          // }
           alert(msg);
           submitting = false;
         });
