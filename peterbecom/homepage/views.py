@@ -12,6 +12,7 @@ from django.db.models import Count, Max
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.cache import patch_cache_control
 from django.utils.html import strip_tags
 from django.views import static
 from django.views.decorators.cache import cache_control
@@ -19,14 +20,15 @@ from elasticsearch_dsl import Q
 from fancy_cache import cache_page
 from huey.contrib.djhuey import task
 
-from peterbecom.base.utils import get_base_url
 from peterbecom.base.decorators import variable_cache_control
 from peterbecom.base.models import SearchResult
+from peterbecom.base.utils import get_base_url
 from peterbecom.plog.models import BlogComment, BlogItem
 from peterbecom.plog.search import BlogCommentDoc, BlogItemDoc
 from peterbecom.plog.utils import utc_now, view_function_timer
 
-from .utils import STOPWORDS, make_categories_q, parse_ocs_to_categories, split_search
+from .utils import (STOPWORDS, make_categories_q, parse_ocs_to_categories,
+                    split_search)
 
 logger = logging.getLogger("homepage")
 
@@ -471,6 +473,8 @@ def autocompete(request):
         results.append([reverse("blog_post", args=(hit.oid,)), hit.title])
 
     response = http.JsonResponse({"results": results, "terms": terms})
+    if len(q) < 5:
+        patch_cache_control(response, public=True, max_age=60 + 60 * (5 - len(q)))
     return response
 
 
