@@ -32,3 +32,13 @@ def contains_spam_url_patterns(text):
 
     bleach.linkify(html, callbacks=[scrutinize_link])
     return bool(problems)
+
+
+def contains_spam_patterns(text):
+    qs = SpamCommentPattern.objects.filter(
+        is_url_pattern=False, is_regex=False
+    ).values_list("pattern", flat=True)
+    for pattern in qs:
+        if pattern in text:
+            return True
+    return False

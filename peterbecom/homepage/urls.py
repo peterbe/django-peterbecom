@@ -1,6 +1,6 @@
 from django.http import HttpResponsePermanentRedirect
 from django.conf.urls import url
-from django.views.decorators.cache import cache_page
+from django.views.decorators.cache import cache_control
 from .feed import PlogFeed
 from . import views
 
@@ -8,7 +8,9 @@ from . import views
 urlpatterns = [
     url("^$", views.home, name="home"),
     url(r"^p(?P<page>\d+)$", views.home, name="home_paged"),
-    url(r"(.*?)/?rss\.xml$", cache_page(60 * 60 * 6)(PlogFeed())),
+    url(
+        r"(.*?)/?rss\.xml$", cache_control(public=True, max_age=60 * 60 * 6)(PlogFeed())
+    ),
     url("^search$", views.search, name="search"),
     url("^autocompete/v1$", views.autocompete, name="autocompete"),
     url("^About$", lambda x: HttpResponsePermanentRedirect("/about/")),
