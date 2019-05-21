@@ -4,8 +4,8 @@ import App from './App';
 
 /* Hack necessary to satisfy busted IE versions */
 // https://github.com/facebook/create-react-app/issues/2856#issuecomment-317937629
-import 'core-js/fn/string/includes';
-import 'core-js/library/fn/set';
+// import 'core-js/fn/string/includes';
+// import 'core-js/library/fn/set';
 
 let initialValue = '';
 let initialInput = document.querySelector('#root input[name="term"]');

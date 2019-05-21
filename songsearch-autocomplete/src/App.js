@@ -490,10 +490,6 @@ const loadedOnce = new Set();
 new Image().src = placeholderImage;
 
 function SongImage({ image, name }) {
-  if (!image) {
-    // Don't even bother with lazy loading.
-    return <img className="img-rounded" src={placeholderImage} alt={name} />;
-  }
   const absoluteUrl = absolutifyUrl(
     image.thumbnail100 ? image.thumbnail100 : image.url
   );
@@ -536,7 +532,12 @@ function SongImage({ image, name }) {
       }
       dismounted = true;
     };
-  }, []);
+  }, [absoluteUrl, src]);
+
+  if (!image) {
+    // Don't even bother with lazy loading.
+    return <img className="img-rounded" src={placeholderImage} alt={name} />;
+  }
 
   return <img className="img-rounded" src={src} alt={name} />;
 }
