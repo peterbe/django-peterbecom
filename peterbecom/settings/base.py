@@ -195,7 +195,6 @@ INSTALLED_APPS = (
     "peterbecom.awspa",
     "peterbecom.minimalcss",
     "peterbecom.bayes",
-    "fancy_cache",
     "pipeline",
     "django_jinja",
     "huey.contrib.djhuey",

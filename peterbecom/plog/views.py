@@ -1,14 +1,11 @@
 import datetime
-import hashlib
 import logging
 import random
 import re
 from collections import defaultdict
-from urllib.parse import urlparse
 
 from django import http
 from django.conf import settings
-from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect, render
@@ -18,7 +15,6 @@ from django.utils import timezone
 from django.views.decorators.cache import cache_control
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods, require_POST
-from fancy_cache import cache_page
 from huey.contrib.djhuey import task
 
 from peterbecom.awspa.models import AWSProduct
@@ -47,61 +43,7 @@ ONE_YEAR = ONE_WEEK * 52
 THIS_YEAR = timezone.now().year
 
 
-def _blog_post_key_prefixer(request):
-    prefix = getattr(request, "_prefix", None)
-    if prefix is not None:
-        return prefix
-    if request.method != "GET":
-        return None
-    prefix = utils.make_prefix(request.GET)
-
-    # all_comments = False
-    if request.path.endswith("/all-comments"):
-        oid = request.path.split("/")[-2]
-        # all_comments = True
-    elif "/plog/" in request.path:
-        oid = urlparse(request.path).path.split("/")[2]
-    else:
-        oid = request.path.split("/")[-1]
-
-    try:
-        cache_key = "latest_comment_add_date:%s" % (
-            hashlib.md5(oid.encode("utf-8")).hexdigest()
-        )
-    except UnicodeEncodeError:
-        # If the 'oid' can't be converted to ascii, then it's not likely
-        # to be a valid 'oid'.
-        return None
-    latest_date = cache.get(cache_key)
-    if latest_date is None:
-        try:
-            blogitem = BlogItem.objects.filter(oid=oid).values("pk", "modify_date")[0]
-        except IndexError:
-            # don't bother, something's really wrong
-            return None
-        latest_date = blogitem["modify_date"]
-        blogitem_pk = blogitem["pk"]
-        for c in (
-            BlogComment.objects.filter(
-                blogitem=blogitem_pk, add_date__gt=latest_date, approved=True
-            )
-            .values("add_date")
-            .order_by("-add_date")[:1]
-        ):
-            latest_date = c["add_date"]
-        latest_date = latest_date.strftime("%f")
-        cache.set(cache_key, latest_date, ONE_DAY)
-    prefix += str(latest_date)
-
-    # This is a HACK!
-    # This prefixer function gets called, first for the request,
-    # then for the response. The answer is not going to be any different.
-    request._prefix = prefix
-    return prefix
-
-
 @cache_control(public=True, max_age=settings.DEBUG and ONE_HOUR or ONE_WEEK)
-@cache_page(settings.DEBUG and ONE_HOUR or ONE_WEEK, _blog_post_key_prefixer)
 def blog_post(request, oid, page=None):
     if request.path.endswith("/ping"):
         # Sometimes this can happen when the URL parsing by Django
@@ -307,7 +249,6 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
 
 
 @cache_control(public=True, max_age=7 * 24 * 60 * 60)
-@cache_page(ONE_WEEK, _blog_post_key_prefixer)
 def all_blog_post_comments(request, oid):
 
     if request.path == "/plog/blogitem-040601-1/all-comments":
@@ -449,22 +390,7 @@ def submit_json(request, oid):
     return response
 
 
-def _plog_index_key_prefixer(request):
-    if request.method != "GET":
-        return None
-    prefix = utils.make_prefix(request.GET)
-    cache_key = "latest_post_modify_date"
-    latest_date = cache.get(cache_key)
-    if latest_date is None:
-        latest, = BlogItem.objects.order_by("-modify_date").values("modify_date")[:1]
-        latest_date = latest["modify_date"].strftime("%f")
-        cache.set(cache_key, latest_date, ONE_DAY)
-    prefix += str(latest_date)
-    return prefix
-
-
 @cache_control(public=True, max_age=60 * 60 * 24)
-@cache_page(ONE_DAY, _plog_index_key_prefixer)
 def plog_index(request):
     groups = defaultdict(list)
     now = timezone.now()
@@ -508,7 +434,6 @@ def plog_index(request):
 
 
 @cache_control(public=True, max_age=60 * 60)
-@cache_page(ONE_HOUR)
 def new_comments(request):
     context = {}
     comments = BlogComment.objects.filter(approved=True).exclude(

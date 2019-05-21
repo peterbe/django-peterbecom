@@ -18,7 +18,6 @@ from django.dispatch import receiver
 from django.urls import reverse
 from sorl.thumbnail import ImageField
 
-from peterbecom.base.fscache import invalidate_by_url_soon
 from peterbecom.base.search import es_retry
 from peterbecom.plog.search import BlogCommentDoc, BlogItemDoc
 
@@ -461,6 +460,9 @@ def invalidate_fscache(sender, instance, **kwargs):
             urls.append(reverse("blog_post", args=[blogitem.oid]))
 
     if urls:
+        # Avoid circular imports
+        from peterbecom.base.fscache import invalidate_by_url_soon
+
         invalidate_by_url_soon(urls)
 
 
