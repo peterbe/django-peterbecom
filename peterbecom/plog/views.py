@@ -28,7 +28,7 @@ from peterbecom.base.utils import get_base_url
 from . import utils
 from .forms import CalendarDataForm
 from .models import BlogComment, BlogItem, BlogItemHit, Category
-from .spamprevention import contains_spam_url_patterns
+from .spamprevention import contains_spam_patterns, contains_spam_url_patterns
 from .tasks import send_new_comment_email
 from .utils import get_blogcomment_slice, json_view, render_comment_text
 
@@ -395,7 +395,8 @@ def submit_json(request, oid):
                 or "call doctor" in comment_lower
             )
         )
-        or (contains_spam_url_patterns(comment))
+        or contains_spam_url_patterns(comment)
+        or contains_spam_patterns(comment)
     ):
         return http.HttpResponseBadRequest("Looks too spammy")
 
