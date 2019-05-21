@@ -52,5 +52,6 @@ class Command(BaseCommand):
             purge_outdated_cdn_urls(
                 verbose=options["verbosity"] > 1,
                 revisit=options["revisit"],
+                dry_run=options["dry_run"],
                 max_files=int(options["max_files"]),
             )

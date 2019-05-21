@@ -17,7 +17,6 @@ from django.utils.html import strip_tags
 from django.views import static
 from django.views.decorators.cache import cache_control
 from elasticsearch_dsl import Q
-from fancy_cache import cache_page
 from huey.contrib.djhuey import task
 
 from peterbecom.base.decorators import variable_cache_control
@@ -27,8 +26,7 @@ from peterbecom.plog.models import BlogComment, BlogItem
 from peterbecom.plog.search import BlogCommentDoc, BlogItemDoc
 from peterbecom.plog.utils import utc_now, view_function_timer
 
-from .utils import (STOPWORDS, make_categories_q, parse_ocs_to_categories,
-                    split_search)
+from .utils import STOPWORDS, make_categories_q, parse_ocs_to_categories, split_search
 
 logger = logging.getLogger("homepage")
 
@@ -593,7 +591,7 @@ def blog_post_by_alias(request, alias):
         raise http.Http404(alias)
 
 
-@cache_page(ONE_MONTH)
+@cache_control(public=True, max_age=ONE_MONTH)
 def humans_txt(request):
     return render(request, "homepage/humans.txt", content_type="text/plain")
 

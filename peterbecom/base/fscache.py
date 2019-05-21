@@ -40,37 +40,38 @@ def create_parents(fs_path):
                 pass
 
 
-def too_old(fs_path, seconds=None):
-    if seconds is None:
-        seconds = 60 * 60 * 24  # default
-        if "/plog/" in fs_path:
-            seconds = 60 * 60 * 24 * 7
-
+def too_old(fs_path, seconds):
     age = time.time() - os.stat(fs_path).st_mtime
     return age > seconds
 
 
 def _invalidate(fs_path):
     assert "//" not in fs_path, fs_path
-    deleted = [fs_path]
+    deleted = []
     if os.path.isfile(fs_path):
-        try:
-            os.remove(fs_path)
-        except FileNotFoundError:
-            # race condition probably.
-            pass
-    endings = (".metadata", ".cache_control", ".gz", ".br", ".original")
-    for ending in endings:
-        fs_path_w = fs_path + ending
-        if os.path.isfile(fs_path_w):
+        attempts = 0
+        while attempts < 3:
             try:
-                os.remove(fs_path_w)
-                deleted.append(fs_path_w)
+                os.remove(fs_path)
+                deleted.append(fs_path)
+                break
             except FileNotFoundError:
                 # race condition probably.
                 pass
 
-    # XXX What about "index.not-minified.html"???
+    endings = (".metadata", ".cache_control", ".gz", ".br", ".original")
+    for ending in endings:
+        fs_path_w = fs_path + ending
+        if os.path.isfile(fs_path_w):
+            attempts = 0
+            while attempts < 3:
+                try:
+                    os.remove(fs_path_w)
+                    deleted.append(fs_path_w)
+                    break
+                except FileNotFoundError:
+                    # race condition probably.
+                    pass
 
     return deleted
 
@@ -167,12 +168,12 @@ def invalidate_too_old(verbose=False, dry_run=False, revisit=False):
                 if os.path.isfile(path + ".cache_control"):
                     with open(path + ".cache_control") as seconds_f:
                         seconds = int(seconds_f.read())
-                if too_old(path, seconds=seconds):
+                if too_old(path, seconds):
                     if verbose:
                         print("INVALIDATE", path)
                     if not dry_run:
-                        deleted.append(os.stat(path).st_size)
-                        deleted = _invalidate(path)
+                        found.append(os.stat(path).st_size)
+                        deleted.extend(_invalidate(path))
                         if verbose:
                             print("\tDELETED", deleted)
                         delete_empty_directory(path)
@@ -185,6 +186,7 @@ def invalidate_too_old(verbose=False, dry_run=False, revisit=False):
                 print("NO FILES IN", root)
             if not dry_run:
                 os.rmdir(root)
+
     if verbose:
         print("Found {:,} possible files".format(len(found)))
         mb = sum(found) / 1024.0 / 1024.0
@@ -252,7 +254,7 @@ def _download_cdn_url(url):
     return requests.get(url)
 
 
-def purge_outdated_cdn_urls(verbose=False, revisit=False, max_files=100):
+def purge_outdated_cdn_urls(verbose=False, dry_run=False, revisit=False, max_files=100):
     """Periodically, go through fs cache files, by date, and compare each one
     with their CDN equivalent to see if the CDN version is too different.
     """
@@ -320,7 +322,7 @@ def purge_outdated_cdn_urls(verbose=False, revisit=False, max_files=100):
             local_html = f.read()
         remote_html = response.text
 
-        if local_html != remote_html:
+        if local_html != remote_html and not dry_run:
             # XXX This is incomplete but ready to call
             print("******* PURGE *******", cdn_url)
 
