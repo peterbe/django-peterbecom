@@ -3,19 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "react": "16.8.4",
-    "react-dom": "16.8.4",
+    "react": "16.8.6",
+    "react-dom": "16.8.6",
     "throttle-debounce": "2.1.0"
   },
   "devDependencies": {
-    "react-scripts": "2.1.8",
-    "source-map-explorer": "1.7.0"
+    "react-scripts": "3.0.1",
+    "source-map-explorer": "1.8.0"
   },
   "resolutions": {
-    "braces": ">=2.3.1",
-    "handlebars": ">=4.0.13",
-    "debug": ">= 3.1.0",
-    "merge": ">=1.2.1"
+    "js-yaml": ">=3.13.1"
   },
   "scripts": {
     "analyze": "source-map-explorer build/static/js/main.*",
