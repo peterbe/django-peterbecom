@@ -47,6 +47,7 @@ class Comments extends React.Component {
     deleting: {},
     approving: {}
   };
+
   componentDidMount() {
     document.title = 'Comments';
     this.fetchComments();
@@ -239,34 +240,13 @@ class Comments extends React.Component {
         ) : null}
 
         {comments && (
-          <form
-            onSubmit={event => {
-              event.preventDefault();
-              this.setState(
-                { search: this.refs.q.inputRef.value },
-                this.fetchComments
-              );
+          <FilterForm
+            search={this.state.search}
+            unapprovedOnly={this.state.unapprovedOnly}
+            update={(search, unapprovedOnly) => {
+              this.setState({ search, unapprovedOnly }, this.fetchComments);
             }}
-          >
-            <Input
-              ref="q"
-              action={{ icon: 'search' }}
-              fluid
-              defaultValue={this.state.search || ''}
-              placeholder="Search filter..."
-            />
-            <Checkbox
-              toggle
-              defaultChecked={this.state.unapprovedOnly}
-              onChange={(event, data) => {
-                this.setState(
-                  { unapprovedOnly: data.checked },
-                  this.fetchComments
-                );
-              }}
-              label="Unapproved only"
-            />
-          </form>
+          />
         )}
         {
           <Checked
@@ -317,15 +297,20 @@ class Comments extends React.Component {
               this.setState({ editing });
             }}
             updateFilterSearch={search => {
-              const ref = this.refs.q.inputRef;
-              if (ref.value && ref.value.includes(search)) {
-                ref.value = ref.value.replace(search, '');
-                search = ref.value;
-              } else {
-                ref.value += ` ${search}`;
-                ref.value = ref.value.trim();
-                search = ref.value;
-              }
+              // const ref = this.refs.q.inputRef;
+              // let {search}=this.state
+              // if (search.includes(newSearch)) {
+              //   search = search.replace(newSearch, '')
+
+              // }
+              // if (ref.value && ref.value.includes(search)) {
+              //   ref.value = ref.value.replace(search, '');
+              //   search = ref.value;
+              // } else {
+              //   ref.value += ` ${search}`;
+              //   ref.value = ref.value.trim();
+              //   search = ref.value;
+              // }
               this.setState({ search }, this.fetchComments);
             }}
           />
@@ -353,6 +338,59 @@ class Comments extends React.Component {
 }
 
 export default Comments;
+
+class FilterForm extends React.PureComponent {
+  state = {
+    search: this.props.search || '',
+    unapprovedOnly: this.props.unapprovedOnly || false
+  };
+
+  componentDidUpdate(prevProps) {
+    if (
+      prevProps.search !== this.props.search ||
+      prevProps.unapprovedOnly !== this.props.unapprovedOnly
+    ) {
+      this.setState({
+        search: this.props.search,
+        unapprovedOnly: this.props.unapprovedOnly
+      });
+    }
+  }
+
+  update = () => {
+    const { search, unapprovedOnly } = this.state;
+    this.props.update(search, unapprovedOnly);
+  };
+
+  render() {
+    return (
+      <form
+        onSubmit={event => {
+          event.preventDefault();
+          this.update();
+        }}
+      >
+        <Input
+          action={{ icon: 'search' }}
+          fluid
+          value={this.state.search}
+          placeholder="Search filter..."
+          onChange={(event, data) => {
+            this.setState({ search: data.value });
+          }}
+        />
+        <Checkbox
+          toggle
+          defaultChecked={this.state.unapprovedOnly}
+          onChange={(event, data) => {
+            this.setState({ unapprovedOnly: data.checked }, this.update);
+          }}
+          label="Unapproved only"
+        />
+      </form>
+    );
+  }
+}
 
 class Checked extends React.Component {
   render() {
@@ -404,7 +442,7 @@ class Checked extends React.Component {
 
 class CommentsTree extends React.PureComponent {
   render() {
-    const { comments, count } = this.props;
+    const { comments, count, updateFilterSearch } = this.props;
 
     let lastBlogitem = null;
     return (
@@ -423,7 +461,7 @@ class CommentsTree extends React.PureComponent {
               root={true}
               showBlogitem={differentBlogitem}
               addToSearch={term => {
-                this.props.updateFilterSearch(term);
+                updateFilterSearch(term);
               }}
               {...this.props}
             />
@@ -502,7 +540,7 @@ class CommentTree extends React.PureComponent {
               rel="noopener noreferrer"
             >
               {comment.blogitem.title}
-            </a>
+            </a>{' '}
             <Icon
               color="grey"
               style={{ display: 'inline', cursor: 'pointer' }}
@@ -538,6 +576,9 @@ class CommentTree extends React.PureComponent {
               >
                 <DisplayDate date={comment.add_date} />
               </a>{' '}
+              <small>
+                <b>Page: {comment.page ? comment.page : 'Overflowing'}</b>
+              </small>{' '}
               {this.bumpedIndicator(comment)}
             </div>
           </Comment.Metadata>
@@ -642,6 +683,7 @@ class CommentTree extends React.PureComponent {
               <CommentTree
                 comment={reply}
                 key={reply.id}
+                addToSearch={addToSearch}
                 checkedForApproval={checkedForApproval}
                 checkedForDelete={checkedForDelete}
                 setCheckedForApproval={setCheckedForApproval}

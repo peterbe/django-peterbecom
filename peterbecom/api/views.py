@@ -818,6 +818,8 @@ def blogcomments(request):
             sub_list = ids[i * per_page : (i + 1) * per_page]
             if root_comment.id in sub_list:
                 return i + 1
+        else:
+            return None
 
         return 1
 
@@ -840,9 +842,9 @@ def blogcomments(request):
             "_clues": not item.approved and rate_blog_comment(item) or None,
             "replies": [],
         }
-        # XXX why would it NOT have a blogitem?!
         page = get_comment_page(item)
-        if page > 1:
+        record['page'] = page
+        if page is not None and page > 1:
             blog_post_url = reverse("blog_post", args=[blogitem.oid, page])
         else:
             blog_post_url = reverse("blog_post", args=[blogitem.oid])
