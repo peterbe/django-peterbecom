@@ -9,13 +9,13 @@
   "license": "MPL-2.0",
   "dependencies": {
     "@babel/cli": "7.4.4",
-    "@babel/core": "7.4.4",
+    "@babel/core": "7.4.5",
     "csso-cli": "2.0.2",
     "html-minifier": "4.0.0",
-    "puppeteer": "1.15.0",
-    "uglify-js": "^3.5.10"
+    "puppeteer": "1.16.0",
+    "uglify-js": "^3.5.15"
   },
   "devDependencies": {
-    "@babel/preset-env": "7.4.4"
+    "@babel/preset-env": "7.4.5"
   }
 }
