@@ -10,6 +10,7 @@ from django.core.cache import cache
 from requests.exceptions import RetryError
 
 from peterbecom.base.utils import requests_retry_session
+from peterbecom.base.models import CDNPurgeURL
 
 
 def get_stack_signature():
@@ -27,7 +28,8 @@ def get_stack_signature():
 
 
 def get_requests_retry_session():
-    return requests_retry_session(status_forcelist=(500, 502, 504, 429))
+    # return requests_retry_session(status_forcelist=(500, 502, 504, 429))
+    return requests_retry_session(status_forcelist=(500, 502, 504))
 
 
 class BrokenKeyCDNConfig(Exception):
@@ -60,10 +62,17 @@ def purge_cdn_urls(urls, api=None):
         for url in urls:
             if "://" not in url:
                 url = settings.NGINX_BYPASS_BASEURL + url
-            r = requests.get(url, headers={"secret-header": "true"})
-            r.raise_for_status()
-            x_cache_headers.append({"url": url, "x-cache": r.headers.get("x-cache")})
-        print("X-CACHE-HEADERS", x_cache_headers)
+            try:
+                r = requests.get(url, headers={"secret-header": "true"})
+                r.raise_for_status()
+                x_cache_headers.append(
+                    {"url": url, "x-cache": r.headers.get("x-cache")}
+                )
+                print("X-CACHE-HEADERS", x_cache_headers)
+                CDNPurgeURL.succeeded(urls)
+            except Exception:
+                CDNPurgeURL.failed(urls)
+                raise
         return {"all_urls": urls, "result": x_cache_headers}
 
     if not keycdn_zone_check():
@@ -103,8 +112,12 @@ def purge_cdn_urls(urls, api=None):
             f.write(
                 "{}\t{!r}\t{}\n".format(timezone.now(), all_urls, get_stack_signature())
             )
-        r = api.delete(call, params)
-
+        try:
+            r = api.delete(call, params)
+            CDNPurgeURL.succeeded(all_urls)
+        except Exception:
+            CDNPurgeURL.failed(all_urls)
+            raise
         print("SENT CDN PURGE FOR", all_urls, "RESULT:", r)
     return {"result": r, "all_urls": all_all_urls}
 

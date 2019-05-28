@@ -42,6 +42,7 @@ urlpatterns = [
     url(r"^searchresults/", views.searchresults, name="searchresults"),
     url(r"^cdn/check", views.cdn_check, name="cdn_check"),
     url(r"^cdn/config", views.cdn_config, name="cdn_config"),
+    url(r"^cdn/purge/urls", views.cdn_purge_urls, name="cdn_purge_urls"),
     url(r"^cdn/purge", views.cdn_purge, name="cdn_purge"),
     url(r"^cdn/probe", views.cdn_probe, name="cdn_probe"),
     url(r"", views.catch_all, name="catch_all"),
