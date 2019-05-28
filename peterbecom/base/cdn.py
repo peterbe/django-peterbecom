@@ -89,13 +89,28 @@ def purge_cdn_urls(urls, api=None):
     except KeyError:
         raise BrokenKeyCDNConfig("Config={!r}".format(config))
     all_urls = []
+
+    # For KeyCDN we need to do some transformations. Our URLs are different
+    # from the KeyCDN "URLs". When we make this transformation, maintain a map
+    # *back* to the original URLs as they're known to us.
+    original_urls = {}
+
     for absolute_url in urls:
         url = settings.KEYCDN_ZONE_URL + urlparse(absolute_url).path
         all_urls.append(url)
+        original_urls[url] = absolute_url
         if cachebr:
             all_urls.append(url + "br")
+            original_urls[url + "br"] = absolute_url
+
     # Make absolutely sure nothing's repeated.
     all_all_urls = sorted(list(set(all_urls)))
+
+    def get_original_urls(cdn_urls):
+        original = set()
+        for url in cdn_urls:
+            original.add(original_urls[url])
+        return original
 
     # Break it up into lists of 100
     def chunks(l, n):
@@ -114,9 +129,9 @@ def purge_cdn_urls(urls, api=None):
             )
         try:
             r = api.delete(call, params)
-            CDNPurgeURL.succeeded(all_urls)
+            CDNPurgeURL.succeeded(get_original_urls(all_urls))
         except Exception:
-            CDNPurgeURL.failed(all_urls)
+            CDNPurgeURL.failed(get_original_urls(all_urls))
             raise
         print("SENT CDN PURGE FOR", all_urls, "RESULT:", r)
     return {"result": r, "all_urls": all_all_urls}
