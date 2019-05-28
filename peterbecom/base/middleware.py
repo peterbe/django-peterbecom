@@ -117,6 +117,20 @@ class FSCacheMiddleware:
                             netloc=forwarded_host
                         )
                         absolute_url = absolute_url_parsed.geturl()
+                    elif not forwarded_host:
+                        # When you open something like
+                        # https://www-origin.peterbe.com/plog/page with minimalcss
+                        # it will be done with `X-Forwarded-Host: www.peterbe.com`
+                        # but consequent XHR requests within won't keep that
+                        # X-Forwarded-Host header. So we'll have to fix that manually.
+                        absolute_url_parsed = urlparse(absolute_url)
+                        if absolute_url_parsed.netloc in settings.ORIGIN_TO_HOST:
+                            absolute_url_parsed = absolute_url_parsed._replace(
+                                netloc=settings.ORIGIN_TO_HOST[
+                                    absolute_url_parsed.netloc
+                                ]
+                            )
+                            absolute_url = absolute_url_parsed.geturl()
 
                     if "\n" in absolute_url:
                         raise ValueError(

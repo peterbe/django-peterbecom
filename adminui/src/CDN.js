@@ -11,7 +11,7 @@ import {
   Table
 } from 'semantic-ui-react';
 
-import { ShowServerError } from './Common';
+import { DisplayDate, ShowServerError } from './Common';
 
 class CDN extends React.Component {
   componentDidMount() {
@@ -28,6 +28,7 @@ class CDN extends React.Component {
         <Header as="h1">CDN</Header>
         <ProbeUrl {...this.props} />
         <CDNCheck {...this.props} />
+        <PurgeURLs {...this.props} />
       </Container>
     );
   }
@@ -610,4 +611,176 @@ function ShowZoneConfig({ config }) {
       </Table.Body>
     </Table>
   );
+}
+
+function defaultLoopSeconds(default_ = 10) {
+  try {
+    return parseInt(
+      window.localStorage.getItem('purgeurls-loopseconds') || default_,
+      10
+    );
+  } catch (ex) {
+    return default_;
+  }
+}
+
+class PurgeURLs extends React.PureComponent {
+  state = {
+    queued: null,
+    recent: null,
+    loopSeconds: defaultLoopSeconds(),
+    serverError: null
+  };
+
+  componentDidMount() {
+    this.startLoop();
+    this.originalTitle = 'CDN';
+  }
+
+  componentWillUnmount() {
+    this.dismounted = true;
+    if (this._loop) window.clearTimeout(this._loop);
+  }
+
+  fetchPurgeURLs = async accessToken => {
+    if (!accessToken) {
+      throw new Error('No accessToken');
+    }
+    let response;
+    let url = '/api/v0/cdn/purge/urls';
+    // if (this.state.filters) {
+    //   url += `?${filterToQueryString(this.state.filters)}`;
+    // }
+    try {
+      response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      });
+    } catch (ex) {
+      return this.setState({ serverError: ex });
+    }
+
+    if (this.dismounted) {
+      return;
+    }
+    if (response.ok) {
+      const data = await response.json();
+      this.setState(
+        {
+          serverError: null,
+          queued: data.queued,
+          recent: data.recent
+        },
+        () => {
+          if (this.state.queued.length) {
+            document.title = `${this.originalTitle} (${
+              this.state.queued.length
+            } queued)`;
+          } else {
+            document.title = this.originalTitle;
+          }
+        }
+      );
+    } else {
+      this.setState({ serverError: response });
+    }
+  };
+
+  startLoop = () => {
+    this.fetchPurgeURLs(this.props.accessToken);
+    if (this._loop) {
+      window.clearTimeout(this._loop);
+    }
+    if (this.state.loopSeconds) {
+      this._loop = window.setTimeout(() => {
+        this.startLoop();
+      }, 1000 * this.state.loopSeconds);
+    }
+  };
+
+  render() {
+    const { queued, recent, serverError } = this.state;
+    if (!queued || !recent) {
+      return (
+        <p>
+          <i>Loading Purge CDN URLs</i>
+        </p>
+      );
+    }
+
+    return (
+      <div>
+        <Header as="h2">Purge URLs</Header>
+        <ShowServerError error={serverError} />
+        <Header as="h3">Queued URLs ({queued.length})</Header>
+        <Table celled>
+          <Table.Header>
+            <Table.Row>
+              <Table.HeaderCell>URL</Table.HeaderCell>
+              <Table.HeaderCell>Attempts</Table.HeaderCell>
+              <Table.HeaderCell>Date</Table.HeaderCell>
+            </Table.Row>
+          </Table.Header>
+
+          <Table.Body>
+            {queued.map(record => {
+              return (
+                <Table.Row
+                  key={record.id}
+                  negative={!!record.exception}
+                  warning={!!record.attempts}
+                >
+                  <Table.Cell>
+                    <code>{record.url}</code>
+                    {record.exception && <pre>{record.exception}</pre>}
+                  </Table.Cell>
+                  <Table.Cell>{record.attempts}</Table.Cell>
+                  <Table.Cell>
+                    <DisplayDate date={record.created} />{' '}
+                    {record.attempted && (
+                      <DisplayDate date={record.attempted} />
+                    )}
+                  </Table.Cell>
+                </Table.Row>
+              );
+            })}
+          </Table.Body>
+        </Table>
+        <Header as="h3">Recent URLs</Header>
+        <Table celled>
+          <Table.Header>
+            <Table.Row>
+              <Table.HeaderCell>URL</Table.HeaderCell>
+              <Table.HeaderCell>Attempts</Table.HeaderCell>
+              <Table.HeaderCell>Processed</Table.HeaderCell>
+            </Table.Row>
+          </Table.Header>
+
+          <Table.Body>
+            {recent.map(record => {
+              return (
+                <Table.Row key={record.id} warning={!!record.cancelled}>
+                  <Table.Cell>
+                    <code>{record.url}</code>
+                  </Table.Cell>
+                  <Table.Cell>{record.attempts}</Table.Cell>
+                  <Table.Cell>
+                    {record.cancelled ? 'cancelled ' : 'processed '}
+                    <DisplayDate
+                      date={
+                        record.cancelled ? record.cancelled : record.processed
+                      }
+                    />
+                    <br />
+                    created <DisplayDate date={record.created} />
+                  </Table.Cell>
+                </Table.Row>
+              );
+            })}
+          </Table.Body>
+        </Table>
+      </div>
+    );
+  }
 }

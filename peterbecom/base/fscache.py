@@ -11,7 +11,7 @@ from django.contrib.sites.models import Site
 from django.core.cache import cache
 from huey.contrib.djhuey import task
 
-from peterbecom.base.tasks import purge_cdn_urls_later
+from peterbecom.base.models import CDNPurgeURL
 
 
 class EmptyFSCacheFile(Exception):
@@ -126,7 +126,7 @@ def invalidate_by_url_later():
         cache.delete("invalidate_by_url")
         for url in slated:
             invalidate_by_url(url, revisit=True)
-        purge_cdn_urls_later(slated)
+        CDNPurgeURL.add(slated)
 
 
 def delete_empty_directory(filepath):
@@ -323,8 +323,7 @@ def purge_outdated_cdn_urls(verbose=False, dry_run=False, revisit=False, max_fil
         remote_html = response.text
 
         if local_html != remote_html and not dry_run:
-            # XXX This is incomplete but ready to call
-            print("******* PURGE *******", cdn_url)
+            CDNPurgeURL.add(cdn_url)
 
 
 def find_missing_compressions(verbose=False, revisit=False, max_files=500):

@@ -18,17 +18,17 @@ from django.template import Context
 from django.template.loader import get_template
 from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
 from geoip2.errors import AddressNotFoundError
-from django.views.decorators.cache import never_cache
 
 from peterbecom.awspa.models import AWSProduct
 from peterbecom.awspa.search import search as awspa_search
 from peterbecom.awspa.templatetags.jinja_helpers import awspa_product
-from peterbecom.base.models import PostProcessing, SearchResult
-from peterbecom.base.templatetags.jinja_helpers import thumbnail
-from peterbecom.base.cdn import get_cdn_config, purge_cdn_urls, keycdn_zone_check
+from peterbecom.base.cdn import get_cdn_config, keycdn_zone_check, purge_cdn_urls
 from peterbecom.base.fscache import invalidate_by_url, path_to_fs_path
+from peterbecom.base.models import CDNPurgeURL, PostProcessing, SearchResult
+from peterbecom.base.templatetags.jinja_helpers import thumbnail
 from peterbecom.plog.models import (
     BlogComment,
     BlogFile,
@@ -843,7 +843,7 @@ def blogcomments(request):
             "replies": [],
         }
         page = get_comment_page(item)
-        record['page'] = page
+        record["page"] = page
         if page is not None and page > 1:
             blog_post_url = reverse("blog_post", args=[blogitem.oid, page])
         else:
@@ -1192,7 +1192,7 @@ def cdn_config(request):
         r = get_cdn_config()
         context["data"] = r["data"]
     else:
-        context['error'] = "KeyCDN Zone Check currently failing"
+        context["error"] = "KeyCDN Zone Check currently failing"
     return _response(context)
 
 
@@ -1319,13 +1319,45 @@ def cdn_check(request):
 
 
 @api_superuser_required
+def cdn_purge_urls(request):
+    qs = CDNPurgeURL.objects.filter(processed__isnull=True, cancelled__isnull=True)
+    queued = []
+    for item in qs:
+        queued.append(
+            {
+                "id": item.id,
+                "url": item.url,
+                "attempts": item.attempts,
+                "exception": item.exception,
+                "attempted": item.attempted,
+                "created": item.created,
+            }
+        )
+
+    qs = CDNPurgeURL.objects.exclude(processed__isnull=True, cancelled__isnull=True)
+    recent = []
+    for item in qs.order_by("created")[:100]:
+        recent.append(
+            {
+                "id": item.id,
+                "url": item.url,
+                "attempts": item.attempts,
+                "processed": item.processed,
+                "cancelled": item.cancelled,
+                "created": item.created,
+            }
+        )
+    return _response({"queued": queued, "recent": recent})
+
+
+@api_superuser_required
 def spam_comment_patterns(request, id=None):
 
     if request.method == "DELETE":
         assert id
         SpamCommentPattern.objects.get(id=id).delete()
 
-    elif request.method == 'POST':
+    elif request.method == "POST":
         data = json.loads(request.body.decode("utf-8"))
         form = SpamCommentPatternForm(data)
         if form.is_valid():
@@ -1335,17 +1367,17 @@ def spam_comment_patterns(request, id=None):
 
     patterns = []
     qs = SpamCommentPattern.objects.all()
-    for pattern in qs.order_by('add_date'):
-        patterns.append({
-            'id': pattern.id,
-            'add_date': pattern.add_date,
-            'modify_date': pattern.modify_date,
-            'pattern': pattern.pattern,
-            'is_regex': pattern.is_regex,
-            'is_url_pattern': pattern.is_url_pattern,
-            'kills': pattern.kills,
-        })
-    context = {
-        'patterns': patterns
-    }
+    for pattern in qs.order_by("add_date"):
+        patterns.append(
+            {
+                "id": pattern.id,
+                "add_date": pattern.add_date,
+                "modify_date": pattern.modify_date,
+                "pattern": pattern.pattern,
+                "is_regex": pattern.is_regex,
+                "is_url_pattern": pattern.is_url_pattern,
+                "kills": pattern.kills,
+            }
+        )
+    context = {"patterns": patterns}
     return _response(context)

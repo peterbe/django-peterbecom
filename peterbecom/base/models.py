@@ -1,9 +1,15 @@
-from django.db import models
+import sys
+import traceback
+from io import StringIO
 
-from jsonfield import JSONField as LegacyJSONField
+from django.conf import settings
 from django.contrib.postgres.fields import ArrayField, JSONField
+from django.db import models, transaction
+from django.db.models import F
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
+from django.utils import timezone
+from jsonfield import JSONField as LegacyJSONField
 
 
 class CommandRun(models.Model):
@@ -75,3 +81,67 @@ class SearchResult(models.Model):
     )
     keywords = JSONField(default=dict)
     created = models.DateTimeField(auto_now_add=True)
+
+
+class CDNPurgeURL(models.Model):
+    url = models.URLField(max_length=400, db_index=True)
+    attempted = models.DateTimeField(null=True)
+    processed = models.DateTimeField(null=True)
+    cancelled = models.DateTimeField(null=True)
+    attempts = models.PositiveIntegerField(default=0)
+    exception = models.TextField(null=True)
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        s = "{} id={}".format(self.url, self.id)
+        facts = []
+        if self.processed:
+            facts.append("processed")
+        if self.cancelled:
+            facts.append("cancelled")
+        if self.attempted:
+            facts.append("attempted")
+        if self.attempts:
+            facts.append("{} attempts".format(self.attempts))
+        if self.exception:
+            facts.append("has exception!")
+        if facts:
+            s += " ({})".format(", ".join(facts))
+        return s
+
+    @classmethod
+    def add(cls, urls):
+        if isinstance(urls, str):
+            urls = [urls]
+        with transaction.atomic():
+            cls.objects.filter(
+                url__in=urls, cancelled__isnull=True, processed__isnull=True
+            ).update(cancelled=timezone.now())
+            cls.objects.bulk_create([cls(url=url) for url in urls])
+
+    @classmethod
+    def get(cls, max_urls=None):
+        if not max_urls:
+            max_urls = getattr(settings, "CDN_MAX_PURGE_URLS", 10)
+        qs = cls.objects.filter(cancelled__isnull=True, processed__isnull=True)
+        return list(qs.order_by("created").values_list("url", flat=True))
+
+    @classmethod
+    def succeeded(cls, urls):
+        if isinstance(urls, str):
+            urls = [urls]
+        cls.objects.filter(url__in=urls).update(processed=timezone.now())
+
+    @classmethod
+    def failed(cls, urls):
+        if isinstance(urls, str):
+            urls = [urls]
+        etype, evalue, tb = sys.exc_info()
+        out = StringIO()
+        traceback.print_exception(etype, evalue, tb, file=out)
+        exception = out.getvalue()
+        cls.objects.filter(
+            url__in=urls, processed__isnull=True, cancelled__isnull=True
+        ).update(
+            attempted=timezone.now(), attempts=F("attempts") + 1, exception=exception
+        )

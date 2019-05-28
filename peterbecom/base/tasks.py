@@ -11,7 +11,6 @@ from io import StringIO
 
 from django.conf import settings
 from django.utils import timezone
-from django.core.cache import cache
 from huey import crontab
 from huey.contrib.djhuey import periodic_task, task
 from requests.exceptions import ReadTimeout
@@ -19,7 +18,7 @@ from requests.exceptions import ReadTimeout
 from peterbecom.base import songsearch_autocomplete
 from peterbecom.base.cdn import purge_cdn_urls
 from peterbecom.base.decorators import lock_decorator
-from peterbecom.base.models import PostProcessing
+from peterbecom.base.models import PostProcessing, CDNPurgeURL
 from peterbecom.brotli_file import brotli_file
 from peterbecom.mincss_response import has_been_css_minified, mincss_html
 from peterbecom.minify_html import minify_html
@@ -181,27 +180,17 @@ def _post_process_cached_html(filepath, url, postprocessing, original_url):
         t1 = time.perf_counter()
         postprocessing.notes.append("Took {:.1f}s to Brotli HTML".format(t1 - t0))
 
-    purge_cdn_urls_later([url])
-
-
-@task()
-def purge_cdn_urls_later(urls):
-    queue = cache.get("purge_cdn_urls_later", [])
-    queue.extend(urls)
-    cache.set("purge_cdn_urls_later", list(set(queue)), 60 * 60)
+    CDNPurgeURL.add(url)
 
 
 @periodic_task(crontab(minute="*"))
 def run_purge_cdn_urls():
-    queue = cache.get("purge_cdn_urls_later", [])
-    print("QUEUE:", timezone.now(), queue)  # Temporary
-    cache.delete("purge_cdn_urls_later")
+    queue = CDNPurgeURL.get()
     if queue:
-        try:
-            purge_cdn_urls(queue)
-        except Exception:
-            cache.set("purge_cdn_urls_later", queue, 60 * 60)
-            raise
+        print("{} queued CDN URLs for purging: {}".format(len(queue), queue))
+        purge_cdn_urls(queue)
+    else:
+        print("No queued CDN URLs for purgning")
 
 
 def _minify_html(filepath, url):

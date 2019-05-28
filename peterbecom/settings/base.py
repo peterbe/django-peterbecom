@@ -440,3 +440,5 @@ USE_NGINX_BYPASS = False
 # When Huey gets a request to purge URLs and you have enabled 'USE_NGINX_BYPASS'
 # it might need a base_url if the request URL is just the path.
 NGINX_BYPASS_BASEURL = None
+
+ORIGIN_TO_HOST = {"www-origin.peterbe.com": "www.peterbe.com"}
