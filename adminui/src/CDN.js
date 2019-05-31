@@ -752,7 +752,9 @@ class PurgeURLs extends React.PureComponent {
           <Table.Header>
             <Table.Row>
               <Table.HeaderCell>URL</Table.HeaderCell>
-              <Table.HeaderCell>Attempts</Table.HeaderCell>
+              <Table.HeaderCell>
+                <abbr title="Attempts">A</abbr>
+              </Table.HeaderCell>
               <Table.HeaderCell>Processed</Table.HeaderCell>
             </Table.Row>
           </Table.Header>
@@ -762,7 +764,7 @@ class PurgeURLs extends React.PureComponent {
               return (
                 <Table.Row key={record.id} warning={!!record.cancelled}>
                   <Table.Cell>
-                    <code>{record.url}</code>
+                    <a href={record.url}>{record.url}</a>
                   </Table.Cell>
                   <Table.Cell>{record.attempts}</Table.Cell>
                   <Table.Cell>
@@ -771,9 +773,16 @@ class PurgeURLs extends React.PureComponent {
                       date={
                         record.cancelled ? record.cancelled : record.processed
                       }
+                    />{' '}
+                    (
+                    <DisplayDate
+                      prefix="took"
+                      now={record.created}
+                      date={
+                        record.cancelled ? record.cancelled : record.processed
+                      }
                     />
-                    <br />
-                    created <DisplayDate date={record.created} />
+                    )
                   </Table.Cell>
                 </Table.Row>
               );

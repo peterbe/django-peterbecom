@@ -277,7 +277,7 @@ PIPELINE = {
     # For those .es6 files.
     "COMPILERS": ("pipeline.compilers.es6.ES6Compiler",),
     # This is needed for consistency with Travis.
-    "BABEL_BINARY": path("./node_modules/.bin/babel"),
+    "BABEL_BINARY": path("node_modules/.bin/babel"),
 }
 
 # REDIS_URL = 'redis://redis:6379/0'
