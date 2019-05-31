@@ -133,7 +133,11 @@ def purge_cdn_urls(urls, api=None):
         except Exception:
             CDNPurgeURL.failed(get_original_urls(all_urls))
             raise
-        print("SENT CDN PURGE FOR", all_urls, "RESULT:", r)
+        print(
+            "SENT CDN PURGE FOR: {!r}\tORIGINAL URLS: {!r}\tRESULT: {}".format(
+                all_urls, urls, r
+            )
+        )
     return {"result": r, "all_urls": all_all_urls}
 
 

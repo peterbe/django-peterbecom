@@ -5,18 +5,29 @@ import { Breadcrumb, Message } from 'semantic-ui-react';
 
 import { BASE_URL } from './Config';
 
-export const DisplayDate = ({ date }) => {
+export function DisplayDate({ date, now, prefix }) {
+  prefix = prefix || 'in';
   if (date === null) {
     throw new Error('date is null');
   }
   const dateObj = toDate(date);
-  const now = new Date();
+  if (now) {
+    if (typeof now === 'string') {
+      now = toDate(now);
+    }
+  } else {
+    now = new Date();
+  }
   if (isBefore(dateObj, now)) {
     return <span title={date}>{formatDistance(date, now)} ago</span>;
   } else {
-    return <span title={date}>in {formatDistance(date, now)}</span>;
+    return (
+      <span title={date}>
+        {prefix} {formatDistance(date, now)}
+      </span>
+    );
   }
-};
+}
 
 export function ShowServerError({ error }) {
   if (!error) {

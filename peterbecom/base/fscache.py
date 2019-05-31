@@ -173,7 +173,8 @@ def invalidate_too_old(verbose=False, dry_run=False, revisit=False):
                         print("INVALIDATE", path)
                     if not dry_run:
                         found.append(os.stat(path).st_size)
-                        deleted.extend(_invalidate(path))
+                        these_deleted = _invalidate(path)
+                        deleted.extend(these_deleted)
                         if verbose:
                             print("\tDELETED", deleted)
                         delete_empty_directory(path)
