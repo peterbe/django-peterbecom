@@ -68,7 +68,7 @@ def purge_cdn_urls(urls, api=None):
                 x_cache_headers.append(
                     {"url": url, "x-cache": r.headers.get("x-cache")}
                 )
-                print("X-CACHE-HEADERS", x_cache_headers)
+                # print("X-CACHE-HEADERS", x_cache_headers)
                 CDNPurgeURL.succeeded(urls)
             except Exception:
                 CDNPurgeURL.failed(urls)
