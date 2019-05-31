@@ -1,4 +1,14 @@
 import React from 'react';
+import { Index, TimeSeries } from 'pondjs';
+import {
+  BarChart,
+  ChartContainer,
+  ChartRow,
+  Charts,
+  Resizable,
+  YAxis,
+  styler
+} from 'react-timeseries-charts';
 import {
   Button,
   Checkbox,
@@ -626,9 +636,10 @@ function defaultLoopSeconds(default_ = 10) {
 
 class PurgeURLs extends React.PureComponent {
   state = {
+    loopSeconds: defaultLoopSeconds(),
     queued: null,
     recent: null,
-    loopSeconds: defaultLoopSeconds(),
+    timeSeries: [],
     serverError: null
   };
 
@@ -668,9 +679,10 @@ class PurgeURLs extends React.PureComponent {
       const data = await response.json();
       this.setState(
         {
-          serverError: null,
           queued: data.queued,
-          recent: data.recent
+          recent: data.recent,
+          timeSeries: data.time_series,
+          serverError: null
         },
         () => {
           if (this.state.queued.length) {
@@ -700,7 +712,7 @@ class PurgeURLs extends React.PureComponent {
   };
 
   render() {
-    const { queued, recent, serverError } = this.state;
+    const { queued, recent, serverError, timeSeries } = this.state;
     if (!queued || !recent) {
       return (
         <p>
@@ -776,11 +788,11 @@ class PurgeURLs extends React.PureComponent {
                     />{' '}
                     (
                     <DisplayDate
-                      prefix="took"
-                      now={record.created}
                       date={
                         record.cancelled ? record.cancelled : record.processed
                       }
+                      now={record.created}
+                      prefix="took"
                     />
                     )
                   </Table.Cell>
@@ -789,7 +801,56 @@ class PurgeURLs extends React.PureComponent {
             })}
           </Table.Body>
         </Table>
+
+        {!!timeSeries.length && <PurgeTimeSeries data={timeSeries} />}
       </div>
+    );
+  }
+}
+
+class PurgeTimeSeries extends React.PureComponent {
+  render() {
+    const { data } = this.props;
+    const style = styler([
+      { key: 'created', color: '#A5C8E1', selected: '#2CB1CF' },
+      { key: 'processed', color: '#EFAB91', selected: '#2CB1CF' }
+    ]);
+
+    const series = new TimeSeries({
+      columns: ['index', 'created', 'processed'],
+      name: 'purge_count',
+      points: data.map(([d, ...value]) => [
+        Index.getIndexString('1h', new Date(d)),
+        ...value
+      ])
+    });
+    const maxValue = Math.max(...data.map(row => Math.max(row[1], row[2])));
+    return (
+      <Resizable>
+        <ChartContainer timeRange={series.range()}>
+          <ChartRow height={250} title="Purge CDN URLs per hour">
+            <YAxis
+              format=".0f"
+              id="count"
+              label="Count"
+              max={maxValue}
+              min={0}
+              type="linear"
+              width="70"
+            />
+            <Charts>
+              <BarChart
+                axis="count"
+                columns={['created', 'processed']}
+                minBarHeight={1}
+                series={series}
+                spacing={1}
+                style={style}
+              />
+            </Charts>
+          </ChartRow>
+        </ChartContainer>
+      </Resizable>
     );
   }
 }
