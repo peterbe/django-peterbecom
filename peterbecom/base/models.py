@@ -1,6 +1,7 @@
 import sys
 import traceback
 from io import StringIO
+from urllib.parse import urlparse
 
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField, JSONField
@@ -84,6 +85,7 @@ class SearchResult(models.Model):
 
 
 class CDNPurgeURL(models.Model):
+    # Not really a URL. Mostly a URL path (e.g. /plog/foo/bar)
     url = models.URLField(max_length=400, db_index=True)
     attempted = models.DateTimeField(null=True)
     processed = models.DateTimeField(null=True)
@@ -113,6 +115,10 @@ class CDNPurgeURL(models.Model):
     def add(cls, urls):
         if isinstance(urls, str):
             urls = [urls]
+        # Turn every URL into just the path
+        for i, url in enumerate(urls):
+            if "://" in url:
+                urls[i] = urlparse(url).path
         with transaction.atomic():
             cls.objects.filter(
                 url__in=urls, cancelled__isnull=True, processed__isnull=True

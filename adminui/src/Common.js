@@ -11,19 +11,13 @@ export function DisplayDate({ date, now, prefix }) {
     throw new Error('date is null');
   }
   const dateObj = toDate(date);
-  if (now) {
-    if (typeof now === 'string') {
-      now = toDate(now);
-    }
-  } else {
-    now = new Date();
-  }
-  if (isBefore(dateObj, now)) {
-    return <span title={date}>{formatDistance(date, now)} ago</span>;
+  const nowObj = now ? toDate(now) : new Date();
+  if (isBefore(dateObj, nowObj)) {
+    return <span title={dateObj}>{formatDistance(dateObj, nowObj)} ago</span>;
   } else {
     return (
-      <span title={date}>
-        {prefix} {formatDistance(date, now)}
+      <span title={dateObj}>
+        {prefix} {formatDistance(dateObj, nowObj)}
       </span>
     );
   }
