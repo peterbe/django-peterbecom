@@ -521,7 +521,9 @@ def sitemap(request):
 
     approved_comments_count = {}
     blog_comments_count_qs = (
-        BlogComment.objects.filter(blogitem__pub_date__lt=now, approved=True)
+        BlogComment.objects.filter(
+            blogitem__pub_date__lt=now, approved=True, parent__isnull=True
+        )
         .values("blogitem_id")
         .annotate(count=Count("blogitem_id"))
     )
