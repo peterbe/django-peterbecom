@@ -29,7 +29,7 @@ CACHES = {
         'LOCATION': 'unique-snowflake'
     }
 }
-GEOIP_PATH = 'GeoIP2-City-Test.mmdb'
+GEOIP_PATH = base.path('GeoIP2-City-Test.mmdb')
 SETTINGS
 
 echo "Version of babel?"
