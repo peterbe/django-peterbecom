@@ -560,10 +560,14 @@ class CommentTree extends React.PureComponent {
             {comment.name || <i>No name</i>}{' '}
             {comment.email ? `<${comment.email}>` : <i>No email</i>}{' '}
             {comment.location && comment.location.country_code && (
-              <Flag
-                name={comment.location.country_code.toLowerCase()}
-                title={JSON.stringify(comment.location, null, 2)}
-              />
+              <small>
+                <Flag
+                  name={comment.location.country_code.toLowerCase()}
+                  title={JSON.stringify(comment.location, null, 2)}
+                />{' '}
+                {comment.location.city || <i>no city</i>},{' '}
+                {comment.location.country_name || <i>no country</i>}
+              </small>
             )}
           </Comment.Author>
           <Comment.Metadata>

@@ -8,7 +8,7 @@ import unicodedata
 import uuid
 
 import bleach
-from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.fields import ArrayField, JSONField
 from django.core.cache import cache
 from django.db import models, transaction
 from django.conf import settings
@@ -19,6 +19,7 @@ from django.urls import reverse
 from sorl.thumbnail import ImageField
 
 from peterbecom.base.search import es_retry
+from peterbecom.base.geo import ip_to_city
 from peterbecom.plog.search import BlogCommentDoc, BlogItemDoc
 
 from . import utils
@@ -264,12 +265,19 @@ class BlogComment(models.Model):
     user_agent = models.CharField(max_length=300, blank=True, null=True)
     ip_address = models.GenericIPAddressField(blank=True, null=True)
 
-    def __repr__(self):
-        return "<%s: %s %r (%sapproved)>" % (
-            self.__class__.__name__,
+    # def __repr__(self):
+    #     return "<%s: %s %r (%sapproved)>" % (
+    #         self.__class__.__name__,
+    #         self.id,
+    #         self.oid + " " + self.comment[:20],
+    #         not self.approved and "not" or "",
+    #     )
+
+    def __str__(self):
+        return "{} {!r} ({})".format(
             self.id,
             self.oid + " " + self.comment[:20],
-            not self.approved and "not" or "",
+            "approved" if self.approved else "not approved",
         )
 
     @classmethod
@@ -312,6 +320,29 @@ class BlogComment(models.Model):
             "comment": self.comment_rendered or self.comment,
         }
         return doc
+
+    def create_geo_lookup(self):
+        if self.ip_address:
+            return BlogCommentGeoLookup.objects.create(
+                blog_comment=self, lookup=ip_to_city(self.ip_address)
+            )
+
+
+class BlogCommentGeoLookup(models.Model):
+    blog_comment = models.OneToOneField(BlogComment, on_delete=models.CASCADE)
+    lookup = JSONField(null=True)
+    add_date = models.DateTimeField(auto_now_add=True)
+    modify_date = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        if self.lookup:
+            return "{} - {!r}, {!r}".format(
+                self.blog_comment.oid,
+                self.lookup.get("city", "no city"),
+                self.lookup.get("country_name", "no country"),
+            )
+        else:
+            return "{} - no lookup".format(self.blog_comment.oid)
 
 
 @receiver(pre_save, sender=BlogComment)

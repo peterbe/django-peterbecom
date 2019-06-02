@@ -3,6 +3,7 @@ import logging
 import random
 import re
 from collections import defaultdict
+from ipaddress import IPv4Address
 
 from django import http
 from django.conf import settings
@@ -29,6 +30,12 @@ from .tasks import send_new_comment_email
 from .utils import get_blogcomment_slice, json_view, render_comment_text
 
 logger = logging.getLogger("plog.views")
+
+
+def fake_ip_address(seed):
+    random.seed(seed)
+    # https://codereview.stackexchange.com/a/200348
+    return str(IPv4Address(random.getrandbits(32)))
 
 
 class AWSPAError(Exception):
@@ -360,6 +367,14 @@ def submit_json(request, oid):
     for blog_comment in BlogComment.objects.filter(**search):
         break
     else:
+        ip_address = request.headers.get("x-forwarded-for") or request.META.get(
+            "REMOTE_ADDR"
+        )
+        print("IP_ADDRESS:", repr(ip_address))
+        if ip_address == "127.0.0.1" and settings.FAKE_BLOG_COMMENT_IP_ADDRESS:
+            ip_address = fake_ip_address(str(name) + str(email))
+            print("FAKE IP_ADDRESS:", repr(ip_address))
+
         blog_comment = BlogComment.objects.create(
             oid=BlogComment.next_oid(),
             blogitem=post,
@@ -368,9 +383,15 @@ def submit_json(request, oid):
             comment=comment,
             name=name,
             email=email,
-            ip_address=request.META.get("REMOTE_ADDR"),
+            ip_address=ip_address,
             user_agent=request.headers.get("User-Agent"),
         )
+        try:
+            blog_comment.create_geo_lookup()
+        except Exception as exception:
+            if settings.DEBUG:
+                raise
+            print("WARNING! {!r} create_geo_lookup failed".format(exception))
 
         if post.oid != "blogitem-040601-1":
             transaction.on_commit(lambda: send_new_comment_email(blog_comment.id))

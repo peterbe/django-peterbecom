@@ -27,6 +27,7 @@ import BlogitemHits from './BlogitemHits';
 import RealtimeBlogitemHits from './RealtimeBlogitemHits';
 import CDN from './CDN';
 import SpamCommentPatterns from './SpamCommentPatterns';
+import GeoComments from './GeoComments';
 
 class App extends React.Component {
   state = {
@@ -276,6 +277,12 @@ class App extends React.Component {
                 path="/plog/spam/patterns"
                 exact
                 component={SpamCommentPatterns}
+                accessToken={this.state.accessToken}
+              />
+              <SecureRoute
+                path="/plog/comments/geo"
+                exact
+                component={GeoComments}
                 accessToken={this.state.accessToken}
               />
               <SecureRoute
