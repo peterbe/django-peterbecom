@@ -8,7 +8,8 @@ from django.conf import settings
 import os
 
 assert settings.GEOIP_PATH
-assert os.path.isfile(settings.GEOIP_PATH)
+print(os.listdir(os.path.dirname(settings.GEOIP_PATH)))
+assert os.path.isfile(settings.GEOIP_PATH), settings.GEOIP_PATH
 
 geoip_looker_upper = GeoIP2()
 
