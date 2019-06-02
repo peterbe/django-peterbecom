@@ -3,6 +3,13 @@ from functools import lru_cache
 from django.contrib.gis.geoip2 import GeoIP2
 from geoip2.errors import AddressNotFoundError
 
+# temporary
+from django.conf import settings
+import os
+
+assert settings.GEOIP_PATH
+assert os.path.isfile(settings.GEOIP_PATH)
+
 geoip_looker_upper = GeoIP2()
 
 
