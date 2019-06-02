@@ -11,7 +11,6 @@ from urllib.parse import urlparse
 import requests
 from django import http
 from django.conf import settings
-from django.contrib.gis.geoip2 import GeoIP2
 from django.db.models import Avg, Count, Max, Min, Q
 from django.shortcuts import get_object_or_404
 from django.template import Context
@@ -20,7 +19,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
-from geoip2.errors import AddressNotFoundError
+from django.core.exceptions import ObjectDoesNotExist
 
 from peterbecom.awspa.models import AWSProduct
 from peterbecom.awspa.search import search as awspa_search
@@ -761,19 +760,6 @@ def _searchresults_records(request_GET, limit=10):
     return records
 
 
-geoip_looker_upper = GeoIP2()
-
-
-@lru_cache()
-def ip_to_city(ip_address):
-    if ip_address == "127.0.0.1":
-        return
-    try:
-        return geoip_looker_upper.city(ip_address)
-    except AddressNotFoundError:
-        return
-
-
 @api_superuser_required
 @never_cache
 def blogcomments(request):
@@ -825,6 +811,11 @@ def blogcomments(request):
 
     def _serialize_comment(item, blogitem=None):
         all_ids.add(item.id)
+        try:
+            geo_lookup = item.blogcommentgeolookup.lookup
+        except ObjectDoesNotExist:
+            # Legacy!
+            geo_lookup = item.create_geo_lookup().lookup
         record = {
             "id": item.id,
             "oid": item.oid,
@@ -838,7 +829,7 @@ def blogcomments(request):
             "name": item.name,
             "email": item.email,
             "user_agent": item.user_agent,
-            "location": item.ip_address and ip_to_city(item.ip_address) or None,
+            "location": geo_lookup,
             "_clues": not item.approved and rate_blog_comment(item) or None,
             "replies": [],
         }
@@ -891,7 +882,7 @@ def blogcomments(request):
     # Latest root comments...
     items = base_qs.filter(parent__isnull=True)
     items = items.order_by("-add_date")
-    items = items.select_related("blogitem")
+    items = items.select_related("blogitem", "blogcommentgeolookup")
     context = {"comments": [], "count": base_qs.count()}
     oldest = timezone.now()
     # n, m = ((page - 1) * batch_size, page * batch_size)
@@ -996,6 +987,28 @@ def actually_approve_comment(blogcomment):
         send_comment_reply_email.schedule(
             (blogcomment.id,), delay=settings.DELAY_SENDING_BLOGCOMMENT_REPLY_SECONDS
         )
+
+
+@api_superuser_required
+def geocomments(request):
+    comments = []
+    qs = BlogComment.objects.filter(blogcommentgeolookup__lookup__isnull=False)
+    qs = qs.select_related("blogcommentgeolookup")
+    qs = qs.select_related("blogitem")
+    for item in qs.order_by("-add_date")[:100]:
+        comments.append(
+            {
+                "id": item.id,
+                "location": item.blogcommentgeolookup.lookup,
+                "name": item.name,
+                "email": item.email,
+                "blogitem": {"title": item.blogitem.title, "oid": item.blogitem.oid},
+            }
+        )
+
+    return _response(
+        {"comments": comments, "google_maps_api_key": settings.GOOGLE_MAPS_API_KEY}
+    )
 
 
 @api_superuser_required

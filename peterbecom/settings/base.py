@@ -341,7 +341,7 @@ assert not FSCACHE_ROOT.endswith("/")
 CSSO_CLI_BINARY = path("node_modules/.bin/csso")
 
 
-CSRF_FAILURE_VIEW = "peterbecom.base.views.csrf_failure"
+# CSRF_FAILURE_VIEW = "peterbecom.base.views.csrf_failure"
 
 # ElasticSearch
 
@@ -442,3 +442,8 @@ USE_NGINX_BYPASS = False
 NGINX_BYPASS_BASEURL = None
 
 ORIGIN_TO_HOST = {"www-origin.peterbe.com": "www.peterbe.com"}
+
+FAKE_BLOG_COMMENT_IP_ADDRESS = False
+
+# Override in local
+GOOGLE_MAPS_API_KEY = None
