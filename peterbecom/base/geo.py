@@ -15,7 +15,9 @@ print(
 )
 assert os.path.isfile(settings.GEOIP_PATH), settings.GEOIP_PATH
 
-geoip_looker_upper = None
+
+# geoip_looker_upper = None
+geoip_looker_upper = GeoIP2()
 
 
 @lru_cache()
@@ -23,9 +25,9 @@ def ip_to_city(ip_address):
     if ip_address == "127.0.0.1":
         return
     # Initialize late
-    global geoip_looker_upper
-    if geoip_looker_upper is None:
-        geoip_looker_upper = GeoIP2()
+    # global geoip_looker_upper
+    # if geoip_looker_upper is None:
+    #     geoip_looker_upper = GeoIP2()
     try:
         return geoip_looker_upper.city(ip_address)
     except AddressNotFoundError:
