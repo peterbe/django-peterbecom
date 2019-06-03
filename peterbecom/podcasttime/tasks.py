@@ -118,6 +118,15 @@ def search_by_itunes(q):
     for result in results[:10]:
         if not result.get("feedUrl"):
             continue
+
+        if (
+            result["collectionName"]
+            == "dj-andy-bee Deep n Soulful House # Urban Soul Podcast"
+            or result["feedUrl"] == "http://dj-andy-b.podOmatic.com/rss2.xml"
+        ):
+            # https://www.lumendatabase.org/notices/18580243#
+            print("REFUSE COLLETION")
+            continue
         try:
             podcast = Podcast.objects.get(
                 url=result["feedUrl"], name=result["collectionName"]
