@@ -1,5 +1,13 @@
 import React from 'react';
-import { Container, Header, Loader, Dimmer, Segment } from 'semantic-ui-react';
+import {
+  Table,
+  Container,
+  Header,
+  Flag,
+  Loader,
+  Dimmer,
+  Segment
+} from 'semantic-ui-react';
 import {
   withScriptjs,
   withGoogleMap,
@@ -67,7 +75,7 @@ class GeoComments extends React.Component {
             <Loader inverted>Loading</Loader>
           </Dimmer>
           {comments && apiKey && (
-            <ShowMap comments={comments} apiKey={apiKey} />
+            <ShowComments comments={comments} apiKey={apiKey} />
           )}
         </Segment>
       </Container>
@@ -79,7 +87,10 @@ export default GeoComments;
 
 const MyMapComponent = withScriptjs(
   withGoogleMap(props => (
-    <GoogleMap defaultZoom={1} defaultCenter={{ lat: -34.397, lng: 150.644 }}>
+    <GoogleMap
+      defaultZoom={2}
+      defaultCenter={{ lat: 42.189451, lng: -5.01385 }}
+    >
       {props.markers.map(marker => (
         <Marker key={marker.id} position={marker.position} />
       ))}
@@ -90,7 +101,8 @@ const MyMapComponent = withScriptjs(
   ))
 );
 
-function ShowMap({ comments, apiKey }) {
+function ShowComments({ comments, apiKey }) {
+  console.log(comments);
   const markers = comments.map(comment => {
     return {
       id: comment.id,
@@ -102,13 +114,51 @@ function ShowMap({ comments, apiKey }) {
     };
   });
   return (
-    <MyMapComponent
-      isMarkerShown
-      googleMapURL={`https://maps.googleapis.com/maps/api/js?key=${apiKey}&v=3.exp&libraries=geometry,drawing,places`}
-      loadingElement={<div style={{ height: `100%` }} />}
-      containerElement={<div style={{ height: `400px` }} />}
-      mapElement={<div style={{ height: `100%` }} />}
-      markers={markers}
-    />
+    <div>
+      <MyMapComponent
+        isMarkerShown
+        googleMapURL={`https://maps.googleapis.com/maps/api/js?key=${apiKey}&v=3.exp&libraries=geometry,drawing,places`}
+        loadingElement={<div style={{ height: `100%` }} />}
+        containerElement={<div style={{ height: `600px` }} />}
+        mapElement={<div style={{ height: `100%` }} />}
+        markers={markers}
+      />
+
+      <Table>
+        <Table.Header>
+          <Table.Row>
+            <Table.HeaderCell>Comment</Table.HeaderCell>
+            <Table.HeaderCell>City</Table.HeaderCell>
+            <Table.HeaderCell>Country</Table.HeaderCell>
+          </Table.Row>
+        </Table.Header>
+        <Table.Body>
+          {comments.map(comment => {
+            return (
+              <Table.Row key={comment.id}>
+                <Table.Cell>
+                  {comment.name || <i>no name</i>} on
+                  <a href={`/plog/${comment.blogitem.oid}`}>
+                    {comment.blogitem.title}
+                  </a>
+                </Table.Cell>
+                <Table.Cell>
+                  {comment.location.city || <i>no city</i>}
+                </Table.Cell>
+                <Table.Cell>
+                  {comment.location.country_name && (
+                    <Flag
+                      name={comment.location.country_code.toLowerCase()}
+                      title={comment.location.country_name}
+                    />
+                  )}{' '}
+                  {comment.location.country_name || <i>no country</i>}
+                </Table.Cell>
+              </Table.Row>
+            );
+          })}
+        </Table.Body>
+      </Table>
+    </div>
   );
 }
