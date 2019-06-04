@@ -16,6 +16,7 @@ import {
 } from 'react-google-maps';
 
 import { ShowServerError } from './Common';
+import { BASE_URL } from './Config';
 
 class GeoComments extends React.Component {
   state = {
@@ -137,8 +138,9 @@ function ShowComments({ comments, apiKey }) {
             return (
               <Table.Row key={comment.id}>
                 <Table.Cell>
-                  {comment.name || <i>no name</i>} on
-                  <a href={`/plog/${comment.blogitem.oid}`}>
+                  {comment.name || <i>no name</i>}
+                  <span> on </span>
+                  <a href={BASE_URL + `/plog/${comment.blogitem.oid}`}>
                     {comment.blogitem.title}
                   </a>
                 </Table.Cell>
