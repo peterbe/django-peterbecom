@@ -1,5 +1,8 @@
 import os
 import re
+import time
+from collections import defaultdict
+
 import pyquery
 import xmltodict
 import requests
@@ -70,3 +73,32 @@ def test_search():
     doc = pyquery.PyQuery(r.text.strip())
     header, = doc("h1").items()
     print(header)
+
+
+def test_sitemap_paginated():
+    r = get("/sitemap.xml")
+    assert r.status_code == 200
+    parsed = xmltodict.parse(r.text)
+    urls = [x["loc"] for x in parsed["urlset"]["url"]]
+    todo = [x for x in urls if re.findall(r"/p\d+", x)]
+    grouped = defaultdict(list)
+    for url in todo:
+        without = re.sub(r"/p\d+$", "", url)
+        if without not in todo:
+            page = re.findall(r"/p(\d+)$", url)[0]
+            grouped[without].append((int(page), url))
+
+    for bare, urls in grouped.items():
+        urls.sort()
+
+        todo = [bare, urls[0][1]]
+        if urls[-1] not in todo:
+            todo.append(urls[-1][1])
+
+        for url in todo:
+            print(url)
+            r = get(url)
+            assert r.status_code == 200, url
+            if r.headers["x-cache"] != "HIT":
+                print("Not cached", r.headers["x-cache"], url)
+                time.sleep(1)

@@ -176,7 +176,7 @@ def invalidate_too_old(verbose=False, dry_run=False, revisit=False):
                         these_deleted = _invalidate(path)
                         deleted.extend(these_deleted)
                         if verbose:
-                            print("\tDELETED", deleted)
+                            print("\tDELETED", these_deleted)
                         delete_empty_directory(path)
                         if revisit:
                             revisit_url(path, verbose=verbose)
