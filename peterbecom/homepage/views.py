@@ -18,6 +18,7 @@ from django.views import static
 from django.views.decorators.cache import cache_control
 from elasticsearch_dsl import Q
 from huey.contrib.djhuey import task
+from lxml import etree
 
 from peterbecom.base.decorators import variable_cache_control
 from peterbecom.base.models import SearchResult
@@ -491,20 +492,18 @@ def contact(request):
 @cache_control(public=True, max_age=ONE_WEEK)
 def sitemap(request):
     base_url = get_base_url(request)
-    urls = []
-    urls.append('<?xml version="1.0" encoding="iso-8859-1"?>')
-    urls.append('<urlset xmlns="http://www.google.com/schemas/sitemap/0.84">')
+    root = etree.Element("urlset", xmlns="http://www.sitemaps.org/schemas/sitemap/0.9")
 
     def add(loc, lastmod=None, changefreq="monthly", priority=None):
-        url = "<url><loc>%s%s</loc>" % (base_url, loc)
+        url = etree.SubElement(root, "url")
+        loc = base_url + loc
+        etree.SubElement(url, "loc").text = loc
         if lastmod:
-            url += "<lastmod>%s</lastmod>" % lastmod.strftime("%Y-%m-%d")
+            etree.SubElement(url, "lastmod").text = lastmod.strftime("%Y-%m-%d")
         if priority:
-            url += "<priority>%s</priority>" % priority
+            etree.SubElement(url, "priority").text = "{:.1f}".format(priority)
         if changefreq:
-            url += "<changefreq>%s</changefreq>" % changefreq
-        url += "</url>"
-        urls.append(url)
+            etree.SubElement(url, "changefreq").text = changefreq
 
     now = timezone.now()
     blogitems = BlogItem.objects.filter(pub_date__lt=now)
@@ -534,6 +533,8 @@ def sitemap(request):
         age = (now - blogitem.modify_date).days
         comment_count = approved_comments_count.get(blogitem.id, 0)
         pages = comment_count // settings.MAX_RECENT_COMMENTS
+        if comment_count > settings.MAX_RECENT_COMMENTS:
+            print("PAGES:", pages, blogitem.title)
         for page in range(1, pages + 2):
             if page > settings.MAX_BLOGCOMMENT_PAGES:
                 break
@@ -552,8 +553,9 @@ def sitemap(request):
                 url = reverse("blog_post", args=[blogitem.oid])
             add(url, lastmod=blogitem.modify_date, changefreq=changefreq)
 
-    urls.append("</urlset>")
-    return http.HttpResponse("\n".join(urls), content_type="text/xml")
+    xml_output = b'<?xml version="1.0" encoding="utf-8"?>\n'
+    xml_output += etree.tostring(root, pretty_print=True)
+    return http.HttpResponse(xml_output, content_type="text/xml")
 
 
 def blog_post_by_alias(request, alias):

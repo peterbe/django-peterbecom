@@ -5,6 +5,7 @@ import json
 import os
 import random
 import time
+from collections import defaultdict
 
 import requests
 from pyquery import PyQuery
@@ -59,12 +60,14 @@ def download(urls, base_url, max=100, sleeptime=1, state_file=None):
 
     headers = {"User-Agent": "download-all-plogs.py/requests 1.0"}
     fasts = slows = 0
+    x_caches = defaultdict(int)
     for i, url in enumerate(urls[:max]):
         # print(url.ljust(80))
         t0 = time.time()
         r = requests.get(url, headers=headers)
         t1 = time.time()
         slow = bool(r.headers.get("X-Response-Time"))
+        x_caches[r.headers["x-cache"]] += 1
         print(
             str(i + 1).ljust(3),
             url[:90].ljust(90),
@@ -83,6 +86,10 @@ def download(urls, base_url, max=100, sleeptime=1, state_file=None):
 
     if fasts or slow:
         print("{:.1f}%".format(100 * fasts / (fasts + slows)), "are fast")
+    if x_caches:
+        total = sum(x_caches.values())
+        for key, value in x_caches.items():
+            print("X-Cache: {!r} {:.1f}%".format(key, 100 * value / total))
 
 
 if __name__ == "__main__":
@@ -120,6 +127,7 @@ if __name__ == "__main__":
             with open(state_file) as f:
                 for each in json.load(f):
                     exclude.add(each["url"])
+            print("Loaded {:,} URLs to exlude from {}".format(len(exclude), state_file))
         except FileNotFoundError:
             with open(state_file, "w") as f:
                 json.dump([], f)
