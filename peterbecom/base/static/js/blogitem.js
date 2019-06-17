@@ -50,38 +50,6 @@ var F = (function() {
       }
       preparing = true;
 
-      // $.getJSON('/plog/prepare.json', function(response) {
-      //   $('input[name="csrfmiddlewaretoken"]', form).val(response.csrf_token);
-      //   if (response.name && !$('input[name="name"]', form).val()) {
-      //     $('input[name="name"]', form)
-      //       .attr('placeholder', '')
-      //       .val(response.name);
-      //   } else {
-      //     var name = localStorage.getItem('name');
-      //     if (name) {
-      //       $('input[name="name"]', form)
-      //         .attr('placeholder', '')
-      //         .val(name);
-      //     }
-      //   }
-      //   if (response.email && !$('input[name="email"]', form).val()) {
-      //     $('input[name="email"]', form)
-      //       .attr('placeholder', '')
-      //       .val(response.email);
-      //   } else {
-      //     var email = localStorage.getItem('email');
-      //     if (email) {
-      //       $('input[name="email"]', form)
-      //         .attr('placeholder', '')
-      //         .val(email);
-      //     }
-      //   }
-
-      //   preparing = false;
-      //   if (callback) {
-      //     callback();
-      //   }
-      // });
       fetch('/plog/prepare.json')
         .then(function(r) {
           return r.json();
@@ -341,6 +309,8 @@ var F = (function() {
             });
           } else {
             // XXX needs to be better!
+            console.warn(r);
+
             alert(r.statusText);
           }
         })
@@ -398,16 +368,16 @@ $(function() {
 
   // Create a "Reply" link for all existing comments.
   // But only if the post allows comments.
-  if ($('#preview-comment-outer').length) {
-    $('div.comment a.metadata').each(function() {
-      var date = $(this);
-      var reply = $('<a class="metadata reply" rel="nofollow">Reply</a>');
-      var oid = date.attr('href').split('#')[1];
-      reply.attr('href', '#' + oid);
-      reply.data('oid', oid);
-      reply.insertAfter(date);
-    });
-  }
+  // if ($('#preview-comment-outer').length) {
+  //   $('div.comment a.metadata').each(function() {
+  //     var date = $(this);
+  //     var reply = $('<a class="metadata reply" rel="nofollow">Reply</a>');
+  //     var oid = date.attr('href').split('#')[1];
+  //     reply.attr('href', '#' + oid);
+  //     reply.data('oid', oid);
+  //     reply.insertAfter(date);
+  //   });
+  // }
   if (form.length) {
     form.on('mouseover', function() {
       $(this).off('mouseover');

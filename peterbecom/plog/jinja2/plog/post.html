@@ -104,7 +104,7 @@
   {% javascript 'plog:post' %}
   {% endif %}
 
-  {% if '/plog/blogitem-040601-1' not in request.path  %}
+  {% if show_carbon_native_ad and '/plog/blogitem-040601-1' not in request.path  %}
   {% javascript 'carbonnative' %}
   {% endif %}
 
@@ -112,7 +112,7 @@
 
 {% block content %}
 
-{% if '/plog/blogitem-040601-1' not in request.path %}
+{% if show_carbon_native_ad and '/plog/blogitem-040601-1' not in request.path %}
 <div class="bsa-cpc"></div>
 {% endif %}
 

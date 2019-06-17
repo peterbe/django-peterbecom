@@ -1265,7 +1265,7 @@ def cdn_probe(request):
 
     if blogitem and not re.findall(r"/p\d+$", absolute_url):
         comment_count = BlogComment.objects.filter(
-            blogitem=blogitem, approved=True
+            blogitem=blogitem, approved=True, parent__isnull=True
         ).count()
         pages = comment_count // settings.MAX_RECENT_COMMENTS
         other_pages = []
