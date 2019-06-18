@@ -146,20 +146,6 @@ var F = (function() {
         .catch(function(ex) {
           alert('Error: ' + ex);
         });
-      // $.ajax({
-      //   url: '/plog/preview.json',
-      //   data: data,
-      //   type: 'POST',
-      //   dataType: 'json',
-      //   success: function(response) {
-      //     preview.html(response.html).fadeIn(300);
-
-      //     callback();
-      //   },
-      //   error: function(jqXHR, textStatus, errorThrown) {
-      //     alert('Error: ' + errorThrown);
-      //   }
-      // });
     },
     submit: function() {
       var data = commentData();
@@ -186,68 +172,6 @@ var F = (function() {
           .prependTo(form);
       }
       $('.dimmer', form).addClass('active');
-      //   $.ajax({
-      //     url: form.attr('action'),
-      //     data: data,
-      //     type: 'POST',
-      //     dataType: 'json',
-      //     success: function(response) {
-      //       var parent;
-      //       if (response.parent) {
-      //         parent = $('.comments', '#' + response.parent).eq(1);
-      //         if (!parent.length) {
-      //           // need to create this container
-      //           parent = $('<div class="comments">');
-      //           parent.appendTo('#' + response.parent);
-      //         }
-      //       } else {
-      //         parent = $('#comments-outer');
-      //       }
-      //       // Put a slight delay on these updates so it "feels"
-      //       // slightly more realistic if the POST manages to happen
-      //       // too fast.
-      //       setTimeout(function() {
-      //         parent
-      //           .hide()
-      //           .append(response.html)
-      //           .fadeIn(300);
-      //         $('textarea', form).val('');
-      //         $('.dimmer', form).removeClass('active');
-      //       }, 500);
-
-      //       F.reset();
-      //       $('span.comment-count').fadeOut(400, function() {
-      //         var text;
-      //         if (response.comment_count === 1) {
-      //           text = '1 comment';
-      //         } else {
-      //           text = response.comment_count + ' comments';
-      //         }
-      //         $(this)
-      //           .text(text)
-      //           .fadeIn(800);
-      //       });
-      //       // save the name and email if possible
-      //       if (data.name) {
-      //         localStorage.setItem('name', data.name);
-      //       }
-      //       if (data.email) {
-      //         localStorage.setItem('email', data.email);
-      //       }
-      //     },
-      //     error: function(jqXHR, textStatus, errorThrown) {
-      //       $('.dimmer', form).removeClass('active');
-      //       var msg = 'Error: ' + errorThrown;
-      //       if (jqXHR.status === 403) {
-      //         F.prepare();
-      //         msg += ' (try submitting again?)';
-      //       }
-      //       alert(msg);
-      //       submitting = false;
-      //     }
-      //   });
-      //   return false;
-      // }
 
       var formData = new FormData();
       for (var key in data) {
@@ -308,20 +232,23 @@ var F = (function() {
               $('.ui.message.floating.warning').remove();
             });
           } else {
-            // XXX needs to be better!
             console.warn(r);
-
-            alert(r.statusText);
+            var msg = 'Error: ' + r.status + ' ' + r.statusText;
+            if (r.status >= 500) {
+              msg += '\nTry again in one minute.';
+            } else if (r.status === 403) {
+              F.prepare();
+              msg = 'Security cookie expired. Try submitting again.';
+            }
+            alert(msg);
+            $('.dimmer', form).removeClass('active');
+            submitting = false;
           }
         })
         .catch(function(ex) {
-          console.log(ex);
+          console.error(ex);
           $('.dimmer', form).removeClass('active');
           var msg = 'Error: ' + ex.toString();
-          // if (jqXHR.status === 403) {
-          //   F.prepare();
-          //   msg += ' (try submitting again?)';
-          // }
           alert(msg);
           submitting = false;
         });
