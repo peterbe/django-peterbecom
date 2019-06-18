@@ -423,9 +423,6 @@ OIDC_USER_ENDPOINT = "https://peterbecom.auth0.com/userinfo"
 
 ADMINUI_COMMENTS_BATCH_SIZE = 15
 
-# Deprecated. Delete later.
-SPAM_URL_PATTERNS = []
-
 GEOIP_PATH = path("GeoLite2-City.mmdb")
 
 DELAY_SENDING_BLOGCOMMENT_REPLY_SECONDS = 60

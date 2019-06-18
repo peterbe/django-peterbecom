@@ -1,6 +1,7 @@
 <div id="{{ comment.oid }}" class="comment{% if depth %} nested d-{{ depth }}{% endif %}">
   <b>{% if comment.name %}{{ comment.name }}{% else %}<i>Anonymous</i>{% endif %}</b>
   <a class="metadata" href="#{{comment.oid}}" rel="nofollow">{{ comment.add_date.strftime('%d %B %Y') }}</a>
+  <a class="metadata reply" href="#{{ comment.oid }}" data-oid="{{ comment.oid}}" rel="nofollow">Reply</a>
   {%- if not comment.approved %}
   <span class="not-approved"><b>Note:</b> This comment has not been approved yet</span>
   {% endif -%}

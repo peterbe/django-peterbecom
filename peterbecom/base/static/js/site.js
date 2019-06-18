@@ -2,42 +2,32 @@
 $(function() {
   'use strict';
 
-  // show dropdown on hover
-  // $('.main.menu .ui.dropdown').dropdown({
-  //   on: 'hover',
-  // });
+  $('div.ui.dropdown').on('click', function() {
+    var $this = $(this);
+    var $menu = $('div.menu', this);
 
-  $('div.ui.dropdown')
-    .on('mouseover', function() {
-      $(this)
-        .addClass('active')
-        .addClass('visible');
-      $('div.menu', this)
-        .removeClass('hidden')
-        .addClass('transition')
-        .addClass('left')
-        .addClass('visible')
-        .css('display', 'flex !important');
-    })
-    .on('mouseout', function() {
-      $(this)
-        .removeClass('active')
-        .removeClass('visible');
-      $('div.menu', this)
-        .removeClass('visible')
-        .addClass('hidden')
-        .css('display', 'block');
-    });
+    if ($this.hasClass('active')) {
+      $this.removeClass('active');
+      $menu.addClass('hidden');
+      $menu.removeClass('visible');
+      $menu.css('display', 'none');
+    } else {
+      $this.addClass('active');
+      $menu.removeClass('hidden');
+      $menu.addClass('visible');
+      $menu.css('display', 'block');
+    }
+  });
 
   function replaceLazyImages() {
     $('div.post img[data-originalsrc]').each(function() {
       var $img = $(this);
       $img.attr('src', $img.data('originalsrc'));
-      $img.removeData('originalsrc');
+      $img.data('originalsrc', null);
     });
   }
 
-  $(window).on('scroll', function(event) {
+  $(window).on('scroll', function() {
     $(window).off('scroll');
     replaceLazyImages();
   });

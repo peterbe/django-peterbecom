@@ -234,6 +234,9 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
         context["related_by_keyword"] = get_related_posts_by_keyword(post, limit=5)
         context["show_buttons"] = not screenshot_mode
     context["show_carbon_ad"] = not screenshot_mode
+    # context["show_carbon_ad"] = 0
+    context["show_carbon_native_ad"] = context["show_carbon_ad"]
+    # context["show_carbon_native_ad"] = 0
     context["home_url"] = request.build_absolute_uri("/")
     context["page_title"] = post.title
     context["pub_date_years"] = THIS_YEAR - post.pub_date.year
@@ -289,20 +292,19 @@ def _render_comment(comment):
 
 
 @ensure_csrf_cookie
-@json_view
 def prepare_json(request):
     data = {"csrf_token": request.META["CSRF_COOKIE"]}
     return http.JsonResponse(data)
 
 
+@ensure_csrf_cookie
 @require_POST
-@json_view
 def preview_json(request):
     comment = request.POST.get("comment", u"").strip()
     name = request.POST.get("name", u"").strip()
     email = request.POST.get("email", u"").strip()
     if not comment:
-        return {}
+        return http.JsonResponse({})
 
     html = render_comment_text(comment.strip())
     comment = {
@@ -313,7 +315,7 @@ def preview_json(request):
         "add_date": timezone.now(),
     }
     html = render_to_string("plog/comment.html", {"comment": comment, "preview": True})
-    return {"html": html}
+    return http.JsonResponse({"html": html})
 
 
 @require_POST
@@ -465,6 +467,7 @@ def new_comments(request):
     return render(request, "plog/new-comments.html", context)
 
 
+@cache_control(public=True, max_age=60 * 60 * 24)
 def calendar(request):
     context = {"page_title": "Archive calendar"}
     return render(request, "plog/calendar.html", context)
