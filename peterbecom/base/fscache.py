@@ -350,12 +350,24 @@ def find_missing_compressions(verbose=False, revisit=False, max_files=500):
                 if not os.path.isfile(path + ".br"):
                     if verbose:
                         print("{} didn't exist!".format(path + ".br"))
+                    with open("/tmp/fscache_br.log", "a") as f:
+                        f.write(
+                            "{}\t{}\t{}\n".format(
+                                time.time(), path, os.stat(path).st_size
+                            )
+                        )
                     os.remove(path)
                     deleted += 1
                     print("HAD TO DELETE {} BECAUSE .br FILE DOESNT EXIST".format(path))
                 elif not os.path.isfile(path + ".gz"):
                     if verbose:
                         print("{} didn't exist!".format(path + ".gz"))
+                    with open("/tmp/fscache_gz.log", "a") as f:
+                        f.write(
+                            "{}\t{}\t{}\n".format(
+                                time.time(), path, os.stat(path).st_size
+                            )
+                        )
                     os.remove(path)
                     deleted += 1
                     print("HAD TO DELETE {} BECAUSE .gz FILE DOESNT EXIST".format(path))
