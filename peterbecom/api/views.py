@@ -17,7 +17,7 @@ from django.template import Context
 from django.template.loader import get_template
 from django.urls import reverse
 from django.utils import timezone
-from django.views.decorators.cache import never_cache
+from django.views.decorators.cache import cache_control, never_cache
 from django.views.decorators.http import require_POST
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -1393,4 +1393,98 @@ def spam_comment_patterns(request, id=None):
             }
         )
     context = {"patterns": patterns}
+    return _response(context)
+
+
+@cache_control(max_age=60, public=True)
+def lyrics_page_healthcheck(request):
+    URL = "https://www.peterbe.com/plog/blogitem-040601-1"
+    USER_AGENT = "peterbe/lyrics_page_healthcheck:bot"
+
+    def check():
+        for page in range(1, 13):
+            if page == 1:
+                url = URL
+            else:
+                url = URL + "/p{}".format(page)
+            yield (url, check_url(url))
+
+    def check_url(url):
+        r = requests.get(url, headers={"User-Agent": USER_AGENT})
+        if r.status_code != 200:
+            return False, "Status code: {}".format(r.status_code)
+
+        # The CDN origin's absolute shouldn't be in there
+        count = r.text.count("www-origin.peterbe.com")
+        if count:
+            return False, "Origin domain in HTML ({} times)".format(count)
+
+        count = r.text.count("<!-- /songsearch-autocomplete -->")
+        if not count:
+            return False, "The songsearch-autocomplete part isn't there!"
+        if count > 1:
+            return False, "Multiple songsearch-autocomplete there"
+
+        scripts = re.findall(
+            "/songsearch-autocomplete/js/main.[a-f0-9]{8}.chunk.js", r.text
+        )
+        if len(scripts) > 1:
+            return False, ["Multiple script files referenced!"] + scripts
+        if not scripts:
+            return False, "No script files referenced!"
+
+        if r.headers["Content-Encoding"] != "gzip":
+            return False, "Content-Encoding is not gzip!"
+
+        try:
+            int(r.headers["Content-Length"])
+        except KeyError:
+            return False, "No Content-Length header. Probably no index.html.gz"
+
+        r2 = requests.get(
+            url, headers={"Accept-encoding": "br", "User-Agent": USER_AGENT}
+        )
+        if r2.headers["content-encoding"] != "br":
+            # It works but it's not perfect.
+            return True, "No Brotli Content-Encoding"
+        # data = brotli.decompress(r2.content).decode("utf-8")
+        data = r2.text
+        if data != r.text:
+            return True, "Brotli content different from Gzip content"
+
+        r3 = requests.get(
+            url, headers={"Accept-encoding": "", "User-Agent": USER_AGENT}
+        )
+        if r3.text != r.text:
+            return True, "Plain content different from Gzip content"
+
+        # if "Stats from using github.com/peterbe/minimalcss" not in r.text:
+        #     return False, "minimalcss not run on HTML"
+
+        css_bit = (
+            "License for minified and inlined CSS originally belongs to Semantic UI"
+        )
+        if r.text.count(css_bit) != 1:
+            return (
+                False,
+                "Not exactly 1 ({}) CSS bits about inline css".format(
+                    r.text.count(css_bit)
+                ),
+            )
+
+        return True, None
+
+    health = []
+    for url, (works, errors) in check():
+        if works and errors:
+            if not isinstance(errors, list):
+                errors = [errors]
+            health.append({"health": "WARNING", "url": url, "errors": errors})
+        elif works:
+            health.append({"health": "OK", "url": url})
+        else:
+            if not isinstance(errors, list):
+                errors = [errors]
+            health.append({"health": "ERROR", "url": url, "errors": errors})
+    context = {"health": health}
     return _response(context)

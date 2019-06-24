@@ -26,6 +26,7 @@ import SearchResults from './SearchResults';
 import BlogitemHits from './BlogitemHits';
 import RealtimeBlogitemHits from './RealtimeBlogitemHits';
 import CDN from './CDN';
+import LyricsPageHealthcheck from './LyricsPageHealthcheck';
 import SpamCommentPatterns from './SpamCommentPatterns';
 import GeoComments from './GeoComments';
 
@@ -226,6 +227,11 @@ class App extends React.Component {
               <Menu.Item>
                 <Link to="/cdn">CDN</Link>
               </Menu.Item>
+              <Menu.Item>
+                <Link to="/lyrics-page-healthcheck">
+                  Lyrics Page Healthcheck
+                </Link>
+              </Menu.Item>
 
               <Menu.Menu position="right">
                 {this.state.userInfo ? (
@@ -351,6 +357,12 @@ class App extends React.Component {
                 path="/cdn"
                 exact
                 component={CDN}
+                accessToken={this.state.accessToken}
+              />
+              <SecureRoute
+                path="/lyrics-page-healthcheck"
+                exact
+                component={LyricsPageHealthcheck}
                 accessToken={this.state.accessToken}
               />
 

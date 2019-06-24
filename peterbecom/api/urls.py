@@ -46,5 +46,10 @@ urlpatterns = [
     url(r"^cdn/purge/urls", views.cdn_purge_urls, name="cdn_purge_urls"),
     url(r"^cdn/purge", views.cdn_purge, name="cdn_purge"),
     url(r"^cdn/probe", views.cdn_probe, name="cdn_probe"),
+    url(
+        r"lyrics-page-healthcheck",
+        views.lyrics_page_healthcheck,
+        name="lyrics_page_healthcheck",
+    ),
     url(r"", views.catch_all, name="catch_all"),
 ]
