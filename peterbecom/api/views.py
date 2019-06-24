@@ -17,7 +17,7 @@ from django.template import Context
 from django.template.loader import get_template
 from django.urls import reverse
 from django.utils import timezone
-from django.views.decorators.cache import never_cache
+from django.views.decorators.cache import cache_control, never_cache
 from django.views.decorators.http import require_POST
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -1396,7 +1396,7 @@ def spam_comment_patterns(request, id=None):
     return _response(context)
 
 
-@never_cache
+@cache_control(max_age=60, public=True)
 def lyrics_page_healthcheck(request):
     URL = "https://www.peterbe.com/plog/blogitem-040601-1"
     USER_AGENT = "peterbe/lyrics_page_healthcheck:bot"
@@ -1448,10 +1448,7 @@ def lyrics_page_healthcheck(request):
             # It works but it's not perfect.
             return True, "No Brotli Content-Encoding"
         # data = brotli.decompress(r2.content).decode("utf-8")
-        data = r2.content.decode("utf-8")
-        print(repr(data[:100]))
-        data2 = r2.text
-        print(repr(data2[:100]))
+        data = r2.text
         if data != r.text:
             return True, "Brotli content different from Gzip content"
 

@@ -14,7 +14,7 @@ class Dashboard extends React.Component {
           <Button
             onClick={event => {
               event.preventDefault();
-              console.log(this.props);
+              // console.log(this.props);
               this.props.authorize();
             }}
           >
@@ -65,6 +65,9 @@ class DashboardLinks extends React.PureComponent {
         </Segment>
         <Segment>
           <Link to="/cdn">CDN</Link>
+        </Segment>
+        <Segment>
+          <Link to="/lyrics-page-healthcheck">Lyrics Page Healthcheck</Link>
         </Segment>
       </Segment.Group>
     );
