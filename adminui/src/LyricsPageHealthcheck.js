@@ -14,7 +14,7 @@ function defaultLoopSeconds(default_ = 60) {
     return parseInt(
       window.localStorage.getItem('lyrics-page-healthcheck-loopseconds') ||
         default_,
-      60
+      10
     );
   } catch (ex) {
     return default_;
@@ -25,13 +25,13 @@ class LyricsPageHealthcheck extends React.Component {
   state = {
     health: null,
     loading: false,
+    fetched: null,
     serverError: null,
     loopSeconds: defaultLoopSeconds()
   };
   componentDidMount() {
     document.title = 'Lyrics Page Healthcheck';
     this.startLoop();
-    // this.setState({ loading: true }, this.loadHealth);
   }
   componentWillUnmount() {
     this.dismounted = true;
@@ -57,7 +57,11 @@ class LyricsPageHealthcheck extends React.Component {
       try {
         response = await fetch(url);
       } catch (ex) {
-        return this.setState({ loading: false, serverError: ex });
+        return this.setState({
+          loading: false,
+          serverError: ex,
+          fetched: new Date()
+        });
       }
 
       if (this.dismounted) {
@@ -68,16 +72,26 @@ class LyricsPageHealthcheck extends React.Component {
         this.setState({
           health: result.health,
           loading: false,
-          serverError: null
+          serverError: null,
+          fetched: new Date()
         });
       } else {
-        this.setState({ loading: false, serverError: response });
+        this.setState({
+          loading: false,
+          serverError: response,
+          fetched: new Date()
+        });
       }
     });
   };
 
   render() {
-    const { health, loading, serverError } = this.state;
+    const { health, fetched, loopSeconds, loading, serverError } = this.state;
+    let nextFetch = null;
+    if (fetched) {
+      nextFetch = new Date(fetched.getTime() + loopSeconds * 1000);
+    }
+
     return (
       <Container>
         <Header as="h1">Lyrics Page Healthcheck</Header>
@@ -87,6 +101,7 @@ class LyricsPageHealthcheck extends React.Component {
             <Loader inverted>Loading</Loader>
           </Dimmer>
           {health && <ShowHealth health={health} />}
+          {nextFetch && <ShowLoopCountdown nextFetch={nextFetch} />}
         </Segment>
       </Container>
     );
@@ -94,6 +109,29 @@ class LyricsPageHealthcheck extends React.Component {
 }
 
 export default LyricsPageHealthcheck;
+
+function ShowLoopCountdown({ nextFetch }) {
+  const [left, updateLeft] = React.useState(
+    Math.ceil((nextFetch.getTime() - new Date().getTime()) / 1000)
+  );
+  React.useEffect(() => {
+    const loop = window.setInterval(() => {
+      updateLeft(
+        Math.ceil((nextFetch.getTime() - new Date().getTime()) / 1000)
+      );
+    }, 1000);
+    return () => window.clearInterval(loop);
+  }, [nextFetch]);
+
+  if (left > 120) {
+    return <small>Refreshing in {Math.floor(left / 60)} minutes.</small>;
+  }
+  if (left > 0) {
+    return <small>Refreshing in {left} seconds.</small>;
+  } else {
+    return <small>Refreshing now.</small>;
+  }
+}
 
 function ShowHealth({ health }) {
   return (
@@ -116,7 +154,16 @@ function ShowHealth({ health }) {
         return (
           <Segment key={page.url}>
             <a href={page.url}>{page.url}</a>{' '}
-            <Icon name={name} color={color} size="large" />
+            <a
+              href={`/cdn?url=${encodeURI(page.url)}`}
+              rel="noopener noreferrer"
+              target="_blank"
+              title="Do a CDN probe"
+            >
+              <small>(CDN probe)</small>
+            </a>{' '}
+            <Icon name={name} color={color} size="large" />{' '}
+            <small>took {`${page.took.toFixed(2)}s`}</small>
             {page.errors && page.errors.length ? (
               <ShowErrors errors={page.errors} />
             ) : null}

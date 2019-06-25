@@ -1407,10 +1407,15 @@ def lyrics_page_healthcheck(request):
                 url = URL
             else:
                 url = URL + "/p{}".format(page)
-            yield (url, check_url(url))
+            t0 = time.time()
+            result = check_url(url)
+            t1 = time.time()
+            yield (t1 - t0, url, result)
+
+    session = requests.Session()
 
     def check_url(url):
-        r = requests.get(url, headers={"User-Agent": USER_AGENT})
+        r = session.get(url, headers={"User-Agent": USER_AGENT}, timeout=3)
         if r.status_code != 200:
             return False, "Status code: {}".format(r.status_code)
 
@@ -1441,8 +1446,9 @@ def lyrics_page_healthcheck(request):
         except KeyError:
             return False, "No Content-Length header. Probably no index.html.gz"
 
-        r2 = requests.get(
-            url, headers={"Accept-encoding": "br", "User-Agent": USER_AGENT}
+        r2 = session.get(
+            url, headers={"Accept-encoding": "br", "User-Agent": USER_AGENT},
+            timeout=3,
         )
         if r2.headers["content-encoding"] != "br":
             # It works but it's not perfect.
@@ -1452,8 +1458,9 @@ def lyrics_page_healthcheck(request):
         if data != r.text:
             return True, "Brotli content different from Gzip content"
 
-        r3 = requests.get(
-            url, headers={"Accept-encoding": "", "User-Agent": USER_AGENT}
+        r3 = session.get(
+            url, headers={"Accept-encoding": "", "User-Agent": USER_AGENT},
+            timeout=3,
         )
         if r3.text != r.text:
             return True, "Plain content different from Gzip content"
@@ -1475,16 +1482,19 @@ def lyrics_page_healthcheck(request):
         return True, None
 
     health = []
-    for url, (works, errors) in check():
+    for took, url, (works, errors) in check():
         if works and errors:
             if not isinstance(errors, list):
                 errors = [errors]
-            health.append({"health": "WARNING", "url": url, "errors": errors})
+            state = "WARNING"
+
         elif works:
-            health.append({"health": "OK", "url": url})
+            errors = None
+            state = "OK"
         else:
             if not isinstance(errors, list):
                 errors = [errors]
-            health.append({"health": "ERROR", "url": url, "errors": errors})
+            state = "ERROR"
+        health.append({"health": state, "url": url, "errors": errors, "took": took})
     context = {"health": health}
     return _response(context)
