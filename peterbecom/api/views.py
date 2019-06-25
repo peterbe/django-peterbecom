@@ -1414,6 +1414,18 @@ def lyrics_page_healthcheck(request):
 
     session = requests.Session()
 
+    def catch_request_errors(f):
+        @wraps(f)
+        def inner(url):
+            try:
+                return f(url)
+            except requests.exceptions.RequestException as exception:
+                return (False, "{} on {}".format(
+                    exception, url
+                ))
+        return inner
+
+    @catch_request_errors
     def check_url(url):
         r = session.get(url, headers={"User-Agent": USER_AGENT}, timeout=3)
         if r.status_code != 200:
@@ -1483,17 +1495,14 @@ def lyrics_page_healthcheck(request):
 
     health = []
     for took, url, (works, errors) in check():
+        if errors and not isinstance(errors, list):
+            errors = [errors]
         if works and errors:
-            if not isinstance(errors, list):
-                errors = [errors]
             state = "WARNING"
-
         elif works:
             errors = None
             state = "OK"
         else:
-            if not isinstance(errors, list):
-                errors = [errors]
             state = "ERROR"
         health.append({"health": state, "url": url, "errors": errors, "took": took})
     context = {"health": health}
