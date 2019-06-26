@@ -347,7 +347,7 @@ def find_missing_compressions(verbose=False, revisit=False, max_files=500):
                 # If it ends with .metadata it has to be the index.html
                 assert os.path.basename(path) == "index.html", os.path.basename(path)
 
-                if not os.path.isfile(path + ".br"):
+                if not os.path.isfile(path + ".br") and "awspa/" not in path:
                     if verbose:
                         print("{} didn't exist!".format(path + ".br"))
                     with open("/tmp/fscache_br.log", "a") as f:
