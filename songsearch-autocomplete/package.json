@@ -9,7 +9,7 @@
   },
   "devDependencies": {
     "react-scripts": "3.0.1",
-    "source-map-explorer": "1.8.0"
+    "source-map-explorer": "2.0.1"
   },
   "resolutions": {
     "js-yaml": ">=3.13.1"
