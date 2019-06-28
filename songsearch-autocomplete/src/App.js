@@ -5,6 +5,9 @@ import { throttle, debounce } from 'throttle-debounce';
 const placeholderImage =
   process.env.PUBLIC_URL +
   '/static/songsearch-autocomplete-static/placeholder40x40.png';
+const lazyloadThumbnailImage =
+  process.env.PUBLIC_URL +
+  '/static/songsearch-autocomplete-static/lazyload-thumbnail40x40.png';
 const SERVER = process.env.REACT_APP_SERVER_URL || 'https://songsear.ch';
 
 function appendSuggestion(text, append) {
@@ -440,7 +443,7 @@ const ShowAutocompleteSuggestions = React.memo(
             let className = index + 1 === highlight ? 'active' : null;
             return (
               <li
-                key={index}
+                key={s.id || s.text}
                 className={className}
                 onClick={e => onSelectSuggestion(e, s)}
               >
@@ -462,10 +465,18 @@ const ShowAutocompleteSuggestions = React.memo(
 );
 
 const ShowAutocompleteSuggestionSong = React.memo(({ song }) => {
+  let imageUrl = placeholderImage;
+  if (song.image) {
+    if (song.image.thumbnail100) {
+      imageUrl = absolutifyUrl(song.image.thumbnail100);
+    } else if (song.image.url) {
+      imageUrl = absolutifyUrl(song.image.url);
+    }
+  }
   return (
     <div className="media autocomplete-suggestion-song">
       <div className="media-left">
-        <SongImage image={song.image} name={song.name} />
+        <SongImage url={imageUrl} name={song.name} />
       </div>
       <div className="media-body">
         <h5 className="artist-name">
@@ -476,6 +487,9 @@ const ShowAutocompleteSuggestionSong = React.memo(({ song }) => {
         {song.fragments.map((fragment, i) => {
           return <p key={i} dangerouslySetInnerHTML={{ __html: fragment }} />;
         })}
+        <p>
+          <code>{imageUrl}</code>
+        </p>
       </div>
     </div>
   );
@@ -487,41 +501,35 @@ const ShowAutocompleteSuggestionSong = React.memo(({ song }) => {
 // image swapping trick.
 const loadedOnce = new Set();
 
-new Image().src = placeholderImage;
+new Image().src = lazyloadThumbnailImage;
 
-function SongImage({ image, name }) {
-  const absoluteUrl = absolutifyUrl(
-    image.thumbnail100 ? image.thumbnail100 : image.url
-  );
-
-  const [src, setSrc] = useState(
-    loadedOnce.has(absoluteUrl) ? absoluteUrl : placeholderImage
-  );
+function SongImage({ url, name }) {
+  const [src, setSrc] = useState(url || lazyloadThumbnailImage);
 
   useEffect(() => {
     let preloadImg = null;
     let dismounted = false;
 
-    if (src === placeholderImage) {
+    if (src === lazyloadThumbnailImage && !loadedOnce(url)) {
       // We need to preload the eventually needed image.
       preloadImg = new Image();
 
       function cb() {
         if (!dismounted) {
-          setSrc(absoluteUrl);
+          setSrc(url);
         }
-        loadedOnce.add(absoluteUrl);
+        loadedOnce.add(url);
       }
       // This must come before .decode() otherwise Safari will
       // raise an EncodingError.
-      preloadImg.src = absoluteUrl;
+      preloadImg.src = url;
       // https://html.spec.whatwg.org/multipage/embedded-content.html#dom-img-decode
       // https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/decode#Browser_compatibility
-      // Note, we use the same callback for success as well as errors.
       preloadImg.decode
         ? preloadImg.decode().then(cb, cb)
         : (preloadImg.onload = cb);
       // https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/decoding
+      // XXX Why 'sync' and not 'async'??
       preloadImg.decoding = 'sync';
     }
 
@@ -533,12 +541,14 @@ function SongImage({ image, name }) {
       }
       dismounted = true;
     };
-  }, [absoluteUrl, src]);
+  }, [url, src]);
 
-  if (!image) {
-    // Don't even bother with lazy loading.
-    return <img className="img-rounded" src={placeholderImage} alt={name} />;
-  }
-
-  return <img className="img-rounded" src={src} alt={name} />;
+  return (
+    <img
+      className="img-rounded"
+      src={url ? src : placeholderImage}
+      alt={name}
+      title={name}
+    />
+  );
 }
