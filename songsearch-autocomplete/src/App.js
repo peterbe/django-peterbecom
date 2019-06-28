@@ -517,8 +517,9 @@ function SongImage({ image, name }) {
       preloadImg.src = absoluteUrl;
       // https://html.spec.whatwg.org/multipage/embedded-content.html#dom-img-decode
       // https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/decode#Browser_compatibility
+      // Note, we use the same callback for success as well as errors.
       preloadImg.decode
-        ? preloadImg.decode().then(cb)
+        ? preloadImg.decode().then(cb, cb)
         : (preloadImg.onload = cb);
       // https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/decoding
       preloadImg.decoding = 'sync';
