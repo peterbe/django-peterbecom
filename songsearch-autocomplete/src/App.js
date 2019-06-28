@@ -487,9 +487,6 @@ const ShowAutocompleteSuggestionSong = React.memo(({ song }) => {
         {song.fragments.map((fragment, i) => {
           return <p key={i} dangerouslySetInnerHTML={{ __html: fragment }} />;
         })}
-        <p>
-          <code>{imageUrl}</code>
-        </p>
       </div>
     </div>
   );
