@@ -1462,9 +1462,12 @@ def lyrics_page_healthcheck(request):
             url, headers={"Accept-encoding": "br", "User-Agent": USER_AGENT},
             timeout=3,
         )
-        if r2.headers["content-encoding"] != "br":
-            # It works but it's not perfect.
-            return True, "No Brotli Content-Encoding"
+        try:
+            if r2.headers["content-encoding"] != "br":
+                # It works but it's not perfect.
+                return True, "No Brotli Content-Encoding"
+        except KeyError:
+            return True, "No 'Content-Encoding' header"
         # data = brotli.decompress(r2.content).decode("utf-8")
         data = r2.text
         if data != r.text:
