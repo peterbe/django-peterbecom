@@ -31,6 +31,7 @@ class Blogitems extends React.Component {
     serverError: null
   };
   componentDidMount() {
+    document.title = 'Blogitems';
     let cached = sessionStorage.getItem(this._getStorageCacheKey());
     if (cached) {
       this.setState(JSON.parse(cached));
