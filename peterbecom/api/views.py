@@ -12,6 +12,7 @@ import requests
 from django import http
 from django.conf import settings
 from django.db.models import Avg, Count, Max, Min, Q
+from django.db.models.functions import Trunc
 from django.shortcuts import get_object_or_404
 from django.template import Context
 from django.template.loader import get_template
@@ -1360,7 +1361,35 @@ def cdn_purge_urls(request):
                 "created": item.created,
             }
         )
-    return _response({"queued": queued, "recent": recent})
+
+    # Last 5 days means 120 bars
+    start = timezone.now() - datetime.timedelta(days=5)
+    qs = (
+        CDNPurgeURL.objects.filter(created__gt=start)
+        .annotate(date=Trunc("created", "hour"))
+        .values("date")
+        .annotate(count=Count("id"))
+        .order_by("date")
+    )
+    series_created = {}
+    for x in qs:
+        series_created[x['date']] = x['count']
+
+    qs = (
+        CDNPurgeURL.objects.filter(processed__gt=start, processed__isnull=False)
+        .annotate(date=Trunc("processed", "hour"))
+        .values("date")
+        .annotate(count=Count("id"))
+        .order_by("date")
+    )
+    series_processed = {}
+    for x in qs:
+        series_processed[x['date']] = x['count']
+    time_series = []
+    for date in sorted(set(list(series_created.keys()) + list(series_processed.keys()))):
+        time_series.append([date, series_created.get(date, 0), series_processed.get(date, 0)])
+
+    return _response({"queued": queued, "recent": recent, "time_series": time_series})
 
 
 @api_superuser_required
