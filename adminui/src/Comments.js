@@ -530,6 +530,8 @@ class CommentTree extends React.PureComponent {
       approving
     } = this.props;
 
+    const showAvatars = !window.matchMedia('(max-width: 600px)').matches;
+
     return (
       <Comment>
         {root && showBlogitem && (
@@ -554,7 +556,7 @@ class CommentTree extends React.PureComponent {
           </Header>
         )}
 
-        <Comment.Avatar src={this.gravatarSrc(comment)} />
+        {showAvatars && <Comment.Avatar src={this.gravatarSrc(comment)} />}
         <Comment.Content>
           <Comment.Author as="a">
             {comment.name || <i>No name</i>}{' '}
