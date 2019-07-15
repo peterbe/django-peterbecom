@@ -28,9 +28,9 @@
     {% if screenshot_image %}
     <meta name="twitter:image" content="{{ screenshot_image }}">
     <meta property="og:image" content="{{ screenshot_image }}">
-    {% elif post.open_graph_image %}
-    <meta name="twitter:image" content="{{ post.open_graph_image }}">
-    <meta property="og:image" content="{{ post.open_graph_image }}">
+    {% elif absolute_open_graph_image %}
+    <meta name="twitter:image" content="{{ absolute_open_graph_image }}">
+    <meta property="og:image" content="{{ absolute_open_graph_image }}">
     {% endif %}
     {% endif %}
   {% endif %}

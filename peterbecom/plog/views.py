@@ -4,6 +4,7 @@ import random
 import re
 from collections import defaultdict
 from ipaddress import IPv4Address
+from urllib.parse import urlparse
 
 from django import http
 from django.conf import settings
@@ -252,6 +253,18 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
         context["paginate_uri_previous"] = reverse(
             "blog_post", args=(post.oid, page - 1)
         )
+
+    # The `post.open_graph_image` is a string. It looks something like this:
+    # '/cache/1e/a7/1ea7b1a42e9161.png' and it would get rendered
+    # into the template like this:
+    #    <meta property="og:image" content="/cache/1e/a7/1ea7b1a42e9161.png">
+    # But post-processing will make this an absolute URL. And that might
+    # not pick up the smarts that `get_base_url(request)` can do so
+    # turn this into a control template context variable.
+    absolute_open_graph_image = None
+    if post.open_graph_image:
+        absolute_open_graph_image = base_url + urlparse(post.open_graph_image).path
+    context["absolute_open_graph_image"] = absolute_open_graph_image
 
     response = render(request, "plog/post.html", context)
     response["x-server"] = "django"
