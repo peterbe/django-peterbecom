@@ -1,0 +1,110 @@
+mark {
+  background-color: white;
+}
+
+.autocomplete {
+  position: absolute;
+  z-index: 2;
+  width: 100%;
+  background-color: white;
+  opacity: 0.97;
+  border-bottom: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+  border-left: 1px solid #ccc;
+  top: 33px;
+  left: 0; /* needed for safari */
+}
+
+.autocomplete li p {
+  font-weight: bold;
+  font-size: 0.9em;
+}
+
+.autocomplete mark {
+  font-weight: normal;
+  background-color: #fcf8e3;
+}
+
+.autocomplete ul {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 0;
+  margin-top: 4px;
+}
+.autocomplete ul li {
+  border-bottom: 1px solid #efefef;
+  padding: 6px;
+}
+.autocomplete ul li:hover {
+  background-color: #ececec;
+}
+.autocomplete ul li:last-child {
+  border-bottom: none;
+}
+
+.autocomplete .active {
+  background-color: #efefef;
+}
+
+.autocomplete li {
+  cursor: pointer;
+}
+.autocomplete li .artist-name {
+  margin: 0;
+}
+.autocomplete li .artist-metadata {
+  opacity: 0.7;
+}
+.autocomplete li mark {
+  padding-right: 0;
+}
+
+.autocomplete li img {
+  width: 40px;
+}
+
+.autocomplete .autocomplete-suggestion-song p {
+  font-weight: normal;
+  font-size: 80%;
+  margin-bottom: 5px;
+}
+
+.autocomplete .autocomplete-suggestion-song {
+  clear: left;
+}
+.autocomplete .media-left {
+  float: left;
+  padding-top: 4px;
+}
+.autocomplete .media-body {
+  margin-left: 50px;
+}
+
+.autocomplete li.search-suggestion p {
+  font-weight: normal;
+}
+
+.autocomplete span.by {
+  color: #666;
+}
+
+.maxlength {
+  text-align: right;
+  color: #737373;
+}
+.maxlength.danger {
+  color: #a94442;
+}
+
+.autocomplete .search-suggestion a.total {
+  /* Too little room for mobile */
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .autocomplete .search-suggestion a.total {
+    /* Too little room for mobile */
+    display: inline;
+    float: right;
+  }
+}

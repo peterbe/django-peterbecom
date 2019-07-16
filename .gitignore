@@ -37,3 +37,4 @@ peterbecom/cache/
 peterbecom/collected/
 peterbecom/static/
 .env
+songsearch-autocomplete-preact/build/
