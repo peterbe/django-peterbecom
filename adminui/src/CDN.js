@@ -50,7 +50,8 @@ class CDNCheck extends React.PureComponent {
   state = {
     loading: true,
     result: null,
-    serverError: null
+    serverError: null,
+    showConfig: false
   };
   async componentDidMount() {
     if (!this.props.accessToken) {
@@ -83,7 +84,7 @@ class CDNCheck extends React.PureComponent {
     }
   }
   render() {
-    const { loading, result, serverError } = this.state;
+    const { loading, result, serverError, showConfig } = this.state;
     if (!loading && !result && !serverError) {
       return null;
     }
@@ -106,7 +107,22 @@ class CDNCheck extends React.PureComponent {
           )}
         </div>
 
-        {!loading && result && result.checked && <ZoneConfig {...this.props} />}
+        {!loading && result && result.checked && (
+          <p style={{ marginTop: 10 }}>
+            <Button
+              onClick={event => {
+                this.setState({ showConfig: !showConfig });
+              }}
+            >
+              {showConfig
+                ? 'Hide Full Zone Config'
+                : 'Display Full Zone Config'}
+            </Button>
+          </p>
+        )}
+        {!loading && showConfig && result && result.checked && (
+          <ZoneConfig {...this.props} />
+        )}
       </>
     );
   }
@@ -722,7 +738,7 @@ class PurgeURLs extends React.PureComponent {
     }
 
     return (
-      <div>
+      <div style={{ marginTop: 50 }}>
         <Header as="h2">Purge URLs</Header>
         <ShowServerError error={serverError} />
         <Header as="h3">Queued URLs ({queued.length})</Header>
