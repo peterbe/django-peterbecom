@@ -186,11 +186,18 @@ def _post_process_cached_html(filepath, url, postprocessing, original_url):
 @periodic_task(crontab(minute="*"))
 def run_purge_cdn_urls():
     queue = CDNPurgeURL.get()
+    # The `timezone.now()` in the printed output message is to keep an eye
+    # on whether the periodic task sometimes fires repeatedly in a short
+    # amount of time.
     if queue:
-        print("{} queued CDN URLs for purging: {}".format(len(queue), queue))
+        print(
+            "{} queued CDN URLs for purging: {} ({})".format(
+                len(queue), queue, timezone.now()
+            )
+        )
         purge_cdn_urls(queue)
     else:
-        print("No queued CDN URLs for purgning")
+        print("No queued CDN URLs for purgning ({})".format(timezone.now()))
 
 
 def _minify_html(filepath, url):
