@@ -1427,10 +1427,23 @@ def spam_comment_patterns(request, id=None):
 
 @cache_control(max_age=60, public=True)
 def lyrics_page_healthcheck(request):
-    URL = "https://www.peterbe.com/plog/blogitem-040601-1"
+    if request.get_host() == 'localhost:8000':
+        BASE_URL = 'http://peterbecom.local'
+    else:
+        BASE_URL = "https://www.peterbe.com"
+    URL = BASE_URL + "/plog/blogitem-040601-1"
     USER_AGENT = "peterbe/lyrics_page_healthcheck:bot"
 
+    search_url = request.GET.get('url')
+
     def check():
+        if search_url:
+            t0 = time.time()
+            result = check_url(search_url)
+            t1 = time.time()
+            yield (t1 - t0, search_url, result)
+            return
+
         for page in range(1, 13):
             if page == 1:
                 url = URL
@@ -1471,36 +1484,48 @@ def lyrics_page_healthcheck(request):
         if count > 1:
             return False, "Multiple songsearch-autocomplete there"
 
-        scripts = re.findall(
-            "/songsearch-autocomplete/js/main.[a-f0-9]{8}.chunk.js", r.text
+        react_scripts = re.findall(
+            r"/songsearch-autocomplete/js/main.[a-f0-9]{8}.chunk.js", r.text
         )
-        if len(scripts) > 1:
-            return False, ["Multiple script files referenced!"] + scripts
-        if not scripts:
+        preact_scripts = re.findall(
+            r"/songsearch-autocomplete-preact/bundle.[a-f0-9]{5}.js", r.text
+        )
+        if react_scripts:
+            if len(react_scripts) > 1:
+                return False, [">1 script files referenced!"] + react_scripts
+        elif preact_scripts:
+            if len(preact_scripts) != 1:
+                return False, [">1 script files referenced!"] + preact_scripts
+        else:
             return False, "No script files referenced!"
 
-        if r.headers["Content-Encoding"] != "gzip":
-            return False, "Content-Encoding is not gzip!"
+        try:
+            if r.headers["Content-Encoding"] != "gzip":
+                return False, "Content-Encoding is not gzip!"
+        except KeyError:
+            if 'peterbecom.local' not in url:
+                raise
 
         try:
             int(r.headers["Content-Length"])
         except KeyError:
             return False, "No Content-Length header. Probably no index.html.gz"
 
-        r2 = session.get(
-            url, headers={"Accept-encoding": "br", "User-Agent": USER_AGENT},
-            timeout=3,
-        )
-        try:
-            if r2.headers["content-encoding"] != "br":
-                # It works but it's not perfect.
-                return True, "No Brotli Content-Encoding"
-        except KeyError:
-            return True, "No 'Content-Encoding' header"
-        # data = brotli.decompress(r2.content).decode("utf-8")
-        data = r2.text
-        if data != r.text:
-            return True, "Brotli content different from Gzip content"
+        if 'peterbecom.local' not in url:
+            r2 = session.get(
+                url, headers={"Accept-encoding": "br", "User-Agent": USER_AGENT},
+                timeout=3,
+            )
+            try:
+                if r2.headers["content-encoding"] != "br":
+                    # It works but it's not perfect.
+                    return True, "No Brotli Content-Encoding"
+            except KeyError:
+                return True, "No 'Content-Encoding' header"
+            # data = brotli.decompress(r2.content).decode("utf-8")
+            data = r2.text
+            if data != r.text:
+                return True, "Brotli content different from Gzip content"
 
         r3 = session.get(
             url, headers={"Accept-encoding": "", "User-Agent": USER_AGENT},

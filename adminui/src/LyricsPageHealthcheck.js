@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Button,
   Container,
   Dimmer,
   Header,
@@ -50,12 +51,15 @@ class LyricsPageHealthcheck extends React.Component {
     }
   };
 
-  loadHealth = () => {
+  loadHealth = (url = null) => {
     this.setState({ loading: true }, async () => {
       let response;
-      let url = '/api/v0/lyrics-page-healthcheck';
+      let URL = '/api/v0/lyrics-page-healthcheck';
+      if (url) {
+        URL += `?url=${encodeURI(url)}`;
+      }
       try {
-        response = await fetch(url);
+        response = await fetch(URL);
       } catch (ex) {
         return this.setState({
           loading: false,
@@ -69,12 +73,32 @@ class LyricsPageHealthcheck extends React.Component {
       }
       if (response.ok) {
         const result = await response.json();
-        this.setState({
-          health: result.health,
-          loading: false,
-          serverError: null,
-          fetched: new Date()
-        });
+        if (url) {
+          if (result.health.length !== 1) {
+            throw new Error('Not implemented');
+          }
+          // Update just one from the existing array.
+          const health = this.state.health.map(h => {
+            if (h.url === url) {
+              return result.health[0];
+            } else {
+              return h;
+            }
+          });
+          this.setState({
+            health,
+            loading: false,
+            serverError: null,
+            fetched: new Date()
+          });
+        } else {
+          this.setState({
+            health: result.health,
+            loading: false,
+            serverError: null,
+            fetched: new Date()
+          });
+        }
       } else {
         this.setState({
           loading: false,
@@ -83,6 +107,10 @@ class LyricsPageHealthcheck extends React.Component {
         });
       }
     });
+  };
+
+  checkURL = url => {
+    this.loadHealth(url);
   };
 
   render() {
@@ -100,7 +128,7 @@ class LyricsPageHealthcheck extends React.Component {
           <Dimmer active={loading} inverted>
             <Loader inverted>Loading</Loader>
           </Dimmer>
-          {health && <ShowHealth health={health} />}
+          {health && <ShowHealth health={health} checkURL={this.checkURL} />}
           {nextFetch && <ShowLoopCountdown nextFetch={nextFetch} />}
         </Segment>
       </Container>
@@ -133,7 +161,7 @@ function ShowLoopCountdown({ nextFetch }) {
   }
 }
 
-function ShowHealth({ health }) {
+function ShowHealth({ health, checkURL }) {
   return (
     <Segment.Group>
       {health.map(page => {
@@ -162,6 +190,14 @@ function ShowHealth({ health }) {
             >
               <small>(CDN probe)</small>
             </a>{' '}
+            <Button
+              size="mini"
+              onClick={event => {
+                checkURL(page.url);
+              }}
+            >
+              Check again
+            </Button>{' '}
             <Icon name={name} color={color} size="large" />{' '}
             <small>took {`${page.took.toFixed(2)}s`}</small>
             {page.errors && page.errors.length ? (
