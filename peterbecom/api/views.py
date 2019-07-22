@@ -1373,7 +1373,7 @@ def cdn_purge_urls(request):
     )
     series_created = {}
     for x in qs:
-        series_created[x['date']] = x['count']
+        series_created[x["date"]] = x["count"]
 
     qs = (
         CDNPurgeURL.objects.filter(processed__gt=start, processed__isnull=False)
@@ -1384,10 +1384,14 @@ def cdn_purge_urls(request):
     )
     series_processed = {}
     for x in qs:
-        series_processed[x['date']] = x['count']
+        series_processed[x["date"]] = x["count"]
     time_series = []
-    for date in sorted(set(list(series_created.keys()) + list(series_processed.keys()))):
-        time_series.append([date, series_created.get(date, 0), series_processed.get(date, 0)])
+    for date in sorted(
+        set(list(series_created.keys()) + list(series_processed.keys()))
+    ):
+        time_series.append(
+            [date, series_created.get(date, 0), series_processed.get(date, 0)]
+        )
 
     return _response({"queued": queued, "recent": recent, "time_series": time_series})
 
@@ -1427,14 +1431,14 @@ def spam_comment_patterns(request, id=None):
 
 @cache_control(max_age=60, public=True)
 def lyrics_page_healthcheck(request):
-    if request.get_host() == 'localhost:8000':
-        BASE_URL = 'http://peterbecom.local'
+    if request.get_host() == "localhost:8000":
+        BASE_URL = "http://peterbecom.local"
     else:
         BASE_URL = "https://www.peterbe.com"
     URL = BASE_URL + "/plog/blogitem-040601-1"
     USER_AGENT = "peterbe/lyrics_page_healthcheck:bot"
 
-    search_url = request.GET.get('url')
+    search_url = request.GET.get("url")
 
     def check():
         if search_url:
@@ -1462,9 +1466,8 @@ def lyrics_page_healthcheck(request):
             try:
                 return f(url)
             except requests.exceptions.RequestException as exception:
-                return (False, "{} on {}".format(
-                    exception, url
-                ))
+                return (False, "{} on {}".format(exception, url))
+
         return inner
 
     @catch_request_errors
@@ -1503,7 +1506,7 @@ def lyrics_page_healthcheck(request):
             if r.headers["Content-Encoding"] != "gzip":
                 return False, "Content-Encoding is not gzip!"
         except KeyError:
-            if 'peterbecom.local' not in url:
+            if "peterbecom.local" not in url:
                 raise
 
         try:
@@ -1511,9 +1514,10 @@ def lyrics_page_healthcheck(request):
         except KeyError:
             return False, "No Content-Length header. Probably no index.html.gz"
 
-        if 'peterbecom.local' not in url:
+        if "peterbecom.local" not in url:
             r2 = session.get(
-                url, headers={"Accept-encoding": "br", "User-Agent": USER_AGENT},
+                url,
+                headers={"Accept-encoding": "br", "User-Agent": USER_AGENT},
                 timeout=3,
             )
             try:
@@ -1528,11 +1532,11 @@ def lyrics_page_healthcheck(request):
                 return True, "Brotli content different from Gzip content"
 
         r3 = session.get(
-            url, headers={"Accept-encoding": "", "User-Agent": USER_AGENT},
-            timeout=3,
+            url, headers={"Accept-encoding": "", "User-Agent": USER_AGENT}, timeout=3
         )
         if r3.text != r.text:
-            return True, "Plain content different from Gzip content"
+            # This MIGHT fail because Nginx proxy caching not working locally.
+            return True, "Plain content different from Gzip content ({})".format(url)
 
         # if "Stats from using github.com/peterbe/minimalcss" not in r.text:
         #     return False, "minimalcss not run on HTML"
