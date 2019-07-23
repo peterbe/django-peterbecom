@@ -30,14 +30,25 @@ import LyricsPageHealthcheck from './LyricsPageHealthcheck';
 import SpamCommentPatterns from './SpamCommentPatterns';
 import GeoComments from './GeoComments';
 
+// Not a 'const' because we're going to cheekily increase every time it
+// gets mutated later.
+let CDN_PURGE_URLS_LOOP_SECONDS = 30;
+
 class App extends React.Component {
   state = {
     accessToken: null,
-    userInfo: null
+    userInfo: null,
+    purgeUrlsCount: null
   };
   componentDidMount() {
     document.title = 'Peterbe.com Admin UI';
     this.authenticate();
+    this.startCDNPurgeURLsLoop();
+  }
+
+  componentWillUnmount() {
+    this.dismounted = true;
+    if (this._cdnPurgeURLsLoop) window.clearTimeout(this._cdnPurgeURLsLoop);
   }
 
   // Sign in either by localStorage or by window.location.hash
@@ -176,6 +187,36 @@ class App extends React.Component {
     });
   };
 
+  startCDNPurgeURLsLoop = () => {
+    this.fetchPurgeURLsCount();
+    if (this._cdnPurgeURLsLoop) {
+      window.clearTimeout(this._cdnPurgeURLsLoop);
+    }
+    console.log({ CDN_PURGE_URLS_LOOP_SECONDS });
+    this._cdnPurgeURLsLoop = window.setTimeout(() => {
+      this.startCDNPurgeURLsLoop();
+      // Just a little hack. This way the timeout happens more and more rarely
+      // as time goes by. Just to avoid it running too frequently when the tab
+      // gets left open. Weird but fun. Perhaps delete some day.
+      CDN_PURGE_URLS_LOOP_SECONDS++;
+    }, 1000 * CDN_PURGE_URLS_LOOP_SECONDS);
+  };
+
+  fetchPurgeURLsCount = async () => {
+    let response;
+    let url = '/api/v0/cdn/purge/urls/count';
+    try {
+      response = await fetch(url);
+    } catch (ex) {
+      console.warn(`Unable to call ${url}: ${ex.toString()}`);
+      return;
+    }
+    if (!this.dismounted && response.ok) {
+      const data = await response.json();
+      this.setState({ purgeUrlsCount: data.purge_urls.count });
+    }
+  };
+
   render() {
     return (
       <Router>
@@ -225,7 +266,11 @@ class App extends React.Component {
                 <Link to="/searchresults">Search Results</Link>
               </Menu.Item>
               <Menu.Item>
-                <Link to="/cdn">CDN</Link>
+                <Link to="/cdn">
+                  CDN
+                  {!!this.state.purgeUrlsCount &&
+                    ` (${this.state.purgeUrlsCount})`}
+                </Link>
               </Menu.Item>
               <Menu.Item>
                 <Link to="/lyrics-page-healthcheck">

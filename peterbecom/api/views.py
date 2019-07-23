@@ -1396,6 +1396,11 @@ def cdn_purge_urls(request):
     return _response({"queued": queued, "recent": recent, "time_series": time_series})
 
 
+def cdn_purge_urls_count(request):
+    qs = CDNPurgeURL.objects.filter(processed__isnull=True, cancelled__isnull=True)
+    return _response({'purge_urls': {'count': qs.count()}})
+
+
 @api_superuser_required
 def spam_comment_patterns(request, id=None):
 
