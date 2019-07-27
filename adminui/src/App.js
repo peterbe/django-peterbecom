@@ -32,7 +32,7 @@ import GeoComments from './GeoComments';
 
 // Not a 'const' because we're going to cheekily increase every time it
 // gets mutated later.
-let CDN_PURGE_URLS_LOOP_SECONDS = 30;
+let CDN_PURGE_URLS_LOOP_SECONDS = 10;
 
 class App extends React.Component {
   state = {
@@ -192,7 +192,6 @@ class App extends React.Component {
     if (this._cdnPurgeURLsLoop) {
       window.clearTimeout(this._cdnPurgeURLsLoop);
     }
-    console.log({ CDN_PURGE_URLS_LOOP_SECONDS });
     this._cdnPurgeURLsLoop = window.setTimeout(() => {
       this.startCDNPurgeURLsLoop();
       // Just a little hack. This way the timeout happens more and more rarely

@@ -90,16 +90,16 @@ def patient_isfile_check(fp, sleep=5, max_attempts=5, impatient=False):
         break
 
 
-def insert(dry_run=False, impatient=False, page=1, legacy=None):
+def insert(dry_run=False, impatient=False, page=1, legacy=False):
     """Primary function."""
 
     # There are two folders that we can draw from, the old React based (legacy)
     # or the new Preact one.
 
-    # XXX As of July 2019, let's play it safe and use the legacy one on the
-    # home page and the Preact one on the other pages.
-    if legacy is None:
-        legacy = page == 1
+    # # XXX As of July 2019, let's play it safe and use the legacy one on the
+    # # home page and the Preact one on the other pages.
+    # if legacy is None:
+    #     legacy = page == 1
 
     if legacy:
         # Unzip and zopfli if the content has changed.
