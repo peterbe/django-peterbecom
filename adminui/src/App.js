@@ -43,7 +43,12 @@ class App extends React.Component {
   componentDidMount() {
     document.title = 'Peterbe.com Admin UI';
     this.authenticate();
-    this.startCDNPurgeURLsLoop();
+
+    // Delay this loop a little so that it starts after other more important
+    // XHR fetches.
+    setTimeout(() => {
+      !this.dismounted && this.startCDNPurgeURLsLoop();
+    }, 1000);
   }
 
   componentWillUnmount() {
