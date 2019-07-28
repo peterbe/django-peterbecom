@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 import requests
 from django import http
 from django.conf import settings
-from django.db.models import Avg, Count, Max, Min, Q
+from django.db.models import Avg, Count, Max, Min, Q, Sum
 from django.db.models.functions import Trunc
 from django.shortcuts import get_object_or_404
 from django.template import Context
@@ -34,6 +34,7 @@ from peterbecom.plog.models import (
     BlogFile,
     BlogItem,
     BlogItemHit,
+    BlogItemDailyHits,
     Category,
     SpamCommentPattern,
 )
@@ -1177,6 +1178,7 @@ def blogitem_realtimehits(request):
 def hits(request, oid):
     blogitem = get_object_or_404(BlogItem, oid=oid)
     qs = BlogItemHit.objects.filter(blogitem=blogitem)
+    daily_qs = BlogItemDailyHits.objects.filter(blogitem=blogitem)
     today = timezone.now()
 
     context = {"hits": []}
@@ -1184,17 +1186,27 @@ def hits(request, oid):
         ("last_1_day", 1, "Last 1 day"),
         ("last_7_days", 7, "Last 7 days"),
         ("last_30_days", 30, "Last 30 days"),
-        ("total", 0, "Ever"),
+        ("total", 365, "Last year"),
     )
     for key, days, label in keys:
-        this_qs = qs.all()
-        if days:
+        if days == 1:
             since = today - datetime.timedelta(days=days)
             if since < blogitem.pub_date:
                 continue
-            this_qs = this_qs.filter(add_date__gte=since)
-        count = this_qs.aggregate(count=Count("blogitem_id"))["count"]
-        context["hits"].append({"key": key, "label": label, "value": count})
+            count = qs.filter(add_date__gte=since).aggregate(
+                count=Count("blogitem_id")
+            )["count"]
+            last_1_day = count
+            context["hits"].append({"key": key, "label": label, "value": count})
+        else:
+            since = today - datetime.timedelta(days=days)
+            start_of_date = since.replace(hour=0, minute=0, second=0, microsecond=0)
+            count = daily_qs.filter(date__gte=start_of_date.date()).aggregate(
+                count=Sum("total_hits")
+            )["count"]
+            context["hits"].append(
+                {"key": key, "label": label, "value": count + last_1_day}
+            )
 
     return _response(context)
 
@@ -1398,7 +1410,7 @@ def cdn_purge_urls(request):
 
 def cdn_purge_urls_count(request):
     qs = CDNPurgeURL.objects.filter(processed__isnull=True, cancelled__isnull=True)
-    return _response({'purge_urls': {'count': qs.count()}})
+    return _response({"purge_urls": {"count": qs.count()}})
 
 
 @api_superuser_required

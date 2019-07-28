@@ -912,7 +912,14 @@ class BlogitemHits extends React.PureComponent {
     hits: null,
     serverError: null
   };
-  async componentDidMount() {
+  componentDidMount() {
+    // Delay a bit because it's not critical
+    setTimeout(this.fetchHits, 2000);
+  }
+  componentWillUnmount() {
+    this.dismounted = true;
+  }
+  fetchHits = async () => {
     const { blogitem } = this.props;
     try {
       const response = await fetch(`/api/v0/plog/${blogitem.oid}/hits`, {
@@ -932,7 +939,7 @@ class BlogitemHits extends React.PureComponent {
     } catch (ex) {
       this.setState({ serverError: ex });
     }
-  }
+  };
   render() {
     if (this.state.serverError)
       return <ShowServerError error={this.state.serverError} />;

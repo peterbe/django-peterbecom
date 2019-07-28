@@ -80,11 +80,6 @@ class BlogItem(models.Model):
     def __repr__(self):
         return "<%s: %r>" % (self.__class__.__name__, self.oid)
 
-    # def save(self, *args, **kwargs):
-    #     print("* * * * * SAVE * * * * *")
-    #     raise Exception("STOP")
-    #     super(BlogItem, self).save(*args, **kwargs)
-
     def get_absolute_url(self):
         return reverse("blog_post", args=(self.oid,))
 
@@ -241,7 +236,49 @@ class BlogItemTotalHits(models.Model):
         return count_records
 
 
+class BlogItemDailyHitsExistingError(Exception):
+    """When you're trying to roll up an aggregate on date that is already rolled up."""
+
+
+class BlogItemDailyHits(models.Model):
+    blogitem = models.ForeignKey(BlogItem, on_delete=models.CASCADE)
+    date = models.DateField()
+    total_hits = models.IntegerField(default=0)
+    modify_date = models.DateTimeField(auto_now=True)
+
+    @classmethod
+    def rollup_date(cls, date, refresh=False):
+        assert isinstance(date, datetime.datetime), type(date)
+        start_of_date = date.replace(hour=0, minute=0, second=0, microsecond=0)
+        date = start_of_date.date()
+        existing_qs = BlogItemDailyHits.objects.filter(date=date)
+        if refresh:
+            existing_qs.delete()
+        elif existing_qs.exists():
+            raise BlogItemDailyHitsExistingError(date)
+
+        one_day = datetime.timedelta(days=1)
+        qs = BlogItemHit.objects.filter(
+            add_date__gte=start_of_date, add_date__lt=start_of_date + one_day
+        )
+        bulk = []
+
+        sum_count = 0
+        for agg in qs.values("blogitem").annotate(count=Count("blogitem")):
+            count = agg["count"]
+            sum_count += count
+            bulk.append(
+                BlogItemDailyHits(
+                    blogitem_id=agg["blogitem"], date=date, total_hits=count
+                )
+            )
+        BlogItemDailyHits.objects.bulk_create(bulk)
+        return sum_count, len(bulk)
+
+
 class BlogItemHit(models.Model):
+    """This started being used in July 2017"""
+
     blogitem = models.ForeignKey(BlogItem, on_delete=models.CASCADE)
     add_date = models.DateTimeField(auto_now_add=True)
     http_user_agent = models.TextField(null=True)
