@@ -1,10 +1,18 @@
-from django.conf import settings
-from django.template import loader
-from django.core.mail import send_mail
-from django.contrib.sites.models import Site
-from huey.contrib.djhuey import task
+import datetime
 
-from peterbecom.plog.models import BlogComment
+from django.utils import timezone
+from django.conf import settings
+from django.contrib.sites.models import Site
+from django.core.mail import send_mail
+from django.template import loader
+from huey import crontab
+from huey.contrib.djhuey import periodic_task, task
+
+from peterbecom.plog.models import (
+    BlogComment,
+    BlogItemDailyHits,
+    BlogItemDailyHitsExistingError,
+)
 
 
 @task()
@@ -30,3 +38,17 @@ def _get_comment_body(blogitem, blogcomment):
         "admin_url": admin_url,
     }
     return template.render(context).strip()
+
+
+@periodic_task(crontab(hour="*"))
+def run_populate_blogitem_daily_hits():
+    date = timezone.now() - datetime.timedelta(days=1)
+    try:
+        sum_count, items_count = BlogItemDailyHits.rollup_date(date)
+        print(
+            "Rolled up {:,} blogitems a total of {:,} hits".format(
+                items_count, sum_count
+            )
+        )
+    except BlogItemDailyHitsExistingError:
+        print("Already rolled up for {}".format(date))
