@@ -236,8 +236,10 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
         context["show_buttons"] = not screenshot_mode
     context["show_carbon_ad"] = not screenshot_mode
     # context["show_carbon_ad"] = 0
-    context["show_carbon_native_ad"] = context["show_carbon_ad"]
-    # context["show_carbon_native_ad"] = 0
+    # context["show_carbon_native_ad"] = context["show_carbon_ad"]
+    # Disabled as of Aug 2019 because the $$$ profit was too small and not
+    # worth the web perf "drag" that it costs.
+    context["show_carbon_native_ad"] = False
     context["home_url"] = request.build_absolute_uri("/")
     context["page_title"] = post.title
     context["pub_date_years"] = THIS_YEAR - post.pub_date.year
