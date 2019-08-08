@@ -199,7 +199,7 @@ function ShowHealth({ health, checkURL }) {
               Check again
             </Button>{' '}
             <Icon name={name} color={color} size="large" />{' '}
-            <small>took {`${page.took.toFixed(2)}s`}</small>
+            <s1mall>took {`${(1000 * page.took).toFixed(1)}ms`}</s1mall>
             {page.errors && page.errors.length ? (
               <ShowErrors errors={page.errors} />
             ) : null}
