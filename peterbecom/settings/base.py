@@ -421,7 +421,7 @@ HUEY = {
 
 OIDC_USER_ENDPOINT = "https://peterbecom.auth0.com/userinfo"
 
-ADMINUI_COMMENTS_BATCH_SIZE = 15
+ADMINUI_COMMENTS_BATCH_SIZE = 20
 
 GEOIP_PATH = path("GeoLite2-City.mmdb")
 
