@@ -561,6 +561,7 @@ class CommentTree extends React.PureComponent {
           <Comment.Author as="a">
             {comment.name || <i>No name</i>}{' '}
             {comment.email ? `<${comment.email}>` : <i>No email</i>}{' '}
+            <ShowOtherCommentCount count={comment.user_other_comments_count} />{' '}
             {comment.location && comment.location.country_code && (
               <small>
                 <Flag
@@ -710,6 +711,15 @@ class CommentTree extends React.PureComponent {
       </Comment>
     );
   }
+}
+
+function ShowOtherCommentCount({ count }) {
+  if (!count) return null;
+  let msg = `${count} other comment`;
+  if (count > 1) {
+    msg += 's';
+  }
+  return <small title={msg}>({count})</small>;
 }
 
 class EditComment extends React.PureComponent {

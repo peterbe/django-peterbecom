@@ -796,6 +796,14 @@ def blogcomments(request):
         qs = BlogComment.objects.filter(blogitem_id=blogitem_id, parent__isnull=True)
         return list(qs.order_by("-add_date").values_list("id", flat=True))
 
+    @lru_cache()
+    def get_commenter_count(name, email, blogitem_id):
+        return BlogComment.objects.filter(
+            blogitem__id=blogitem_id,
+            name=name,
+            email=email
+        ).count()
+
     def get_comment_page(blog_comment):
         root_comment = blog_comment
         while root_comment.parent_id:
@@ -849,6 +857,11 @@ def blogcomments(request):
                 "title": blogitem.title,
                 "_absolute_url": reverse("blog_post", args=[blogitem.oid]),
             }
+
+            if item.name or item.email:
+                record['user_other_comments_count'] = get_commenter_count(
+                    item.name, item.email, blogitem.id
+                )
 
         if item.id in all_parent_ids:
             for reply in BlogComment.objects.filter(parent=item).order_by("add_date"):
