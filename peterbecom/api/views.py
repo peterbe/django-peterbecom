@@ -1201,6 +1201,7 @@ def hits(request, oid):
         ("last_30_days", 30, "Last 30 days"),
         ("total", 365, "Last year"),
     )
+    last_1_day = 0
     for key, days, label in keys:
         if days == 1:
             since = today - datetime.timedelta(days=days)
