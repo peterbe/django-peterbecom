@@ -12,6 +12,7 @@ from django.core.cache import cache
 from huey.contrib.djhuey import task
 
 from peterbecom.base.models import CDNPurgeURL
+from peterbecom.base.cdn import get_cdn_base_url
 
 
 class EmptyFSCacheFile(Exception):
@@ -288,6 +289,8 @@ def purge_outdated_cdn_urls(verbose=False, dry_run=False, revisit=False, max_fil
     for mtime, path in paths[:max_files]:
         uri = path.replace(settings.FSCACHE_ROOT, "")
         uri = re.sub(r"/index\.html$", "", uri)
+        if uri == "":
+            uri = "/"
 
         if verbose:
             age_seconds = time.time() - mtime
@@ -303,8 +306,15 @@ def purge_outdated_cdn_urls(verbose=False, dry_run=False, revisit=False, max_fil
         # next time.
         os.utime(path, (os.stat(path).st_atime, time.time()))
 
-        cdn_url = "https://{}{}".format(settings.KEYCDN_HOST, uri)
+        cdn_url = get_cdn_base_url() + uri
         response = _download_cdn_url(cdn_url)
+        if response.status_code == 404:
+            # If it can't be viewed on the CDN, it has no business existing as a
+            # fscached filed.
+            # os.remove(path)
+            if verbose:
+                print("Deleted {!r} because it 404'ed on {}".format(path, cdn_url))
+            continue
         if response.status_code != 200:
             if verbose:
                 print("{} on {} :(".format(response.status_code, cdn_url))
