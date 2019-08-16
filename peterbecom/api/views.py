@@ -25,7 +25,12 @@ from django.core.exceptions import ObjectDoesNotExist
 from peterbecom.awspa.models import AWSProduct
 from peterbecom.awspa.search import search as awspa_search
 from peterbecom.awspa.templatetags.jinja_helpers import awspa_product
-from peterbecom.base.cdn import get_cdn_config, keycdn_zone_check, purge_cdn_urls
+from peterbecom.base.cdn import (
+    get_cdn_config,
+    keycdn_zone_check,
+    purge_cdn_urls,
+    get_cdn_base_url,
+)
 from peterbecom.base.fscache import invalidate_by_url, path_to_fs_path
 from peterbecom.base.models import CDNPurgeURL, PostProcessing, SearchResult
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
@@ -799,9 +804,7 @@ def blogcomments(request):
     @lru_cache()
     def get_commenter_count(name, email, blogitem_id):
         return BlogComment.objects.filter(
-            blogitem__id=blogitem_id,
-            name=name,
-            email=email
+            blogitem__id=blogitem_id, name=name, email=email
         ).count()
 
     def get_comment_page(blog_comment):
@@ -859,7 +862,7 @@ def blogcomments(request):
             }
 
             if item.name or item.email:
-                record['user_other_comments_count'] = get_commenter_count(
+                record["user_other_comments_count"] = get_commenter_count(
                     item.name, item.email, blogitem.id
                 )
 
@@ -1215,9 +1218,12 @@ def hits(request, oid):
         else:
             since = today - datetime.timedelta(days=days)
             start_of_date = since.replace(hour=0, minute=0, second=0, microsecond=0)
-            count = daily_qs.filter(date__gte=start_of_date.date()).aggregate(
-                count=Sum("total_hits")
-            )["count"]
+            count = (
+                daily_qs.filter(date__gte=start_of_date.date()).aggregate(
+                    count=Sum("total_hits")
+                )["count"]
+                or 0
+            )
             context["hits"].append(
                 {"key": key, "label": label, "value": count + last_1_day}
             )
@@ -1270,7 +1276,8 @@ def cdn_probe(request):
                 blogitem = BlogItem.objects.get(title__istartswith=url)
             except BlogItem.DoesNotExist:
                 return _response({"error": "OID not found"}, status=400)
-        absolute_url = "https://" + settings.KEYCDN_HOST
+
+        absolute_url = get_cdn_base_url()
         absolute_url += reverse("blog_post", args=[blogitem.oid])
     else:
         return _response({"error": "Invalid search"}, status=400)

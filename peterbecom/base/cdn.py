@@ -175,3 +175,10 @@ def keycdn_zone_check(refresh=False):
         cache.set(cache_key, works, 60)
 
     return works
+
+
+def get_cdn_base_url():
+    if ".local" in settings.KEYCDN_HOST:
+        # Special snowflake
+        return "http://" + settings.KEYCDN_HOST
+    return "https://" + settings.KEYCDN_HOST
