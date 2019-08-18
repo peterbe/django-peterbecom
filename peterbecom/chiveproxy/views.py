@@ -2,11 +2,12 @@ from django import http
 from django.conf import settings
 from django.core.cache import cache
 from django.db.models import Min
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.timesince import timesince
 from django.views.decorators.cache import cache_control
-from django.shortcuts import get_object_or_404
-from huey.contrib.djhuey import task
+from huey import crontab
+from huey.contrib.djhuey import periodic_task
 
 from .models import Card
 from .sucks import get_card, get_cards
@@ -55,19 +56,11 @@ def api_cards(request):
     context["_oldest_card"] = Card.objects.all().aggregate(oldest=Min("created"))[
         "oldest"
     ]
-
-    context["_updating"] = False
-    if not since and not cache.get("updated-cards-recently"):
-        cache.set("updated-cards-recently", True, settings.DEBUG and 60 or 30 * 60)
-        print("CALLING UPDATE_CARDS!")
-        update_cards_task()
-        context["_updating"] = True
-
     return http.JsonResponse(context)
 
 
-@task()
-def update_cards_task():
+@periodic_task(crontab(hour="*"))
+def update_cards_periodically():
     update_cards()
 
 
