@@ -1,5 +1,6 @@
 from peterbecom.base.basecommand import BaseCommand
 from peterbecom.chiveproxy.views import update_cards
+from peterbecom.chiveproxy.models import Card
 
 
 class Command(BaseCommand):
@@ -9,3 +10,14 @@ class Command(BaseCommand):
             "Use the periodic task instead!"
         )
         update_cards()
+
+        previous = None
+        qs = Card.objects.all().order_by("-created")
+
+        for c in qs:
+            if c.data["text"] == previous:
+                print("DELETE", c.id, c.data["text"])
+                c.delete()
+            else:
+                print("KEEP", c.id, c.data["text"])
+            previous = c.data["text"]
