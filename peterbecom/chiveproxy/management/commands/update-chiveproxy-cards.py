@@ -18,6 +18,6 @@ class Command(BaseCommand):
             if c.data["text"] == previous:
                 print("DELETE", c.id, c.data["text"])
                 c.delete()
-            else:
-                print("KEEP", c.id, c.data["text"])
+            # else:
+            #     print("KEEP", c.id, c.data["text"])
             previous = c.data["text"]
