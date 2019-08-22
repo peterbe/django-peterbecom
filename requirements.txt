@@ -166,9 +166,9 @@ django-jinja==2.4.1 \
     --hash=sha256:8a49d73de616a12075eee14c6d3bbab936261a463457d40348d8b8e2995cfbed
 ujson==1.35 \
     --hash=sha256:f66073e5506e91d204ab0c614a148d5aa938bdbf104751be66f8ad7a222f5f86
-elasticsearch==6.3.1 \
-    --hash=sha256:7546cc08e3899716e12fe67d12d7cfe9a64647014d1134b014c3c392b63cad42 \
-    --hash=sha256:aada5cfdc4a543c47098eb3aca6663848ef5d04b4324935ced441debc11ec98b
+elasticsearch==7.0.4 \
+    --hash=sha256:1ec2ed8ff9994a0b0961081f053c90819696c0d03da204b61b79d416606dd055 \
+    --hash=sha256:d9eda8d9696f55d7d394ade625a262985d7af762c0b9305b73d421dace41c4e7
 elasticsearch-dsl==6.4.0 \
     --hash=sha256:26416f4dd46ceca43d62ef74970d9de4bdd6f4b0f163316f0b432c9e61a08bec \
     --hash=sha256:f60aea7fd756ac1fbe7ce114bbf4949aefbf495dfe8896640e787c67344f12f6
