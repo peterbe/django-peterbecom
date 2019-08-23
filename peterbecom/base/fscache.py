@@ -169,7 +169,7 @@ def invalidate_too_old(verbose=False, dry_run=False, revisit=False):
                 if os.path.isfile(path + ".cache_control"):
                     with open(path + ".cache_control") as seconds_f:
                         seconds = int(seconds_f.read())
-                if too_old(path, seconds):
+                if seconds is None or too_old(path, seconds):
                     if verbose:
                         print("INVALIDATE", path)
                     if not dry_run:
