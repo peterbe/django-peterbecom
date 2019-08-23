@@ -61,11 +61,11 @@ def api_cards(request):
 
 @periodic_task(crontab(hour="*"))
 def update_cards_periodically():
-    update_cards()
+    update_cards(limit=5)
 
 
-def update_cards():
-    for card in sorted(get_cards(), key=lambda c: c["date"]):
+def update_cards(limit=None):
+    for card in sorted(get_cards(limit=limit), key=lambda c: c["date"]):
         url = card.pop("url")
         if not Card.objects.filter(url=url).exists():
             data = get_card(url)

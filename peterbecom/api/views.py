@@ -20,7 +20,6 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.cache import cache_control, never_cache
 from django.views.decorators.http import require_POST
-from django.core.exceptions import ObjectDoesNotExist
 
 from peterbecom.awspa.models import AWSProduct
 from peterbecom.awspa.search import search as awspa_search
@@ -36,6 +35,7 @@ from peterbecom.base.models import CDNPurgeURL, PostProcessing, SearchResult
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
 from peterbecom.plog.models import (
     BlogComment,
+    BlogCommentGeoLookup,
     BlogFile,
     BlogItem,
     BlogItemHit,
@@ -826,8 +826,7 @@ def blogcomments(request):
         all_ids.add(item.id)
         try:
             geo_lookup = item.blogcommentgeolookup.lookup
-        except ObjectDoesNotExist:
-            # Legacy!
+        except BlogCommentGeoLookup.DoesNotExist:
             geo_lookup = item.create_geo_lookup().lookup
         record = {
             "id": item.id,
@@ -896,6 +895,12 @@ def blogcomments(request):
         base_qs = base_qs.filter(
             Q(comment__icontains=search) | Q(oid=search) | Q(blogitem__oid=search)
         )
+
+    # Hide old farts
+    long_time_ago = timezone.now() - datetime.timedelta(days=30 * 6)
+    base_qs = base_qs.exclude(
+        Q(blogitem__oid='blogitem-040601-1') & Q(add_date__lt=long_time_ago)
+    )
 
     # Latest root comments...
     items = base_qs.filter(parent__isnull=True)
