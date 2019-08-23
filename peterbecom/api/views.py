@@ -897,6 +897,12 @@ def blogcomments(request):
             Q(comment__icontains=search) | Q(oid=search) | Q(blogitem__oid=search)
         )
 
+    # Hide old farts
+    long_time_ago = timezone.now() - datetime.timedelta(days=30 * 6)
+    base_qs = base_qs.exclude(
+        Q(blogitem__oid='blogitem-040601-1') & Q(add_date__lt=long_time_ago)
+    )
+
     # Latest root comments...
     items = base_qs.filter(parent__isnull=True)
     items = items.order_by("-add_date")
