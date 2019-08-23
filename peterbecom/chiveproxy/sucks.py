@@ -13,10 +13,11 @@ def make_it_more_iso(datestr):
     return re.sub(r"\b(\d)\b", r"0\1", datestr)
 
 
-def get_cards():
+def get_cards(limit=None):
     base = "https://thechive.com/"
     doc = pyquery.PyQuery(base)
 
+    count = 0
     for slot in doc("div.slot").items():
         for a in slot("a.card-img-link").items():
             href = a.attr("href")
@@ -59,6 +60,10 @@ def get_cards():
             "date": date,
             "human_time": human_time,
         }
+        count += 1
+        if limit and count >= limit:
+            print("Card scrape limit reached!", count)
+            break
 
 
 def get_card(url):
