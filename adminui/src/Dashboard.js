@@ -52,7 +52,8 @@ class DashboardLinks extends React.PureComponent {
           </Segment.Group>
         </Segment>
         <Segment>
-          <Link to="/plog/comments">Comments</Link>
+          <Link to="/plog/comments">Comments</Link> (
+          <Link to="/plog/comments?unapproved=only">unapproved</Link>)
         </Segment>
         <Segment>
           <Link to="/plog/comments/geo">Geo Comments</Link>
