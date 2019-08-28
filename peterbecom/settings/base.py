@@ -444,3 +444,10 @@ FAKE_BLOG_COMMENT_IP_ADDRESS = False
 
 # Override in local
 GOOGLE_MAPS_API_KEY = None
+
+# Comments from these people should go straight to trash
+TRASH_COMMENT_COMBINATIONS = [
+    # Example...
+    # {"name": "Foo", "email": ""}
+    # {"user_agent": re.compile(r'foo'), "ip_address": "123.456.789.12"},
+]

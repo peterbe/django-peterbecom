@@ -1,4 +1,5 @@
 import datetime
+import re
 from urllib.parse import urlparse
 
 import pytest
@@ -192,6 +193,40 @@ def test_spam_prevention(client, settings):
 
     response = client.post(url, data)
     assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_submit_trash_comment(client, on_commit_immediately, settings):
+    blog = BlogItem.objects.create(
+        oid="myoid",
+        title="TITLEX",
+        text="""
+        ttest test
+        """,
+        display_format="markdown",
+        pub_date=timezone.now() - datetime.timedelta(seconds=10),
+    )
+    url = reverse("submit", args=[blog.oid])
+    settings.TRASH_COMMENT_COMBINATIONS = [
+        {"name": "Foo", "email": "bar@example.com"},
+        {"user_agent": re.compile(r"Surfari", re.I)},
+    ]
+    response = client.post(
+        url, {"comment": "Something...", "name": "Foo", "email": "bar@example.com  "}
+    )
+    assert response.status_code == 400
+    response = client.post(
+        url,
+        {"comment": "Something...", "name": "Other", "email": ""},
+        HTTP_USER_AGENT="surfari version 1",
+    )
+    assert response.status_code == 400
+
+    # Matching on less than all the combinations means it's not trash.
+    response = client.post(
+        url, {"comment": "Other...", "name": "Foo", "email": "different@example.com "}
+    )
+    assert response.status_code == 200, response.json()
 
 
 @pytest.mark.django_db
