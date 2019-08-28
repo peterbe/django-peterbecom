@@ -8,9 +8,11 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("oids", nargs="?")
         parser.add_argument("--limit", default=500)
+        parser.add_argument("--offset", default=0)
 
     def _handle(self, **options):
         limit = int(options["limit"])
+        offset = int(options["offset"])
         qs = BlogComment.objects.all()
         if options["oids"]:
             qs = qs.filter(blogitem__oid__in=options["oids"])
@@ -41,7 +43,9 @@ class Command(BaseCommand):
             }
             exported.append(item)
 
-        for comment in qs.select_related("blogitem").order_by("-add_date")[:limit]:
+        m, n = offset, limit + offset
+
+        for comment in qs.select_related("blogitem").order_by("-add_date")[m:n]:
             export(comment)
 
         with open("exported-blogcomments.json", "w") as f:

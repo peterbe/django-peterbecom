@@ -2,6 +2,7 @@ import React from 'react';
 import md5 from 'md5';
 import {
   Button,
+  Segment,
   Checkbox,
   Container,
   Loader,
@@ -15,9 +16,24 @@ import {
   TextArea,
   Form
 } from 'semantic-ui-react';
-import { toDate, formatDistance } from 'date-fns/esm';
+import { parseISO, formatDistance } from 'date-fns/esm';
 import { DisplayDate, ShowServerError } from './Common';
 import { BASE_URL } from './Config';
+
+function getDefault(props, key, defaultValue) {
+  const { location } = props;
+  if (location.search) {
+    const searchParams = new URLSearchParams(
+      location.search.slice(1, location.search.length)
+    );
+    if (key === 'approved') {
+      return searchParams.get('approved') === 'not';
+    } else {
+      return searchParams.get(key) || '';
+    }
+  }
+  return defaultValue;
+}
 
 class Comments extends React.Component {
   state = {
@@ -38,7 +54,7 @@ class Comments extends React.Component {
       }
       return '';
     })(),
-    unapprovedOnly: false,
+    unapprovedOnly: getDefault(this.props, 'unapproved', '') === 'only',
     checkedForApproval: {},
     checkedForDelete: {},
     editing: {},
@@ -59,37 +75,44 @@ class Comments extends React.Component {
     }
   }
 
-  fetchComments = async (loadMore = false) => {
-    !this.state.loading && this.setState({ loading: true });
-    const { accessToken } = this.props;
-    if (!accessToken) {
-      throw new Error('No accessToken');
-    }
-    const { oldest, search } = this.state;
-    let url = `/api/v0/plog/comments/?search=${encodeURIComponent(search)}`;
-    if (loadMore) {
-      url += `&since=${encodeURIComponent(oldest)}`;
-    }
-    if (this.state.unapprovedOnly) {
-      url += '&unapproved=only';
-    }
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`
+  fetchComments = (loadMore = false) => {
+    this.setState({ loading: true }, async () => {
+      const { accessToken } = this.props;
+      if (!accessToken) {
+        throw new Error('No accessToken');
+      }
+      const { oldest, search } = this.state;
+      let url = `/api/v0/plog/comments/?search=${encodeURIComponent(search)}`;
+      if (loadMore) {
+        url += `&since=${encodeURIComponent(oldest)}`;
+      }
+      if (this.state.unapprovedOnly) {
+        url += '&unapproved=only';
+      }
+      let response;
+      try {
+        response = await fetch(url, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          }
+        });
+      } catch (ex) {
+        return this.setState({ loading: false, serverError: ex });
+      }
+
+      if (response.ok) {
+        const data = await response.json();
+        this.setState({
+          comments: data.comments,
+          count: data.count,
+          oldest: data.oldest,
+          countries: data.countries,
+          loading: false
+        });
+      } else {
+        this.setState({ serverError: response, loading: false });
       }
     });
-    if (response.ok) {
-      const data = await response.json();
-      this.setState({
-        comments: data.comments,
-        count: data.count,
-        oldest: data.oldest,
-        countries: data.countries,
-        loading: false
-      });
-    } else {
-      this.setState({ serverError: response, loading: false });
-    }
   };
 
   deleteComments = async oids => {
@@ -225,7 +248,7 @@ class Comments extends React.Component {
   };
 
   render() {
-    const { comments, countries, serverError } = this.state;
+    const { loading, comments, countries, serverError } = this.state;
     return (
       <Container>
         <ShowServerError error={serverError} />
@@ -244,7 +267,21 @@ class Comments extends React.Component {
             search={this.state.search}
             unapprovedOnly={this.state.unapprovedOnly}
             update={(search, unapprovedOnly) => {
-              this.setState({ search, unapprovedOnly }, this.fetchComments);
+              this.setState({ search, unapprovedOnly }, () => {
+                let newURL = new URL(
+                  this.props.location.pathname,
+                  document.location.href
+                );
+
+                if (this.state.search) {
+                  newURL.searchParams.set('search', this.state.search);
+                }
+                if (this.state.unapprovedOnly) {
+                  newURL.searchParams.set('unapproved', 'only');
+                }
+                this.props.history.push(newURL.pathname + newURL.search);
+                this.fetchComments();
+              });
             }}
           />
         )}
@@ -256,71 +293,74 @@ class Comments extends React.Component {
             approveComments={this.approveComments}
           />
         }
-        {comments && (
-          <CommentsTree
-            comments={comments}
-            count={this.state.count}
-            loading={this.state.loading}
-            editing={this.state.editing}
-            approving={this.state.approving}
-            deleting={this.state.deleting}
-            approved={this.state.approved}
-            deleted={this.state.deleted}
-            editComment={this.editComment}
-            approveComment={oid => {
-              this.approveComments([oid]);
-            }}
-            deleteComment={oid => {
-              this.deleteComments([oid]);
-            }}
-            checkedForApproval={this.state.checkedForApproval}
-            checkedForDelete={this.state.checkedForDelete}
-            setCheckedForApproval={(oid, toggle) => {
-              const checkedForApproval = Object.assign(
-                {},
-                this.state.checkedForApproval
-              );
-              checkedForApproval[oid] = toggle;
-              this.setState({ checkedForApproval });
-            }}
-            setCheckedForDelete={(oid, toggle) => {
-              const checkedForDelete = Object.assign(
-                {},
-                this.state.checkedForDelete
-              );
-              checkedForDelete[oid] = toggle;
-              this.setState({ checkedForDelete });
-            }}
-            setEditing={oid => {
-              const editing = Object.assign({}, this.state.editing);
-              editing[oid] = !editing[oid];
-              this.setState({ editing });
-            }}
-            updateFilterSearch={search => {
-              // const ref = this.refs.q.inputRef;
-              // let {search}=this.state
-              // if (search.includes(newSearch)) {
-              //   search = search.replace(newSearch, '')
 
-              // }
-              // if (ref.value && ref.value.includes(search)) {
-              //   ref.value = ref.value.replace(search, '');
-              //   search = ref.value;
-              // } else {
-              //   ref.value += ` ${search}`;
-              //   ref.value = ref.value.trim();
-              //   search = ref.value;
-              // }
-              this.setState({ search }, this.fetchComments);
-            }}
-          />
+        {comments && (
+          <Segment basic loading={loading}>
+            <CommentsTree
+              comments={comments}
+              count={this.state.count}
+              loading={this.state.loading}
+              editing={this.state.editing}
+              approving={this.state.approving}
+              deleting={this.state.deleting}
+              approved={this.state.approved}
+              deleted={this.state.deleted}
+              editComment={this.editComment}
+              approveComment={oid => {
+                this.approveComments([oid]);
+              }}
+              deleteComment={oid => {
+                this.deleteComments([oid]);
+              }}
+              checkedForApproval={this.state.checkedForApproval}
+              checkedForDelete={this.state.checkedForDelete}
+              setCheckedForApproval={(oid, toggle) => {
+                const checkedForApproval = Object.assign(
+                  {},
+                  this.state.checkedForApproval
+                );
+                checkedForApproval[oid] = toggle;
+                this.setState({ checkedForApproval });
+              }}
+              setCheckedForDelete={(oid, toggle) => {
+                const checkedForDelete = Object.assign(
+                  {},
+                  this.state.checkedForDelete
+                );
+                checkedForDelete[oid] = toggle;
+                this.setState({ checkedForDelete });
+              }}
+              setEditing={oid => {
+                const editing = Object.assign({}, this.state.editing);
+                editing[oid] = !editing[oid];
+                this.setState({ editing });
+              }}
+              updateFilterSearch={search => {
+                // const ref = this.refs.q.inputRef;
+                // let {search}=this.state
+                // if (search.includes(newSearch)) {
+                //   search = search.replace(newSearch, '')
+
+                // }
+                // if (ref.value && ref.value.includes(search)) {
+                //   ref.value = ref.value.replace(search, '');
+                //   search = ref.value;
+                // } else {
+                //   ref.value += ` ${search}`;
+                //   ref.value = ref.value.trim();
+                //   search = ref.value;
+                // }
+                this.setState({ search }, this.fetchComments);
+              }}
+            />
+          </Segment>
         )}
 
-        {countries && countries.length ? (
+        {countries && countries.length && !loading ? (
           <ShowCountries countries={countries} />
         ) : null}
 
-        {comments && (
+        {comments && !loading && (
           <Button
             fluid
             type="text"
@@ -502,8 +542,8 @@ class CommentTree extends React.PureComponent {
   bumpedIndicator = comment => {
     if (!comment._bumped) return null;
     const diff = formatDistance(
-      toDate(comment.add_date),
-      toDate(comment.modify_date)
+      parseISO(comment.add_date),
+      parseISO(comment.modify_date)
     );
     const title = `Last modified ${comment.modify_date} (difference ${diff})`;
     return <Icon name="exclamation" color="purple" title={title} />;

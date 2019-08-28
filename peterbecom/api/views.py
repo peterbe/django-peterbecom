@@ -805,8 +805,10 @@ def blogcomments(request):
         return "{}:{}".format(name, email)
 
     commenters = defaultdict(list)
-    all_commenters_qs = BlogComment.objects.exclude(name='', email='')
-    for name, email, blogitem_id in all_commenters_qs.values_list('name', 'email', 'blogitem_id'):
+    all_commenters_qs = BlogComment.objects.exclude(name="", email="")
+    for name, email, blogitem_id in all_commenters_qs.values_list(
+        "name", "email", "blogitem_id"
+    ):
         commenters[make_commenter_hash_key(name, email)].append(blogitem_id)
 
     def get_commenter_count(name, email, blogitem_id):
@@ -911,7 +913,7 @@ def blogcomments(request):
     # Hide old farts
     long_time_ago = timezone.now() - datetime.timedelta(days=30 * 6)
     base_qs = base_qs.exclude(
-        Q(blogitem__oid='blogitem-040601-1') & Q(add_date__lt=long_time_ago)
+        Q(blogitem__oid="blogitem-040601-1") & Q(add_date__lt=long_time_ago)
     )
 
     # Latest root comments...
@@ -920,20 +922,18 @@ def blogcomments(request):
     items = items.select_related("blogitem", "blogcommentgeolookup")
     context = {"comments": [], "count": base_qs.count()}
     oldest = timezone.now()
-    # n, m = ((page - 1) * batch_size, page * batch_size)
-    # iterator = items[n:m]
     for item in items.select_related("blogitem")[:batch_size]:
         if item.add_date < oldest:
             oldest = item.add_date
         context["comments"].append(_serialize_comment(item, blogitem=item.blogitem))
 
     comment_cache = {}
-    # for comment in (
-    #     BlogComment.objects.all()
-    #     .select_related("blogitem", "blogcommentgeolookup")
-    #     .order_by("-add_date")[:1000]
-    # ):
-    #     comment_cache[comment.id] = comment
+    for comment in (
+        BlogComment.objects.all()
+        .select_related("blogitem", "blogcommentgeolookup")
+        .order_by("-add_date")[:1000]
+    ):
+        comment_cache[comment.id] = comment
 
     def get_parent(comment):
         if comment.parent_id:
