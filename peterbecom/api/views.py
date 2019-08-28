@@ -827,7 +827,12 @@ def blogcomments(request):
         try:
             geo_lookup = item.blogcommentgeolookup.lookup
         except BlogCommentGeoLookup.DoesNotExist:
-            geo_lookup = item.create_geo_lookup().lookup
+            geo = item.create_geo_lookup()
+            if geo:
+                # It might be None if the blogcomment didn't have an IP address
+                geo_lookup = geo.lookup
+            else:
+                geo_lookup = None
         record = {
             "id": item.id,
             "oid": item.oid,
