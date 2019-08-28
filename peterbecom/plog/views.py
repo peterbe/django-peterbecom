@@ -26,7 +26,11 @@ from peterbecom.base.utils import get_base_url
 from . import utils
 from .forms import CalendarDataForm
 from .models import BlogComment, BlogItem, BlogItemHit, Category
-from .spamprevention import contains_spam_patterns, contains_spam_url_patterns
+from .spamprevention import (
+    contains_spam_patterns,
+    contains_spam_url_patterns,
+    is_trash_commenter,
+)
 from .tasks import send_new_comment_email
 from .utils import get_blogcomment_slice, json_view, render_comment_text
 
@@ -367,6 +371,7 @@ def submit_json(request, oid):
 
     name = request.POST.get("name", "").strip()
     email = request.POST.get("email", "").strip()
+
     parent = request.POST.get("parent")
     if parent:
         parent = get_object_or_404(BlogComment, oid=parent)
@@ -381,17 +386,22 @@ def submit_json(request, oid):
     if parent:
         search["parent"] = parent
 
+    ip_address = request.headers.get("x-forwarded-for") or request.META.get(
+        "REMOTE_ADDR"
+    )
+    if ip_address == "127.0.0.1" and settings.FAKE_BLOG_COMMENT_IP_ADDRESS:
+        ip_address = fake_ip_address(str(name) + str(email))
+
+    user_agent = request.headers.get("User-Agent")
+
+    if is_trash_commenter(
+        name=name, email=email, ip_address=ip_address, user_agent=user_agent
+    ):
+        return http.JsonResponse({"trash": True}, status=400)
+
     for blog_comment in BlogComment.objects.filter(**search):
         break
     else:
-        ip_address = request.headers.get("x-forwarded-for") or request.META.get(
-            "REMOTE_ADDR"
-        )
-        print("IP_ADDRESS:", repr(ip_address))
-        if ip_address == "127.0.0.1" and settings.FAKE_BLOG_COMMENT_IP_ADDRESS:
-            ip_address = fake_ip_address(str(name) + str(email))
-            print("FAKE IP_ADDRESS:", repr(ip_address))
-
         blog_comment = BlogComment.objects.create(
             oid=BlogComment.next_oid(),
             blogitem=post,
@@ -401,7 +411,7 @@ def submit_json(request, oid):
             name=name,
             email=email,
             ip_address=ip_address,
-            user_agent=request.headers.get("User-Agent"),
+            user_agent=user_agent,
         )
         try:
             blog_comment.create_geo_lookup()
@@ -424,8 +434,7 @@ def submit_json(request, oid):
         "comment_count": comment_count,
     }
 
-    response = http.JsonResponse(data)
-    return response
+    return http.JsonResponse(data)
 
 
 @cache_control(public=True, max_age=60 * 60 * 24)

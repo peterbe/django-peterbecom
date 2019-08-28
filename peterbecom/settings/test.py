@@ -46,3 +46,7 @@ SPAM_URL_PATTERNS = ["http://mustbesomething.example.com"]
 # From https://github.com/maxmind/MaxMind-DB/tree/master/test-data
 GEOIP_PATH = path("GeoIP2-City-Test.mmdb")  # noqa
 assert os.path.isfile(GEOIP_PATH), GEOIP_PATH
+
+
+# Set this explicitly on in individual tests
+TRASH_COMMENT_COMBINATIONS = []

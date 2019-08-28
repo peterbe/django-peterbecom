@@ -1,6 +1,7 @@
 import re
 
 import bleach
+from django.conf import settings
 
 from peterbecom.plog.models import SpamCommentPattern
 
@@ -41,4 +42,23 @@ def contains_spam_patterns(text):
     for pattern in qs:
         if pattern in text:
             return True
+    return False
+
+
+def is_trash_commenter(**params):
+    def match(pattern, value):
+        if hasattr(pattern, "search"):
+            # It's a regex!
+            return bool(pattern.search(value))
+        return value == pattern
+
+    for combo in settings.TRASH_COMMENT_COMBINATIONS:
+        assert combo
+        assert None not in combo.values()
+
+        # We can only check on things that are in params.
+        common_keys = set(combo) & set([k for k, v in params.items() if v is not None])
+        if common_keys and all(match(combo[k], params[k]) for k in common_keys):
+            return True
+
     return False
