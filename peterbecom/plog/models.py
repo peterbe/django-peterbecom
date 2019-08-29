@@ -301,6 +301,7 @@ class BlogComment(models.Model):
     email = models.CharField(max_length=100, blank=True)
     user_agent = models.CharField(max_length=300, blank=True, null=True)
     ip_address = models.GenericIPAddressField(blank=True, null=True)
+    geo_lookup = JSONField(null=True)
 
     # def __repr__(self):
     #     return "<%s: %s %r (%sapproved)>" % (
@@ -359,27 +360,14 @@ class BlogComment(models.Model):
         return doc
 
     def create_geo_lookup(self):
+        found = False
         if self.ip_address:
-            return BlogCommentGeoLookup.objects.create(
-                blog_comment=self, lookup=ip_to_city(self.ip_address)
-            )
+            found = ip_to_city(self.ip_address)
+            print(repr(self.ip_address), "=>", found)
+            if found:
+                self.__class__.objects.filter(id=self.id).update(geo_lookup=found)
 
-
-class BlogCommentGeoLookup(models.Model):
-    blog_comment = models.OneToOneField(BlogComment, on_delete=models.CASCADE)
-    lookup = JSONField(null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    modify_date = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        if self.lookup:
-            return "{} - {!r}, {!r}".format(
-                self.blog_comment.oid,
-                self.lookup.get("city", "no city"),
-                self.lookup.get("country_name", "no country"),
-            )
-        else:
-            return "{} - no lookup".format(self.blog_comment.oid)
+        return found
 
 
 @receiver(pre_save, sender=BlogComment)

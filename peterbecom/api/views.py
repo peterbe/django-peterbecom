@@ -35,7 +35,6 @@ from peterbecom.base.models import CDNPurgeURL, PostProcessing, SearchResult
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
 from peterbecom.plog.models import (
     BlogComment,
-    BlogCommentGeoLookup,
     BlogFile,
     BlogItem,
     BlogItemHit,
@@ -831,15 +830,11 @@ def blogcomments(request):
 
     def _serialize_comment(item, blogitem=None):
         all_ids.add(item.id)
-        try:
-            geo_lookup = item.blogcommentgeolookup.lookup
-        except BlogCommentGeoLookup.DoesNotExist:
-            geo = item.create_geo_lookup()
-            if geo:
-                # It might be None if the blogcomment didn't have an IP address
-                geo_lookup = geo.lookup
-            else:
-                geo_lookup = None
+        geo_lookup = item.geo_lookup
+        if item.ip_address and not geo_lookup:
+            if item.create_geo_lookup():
+                item.refresh_from_db()
+                geo_lookup = item.geo_lookup
         record = {
             "id": item.id,
             "oid": item.oid,
@@ -879,7 +874,6 @@ def blogcomments(request):
 
         if item.id in all_parent_ids:
             replies_qs = BlogComment.objects.filter(parent=item)
-            replies_qs = replies_qs.select_related("blogcommentgeolookup")
             for reply in replies_qs.order_by("add_date"):
                 record["replies"].append(_serialize_comment(reply, blogitem=blogitem))
         record["max_add_date"] = max(
@@ -919,7 +913,7 @@ def blogcomments(request):
     # Latest root comments...
     items = base_qs.filter(parent__isnull=True)
     items = items.order_by("-add_date")
-    items = items.select_related("blogitem", "blogcommentgeolookup")
+    items = items.select_related("blogitem")
     context = {"comments": [], "count": base_qs.count()}
     oldest = timezone.now()
     for item in items.select_related("blogitem")[:batch_size]:
@@ -930,7 +924,7 @@ def blogcomments(request):
     comment_cache = {}
     for comment in (
         BlogComment.objects.all()
-        .select_related("blogitem", "blogcommentgeolookup")
+        .select_related("blogitem")
         .order_by("-add_date")[:1000]
     ):
         comment_cache[comment.id] = comment
@@ -1027,17 +1021,20 @@ def actually_approve_comment(blogcomment):
 @api_superuser_required
 def geocomments(request):
     comments = []
-    qs = BlogComment.objects.filter(blogcommentgeolookup__lookup__isnull=False)
-    qs = qs.select_related("blogcommentgeolookup")
+    qs = BlogComment.objects.filter(geo_lookup__isnull=False)
     qs = qs.select_related("blogitem")
-    for item in qs.order_by("-add_date")[:100]:
+    values = ("id", "geo_lookup", "name", "email", "blogitem__title", "blogitem__oid")
+    for item in qs.values(*values).order_by("-add_date")[:100]:
         comments.append(
             {
-                "id": item.id,
-                "location": item.blogcommentgeolookup.lookup,
-                "name": item.name,
-                "email": item.email,
-                "blogitem": {"title": item.blogitem.title, "oid": item.blogitem.oid},
+                "id": item["id"],
+                "location": item["geo_lookup"],
+                "name": item["name"],
+                "email": item["email"],
+                "blogitem": {
+                    "title": item["blogitem__title"],
+                    "oid": item["blogitem__oid"],
+                },
             }
         )
 
