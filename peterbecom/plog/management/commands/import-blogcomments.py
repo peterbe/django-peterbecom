@@ -8,21 +8,31 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("jsonfilepath")
         parser.add_argument("--limit", default=500)
+        parser.add_argument("-b", "--in-bulk", action="store_true", default=False)
 
     def _handle(self, **options):
         limit = int(options["limit"])
+        in_bulk = options["in_bulk"]
         with open(options["jsonfilepath"]) as f:
             imported = json.load(f)
 
         _cache = {}
 
         def get_blogitem(oid):
+            if oid in _cache:
+                return _cache[oid]
             try:
                 found = BlogItem.objects.get(oid=oid)
             except BlogItem.DoesNotExist:
                 found = None
             _cache[oid] = found
             return found
+
+        bulk = []
+        new_comment_oids = set()
+        all_know_comment_oids = set(
+            BlogComment.objects.all().values_list("oid", flat=True)
+        )
 
         already = notfound = notfound_parent = new = 0
         for comment in imported:
@@ -31,7 +41,8 @@ class Command(BaseCommand):
                 notfound += 1
                 continue
 
-            if BlogComment.objects.filter(oid=comment["oid"]).exists():
+            # if BlogComment.objects.filter(oid=comment["oid"]).exists():
+            if comment["oid"] in all_know_comment_oids:
                 # print("ALREADY!", comment['oid'])
                 already += 1
                 continue
@@ -45,8 +56,10 @@ class Command(BaseCommand):
                     continue
 
             print("NEW!", comment["oid"], already)
-
-            BlogComment.objects.create(
+            make = BlogComment.objects.create
+            if in_bulk:
+                make = BlogComment
+            made = make(
                 oid=comment["oid"],
                 blogitem=blogitem,
                 parent=parent,
@@ -60,11 +73,22 @@ class Command(BaseCommand):
                 user_agent=comment["user_agent"],
                 ip_address=comment["ip_address"],
             )
+            new_comment_oids.add(comment["oid"])
+            if in_bulk:
+                bulk.append(made)
+                if len(bulk) >= 10:
+                    print("Writing bulk of", len(bulk))
+                    BlogComment.objects.bulk_create(bulk)
+                    bulk = []
 
             new += 1
             if new >= limit:
                 print("Limit broken!", new)
                 break
+
+        if bulk:
+            print("Writing bulk of", len(bulk))
+            BlogComment.objects.bulk_create(bulk)
 
         print("ALREADY:             {}".format(already))
         print("NOTFOUND (blogitem): {}".format(notfound))

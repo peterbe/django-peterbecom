@@ -46,15 +46,13 @@ export class EditBlogitem extends React.Component {
     preview: null,
     loading: true
   };
-  componentWillMount() {
-    document.title = 'Edit Blogitem';
-  }
 
   componentWillUnmount() {
     this.dismounted = true;
   }
 
   componentDidMount() {
+    document.title = 'Edit Blogitem';
     this.fetchBlogitem(this.props.match.params.oid);
     this.fetchAllCategories();
   }
@@ -848,9 +846,7 @@ class Thumbnails extends React.PureComponent {
                 const thumb = image[key];
 
                 const imageTagHtml = `
-                <img src="${thumb.url}" alt="${thumb.alt}" width="${
-                  thumb.width
-                }" height="${thumb.height}">
+                <img src="${thumb.url}" alt="${thumb.alt}" width="${thumb.width}" height="${thumb.height}">
                 `.trim();
                 const aTagHtml = `
                 <a href="${image.full_url}">${imageTagHtml.replace(
@@ -866,9 +862,7 @@ class Thumbnails extends React.PureComponent {
                     <Card.Content>
                       <Card.Header>{key}</Card.Header>
                       <Card.Meta>
-                        <span className="date">{`${thumb.width}x${
-                          thumb.height
-                        }`}</span>
+                        <span className="date">{`${thumb.width}x${thumb.height}`}</span>
                       </Card.Meta>
                       <Card.Description>{thumb.alt}</Card.Description>
                       {this.state.copied === key ? (

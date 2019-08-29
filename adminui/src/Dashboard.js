@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Container, Header, Button, Segment } from 'semantic-ui-react';
 
 class Dashboard extends React.Component {
-  componentWillMount() {
+  componentDidMount() {
     document.title = 'Peterbe.com Admin UI';
   }
   render() {
@@ -52,7 +52,8 @@ class DashboardLinks extends React.PureComponent {
           </Segment.Group>
         </Segment>
         <Segment>
-          <Link to="/plog/comments">Comments</Link>
+          <Link to="/plog/comments">Comments</Link> (
+          <Link to="/plog/comments?unapproved=only">unapproved</Link>)
         </Segment>
         <Segment>
           <Link to="/plog/comments/geo">Geo Comments</Link>

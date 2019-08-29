@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { toDate, isBefore, formatDistance } from 'date-fns/esm';
+import { parseISO, isBefore, formatDistance } from 'date-fns/esm';
 import { Breadcrumb, Message } from 'semantic-ui-react';
 
 import { BASE_URL } from './Config';
@@ -10,8 +10,8 @@ export function DisplayDate({ date, now, prefix }) {
   if (date === null) {
     throw new Error('date is null');
   }
-  const dateObj = toDate(date);
-  const nowObj = now ? toDate(now) : new Date();
+  const dateObj = parseISO(date);
+  const nowObj = now ? parseISO(now) : new Date();
   if (isBefore(dateObj, nowObj)) {
     return <span title={dateObj}>{formatDistance(dateObj, nowObj)} ago</span>;
   } else {
