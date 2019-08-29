@@ -103,7 +103,6 @@ const MyMapComponent = withScriptjs(
 );
 
 function ShowComments({ comments, apiKey }) {
-  console.log(comments);
   const markers = comments.map(comment => {
     return {
       id: comment.id,
