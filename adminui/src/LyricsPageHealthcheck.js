@@ -9,6 +9,7 @@ import {
   Segment
 } from 'semantic-ui-react';
 import { ShowServerError } from './Common';
+import XCacheAnalyze from './XCacheAnalyze';
 
 function defaultLoopSeconds(default_ = 60) {
   try {
@@ -128,7 +129,13 @@ class LyricsPageHealthcheck extends React.Component {
           <Dimmer active={loading} inverted>
             <Loader inverted>Loading</Loader>
           </Dimmer>
-          {health && <ShowHealth health={health} checkURL={this.checkURL} />}
+          {health && (
+            <ShowHealth
+              health={health}
+              checkURL={this.checkURL}
+              accessToken={this.props.accessToken}
+            />
+          )}
           {nextFetch && <ShowLoopCountdown nextFetch={nextFetch} />}
         </Segment>
       </Container>
@@ -161,7 +168,7 @@ function ShowLoopCountdown({ nextFetch }) {
   }
 }
 
-function ShowHealth({ health, checkURL }) {
+function ShowHealth({ health, checkURL, accessToken }) {
   return (
     <Segment.Group>
       {health.map(page => {
@@ -199,10 +206,15 @@ function ShowHealth({ health, checkURL }) {
               Check again
             </Button>{' '}
             <Icon name={name} color={color} size="large" />{' '}
-            <s1mall>took {`${(1000 * page.took).toFixed(1)}ms`}</s1mall>
+            <small>took {`${(1000 * page.took).toFixed(1)}ms`}</small>
             {page.errors && page.errors.length ? (
               <ShowErrors errors={page.errors} />
-            ) : null}
+            ) : null}{' '}
+            <XCacheAnalyze
+              accessToken={accessToken}
+              url={page.url}
+              minimalButton={true}
+            />
           </Segment>
         );
       })}

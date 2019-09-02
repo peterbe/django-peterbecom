@@ -33,6 +33,7 @@ from peterbecom.base.cdn import (
 from peterbecom.base.fscache import invalidate_by_url, path_to_fs_path
 from peterbecom.base.models import CDNPurgeURL, PostProcessing, SearchResult
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
+from peterbecom.base.xcache_analyzer import get_x_cache
 from peterbecom.plog.models import (
     BlogComment,
     BlogFile,
@@ -897,18 +898,24 @@ def blogcomments(request):
     blogitem_regex = re.compile(r"blogitem:([^\s]+)")
     if search and blogitem_regex.findall(search):
         blogitem_oid, = blogitem_regex.findall(search)
+        not_blogitem = False
+        if blogitem_oid.startswith("!"):
+            not_blogitem = True
+            blogitem_oid = blogitem_oid[1:]
         search = blogitem_regex.sub("", search).strip()
-        base_qs = base_qs.filter(blogitem=BlogItem.objects.get(oid=blogitem_oid))
+        search_blogitem = BlogItem.objects.get(oid=blogitem_oid)
+        if not_blogitem:
+            base_qs = base_qs.exclude(blogitem=search_blogitem)
+        else:
+            base_qs = base_qs.filter(blogitem=search_blogitem)
     if search:
         base_qs = base_qs.filter(
             Q(comment__icontains=search) | Q(oid=search) | Q(blogitem__oid=search)
         )
 
     # Hide old farts
-    long_time_ago = timezone.now() - datetime.timedelta(days=30 * 6)
-    base_qs = base_qs.exclude(
-        Q(blogitem__oid="blogitem-040601-1") & Q(add_date__lt=long_time_ago)
-    )
+    long_time_ago = timezone.now() - datetime.timedelta(days=30 * 12)
+    base_qs = base_qs.exclude(add_date__lt=long_time_ago)
 
     # Latest root comments...
     items = base_qs.filter(parent__isnull=True)
@@ -917,6 +924,7 @@ def blogcomments(request):
     context = {"comments": [], "count": base_qs.count()}
     oldest = timezone.now()
     for item in items.select_related("blogitem")[:batch_size]:
+        break
         if item.add_date < oldest:
             oldest = item.add_date
         context["comments"].append(_serialize_comment(item, blogitem=item.blogitem))
@@ -1620,3 +1628,15 @@ def lyrics_page_healthcheck(request):
         health.append({"health": state, "url": url, "errors": errors, "took": took})
     context = {"health": health}
     return _response(context)
+
+
+@require_POST
+@api_superuser_required
+def xcache_analyze(request):
+    url = request.POST.get("url")
+    assert "://" in url, "not an absolute URL"
+
+    # To make it slighly more possible to test from locally
+    url = url.replace("http://peterbecom.local", "https://www.peterbe.com")
+
+    return _response({"xcache": get_x_cache(url)})
