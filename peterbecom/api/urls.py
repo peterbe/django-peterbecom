@@ -56,5 +56,6 @@ urlpatterns = [
         views.lyrics_page_healthcheck,
         name="lyrics_page_healthcheck",
     ),
+    url(r"xcache/analyze", views.xcache_analyze, name="xcache_analyze"),
     url(r"", views.catch_all, name="catch_all"),
 ]

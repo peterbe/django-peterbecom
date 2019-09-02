@@ -1,5 +1,5 @@
-import React from 'react';
 import { Index, TimeSeries } from 'pondjs';
+import React from 'react';
 import {
   BarChart,
   ChartContainer,
@@ -22,6 +22,7 @@ import {
 } from 'semantic-ui-react';
 
 import { DisplayDate, ShowServerError } from './Common';
+import XCacheAnalyze from './XCacheAnalyze';
 
 class CDN extends React.Component {
   componentDidMount() {
@@ -283,9 +284,7 @@ class ProbeUrl extends React.PureComponent {
             {result.other_pages && result.other_pages.length && (
               <Checkbox
                 defaultChecked={purgeAllPages}
-                label={`Purge all (${
-                  result.other_pages.length
-                }) other pages too`}
+                label={`Purge all (${result.other_pages.length}) other pages too`}
                 onChange={(event, data) => {
                   this.setState({ purgeAllPages: data.checked });
                 }}
@@ -443,6 +442,12 @@ class ProbeUrl extends React.PureComponent {
         )}
 
         {result && <ShowProbeResult result={result} />}
+        {result && (
+          <XCacheAnalyze
+            accessToken={this.props.accessToken}
+            url={result.absolute_url}
+          />
+        )}
       </form>
     );
   }
@@ -655,8 +660,8 @@ class PurgeURLs extends React.PureComponent {
     loopSeconds: defaultLoopSeconds(),
     queued: null,
     recent: null,
-    timeSeries: [],
-    serverError: null
+    serverError: null,
+    timeSeries: []
   };
 
   componentDidMount() {
@@ -697,14 +702,12 @@ class PurgeURLs extends React.PureComponent {
         {
           queued: data.queued,
           recent: data.recent,
-          timeSeries: data.time_series,
-          serverError: null
+          serverError: null,
+          timeSeries: data.time_series
         },
         () => {
           if (this.state.queued.length) {
-            document.title = `${this.originalTitle} (${
-              this.state.queued.length
-            } queued)`;
+            document.title = `${this.originalTitle} (${this.state.queued.length} queued)`;
           } else {
             document.title = this.originalTitle;
           }
@@ -828,8 +831,8 @@ class PurgeTimeSeries extends React.PureComponent {
   render() {
     const { data } = this.props;
     const style = styler([
-      { key: 'created', color: '#A5C8E1', selected: '#2CB1CF' },
-      { key: 'processed', color: '#EFAB91', selected: '#2CB1CF' }
+      { color: '#A5C8E1', key: 'created', selected: '#2CB1CF' },
+      { color: '#EFAB91', key: 'processed', selected: '#2CB1CF' }
     ]);
 
     const series = new TimeSeries({
