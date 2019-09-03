@@ -328,3 +328,26 @@ def _brotli_html(html, filepath, url):
                 )
                 continue
             break
+
+
+@periodic_task(crontab(minute="*"))
+def purge_old_cdnpurgeurls():
+    old = timezone.now() - datetime.timedelta(days=90)
+    ancient = CDNPurgeURL.objects.filter(created__lt=old)
+    deleted = ancient.delete()
+    print("{:,} ANCIENT CDNPurgeURLs".format(deleted[0]))
+
+
+@periodic_task(crontab(hour="*"))
+def purge_old_postprocessings():
+    old = timezone.now() - datetime.timedelta(days=90)
+    ancient = PostProcessing.objects.filter(created__lt=old)
+    deleted = ancient.delete()
+    print("{:,} ANCIENT PostProcessings".format(deleted[0]))
+
+    old = timezone.now() - datetime.timedelta(hours=1)
+    stuck = PostProcessing.objects.filter(
+        duration__isnull=True, exception__isnull=True, created__lt=old
+    )
+    deleted = stuck.delete()
+    print("{} STUCK PostProcessings".format(deleted[0]))
