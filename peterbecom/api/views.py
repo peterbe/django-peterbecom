@@ -587,7 +587,7 @@ def _postprocessing_records(request_GET, limit=10):
     qs = PostProcessing.objects.all()
     qs = _filter_postprocessing_queryset(qs, request_GET)
 
-    for each in qs.order_by("-created")[:limit]:
+    for each in qs.select_related('previous').order_by("-created")[:limit]:
         record = serialize_record(each)
         if each.previous:
             record["_previous"] = serialize_record(each.previous)
