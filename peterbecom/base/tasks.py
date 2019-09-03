@@ -330,7 +330,7 @@ def _brotli_html(html, filepath, url):
             break
 
 
-@periodic_task(crontab(minute="*"))
+@periodic_task(crontab(hour="*"))
 def purge_old_cdnpurgeurls():
     old = timezone.now() - datetime.timedelta(days=90)
     ancient = CDNPurgeURL.objects.filter(created__lt=old)
