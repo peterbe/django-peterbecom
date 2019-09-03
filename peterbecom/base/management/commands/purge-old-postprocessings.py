@@ -8,6 +8,10 @@ from peterbecom.base.models import PostProcessing
 
 class Command(BaseCommand):
     def handle(self, **options):
+        print(
+            "Use the periodic task in "
+            "peterbecom.base.tasks.purge_old_postprocessings instead!!!"
+        )
         old = timezone.now() - datetime.timedelta(days=90)
         ancient = PostProcessing.objects.filter(created__lt=old)
         print("{:,} ANCIENT PostProcessings".format(ancient.count()))
