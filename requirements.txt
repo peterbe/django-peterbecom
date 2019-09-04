@@ -172,9 +172,8 @@ elasticsearch==6.3.1 \
 elasticsearch-dsl==6.4.0 \
     --hash=sha256:26416f4dd46ceca43d62ef74970d9de4bdd6f4b0f163316f0b432c9e61a08bec \
     --hash=sha256:f60aea7fd756ac1fbe7ce114bbf4949aefbf495dfe8896640e787c67344f12f6
-ftfy==5.5.1 \
-    --hash=sha256:84a1614190173bb447ac9d581e50185c6aa35b538754b6bedaba0cc0f83d8e80 \
-    --hash=sha256:fa74757fb7cb444366fa6a79c2feabd40281a44dfbf6eaed492a804764ee26b2
+ftfy==5.6 \
+    --hash=sha256:6d7509c45e602dec890f0f6ee0623a8b5f50ec1188ac7ab9535e18e572c99bcc
 MarkupSafe==1.1.1 \
     --hash=sha256:00bc623926325b26bb9605ae9eae8a215691f33cae5df11ca5424f06f2d1f473 \
     --hash=sha256:09027a7803a62ca78792ad89403b1b7a73a01c8cb65909cd876f7fcebd79b161 \
