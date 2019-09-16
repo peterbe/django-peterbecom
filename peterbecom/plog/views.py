@@ -550,7 +550,7 @@ def plog_hits_data(request):
     return http.JsonResponse({"hits": hits})
 
 
-@cache_control(public=True, max_age=ONE_DAY)
+@cache_control(public=True, max_age=settings.DEBUG and ONE_DAY or ONE_MONTH)
 def blog_post_awspa(request, oid, page=None):
     if page:
         return redirect("blog_post_awspa", oid)

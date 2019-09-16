@@ -75,6 +75,7 @@ def download(urls, base_url, max=100, sleeptime=1, state_file=None):
             "\t",
             "%.3fs" % (t1 - t0),
             "slow!" if slow else "fast!",
+            r.headers["cache-control"],
         )
         if slow:
             # It was so slow it had to generate in Django.
@@ -86,6 +87,7 @@ def download(urls, base_url, max=100, sleeptime=1, state_file=None):
 
     if fasts or slow:
         print("{:.1f}%".format(100 * fasts / (fasts + slows)), "are fast")
+
     if x_caches:
         total = sum(x_caches.values())
         for key, value in x_caches.items():
