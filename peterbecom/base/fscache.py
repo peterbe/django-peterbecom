@@ -349,7 +349,7 @@ def find_missing_compressions(verbose=False, revisit=False, max_files=500):
                 and os.path.isfile(path)
                 and not os.stat(path).st_size
             ):
-                print("HAD TO DELETE {}".format(path))
+                print("HAD TO DELETE {} BECAUSE FILE 0 BYTES".format(path))
                 os.remove(path)
                 deleted += 1
                 continue
@@ -363,7 +363,7 @@ def find_missing_compressions(verbose=False, revisit=False, max_files=500):
                     os.remove(path)
                     deleted += 1
                     print("HAD TO DELETE {} BECAUSE .br FILE DOESNT EXIST".format(path))
-                elif not os.path.isfile(path + ".gz"):
+                elif not os.path.isfile(path + ".gz") and "awspa/" not in path:
                     if verbose:
                         print("{} didn't exist!".format(path + ".gz"))
                     os.remove(path)
