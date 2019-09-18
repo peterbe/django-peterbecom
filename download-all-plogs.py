@@ -34,6 +34,8 @@ def get_urls(base_url, exclude=set()):
             continue
         if href.endswith(".html") or href.endswith(".png"):
             continue
+        if href.endswith("/search"):
+            continue
         if href not in urls and href not in exclude:
             urls.append(href)
             urls.append(href)
@@ -66,8 +68,14 @@ def download(urls, base_url, max=100, sleeptime=1, state_file=None):
         t0 = time.time()
         r = requests.get(url, headers=headers)
         t1 = time.time()
+        r.raise_for_status()
         slow = bool(r.headers.get("X-Response-Time"))
         x_caches[r.headers["x-cache"]] += 1
+        try:
+            cache_control = r.headers["cache-control"]
+        except KeyError:
+            print("No 'Cache-Control' on", url)
+            raise
         print(
             str(i + 1).ljust(3),
             url[:90].ljust(90),
@@ -75,7 +83,7 @@ def download(urls, base_url, max=100, sleeptime=1, state_file=None):
             "\t",
             "%.3fs" % (t1 - t0),
             "slow!" if slow else "fast!",
-            r.headers["cache-control"],
+            cache_control,
         )
         if slow:
             # It was so slow it had to generate in Django.
