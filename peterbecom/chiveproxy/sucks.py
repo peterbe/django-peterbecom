@@ -119,8 +119,8 @@ def get_card(url):
                 break
         if not src:
             # Happens sometimes when it's just a bunch of Twitter quotes.
-            if settings.DEBUG:
-                raise Exception("No src on {}".format(url))
+            # if settings.DEBUG:
+            #     raise Exception("No src on {}".format(url))
             print("NO PICTURES figuree", figure)
             continue
 

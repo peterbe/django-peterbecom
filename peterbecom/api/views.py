@@ -924,7 +924,6 @@ def blogcomments(request):
     context = {"comments": [], "count": base_qs.count()}
     oldest = timezone.now()
     for item in items.select_related("blogitem")[:batch_size]:
-        break
         if item.add_date < oldest:
             oldest = item.add_date
         context["comments"].append(_serialize_comment(item, blogitem=item.blogitem))
