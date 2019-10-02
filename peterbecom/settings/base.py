@@ -465,3 +465,5 @@ QUERYCOUNT = {
     "DISPLAY_DUPLICATES": None,
     "RESPONSE_HEADER": "X-DjangoQueryCount-Count",
 }
+
+QUICKMETRICS_API_KEY = None
