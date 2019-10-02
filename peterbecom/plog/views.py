@@ -22,6 +22,7 @@ from huey.contrib.djhuey import task
 from peterbecom.awspa.models import AWSProduct
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
 from peterbecom.base.utils import get_base_url
+from peterbecom.quickmetrics_sender import quickmetrics_event
 
 from . import utils
 from .forms import CalendarDataForm
@@ -69,6 +70,10 @@ def blog_post(request, oid, page=None):
             return http.HttpResponseBadRequest("invalid URL")
         return redirect(request.path + "/all-comments", permanent=True)
 
+    quickmetrics_event(
+        "blogpost.render", dimension=request.get_host(), swallow_exceptions=True
+    )
+
     return _render_blog_post(request, oid, page=page)
 
 
@@ -91,6 +96,7 @@ def blog_post_ping(request, oid, page=None):
             http_referer=http_referer,
             page=page,
         )
+        quickmetrics_event("blogpost.ping", dimension=request.get_host())
     return http.JsonResponse({"ok": True})
 
 
