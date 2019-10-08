@@ -10,7 +10,7 @@ export function DisplayDate({ date, now, prefix }) {
   if (date === null) {
     throw new Error('date is null');
   }
-  const dateObj = parseISO(date);
+  const dateObj = typeof date === 'string' ? parseISO(date) : date;
   const nowObj = now ? parseISO(now) : new Date();
   if (isBefore(dateObj, nowObj)) {
     return <span title={dateObj}>{formatDistance(dateObj, nowObj)} ago</span>;
