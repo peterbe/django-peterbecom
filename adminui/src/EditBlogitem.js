@@ -172,7 +172,8 @@ export class EditBlogitem extends React.Component {
           toast({
             type: 'success',
             title: 'Successfully updated',
-            time: 5000
+            time: 5000,
+            size: null // https://github.com/academia-de-codigo/react-semantic-toasts/issues/40
           });
         }
       );
