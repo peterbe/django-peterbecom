@@ -96,7 +96,6 @@ def blog_post_ping(request, oid, page=None):
             http_referer=http_referer,
             page=page,
         )
-        quickmetrics_event("blogpost.ping", dimension=request.get_host())
     return http.JsonResponse({"ok": True})
 
 
