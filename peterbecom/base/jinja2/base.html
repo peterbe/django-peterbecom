@@ -27,6 +27,8 @@
   <script src="https://www.google-analytics.com/analytics.js" async></script>
   {%- endif %}
 
+  <script>window.fetch||document.write('<script src="https://unpkg.com/unfetch/polyfill"><\/script>')</script>
+
   {% block extrahead %}{% endblock %}
 
   {% if not DEBUG and '/plog/blogitem-040601-1' not in request.path and ENABLE_CLIENT_SIDE_ROLLBAR %}
