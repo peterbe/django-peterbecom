@@ -23,7 +23,7 @@ class ScrapingError(Exception):
 def api_cards(request):
     context = {"cards": []}
     qs = Card.objects
-    batch_size = 10
+    batch_size = 25
 
     since = request.GET.get("since")
     if since == "null":
@@ -63,7 +63,7 @@ def api_cards(request):
 
 @periodic_task(crontab(hour="*"))
 def update_cards_periodically():
-    update_cards(limit=5)
+    update_cards(limit=10)
 
 
 def update_cards(limit=None):
