@@ -130,6 +130,17 @@
 </div>
 {% endif %}
 
+{% if not_published_yet %}
+<div class="ui negative message" style="margin-bottom:40px">
+  <div class="header">
+    Not Published Yet!
+  </div>
+  <p>
+    This blog post is not published yet. It publishes on <b>{{ post.pub_date }}</b>
+    (in {{ timesince(post.pub_date, reversed=True) }}).
+  </p>
+</div>
+{% endif %}
 
 
 {% include "plog/_post.html" %}
