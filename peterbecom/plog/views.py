@@ -14,6 +14,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.cache import add_never_cache_headers
 from django.views.decorators.cache import cache_control
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods, require_POST
@@ -143,9 +144,9 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
                 return redirect(reverse("add_post"))
             raise http.Http404(oid)
 
-    # If you try to view a blog post that is beyond one day in the
+    # If you try to view a blog post that is beyond 10 days in the
     # the future it should raise a 404 error.
-    future = timezone.now() + datetime.timedelta(days=1)
+    future = timezone.now() + datetime.timedelta(days=10)
     if post.pub_date > future:
         raise http.Http404("not published yet")
 
@@ -277,8 +278,13 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
         absolute_open_graph_image = base_url + urlparse(post.open_graph_image).path
     context["absolute_open_graph_image"] = absolute_open_graph_image
 
+    context["not_published_yet"] = post.pub_date > timezone.now()
+
     response = render(request, "plog/post.html", context)
     response["x-server"] = "django"
+    # If it hasn't been published yet, don't cache-control it.
+    if context["not_published_yet"]:
+        add_never_cache_headers(response)
     return response
 
 

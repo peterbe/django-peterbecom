@@ -40,8 +40,8 @@ def line_indent(text, indent=" " * 4):
 
 
 @library.global_function
-def timesince(date):
-    return django_timesince(date)
+def timesince(date, *args, **kwargs):
+    return django_timesince(date, *args, **kwargs)
 
 
 @library.global_function
