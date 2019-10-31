@@ -33,10 +33,8 @@ requestIdleCallback(() => {
       const link = document.createElement(`link`);
       link.rel = `prefetch`;
       link.href = url;
-
       link.onload = resolve;
       link.onerror = reject;
-
       document.head.appendChild(link);
     });
   }
