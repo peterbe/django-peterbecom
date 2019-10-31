@@ -13,6 +13,7 @@ echo "Install latest flake8"
 pip install flake8
 
 echo "Installing the node packages"
+node --version
 yarn
 
 # Commented out as of Dec 2018 because the version of nodejs I get is too old.
