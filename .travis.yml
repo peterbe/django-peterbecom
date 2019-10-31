@@ -9,6 +9,8 @@ services:
   - postgresql
 
 language: python
+node_js:
+  - 10
 
 cache:
   - pip
@@ -27,6 +29,8 @@ addons:
       - oracle-java9-set-default
 
 before_install:
+  - "WHAT NODE VERSION?"
+  - node --version
   - curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.2.1.deb && sudo dpkg -i --force-confnew elasticsearch-6.2.1.deb && sudo service elasticsearch start
   - psql -V
   - psql -c 'create database peterbecom;' -U postgres
