@@ -1420,7 +1420,7 @@ def cdn_purge_urls(request):
     start = timezone.now() - datetime.timedelta(days=5)
     qs = (
         CDNPurgeURL.objects.filter(created__gt=start)
-        .annotate(date=Trunc("created", "hour"))
+        .annotate(date=Trunc("created", "hour", tzinfo=start.tzinfo))
         .values("date")
         .annotate(count=Count("id"))
         .order_by("date")
@@ -1431,7 +1431,7 @@ def cdn_purge_urls(request):
 
     qs = (
         CDNPurgeURL.objects.filter(processed__gt=start, processed__isnull=False)
-        .annotate(date=Trunc("processed", "hour"))
+        .annotate(date=Trunc("processed", "hour", tzinfo=start.tzinfo))
         .values("date")
         .annotate(count=Count("id"))
         .order_by("date")
