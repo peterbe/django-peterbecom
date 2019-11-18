@@ -430,9 +430,9 @@ brotlipy==0.7.0 \
     --hash=sha256:d2c1c724c4ac375feb2110f1af98ecdc0e5a8ea79d068efb5891f621a5b235cb \
     --hash=sha256:dc6c5ee0df9732a44d08edab32f8a616b769cc5a4155a12d2d010d248eb3fb07 \
     --hash=sha256:fd1d1c64214af5d90014d82cee5d8141b13d44c92ada7a0c0ec0679c6f15a471
-backoff==1.8.1 \
-    --hash=sha256:3f1ed23d36c65ec16c143e432b12c19aaf12ed791317b91ab50dd14ac6255a3c \
-    --hash=sha256:53531e45432b18795f808c28dd9c5a4b32fe44aa713780ea892f07c3e6b36c11
+backoff==1.9.0 \
+    --hash=sha256:3dd7a2da7ffc9d358bf383bbc85a015c4f5b83edfec4673da4ebf24d59602f3f \
+    --hash=sha256:dc19c51cb9d67ec2ae2650d2bcaf5926bc53523b664201dc1db2d2b0a1a41a9d
 geoip2==2.9.0 \
     --hash=sha256:a37ddac2d200ffb97c736da8b8ba9d5d8dc47da6ec0f162a461b681ecac53a14 \
     --hash=sha256:f7ffe9d258e71a42cf622ce6350d976de1d0312b9f2fbce3975c7d838b57ecf0
