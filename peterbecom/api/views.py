@@ -1404,7 +1404,7 @@ def cdn_purge_urls(request):
 
     qs = CDNPurgeURL.objects.exclude(processed__isnull=True, cancelled__isnull=True)
     recent = []
-    for item in qs.order_by("-created")[:500]:
+    for item in qs.order_by("-created")[:100]:
         recent.append(
             {
                 "id": item.id,
