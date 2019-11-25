@@ -467,3 +467,7 @@ QUERYCOUNT = {
 }
 
 QUICKMETRICS_API_KEY = None
+
+# When asking the CDNPurgeURL model for the next URLs to send to CDN purgning.
+# This number limits the batch size.
+CDN_MAX_PURGE_URLS = 15
