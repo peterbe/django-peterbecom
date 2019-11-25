@@ -128,7 +128,7 @@ class CDNPurgeURL(models.Model):
     @classmethod
     def get(cls, max_urls=None):
         if not max_urls:
-            max_urls = getattr(settings, "CDN_MAX_PURGE_URLS", 10)
+            max_urls = settings.CDN_MAX_PURGE_URLS
         qs = cls.objects.filter(cancelled__isnull=True, processed__isnull=True)
         return list(qs.order_by("created")[:max_urls].values_list("url", flat=True))
 
