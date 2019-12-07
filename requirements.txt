@@ -443,3 +443,5 @@ keycdn==0.4.3 \
     --hash=sha256:75aab660ca8668dfd75941ddac65997b32d5c2c893fc5b9e0c2602bc9af1a6aa
 django-querycount==0.7.0 \
     --hash=sha256:8f5123d78716ff0704f2373e746a7200b8d8417798ce4a99bf2de87e3768f9ce
+profanity==1.1 \
+    --hash=sha256:384d7a9d59567ec64196705838f79fdc64da943e52b2b33fe6d66fb0a417a951

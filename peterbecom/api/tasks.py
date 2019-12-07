@@ -2,10 +2,12 @@ from django.template import loader
 from django.core.mail import send_mail
 from django.contrib.sites.models import Site
 from django.urls import reverse
-from django.conf import settings
+
+# from django.conf import settings
 from huey.contrib.djhuey import task
 
 from peterbecom.plog.models import BlogComment
+from peterbecom.plog.utils import get_comment_page
 
 
 @task()
@@ -52,16 +54,16 @@ def _get_comment_reply_body(blogitem, blogcomment, parent):
     return template.render(context).strip()
 
 
-def get_comment_page(blogcomment):
-    root_comment = blogcomment
-    while root_comment.parent_id:
-        root_comment = root_comment.parent
+# def get_comment_page(blogcomment):
+#     root_comment = blogcomment
+#     while root_comment.parent_id:
+#         root_comment = root_comment.parent
 
-    qs = BlogComment.objects.filter(blogitem=blogcomment.blogitem, parent__isnull=True)
-    ids = list(qs.order_by("-add_date").values_list("id", flat=True))
-    per_page = settings.MAX_RECENT_COMMENTS
-    for i in range(settings.MAX_BLOGCOMMENT_PAGES):
-        sub_list = ids[i * per_page : (i + 1) * per_page]
-        if root_comment.id in sub_list:
-            return i + 1
-    return 1
+#     qs = BlogComment.objects.filter(blogitem=blogcomment.blogitem, parent__isnull=True)
+#     ids = list(qs.order_by("-add_date").values_list("id", flat=True))
+#     per_page = settings.MAX_RECENT_COMMENTS
+#     for i in range(settings.MAX_BLOGCOMMENT_PAGES):
+#         sub_list = ids[i * per_page : (i + 1) * per_page]
+#         if root_comment.id in sub_list:
+#             return i + 1
+#     return 1

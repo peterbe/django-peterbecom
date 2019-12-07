@@ -615,7 +615,10 @@ class CommentTree extends React.PureComponent {
               <small>
                 <b>Page: {comment.page ? comment.page : 'Overflowing'}</b>
               </small>{' '}
-              {this.bumpedIndicator(comment)}
+              {this.bumpedIndicator(comment)}{' '}
+              <small style={{ marginLeft: 10 }}>
+                {comment.comment.length.toLocaleString()} characters
+              </small>
             </div>
           </Comment.Metadata>
           <Comment.Text>
@@ -628,6 +631,16 @@ class CommentTree extends React.PureComponent {
             {!comment.approved && !editing[comment.oid] && (
               <p>
                 Clues: <code>{JSON.stringify(comment._clues)}</code>
+                {!!Object.keys(comment._clues.good).length &&
+                  !Object.keys(comment._clues.bad).length && (
+                    <span
+                      title="So good it would automatically approve!"
+                      role="img"
+                      aria-label="Party!"
+                    >
+                      🎉⭐️🚢
+                    </span>
+                  )}
               </p>
             )}
           </Comment.Text>

@@ -10,6 +10,10 @@ from html import escape
 
 import bleach
 import requests
+
+# https://github.com/vzhou842/profanity-check is probably better but it requires
+# scikit-learn or whatever it's called.
+from profanity import profanity
 from requests.exceptions import ConnectionError
 import zope.structuredtext
 from pygments import highlight
@@ -318,21 +322,54 @@ def view_function_timer(prefix="", writeto=print):
     return decorator
 
 
+def get_comment_page(blogcomment):
+    root_comment = blogcomment
+    while root_comment.parent_id:
+        root_comment = root_comment.parent
+
+    model = blogcomment._meta.model
+    qs = model.objects.filter(blogitem=blogcomment.blogitem, parent__isnull=True)
+    ids = list(qs.order_by("-add_date").values_list("id", flat=True))
+    per_page = settings.MAX_RECENT_COMMENTS
+    for i in range(settings.MAX_BLOGCOMMENT_PAGES):
+        sub_list = ids[i * per_page : (i + 1) * per_page]
+        if root_comment.id in sub_list:
+            return i + 1
+    return 1
+
+
 def rate_blog_comment(comment):
 
     result = {"good": {}, "bad": {}}
 
-    if len(comment.comment) > 800:
-        result["bad"]["length"] = ">800 characters"
+    MAX_LENGTH = 800
 
     # Exclude comments that have links in them unless the links are to
     # www.peterbe.com or songsear.ch.
+    OK_DOMAINS = ["www.peterbe.com", "songsear.ch"]
     links = []
+
+    page = 1
+    if comment.blogitem.oid == "blogitem-040601-1":
+        # Special conditions apply!
+        # If the comment in question is on anything beyond the first page,
+        # it lowers the bar significantly.
+        page = get_comment_page(comment)
+        if page > 1:
+            OK_DOMAINS.append("youtu.be")
+            OK_DOMAINS.append("www.youtube.com")
+            MAX_LENGTH = 2000
+            result["good"]["deep"] = "on page {}".format(page)
+        elif comment.parent:
+            # It's a reply!
+            # If it's really short and has no bad, it should be fine as is!
+            if len(comment.comment) < 400:
+                result["good"]["shortreply"] = "special and reply and short"
 
     def find_links(attrs, new=False):
         href = attrs[(None, u"href")]
         p = urlparse(href)
-        if p.netloc not in ["www.peterbe.com", "songsear.ch"]:
+        if p.netloc not in OK_DOMAINS:
             links.append(href)
 
     linker = Linker(callbacks=[find_links])
@@ -340,6 +377,12 @@ def rate_blog_comment(comment):
 
     if links:
         result["bad"]["links"] = links
+
+    if len(comment.comment) > MAX_LENGTH:
+        result["bad"]["length"] = ">{} characters".format(MAX_LENGTH)
+
+    if profanity.contains_profanity(comment.comment):
+        result["bad"]["profanity"] = "contains profanities"
 
     GOOD_STRINGS = settings.PLOG_GOOD_STRINGS
     BAD_STRINGS = settings.PLOG_BAD_STRINGS
