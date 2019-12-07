@@ -826,7 +826,6 @@ def blogcomments(request):
                 return i + 1
         else:
             return None
-
         return 1
 
     def _serialize_comment(item, blogitem=None):
