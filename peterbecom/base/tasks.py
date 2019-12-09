@@ -18,7 +18,8 @@ from requests.exceptions import ReadTimeout
 from peterbecom.base import songsearch_autocomplete
 from peterbecom.base.cdn import purge_cdn_urls
 from peterbecom.base.decorators import lock_decorator
-from peterbecom.base.models import PostProcessing, CDNPurgeURL
+from peterbecom.base.models import CDNPurgeURL, PostProcessing
+from peterbecom.base.xcache_analyzer import get_x_cache
 from peterbecom.brotli_file import brotli_file
 from peterbecom.mincss_response import has_been_css_minified, mincss_html
 from peterbecom.minify_html import minify_html
@@ -155,7 +156,7 @@ def _post_process_cached_html(filepath, url, postprocessing, original_url):
         break
 
     try:
-        page, = re.findall(r"/p(\d+)$", url)
+        (page,) = re.findall(r"/p(\d+)$", url)
         page = int(page)
     except ValueError:
         page = 1
@@ -195,9 +196,28 @@ def run_purge_cdn_urls():
                 len(queue), queue, timezone.now()
             )
         )
-        purge_cdn_urls(queue)
+        results = purge_cdn_urls(queue)
+        for result in results["result"]:
+            post_process_after_cdn_purge(result["url"])
     else:
         print("No queued CDN URLs for purgning ({})".format(timezone.now()))
+
+
+@task()
+def post_process_after_cdn_purge(url):
+    if url.endswith("/plog/blogitem-040601-1"):  # only the first page!
+        # To make it slighly more possible to test from locally
+        url = url.replace("http://peterbecom.local", "https://www.peterbe.com")
+        print("Going to get_x_cache({!r}) soon...".format(url))
+        time.sleep(5)
+        x_cache_result = get_x_cache(url)
+        out = []
+        out.append("X-Cache Result:")
+        for location_code in sorted(x_cache_result):
+            result = x_cache_result[location_code]
+            out.append("\t{}\t{}".format(location_code, result))
+        out.append("End")
+        print("\n".join(out))
 
 
 def _minify_html(filepath, url):

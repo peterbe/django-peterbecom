@@ -1,12 +1,8 @@
 import filecmp
 import os
 import re
-import shutil
-import tempfile
 import time
-import zipfile
 from glob import glob
-from pathlib import Path
 
 from django.conf import settings
 
@@ -96,84 +92,34 @@ def insert(dry_run=False, impatient=False, page=1, legacy=False):
     # There are two folders that we can draw from, the old React based (legacy)
     # or the new Preact one.
 
-    # # XXX As of July 2019, let's play it safe and use the legacy one on the
-    # # home page and the Preact one on the other pages.
-    # if legacy is None:
-    #     legacy = page == 1
+    contentroot = settings.BASE_DIR / "peterbecom-static-content"
+    autocompleteroot = contentroot / "songsearch-autocomplete-preact"
+    assert autocompleteroot.is_dir()
+    assert contentroot.is_dir()
+    # To know which .css and which .js files to use, we need to read the contents
+    # of the index.html generated.
+    with open(str(autocompleteroot / "index.html")) as f:
+        index_html = f.read()
 
-    if legacy:
-        # Unzip and zopfli if the content has changed.
-        autocompleteroot = settings.BASE_DIR / "songsearch-autocomplete"
-        contentroot = settings.BASE_DIR / "peterbecom-static-content"
-        assert autocompleteroot.is_dir()
-        zip_path = autocompleteroot / "songsearch-autocomplete.zip"
-        assert zip_path.is_file(), zip_path
-        with tempfile.TemporaryDirectory() as tmpdir:
-            # Need str() because Python 3.5
-            with open(str(zip_path), "rb") as f:
-                zf = zipfile.ZipFile(f)
-                zf.extractall(tmpdir)
-            tmppath = Path(tmpdir)
-            assert list(tmppath.iterdir())
-            source = tmppath / "songsearch-autocomplete"
-            assert source.is_dir(), source
-            destination = contentroot / "songsearch-autocomplete"
-            # print(os.listdir(destination + "/js"))
-            different = not _are_dir_trees_equal(str(source), str(destination))
-            if different:
-                shutil.rmtree(str(destination))
-                shutil.move(str(source), str(destination))
-                print("MOVED {} TO {}".format(source, destination))
+    def in_template(path):
+        return os.path.basename(path) in index_html
 
-        assert contentroot.is_dir()
-        csspath, = glob(str(contentroot / "songsearch-autocomplete/css/*.css"))
-        jspaths = glob(str(contentroot / "songsearch-autocomplete/js/*.js"))
-        jspaths = [x.replace("{}/".format(contentroot), "") for x in jspaths]
+    (csspath,) = [x for x in glob(str(autocompleteroot / "*.css")) if in_template(x)]
+    jspaths = [x for x in glob(str(autocompleteroot / "*.js")) if in_template(x)]
+    jspaths = [x.replace("{}/".format(contentroot), "/") for x in jspaths]
 
-        with open(csspath) as f:
-            csspayload = f.read()
-        csspayload = re.sub(r"\/\*# sourceMappingURL=.*?\*\/", "", csspayload)
-        csspayload = csspayload.strip()
+    with open(csspath) as f:
+        csspayload = f.read()
+    csspayload = re.sub(r"\/\*# sourceMappingURL=.*?\*\/", "", csspayload)
+    csspayload = csspayload.strip()
 
-        js_block = "\n".join(
-            [
-                (JS_BLOCK.replace("{cdn}", CDN).replace("{jspath}", jspath)).strip()
-                for jspath in jspaths
-            ]
-        )
-        css_block = (
-            CSS_BLOCK.replace("{cdn}", CDN).replace("{csspayload}", csspayload)
-        ).strip()
-    else:
-
-        contentroot = settings.BASE_DIR / "peterbecom-static-content"
-        autocompleteroot = contentroot / "songsearch-autocomplete-preact"
-        assert autocompleteroot.is_dir()
-        assert contentroot.is_dir()
-        # To know which .css and which .js files to use, we need to read the contents
-        # of the index.html generated.
-        with open(str(autocompleteroot / "index.html")) as f:
-            index_html = f.read()
-
-        def in_template(path):
-            return os.path.basename(path) in index_html
-
-        csspath, = [x for x in glob(str(autocompleteroot / "*.css")) if in_template(x)]
-        jspaths = [x for x in glob(str(autocompleteroot / "*.js")) if in_template(x)]
-        jspaths = [x.replace("{}/".format(contentroot), "/") for x in jspaths]
-
-        with open(csspath) as f:
-            csspayload = f.read()
-        csspayload = re.sub(r"\/\*# sourceMappingURL=.*?\*\/", "", csspayload)
-        csspayload = csspayload.strip()
-
-        js_block = JS_BLOCK_WITH_POLYFILL_BLOCK.format(
-            jspath=[x for x in jspaths if "polyfill" not in x][0],
-            polyfillpath=[x for x in jspaths if "polyfill" in x][0],
-        )
-        css_block = (
-            CSS_BLOCK.replace("{cdn}", CDN).replace("{csspayload}", csspayload)
-        ).strip()
+    js_block = JS_BLOCK_WITH_POLYFILL_BLOCK.format(
+        jspath=[x for x in jspaths if "polyfill" not in x][0],
+        polyfillpath=[x for x in jspaths if "polyfill" in x][0],
+    )
+    css_block = (
+        CSS_BLOCK.replace("{cdn}", CDN).replace("{csspayload}", csspayload)
+    ).strip()
 
     if page > 1:
         template = (
