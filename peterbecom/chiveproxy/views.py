@@ -9,8 +9,6 @@ from django.views.decorators.cache import cache_control
 from huey import crontab
 from huey.contrib.djhuey import periodic_task
 
-from peterbecom.quickmetrics_sender import quickmetrics_event
-
 from .models import Card
 from .sucks import get_card, get_cards
 
@@ -74,7 +72,6 @@ def update_cards(limit=None):
             if data:
                 card.update(data)
                 Card.objects.create(url=url, data=card)
-                quickmetrics_event("chiveproxy.card.created")
 
 
 @cache_control(max_age=settings.DEBUG and 10 or 60 * 60, public=True)
