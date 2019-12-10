@@ -11,6 +11,7 @@ import {
   List,
   Header,
   Icon,
+  Select,
   Input,
   Message,
   TextArea,
@@ -44,6 +45,7 @@ class Comments extends React.Component {
     loading: false,
     search: getDefault(this.props, 'search', ''),
     unapprovedOnly: getDefault(this.props, 'unapproved', '') === 'only',
+    autoapprovedOnly: getDefault(this.props, 'autoapproved', '') === 'only',
     checkedForApproval: {},
     checkedForDelete: {},
     editing: {},
@@ -77,6 +79,8 @@ class Comments extends React.Component {
       }
       if (this.state.unapprovedOnly) {
         url += '&unapproved=only';
+      } else if (this.state.autoapprovedOnly) {
+        url += '&autoapproved=only';
       }
       let response;
       try {
@@ -255,22 +259,28 @@ class Comments extends React.Component {
           <FilterForm
             search={this.state.search}
             unapprovedOnly={this.state.unapprovedOnly}
-            update={(search, unapprovedOnly) => {
-              this.setState({ search, unapprovedOnly }, () => {
-                let newURL = new URL(
-                  this.props.location.pathname,
-                  document.location.href
-                );
+            autoapprovedOnly={this.state.autoapprovedOnly}
+            update={(search, unapprovedOnly, autoapprovedOnly = false) => {
+              this.setState(
+                { search, unapprovedOnly, autoapprovedOnly },
+                () => {
+                  let newURL = new URL(
+                    this.props.location.pathname,
+                    document.location.href
+                  );
 
-                if (this.state.search) {
-                  newURL.searchParams.set('search', this.state.search);
+                  if (this.state.search) {
+                    newURL.searchParams.set('search', this.state.search);
+                  }
+                  if (this.state.unapprovedOnly) {
+                    newURL.searchParams.set('unapproved', 'only');
+                  } else if (this.state.autoapprovedOnly) {
+                    newURL.searchParams.set('autoapproved', 'only');
+                  }
+                  this.props.history.push(newURL.pathname + newURL.search);
+                  this.fetchComments();
                 }
-                if (this.state.unapprovedOnly) {
-                  newURL.searchParams.set('unapproved', 'only');
-                }
-                this.props.history.push(newURL.pathname + newURL.search);
-                this.fetchComments();
-              });
+              );
             }}
           />
         )}
@@ -371,24 +381,27 @@ export default Comments;
 class FilterForm extends React.PureComponent {
   state = {
     search: this.props.search || '',
-    unapprovedOnly: this.props.unapprovedOnly || false
+    unapprovedOnly: this.props.unapprovedOnly || false,
+    autoapprovedOnly: this.props.autoapprovedOnly || false
   };
 
   componentDidUpdate(prevProps) {
     if (
       prevProps.search !== this.props.search ||
-      prevProps.unapprovedOnly !== this.props.unapprovedOnly
+      prevProps.unapprovedOnly !== this.props.unapprovedOnly ||
+      prevProps.autoapprovedOnly !== this.props.autoapprovedOnly
     ) {
       this.setState({
         search: this.props.search,
-        unapprovedOnly: this.props.unapprovedOnly
+        unapprovedOnly: this.props.unapprovedOnly,
+        autoapprovedOnly: this.props.autoapprovedOnly
       });
     }
   }
 
   update = () => {
-    const { search, unapprovedOnly } = this.state;
-    this.props.update(search, unapprovedOnly);
+    const { search, unapprovedOnly, autoapprovedOnly } = this.state;
+    this.props.update(search, unapprovedOnly, autoapprovedOnly);
   };
 
   render() {
@@ -408,13 +421,34 @@ class FilterForm extends React.PureComponent {
             this.setState({ search: data.value });
           }}
         />
-        <Checkbox
-          toggle
-          defaultChecked={this.state.unapprovedOnly}
+        <Select
+          placeholder="Approval filter options"
+          defaultValue={
+            this.state.unapprovedOnly
+              ? 'unapproved'
+              : this.state.autoapprovedOnly
+              ? 'autoapproved'
+              : ''
+          }
           onChange={(event, data) => {
-            this.setState({ unapprovedOnly: data.checked }, this.update);
+            let unapprovedOnly = false;
+            let autoapprovedOnly = false;
+            if (data.value === 'unapproved') {
+              unapprovedOnly = true;
+            } else if (data.value === 'autoapproved') {
+              autoapprovedOnly = true;
+            }
+            this.setState({ unapprovedOnly, autoapprovedOnly }, this.update);
           }}
-          label="Unapproved only"
+          options={[
+            { key: '', value: '', text: 'Any' },
+            { key: 'unapproved', value: 'unapproved', text: 'Unapproved only' },
+            {
+              key: 'autoapproved',
+              value: 'autoapproved',
+              text: 'Autoapproved only'
+            }
+          ]}
         />
       </form>
     );
@@ -618,7 +652,8 @@ class CommentTree extends React.PureComponent {
               {this.bumpedIndicator(comment)}{' '}
               <small style={{ marginLeft: 10 }}>
                 {comment.comment.length.toLocaleString()} characters
-              </small>
+              </small>{' '}
+              {comment.auto_approved && <b>Auto approved!</b>}
             </div>
           </Comment.Metadata>
           <Comment.Text>

@@ -293,6 +293,7 @@ class BlogComment(models.Model):
     blogitem = models.ForeignKey(BlogItem, null=True, on_delete=models.CASCADE)
     parent = models.ForeignKey("BlogComment", null=True, on_delete=models.CASCADE)
     approved = models.BooleanField(default=False)
+    auto_approved = models.BooleanField(default=False)
     comment = models.TextField()
     comment_rendered = models.TextField(blank=True, null=True)
     add_date = models.DateTimeField(default=utils.utc_now)

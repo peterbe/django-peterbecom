@@ -839,6 +839,7 @@ def blogcomments(request):
             "id": item.id,
             "oid": item.oid,
             "approved": item.approved,
+            "auto_approved": item.auto_approved,
             "comment": item.comment,
             "rendered": item.rendered,
             "add_date": item.add_date,
@@ -892,6 +893,8 @@ def blogcomments(request):
 
     if request.GET.get("unapproved") == "only":
         base_qs = base_qs.filter(approved=False)
+    elif request.GET.get("autoapproved") == "only":
+        base_qs = base_qs.filter(auto_approved=True)
 
     search = request.GET.get("search", "").lower().strip()
     blogitem_regex = re.compile(r"blogitem:([^\s]+)")
@@ -1009,8 +1012,9 @@ def blogcomments_batch(request, action):
         return _response({"errors": form.errors}, status=400)
 
 
-def actually_approve_comment(blogcomment):
+def actually_approve_comment(blogcomment, auto_approved=False):
     blogcomment.approved = True
+    blogcomment.auto_approved = auto_approved
     blogcomment.save()
 
     if (
