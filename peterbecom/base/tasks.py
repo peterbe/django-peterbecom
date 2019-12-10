@@ -198,8 +198,8 @@ def run_purge_cdn_urls():
         )
         results = purge_cdn_urls(queue)
         if results:
-            for result in results["result"]:
-                post_process_after_cdn_purge(result["url"])
+            for url in results["all_urls"]:
+                post_process_after_cdn_purge(url)
     else:
         print("No queued CDN URLs for purgning ({})".format(timezone.now()))
 
