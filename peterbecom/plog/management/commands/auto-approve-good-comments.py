@@ -46,7 +46,7 @@ class Command(BaseCommand):
                     print_comment(comment)
 
                 if not dry_run:
-                    actually_approve_comment(comment)
+                    actually_approve_comment(comment, auto_approved=True)
                     self.out("Actually approved comment: {!r}".format(comment))
                 else:
                     self.out("*Would* approved comment: {!r}".format(comment))
