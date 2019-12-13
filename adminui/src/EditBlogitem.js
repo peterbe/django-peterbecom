@@ -166,7 +166,8 @@ export class EditBlogitem extends React.Component {
       this.setState(
         {
           blogitem: data.blogitem,
-          validationErrors: null
+          validationErrors: null,
+          serverError: null
         },
         () => {
           toast({

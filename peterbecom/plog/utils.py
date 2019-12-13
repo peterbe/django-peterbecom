@@ -200,6 +200,8 @@ def _get_lexer(codesyntax):
         return lexers.RustLexer()
     elif codesyntax == "jsx":
         return BabylonLexer()
+    elif codesyntax == "docker" or codesyntax == "dockerfile":
+        return lexers.DockerLexer()
     elif codesyntax:
         raise NotImplementedError(codesyntax)
     else:
@@ -207,7 +209,7 @@ def _get_lexer(codesyntax):
 
 
 _codesyntax_regex = re.compile(
-    "```(python|cpp|javascript|json|xml|html|yml|yaml|lisp|emacslisp|css|sql|sh|bash|go|diff|jsx|rust)"  # noqa
+    "```(python|cpp|javascript|json|xml|html|yml|yaml|lisp|emacslisp|css|sql|sh|bash|go|diff|jsx|rust|dockerfile|docker)"  # noqa
 )
 _markdown_pre_regex = re.compile(r"(```(.*?)```)", re.M | re.DOTALL)
 
