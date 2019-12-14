@@ -324,8 +324,9 @@ ptyprocess==0.6.0 \
 ipaddress==1.0.23 \
     --hash=sha256:6e0f4a39e66cb5bb9a137b00276a2eff74f93b71dcbdad6f10ff7df9d3557fcc \
     --hash=sha256:b7f8e0369580bb4a24d5ba1d7cc29660a4a6987763faf1d8a8046830e020e7e2
-django-redis==4.10.0 \
-    --hash=sha256:f46115577063d00a890867c6964ba096057f07cb756e78e0503b89cd18e4e083
+django-redis==4.11.0 \
+    --hash=sha256:a5b1e3ffd3198735e6c529d9bdf38ca3fcb3155515249b98dc4d966b8ddf9d2b \
+    --hash=sha256:e1aad4cc5bd743d8d0b13d5cae0cef5410eaace33e83bff5fc3a139ad8db50b4
 psycopg2-binary==2.8.4 \
     --hash=sha256:040234f8a4a8dfd692662a8308d78f63f31a97e1c42d2480e5e6810c48966a29 \
     --hash=sha256:086f7e89ec85a6704db51f68f0dcae432eff9300809723a6e8782c41c2f48e03 \
