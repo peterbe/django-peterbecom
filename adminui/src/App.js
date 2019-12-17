@@ -29,6 +29,7 @@ import CDN from './CDN';
 import LyricsPageHealthcheck from './LyricsPageHealthcheck';
 import SpamCommentPatterns from './SpamCommentPatterns';
 import GeoComments from './GeoComments';
+import CommentCounts from './CommentCounts';
 
 // Not a 'const' because we're going to cheekily increase every time it
 // gets mutated later.
@@ -288,9 +289,7 @@ class App extends React.Component {
                     <img
                       alt="Avatar"
                       src={this.state.userInfo.picture}
-                      title={`${this.state.userInfo.name} ${
-                        this.state.userInfo.email
-                      }`}
+                      title={`${this.state.userInfo.name} ${this.state.userInfo.email}`}
                     />
                   </Menu.Item>
                 ) : null}
@@ -338,6 +337,12 @@ class App extends React.Component {
                 path="/plog/comments/geo"
                 exact
                 component={GeoComments}
+                accessToken={this.state.accessToken}
+              />
+              <SecureRoute
+                path="/plog/comments/counts"
+                exact
+                component={CommentCounts}
                 accessToken={this.state.accessToken}
               />
               <SecureRoute

@@ -24,6 +24,7 @@ urlpatterns = [
         name="spam_comment_patterns",
     ),
     url(r"^plog/comments/geo/$", views.geocomments, name="geocomments"),
+    url(r"^plog/comments/counts/$", views.comment_counts, name="comment_counts",),
     url(r"^plog/comments/$", views.blogcomments, name="blogcomments"),
     url(
         r"^plog/comments/(?P<action>approve|delete)/$",

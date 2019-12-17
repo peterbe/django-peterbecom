@@ -145,3 +145,8 @@ class SpamCommentPatternForm(forms.ModelForm):
     class Meta:
         model = SpamCommentPattern
         fields = ("pattern", "is_regex", "is_url_pattern")
+
+
+class CommentCountsForm(forms.Form):
+    start = ISODateTimeField()
+    end = ISODateTimeField()

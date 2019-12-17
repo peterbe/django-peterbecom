@@ -56,6 +56,9 @@ class DashboardLinks extends React.PureComponent {
           <Link to="/plog/comments?unapproved=only">unapproved</Link>)
         </Segment>
         <Segment>
+          <Link to="/plog/comments/counts">Comment Counts</Link>
+        </Segment>
+        <Segment>
           <Link to="/plog/comments/geo">Geo Comments</Link>
         </Segment>
         <Segment>
