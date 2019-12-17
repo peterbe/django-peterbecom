@@ -53,6 +53,7 @@ from .forms import (
     EditBlogForm,
     PreviewBlogForm,
     SpamCommentPatternForm,
+    CommentCountsForm,
 )
 from .tasks import send_comment_reply_email
 
@@ -218,7 +219,7 @@ def preview(request):
     try:
         html = preview_by_data(post_data, request)
     except PreviewValidationError as exception:
-        form_errors, = exception.args
+        (form_errors,) = exception.args
         context = {"blogitem": {"errors": form_errors}}
         return _response(context)
     context = {"blogitem": {"html": html}}
@@ -510,7 +511,7 @@ def _postprocessing_statistics(request_GET):
         return "{:.1f}".format(s)
 
     try:
-        last, = base_qs.filter(exception__isnull=True).order_by("-created")[:1]
+        (last,) = base_qs.filter(exception__isnull=True).order_by("-created")[:1]
         last_duration = last.duration
         context["groups"].append(
             {
@@ -587,7 +588,7 @@ def _postprocessing_records(request_GET, limit=10):
     qs = PostProcessing.objects.all()
     qs = _filter_postprocessing_queryset(qs, request_GET)
 
-    for each in qs.select_related('previous').order_by("-created")[:limit]:
+    for each in qs.select_related("previous").order_by("-created")[:limit]:
         record = serialize_record(each)
         if each.previous:
             record["_previous"] = serialize_record(each.previous)
@@ -683,7 +684,7 @@ def _searchresults_statistics(request_GET):
         return "{:.1f}".format(s * 1000)
 
     try:
-        last, = base_qs.order_by("-created")[:1]
+        (last,) = base_qs.order_by("-created")[:1]
         context["groups"].append(
             {
                 "label": "Rates (milliseconds)",
@@ -899,7 +900,7 @@ def blogcomments(request):
     search = request.GET.get("search", "").lower().strip()
     blogitem_regex = re.compile(r"blogitem:([^\s]+)")
     if search and blogitem_regex.findall(search):
-        blogitem_oid, = blogitem_regex.findall(search)
+        (blogitem_oid,) = blogitem_regex.findall(search)
         not_blogitem = False
         if blogitem_oid.startswith("!"):
             not_blogitem = True
@@ -1051,6 +1052,56 @@ def geocomments(request):
     return _response(
         {"comments": comments, "google_maps_api_key": settings.GOOGLE_MAPS_API_KEY}
     )
+
+
+@api_superuser_required
+def comment_counts(request):
+    form = CommentCountsForm(data=request.GET)
+    events = []
+    if not form.is_valid():
+        return _response(form.errors.get_json_data(), status=400)
+    start = form.cleaned_data["start"]
+    end = form.cleaned_data["end"]
+    qs = BlogComment.objects.filter(
+        add_date__gte=start - datetime.timedelta(days=1), add_date__lt=end
+    )
+    aggregates = (
+        qs.annotate(day=Trunc("add_date", "day", tzinfo=start.tzinfo))
+        .values("day")
+        .annotate(count=Count("id"))
+        .values("day", "count")
+        .order_by("day")
+    )
+    previous = None
+
+    for aggregate in aggregates:
+        if previous is None:
+            previous = aggregate["count"]
+            continue
+        increase = aggregate["count"] - previous
+        previous = aggregate['count']
+        increase_sign = ''
+        if increase > 0:
+            increase_sign = "+"
+        elif increase == 0:
+            increase_sign = "±"
+        title = "{} comment{} ({}{})".format(
+            aggregate["count"],
+            "" if aggregate["count"] == 1 else "s",
+            increase_sign,
+            increase,
+        )
+        events.append(
+            {
+                "start": aggregate["day"],
+                "end": aggregate["day"] + datetime.timedelta(days=1),
+                "allDay": True,
+                "title": title,
+                "id": aggregate["day"].isoformat(),
+            }
+        )
+
+    return _response({"events": events})
 
 
 @api_superuser_required
