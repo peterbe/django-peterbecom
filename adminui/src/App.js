@@ -234,36 +234,48 @@ class App extends React.Component {
               </Menu.Item>
               <Dropdown item simple text="Blogitems">
                 <Dropdown.Menu>
-                  <Dropdown.Item>
-                    <Link to="/plog" style={{ color: '#000' }}>
-                      Blogitems
-                    </Link>
-                  </Dropdown.Item>
-                  <Dropdown.Item>
-                    <Link to="/plog/add" style={{ color: '#000' }}>
-                      Add new blogitem
-                    </Link>
-                  </Dropdown.Item>
-                  <Dropdown.Item>
-                    <Link to="/plog/realtimehits" style={{ color: '#000' }}>
-                      Realtime Hits
-                    </Link>
-                  </Dropdown.Item>
-                  <Dropdown.Item>
-                    <Link to="/plog/hits" style={{ color: '#000' }}>
-                      Hits
-                    </Link>
-                  </Dropdown.Item>
-                  <Dropdown.Item>
-                    <Link to="/plog/spam/patterns" style={{ color: '#000' }}>
-                      Spam Comment Patterns
-                    </Link>
-                  </Dropdown.Item>
+                  <DropdownLink to="/plog">Blogitems</DropdownLink>
+                  <DropdownLink to="/plog/add">Add new blogitem</DropdownLink>
+                  <DropdownLink to="/plog/realtimehits">
+                    Realtime Hits
+                  </DropdownLink>
+                  <DropdownLink to="/plog/hits">Hits</DropdownLink>
+                  <DropdownLink to="/plog/spam/patterns">
+                    Spam Comment Patterns
+                  </DropdownLink>
                 </Dropdown.Menu>
               </Dropdown>
-              <Menu.Item>
-                <Link to="/plog/comments">Comments</Link>
-              </Menu.Item>
+              <Dropdown item simple text="Comments">
+                <Dropdown.Menu>
+                  <DropdownLink to="/plog/comments" style={{ color: '#000' }}>
+                    All comments
+                  </DropdownLink>
+                  <DropdownLink
+                    to="/plog/comments?unapproved=only"
+                    style={{ color: '#000' }}
+                  >
+                    Unapproved
+                  </DropdownLink>
+                  <DropdownLink
+                    to="/plog/comments?autoapproved=only"
+                    style={{ color: '#000' }}
+                  >
+                    Autoapproved
+                  </DropdownLink>
+                  <DropdownLink
+                    to="/plog/comments/counts"
+                    style={{ color: '#000' }}
+                  >
+                    Counts
+                  </DropdownLink>
+                  <DropdownLink
+                    to="/plog/comments/geo"
+                    style={{ color: '#000' }}
+                  >
+                    Geo
+                  </DropdownLink>
+                </Dropdown.Menu>
+              </Dropdown>
               <Menu.Item>
                 <Link to="/postprocessings">Post Processings</Link>
               </Menu.Item>
@@ -430,6 +442,22 @@ class App extends React.Component {
 }
 
 export default App;
+
+function DropdownLink({ children, ...props }) {
+  return (
+    <Dropdown.Item>
+      <Link
+        {...props}
+        style={{ color: 'black' }}
+        onClick={event => {
+          event.target.blur();
+        }}
+      >
+        {children}
+      </Link>
+    </Dropdown.Item>
+  );
+}
 
 const NoMatch = ({ location }) => (
   <div>

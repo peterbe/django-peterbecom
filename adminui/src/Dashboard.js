@@ -51,16 +51,25 @@ class DashboardLinks extends React.PureComponent {
             </Segment>
           </Segment.Group>
         </Segment>
-        <Segment>
-          <Link to="/plog/comments">Comments</Link> (
-          <Link to="/plog/comments?unapproved=only">unapproved</Link>)
-        </Segment>
-        <Segment>
-          <Link to="/plog/comments/counts">Comment Counts</Link>
-        </Segment>
-        <Segment>
-          <Link to="/plog/comments/geo">Geo Comments</Link>
-        </Segment>
+        <Segment.Group>
+          <Segment>
+            <Link to="/plog/comments">Comments</Link>
+          </Segment>
+          <Segment>
+            <Link to="/plog/comments?unapproved=only">Unapproved comments</Link>
+          </Segment>
+          <Segment>
+            <Link to="/plog/comments?autoapproved=only">
+              Autoapproved comments
+            </Link>
+          </Segment>
+          <Segment>
+            <Link to="/plog/comments/counts">Comment Counts</Link>
+          </Segment>
+          <Segment>
+            <Link to="/plog/comments/geo">Geo Comments</Link>
+          </Segment>
+        </Segment.Group>
         <Segment>
           <Link to="/postprocessings">Post Processings</Link>
         </Segment>
