@@ -1,8 +1,9 @@
 from functools import lru_cache
 
-from django.contrib.gis.geoip2 import GeoIP2
+from django.contrib.gis.geoip2 import GeoIP2, HAS_GEOIP2
 from geoip2.errors import AddressNotFoundError
 
+assert HAS_GEOIP2
 geoip_looker_upper = GeoIP2()
 
 
