@@ -8,6 +8,8 @@ import '@fullcalendar/core/main.min.css';
 import '@fullcalendar/daygrid/main.min.css';
 import '@fullcalendar/timegrid/main.min.css';
 
+import { ShowServerError } from './Common';
+
 class CommentCounts extends React.Component {
   state = {
     loading: false,
@@ -65,6 +67,7 @@ class CommentCounts extends React.Component {
     return (
       <Container textAlign="center">
         <Header as="h1">Comment Counts</Header>
+        <ShowServerError error={serverError} />
         <FullCalendar
           defaultView="dayGridMonth"
           plugins={[dayGridPlugin, timeGridPlugin]}
