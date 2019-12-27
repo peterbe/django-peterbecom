@@ -1,5 +1,5 @@
 import auth0 from 'auth0-js';
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { formatDistance } from 'date-fns/esm';
 import { BrowserRouter as Router, Link, Route, Switch } from 'react-router-dom';
 import 'semantic-ui-css/semantic.min.css';
@@ -21,15 +21,24 @@ import { AddBlogitem, EditBlogitem } from './EditBlogitem';
 import OpenGraphImageBlogitem from './OpenGraphImageBlogitem';
 import AWSPABlogitem from './AWSPABlogitem';
 import UploadImages from './UploadImages';
-import PostProcessings from './PostProcessings';
-import SearchResults from './SearchResults';
-import BlogitemHits from './BlogitemHits';
-import RealtimeBlogitemHits from './RealtimeBlogitemHits';
-import CDN from './CDN';
-import LyricsPageHealthcheck from './LyricsPageHealthcheck';
-import SpamCommentPatterns from './SpamCommentPatterns';
-import GeoComments from './GeoComments';
-import CommentCounts from './CommentCounts';
+// import PostProcessings from './PostProcessings';
+// import SearchResults from './SearchResults';
+// import BlogitemHits from './BlogitemHits';
+// import RealtimeBlogitemHits from './RealtimeBlogitemHits';
+// import CDN from './CDN';
+// import LyricsPageHealthcheck from './LyricsPageHealthcheck';
+// import SpamCommentPatterns from './SpamCommentPatterns';
+// import GeoComments from './GeoComments';
+// import CommentCounts from './CommentCounts';
+const PostProcessings = lazy(() => import('./PostProcessings'));
+const SearchResults = lazy(() => import('./SearchResults'));
+const BlogitemHits = lazy(() => import('./BlogitemHits'));
+const RealtimeBlogitemHits = lazy(() => import('./RealtimeBlogitemHits'));
+const CDN = lazy(() => import('./CDN'));
+const LyricsPageHealthcheck = lazy(() => import('./LyricsPageHealthcheck'));
+const SpamCommentPatterns = lazy(() => import('./SpamCommentPatterns'));
+const GeoComments = lazy(() => import('./GeoComments'));
+const CommentCounts = lazy(() => import('./CommentCounts'));
 
 // Not a 'const' because we're going to cheekily increase every time it
 // gets mutated later.
@@ -327,113 +336,115 @@ class App extends React.Component {
           </Menu>
 
           <Container style={{ marginTop: '5em' }}>
-            <Switch>
-              <Route
-                path="/"
-                exact
-                render={props => (
-                  <Dashboard
-                    {...props}
-                    authorize={this.authorize}
-                    accessToken={this.state.accessToken}
-                  />
-                )}
-              />
-              <SecureRoute
-                path="/plog/spam/patterns"
-                exact
-                component={SpamCommentPatterns}
-                accessToken={this.state.accessToken}
-              />
-              <SecureRoute
-                path="/plog/comments/geo"
-                exact
-                component={GeoComments}
-                accessToken={this.state.accessToken}
-              />
-              <SecureRoute
-                path="/plog/comments/counts"
-                exact
-                component={CommentCounts}
-                accessToken={this.state.accessToken}
-              />
-              <SecureRoute
-                path="/plog/comments"
-                exact
-                component={Comments}
-                accessToken={this.state.accessToken}
-              />
-              <SecureRoute
-                path="/plog/hits"
-                exact
-                component={BlogitemHits}
-                accessToken={this.state.accessToken}
-              />
-              <SecureRoute
-                path="/plog/realtimehits"
-                exact
-                component={RealtimeBlogitemHits}
-                accessToken={this.state.accessToken}
-              />
-              <SecureRoute
-                path="/plog"
-                exact
-                component={Blogitems}
-                accessToken={this.state.accessToken}
-              />
-              <SecureRoute
-                path="/plog/add"
-                exact
-                component={AddBlogitem}
-                accessToken={this.state.accessToken}
-              />
-              <SecureRoute
-                path="/plog/:oid/open-graph-image"
-                component={OpenGraphImageBlogitem}
-                accessToken={this.state.accessToken}
-              />
-              <SecureRoute
-                path="/plog/:oid/awspa"
-                component={AWSPABlogitem}
-                accessToken={this.state.accessToken}
-              />
-              <SecureRoute
-                path="/plog/:oid/images"
-                component={UploadImages}
-                accessToken={this.state.accessToken}
-              />
-              <SecureRoute
-                path="/plog/:oid"
-                component={EditBlogitem}
-                accessToken={this.state.accessToken}
-              />
-              <SecureRoute
-                path="/postprocessings"
-                exact
-                component={PostProcessings}
-                accessToken={this.state.accessToken}
-              />
-              <SecureRoute
-                path="/searchresults"
-                exact
-                component={SearchResults}
-                accessToken={this.state.accessToken}
-              />
-              <SecureRoute
-                path="/cdn"
-                exact
-                component={CDN}
-                accessToken={this.state.accessToken}
-              />
-              <SecureRoute
-                path="/lyrics-page-healthcheck"
-                exact
-                component={LyricsPageHealthcheck}
-                accessToken={this.state.accessToken}
-              />
+            <Suspense fallback={<div>Loading...</div>}>
+              <Switch>
+                <Route
+                  path="/"
+                  exact
+                  render={props => (
+                    <Dashboard
+                      {...props}
+                      authorize={this.authorize}
+                      accessToken={this.state.accessToken}
+                    />
+                  )}
+                />
+                <SecureRoute
+                  path="/plog/spam/patterns"
+                  exact
+                  component={SpamCommentPatterns}
+                  accessToken={this.state.accessToken}
+                />
+                <SecureRoute
+                  path="/plog/comments/geo"
+                  exact
+                  component={GeoComments}
+                  accessToken={this.state.accessToken}
+                />
+                <SecureRoute
+                  path="/plog/comments/counts"
+                  exact
+                  component={CommentCounts}
+                  accessToken={this.state.accessToken}
+                />
+                <SecureRoute
+                  path="/plog/comments"
+                  exact
+                  component={Comments}
+                  accessToken={this.state.accessToken}
+                />
+                <SecureRoute
+                  path="/plog/hits"
+                  exact
+                  component={BlogitemHits}
+                  accessToken={this.state.accessToken}
+                />
+                <SecureRoute
+                  path="/plog/realtimehits"
+                  exact
+                  component={RealtimeBlogitemHits}
+                  accessToken={this.state.accessToken}
+                />
+                <SecureRoute
+                  path="/plog"
+                  exact
+                  component={Blogitems}
+                  accessToken={this.state.accessToken}
+                />
+                <SecureRoute
+                  path="/plog/add"
+                  exact
+                  component={AddBlogitem}
+                  accessToken={this.state.accessToken}
+                />
+                <SecureRoute
+                  path="/plog/:oid/open-graph-image"
+                  component={OpenGraphImageBlogitem}
+                  accessToken={this.state.accessToken}
+                />
+                <SecureRoute
+                  path="/plog/:oid/awspa"
+                  component={AWSPABlogitem}
+                  accessToken={this.state.accessToken}
+                />
+                <SecureRoute
+                  path="/plog/:oid/images"
+                  component={UploadImages}
+                  accessToken={this.state.accessToken}
+                />
+                <SecureRoute
+                  path="/plog/:oid"
+                  component={EditBlogitem}
+                  accessToken={this.state.accessToken}
+                />
+                <SecureRoute
+                  path="/postprocessings"
+                  exact
+                  component={PostProcessings}
+                  accessToken={this.state.accessToken}
+                />
+                <SecureRoute
+                  path="/searchresults"
+                  exact
+                  component={SearchResults}
+                  accessToken={this.state.accessToken}
+                />
+                <SecureRoute
+                  path="/cdn"
+                  exact
+                  component={CDN}
+                  accessToken={this.state.accessToken}
+                />
+                <SecureRoute
+                  path="/lyrics-page-healthcheck"
+                  exact
+                  component={LyricsPageHealthcheck}
+                  accessToken={this.state.accessToken}
+                />
 
-              <Route component={NoMatch} />
-            </Switch>
+                <Route component={NoMatch} />
+              </Switch>
+            </Suspense>
           </Container>
         </div>
       </Router>

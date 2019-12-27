@@ -138,6 +138,7 @@ class SpamCommentPatterns extends React.Component {
   render() {
     const { serverError, loading, deletedPattern } = this.state;
     const patterns = this.state.patterns || [];
+
     return (
       <Container textAlign="center">
         <Header as="h1">Spam Comment Patterns</Header>
