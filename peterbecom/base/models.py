@@ -43,7 +43,7 @@ class PostProcessing(models.Model):
         "self",
         null=True,
         related_name="postprocessing",
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         db_index=False,
     )
 
