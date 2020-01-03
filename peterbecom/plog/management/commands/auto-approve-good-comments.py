@@ -24,7 +24,7 @@ class Command(BaseCommand):
         dry_run = options["dry_run"]
         comments = BlogComment.objects.filter(
             approved=False,
-            add_date__gt=timezone.now() - datetime.timedelta(days=7),
+            add_date__gt=timezone.now() - datetime.timedelta(days=14),
             add_date__lt=timezone.now() - datetime.timedelta(hours=1),
         )
 

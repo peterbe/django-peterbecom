@@ -356,7 +356,7 @@ def purge_old_cdnpurgeurls():
     old = timezone.now() - datetime.timedelta(days=90)
     ancient = CDNPurgeURL.objects.filter(created__lt=old)
     deleted = ancient.delete()
-    print("{:,} ANCIENT CDNPurgeURLs".format(deleted[0]))
+    print("{:,} ANCIENT CDNPurgeURLs deleted".format(deleted[0]))
 
 
 @periodic_task(crontab(hour="*"))
@@ -366,7 +366,7 @@ def purge_old_postprocessings():
     count = ancient.count()
     if count:
         ancient.delete()
-        print("{:,} ANCIENT PostProcessings".format(count))
+        print("{:,} ANCIENT PostProcessings deleted".format(count))
 
     old = timezone.now() - datetime.timedelta(hours=1)
     stuck = PostProcessing.objects.filter(
