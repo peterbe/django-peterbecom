@@ -1561,7 +1561,7 @@ def lyrics_page_healthcheck(request):
             yield (t1 - t0, search_url, result)
             return
 
-        for page in range(1, 13):
+        for page in range(1, settings.MAX_BLOGCOMMENT_PAGES + 1):
             if page == 1:
                 url = URL
             else:
