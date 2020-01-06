@@ -3,6 +3,7 @@ from elasticsearch_dsl import (
     Boolean,
     Date,
     Document,
+    Float,
     Integer,
     Keyword,
     Text,
@@ -74,6 +75,7 @@ class BlogItemDoc(Document):
     pub_date = Date()
     categories = Text(fields={"raw": Keyword()})
     keywords = Text(fields={"raw": Keyword()})
+    popularity = Float()
 
     class Index:
         name = settings.ES_BLOG_ITEM_INDEX

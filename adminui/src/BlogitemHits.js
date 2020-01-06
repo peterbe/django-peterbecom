@@ -101,6 +101,9 @@ class Hits extends React.PureComponent {
         <Table.Header>
           <Table.Row>
             <Table.HeaderCell>Title</Table.HeaderCell>
+            <Table.HeaderCell>
+              <abbr title="Document popularity">Pop</abbr>
+            </Table.HeaderCell>
             <Table.HeaderCell>Score</Table.HeaderCell>
             <Table.HeaderCell>Hits</Table.HeaderCell>
             <Table.HeaderCell>Age (days)</Table.HeaderCell>
@@ -132,6 +135,7 @@ class Hits extends React.PureComponent {
                     );
                   })}
                 </Table.Cell>
+                <Table.Cell>{record.popularity.toFixed(4)}</Table.Cell>
                 <Table.Cell>{record.score.toFixed(1)}</Table.Cell>
                 <Table.Cell>{record.hits}</Table.Cell>
                 <Table.Cell>{record.age}</Table.Cell>

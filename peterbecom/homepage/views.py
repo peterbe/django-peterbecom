@@ -320,6 +320,7 @@ def search(request, original_q=None):
                 "date": result["pub_date"],
                 "summary": summary,
                 "score": hit.meta.score,
+                "popularity": hit.popularity,
                 "comment": False,
             }
         )

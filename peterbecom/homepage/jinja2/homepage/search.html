@@ -40,10 +40,16 @@
     <h3>
       <a href="{{ document.url }}">{{ document.title|safe }}</a>
       {% if debug_search %}
+        <small>
         <span
           class="ui tag tiny label"
           title="Score straight from Elasticsearch's mouth"
           >Score {{ floatformat(document.score, 1) }}</span>
+        <span
+          class="ui tag tiny label"
+          title="Popularity of document"
+          >Popularity {{ floatformat(document.popularity or 0.0, 4) }}</span>
+        </small>
       {% endif %}
       &nbsp;
       <small style="float: right">{{ document.date.strftime('%d %b %Y') }}</small>

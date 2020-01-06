@@ -6,20 +6,23 @@ import random
 import time
 import unicodedata
 import uuid
+from collections import defaultdict
 
 import bleach
+from django.conf import settings
 from django.contrib.postgres.fields import ArrayField, JSONField
 from django.core.cache import cache
 from django.db import models, transaction
-from django.conf import settings
 from django.db.models import Count
 from django.db.models.signals import post_save, pre_delete, pre_save
 from django.dispatch import receiver
 from django.urls import reverse
+from elasticsearch.helpers import streaming_bulk
+from elasticsearch_dsl.connections import connections
 from sorl.thumbnail import ImageField
 
-from peterbecom.base.search import es_retry
 from peterbecom.base.geo import ip_to_city
+from peterbecom.base.search import es_retry
 from peterbecom.plog.search import BlogCommentDoc, BlogItemDoc
 
 from . import utils
@@ -27,6 +30,10 @@ from . import utils
 
 class HTMLRenderingError(Exception):
     """When rendering Markdown or RsT generating invalid HTML."""
+
+
+def _get_doc_type_name(model):
+    return model._meta.verbose_name.lower().replace(" ", "_")
 
 
 class Category(models.Model):
@@ -76,6 +83,7 @@ class BlogItem(models.Model):
     modify_date = models.DateTimeField(default=utils.utc_now)
     screenshot_image = ImageField(upload_to=_upload_to_blogitem, null=True)
     open_graph_image = models.CharField(max_length=400, null=True)
+    popularity = models.FloatField(default=0.0, null=True)
 
     def __repr__(self):
         return "<%s: %r>" % (self.__class__.__name__, self.oid)
@@ -186,6 +194,7 @@ class BlogItem(models.Model):
             "oid": self.oid,
             "title": self.title,
             "title_autocomplete": self.title,
+            "popularity": self.popularity,
             # "text": self.text_rendered or self.text,
             "text": cleaned,
             "pub_date": self.pub_date,
@@ -202,6 +211,36 @@ class BlogItem(models.Model):
                 all_keywords.append(keyword_lower)
 
         return all_keywords
+
+    @classmethod
+    def index_all_blogitems(cls, ids_only=None, verbose=False):
+
+        iterator = cls.objects.all()
+        if ids_only:
+            iterator = iterator.filter(id__in=ids_only)
+        category_names = dict((x.id, x.name) for x in Category.objects.all())
+        categories = defaultdict(list)
+        for e in BlogItem.categories.through.objects.all():
+            categories[e.blogitem_id].append(category_names[e.category_id])
+
+        es = connections.get_connection()
+        report_every = 100
+        count = 0
+        doc_type_name = _get_doc_type_name(BlogItem)
+        t0 = time.time()
+        for success, doc in streaming_bulk(
+            es,
+            (m.to_search(all_categories=categories).to_dict(True) for m in iterator),
+            index=settings.ES_BLOG_ITEM_INDEX,
+            doc_type=doc_type_name,
+        ):
+            if not success:
+                print("NOT SUCCESS!", doc)
+            count += 1
+            if verbose and not count % report_every:
+                print(count)
+        t1 = time.time()
+        return count, t1 - t0
 
 
 class BlogItemTotalHits(models.Model):
@@ -369,6 +408,29 @@ class BlogComment(models.Model):
                 self.__class__.objects.filter(id=self.id).update(geo_lookup=found)
 
         return found
+
+    @classmethod
+    def index_all_blogcomments(cls, verbose=False):
+        iterator = cls.objects.all().select_related("blogitem")
+
+        es = connections.get_connection()
+        report_every = 100
+        count = 0
+        doc_type_name = _get_doc_type_name(BlogComment)
+        t0 = time.time()
+        for success, doc in streaming_bulk(
+            es,
+            (m.to_search().to_dict(True) for m in iterator),
+            index=settings.ES_BLOG_COMMENT_INDEX,
+            doc_type=doc_type_name,
+        ):
+            if not success:
+                print("NOT SUCCESS!", doc)
+            count += 1
+            if verbose and not count % report_every:
+                print(count)
+        t1 = time.time()
+        return count, t1 - t0
 
 
 @receiver(pre_save, sender=BlogComment)
