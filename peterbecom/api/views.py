@@ -1133,7 +1133,7 @@ def blogitem_hits(request):
 
             )
             SELECT
-                b.id, b.oid, b.title, count AS hits, b.pub_date,
+                b.id, b.oid, b.title, b.popularity, count AS hits, b.pub_date,
                 EXTRACT(DAYS FROM (NOW() - b.pub_date))::INT AS age,
                 count AS score
             FROM counts, plog_blogitem b
@@ -1155,7 +1155,7 @@ def blogitem_hits(request):
                     GROUP BY blogitem_id
             )
             SELECT
-                b.id, b.oid, b.title, count AS hits, b.pub_date,
+                b.id, b.oid, b.title, b.popularity, count AS hits, b.pub_date,
                 EXTRACT(DAYS FROM (NOW() - b.pub_date))::INT AS age,
                 count / EXTRACT(DAYS FROM (NOW() - b.pub_date)) AS score
             FROM counts, plog_blogitem b
@@ -1178,6 +1178,7 @@ def blogitem_hits(request):
                 "pub_date": record.pub_date,
                 "hits": record.hits,
                 "age": record.age,
+                "popularity": record.popularity,
                 "score": record.score,
                 "_absolute_url": "/plog/{}".format(record.oid),
             }

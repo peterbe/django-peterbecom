@@ -18,18 +18,11 @@ import Blogitems from './Blogitems';
 import Comments from './Comments';
 import Dashboard from './Dashboard';
 import { AddBlogitem, EditBlogitem } from './EditBlogitem';
+// TODO: lazy load these too.
 import OpenGraphImageBlogitem from './OpenGraphImageBlogitem';
 import AWSPABlogitem from './AWSPABlogitem';
 import UploadImages from './UploadImages';
-// import PostProcessings from './PostProcessings';
-// import SearchResults from './SearchResults';
-// import BlogitemHits from './BlogitemHits';
-// import RealtimeBlogitemHits from './RealtimeBlogitemHits';
-// import CDN from './CDN';
-// import LyricsPageHealthcheck from './LyricsPageHealthcheck';
-// import SpamCommentPatterns from './SpamCommentPatterns';
-// import GeoComments from './GeoComments';
-// import CommentCounts from './CommentCounts';
+
 const PostProcessings = lazy(() => import('./PostProcessings'));
 const SearchResults = lazy(() => import('./SearchResults'));
 const BlogitemHits = lazy(() => import('./BlogitemHits'));
