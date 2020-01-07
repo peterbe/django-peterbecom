@@ -93,9 +93,9 @@ django-semanticui-form==0.0.1 \
     --hash=sha256:2a08d5fe4afadfe48ad8077092cfa1de2ecb14404358b6daad5fb47a4efaeb3a \
     --hash=sha256:d3fe71ea4586b1bfb214f7b549321879cc4104bbf7e73f1d64f81a27322ef8c9 \
     --hash=sha256:6d43a663ec45d8d125b4d55053318c6d74f15d2893fd890bc751fafd6fc15ab7
-django-pipeline==1.6.14 \
-    --hash=sha256:b56f2cfdb113dc1cb05257d8eb8d145fc0ade6f0d1236fb425df15bd059dce15 \
-    --hash=sha256:ef67aaf58959a2959e13fc114001cee5beec05ac18a81cc700ea9f1c8e3f40a8
+django-pipeline==1.7.0 \
+    --hash=sha256:0ded22b974e3d627c27fc490ef5b23fcdcf0cdb00b704d628b5ca6d0b010d6fe \
+    --hash=sha256:f7da70f00aa4baea3e0811f88927a116425deee05871fa2bfd2f8247f42d8847
 feedparser==5.2.1 \
     --hash=sha256:ce875495c90ebd74b179855449040003a1beb40cd13d5f037a0654251e260b02 \
     --hash=sha256:bd030652c2d08532c034c27fcd7c85868e7fa3cb2b17f230a44a6bbc92519bf9 \
