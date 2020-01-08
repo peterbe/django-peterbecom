@@ -351,7 +351,7 @@ def _brotli_html(html, filepath, url):
             break
 
 
-@periodic_task(crontab(hour="*"))
+@periodic_task(crontab(hour="*", minute="3"))
 def purge_old_cdnpurgeurls():
     old = timezone.now() - datetime.timedelta(days=90)
     ancient = CDNPurgeURL.objects.filter(created__lt=old)
@@ -359,7 +359,7 @@ def purge_old_cdnpurgeurls():
     print("{:,} ANCIENT CDNPurgeURLs deleted".format(deleted[0]))
 
 
-@periodic_task(crontab(hour="*"))
+@periodic_task(crontab(hour="*", minute="2"))
 def purge_old_postprocessings():
     old = timezone.now() - datetime.timedelta(days=90)
     ancient = PostProcessing.objects.filter(created__lt=old)

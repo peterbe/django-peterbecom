@@ -16,7 +16,8 @@ from django.utils.cache import patch_cache_control
 from django.utils.html import strip_tags
 from django.views import static
 from django.views.decorators.cache import cache_control
-from elasticsearch_dsl import Q
+from django.utils.cache import add_never_cache_headers
+from elasticsearch_dsl import Q, query
 from huey.contrib.djhuey import task
 from lxml import etree
 
@@ -36,6 +37,17 @@ ONE_HOUR = 60 * 60
 ONE_DAY = ONE_HOUR * 24
 ONE_WEEK = ONE_DAY * 7
 ONE_MONTH = ONE_WEEK * 4
+
+# These parameters are very important and very tricky.
+# How you use them matters in terms of how you combine them.
+# If you use `BOOST_MODE=sum` the scoring is computed by:
+# `score = matchness_score + popularity * popularity_factor`
+# Since the popularity is always a number between 1 and 0, if a document
+# has virtually 0 (0.0000001) in popularity, the "matchess score" will dominate.
+# If you, however `BOOST_MODE=sum` but `POPULARITY_FACTOR=10000` that popularity
+# will start to influence more.
+DEFAULT_POPULARITY_FACTOR = 1000.0
+DEFAULT_BOOST_MODE = "sum"
 
 
 def _home_cache_max_age(request, oc=None, page=1):
@@ -212,6 +224,8 @@ def search(request, original_q=None):
     LIMIT_BLOG_ITEMS = 30
     LIMIT_BLOG_COMMENTS = 20
 
+    debug_search = "debug-search" in request.GET
+
     documents = []
     search_times = []
     context["base_url"] = get_base_url(request)
@@ -278,7 +292,20 @@ def search(request, original_q=None):
     context["search_terms"] = search_terms
     context["search_term_boosts"] = search_term_boosts
 
-    search_query = search_query.query(matcher)
+    if debug_search:
+        popularity_factor = float(
+            request.GET.get("popularity-factor", DEFAULT_POPULARITY_FACTOR)
+        )
+        context["popularity_factor"] = popularity_factor
+        boost_mode = request.GET.get("boost-mode", DEFAULT_BOOST_MODE)
+        context["boost_mode"] = boost_mode
+    else:
+        popularity_factor = DEFAULT_POPULARITY_FACTOR
+        boost_mode = DEFAULT_BOOST_MODE
+
+    search_query = _add_function_score(
+        search_query, matcher, popularity_factor, boost_mode
+    )
 
     search_query = search_query.highlight_options(
         pre_tags=["<mark>"], post_tags=["</mark>"]
@@ -298,9 +325,7 @@ def search(request, original_q=None):
     search_times.append(("blogitems", t1 - t0))
 
     for hit in response:
-
         result = hit.to_dict()
-
         try:
             for fragment in hit.meta.highlight.title:
                 title = clean_fragment_html(fragment)
@@ -320,10 +345,21 @@ def search(request, original_q=None):
                 "date": result["pub_date"],
                 "summary": summary,
                 "score": hit.meta.score,
-                "popularity": hit.popularity,
+                "popularity": hit.popularity or 0.0,
                 "comment": False,
             }
         )
+
+    if debug_search:
+        ranked_by_popularity = [
+            x["url"]
+            for x in sorted(documents, key=lambda x: x["popularity"], reverse=True)
+        ]
+        for i, document in enumerate(documents):
+            document["score_boosted"] = ranked_by_popularity.index(document["url"]) - i
+            document["popularity_ranking"] = 1 + ranked_by_popularity.index(
+                document["url"]
+            )
 
     context["count_documents"] = response.hits.total
 
@@ -417,7 +453,7 @@ def search(request, original_q=None):
             x for x in q.split() if x.lower() not in STOPWORDS
         ]
 
-    context["debug_search"] = "debug-search" in request.GET
+    context["debug_search"] = debug_search
 
     print(
         "Searched For",
@@ -441,7 +477,10 @@ def search(request, original_q=None):
             keywords=keyword_search,
         )
 
-    return render(request, "homepage/search.html", context)
+    response = render(request, "homepage/search.html", context)
+    if debug_search:
+        add_never_cache_headers(response)
+    return response
 
 
 def autocompete(request):
@@ -465,7 +504,9 @@ def autocompete(request):
         query |= Q("match_phrase", title_autocomplete=term)
 
     search_query = search_query.query(query)
-    search_query = search_query.sort("-pub_date", "_score")
+
+    # search_query = search_query.sort("-pub_date", "_score")
+    search_query = _add_function_score(search_query, query)
     search_query = search_query[:size]
     response = search_query.execute()
     results = []
@@ -476,6 +517,39 @@ def autocompete(request):
     if len(q) < 5:
         patch_cache_control(response, public=True, max_age=60 + 60 * (5 - len(q)))
     return response
+
+
+def _add_function_score(
+    search_query,
+    matcher,
+    popularity_factor=DEFAULT_POPULARITY_FACTOR,
+    boost_mode=DEFAULT_BOOST_MODE,
+):
+    # If you don't do any popularity sorting at all, the _score is entirely based
+    # in the scoring that Elasticsearch gives which is a function of the boosting
+    # between title and text and a function of how much the words appear and stuff.
+    # A great score would be something like 10.0.
+    if not popularity_factor:
+        return search_query.query(matcher)
+
+    # XXX Might be worth playing with a custom scoring function that uses
+    # `score + popularity * factor` so that documents with a tiny popularity
+    # doesn't completely ruin the total score.
+    return search_query.query(
+        "function_score",
+        query=matcher,
+        functions=[
+            query.SF(
+                "field_value_factor",
+                field="popularity",
+                factor=popularity_factor,
+                # You can't sort on fields if they have nulls in them, so this
+                # "fills in the blanks" by assigning nulls to be 0.0.
+                missing=0.0,
+            )
+        ],
+        boost_mode=boost_mode
+    )
 
 
 @cache_control(public=True, max_age=ONE_WEEK)

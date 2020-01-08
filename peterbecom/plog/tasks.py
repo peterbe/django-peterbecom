@@ -40,7 +40,7 @@ def _get_comment_body(blogitem, blogcomment):
     return template.render(context).strip()
 
 
-@periodic_task(crontab(hour="*"))
+@periodic_task(crontab(hour="*", minute="4"))
 def run_populate_blogitem_daily_hits():
     date = timezone.now() - datetime.timedelta(days=1)
     try:
