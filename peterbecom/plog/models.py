@@ -182,20 +182,14 @@ class BlogItem(models.Model):
         else:
             categories = [x.name for x in self.categories.all()]
 
-        # print("THIS TEXT...............")
-        # print(repr(self.text_rendered or self.text))
         cleaned = bleach.clean(self.text_rendered, strip=True, tags=[])
-        # print("CLEANED.................")
-        # print(cleaned)
-        # print(bleach.sanitizer.ALLOWED_TAGS)
 
         doc = {
             "id": self.id,
             "oid": self.oid,
             "title": self.title,
             "title_autocomplete": self.title,
-            "popularity": self.popularity,
-            # "text": self.text_rendered or self.text,
+            "popularity": self.popularity or 0.0,
             "text": cleaned,
             "pub_date": self.pub_date,
             "categories": categories,
@@ -396,6 +390,7 @@ class BlogComment(models.Model):
             "approved": self.approved,
             "add_date": self.add_date,
             "comment": self.comment_rendered or self.comment,
+            "popularity": self.blogitem.popularity or 0.0,
         }
         return doc
 

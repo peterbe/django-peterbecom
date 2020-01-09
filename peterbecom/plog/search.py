@@ -21,6 +21,7 @@ all_synonyms = [
     "mongo => mongodb",
     "postgres => postgresql",
     "dont => don't",
+    "nodejs => node",
 ]
 # The file 'be-ae.synonyms' is a synonym file mapping British to American
 # English. For example 'centre => center'.
@@ -89,6 +90,7 @@ class BlogCommentDoc(Document):
     approved = Boolean()
     add_date = Date()
     comment = Text(analyzer=text_analyzer)
+    popularity = Float()
 
     class Index:
         name = settings.ES_BLOG_COMMENT_INDEX

@@ -59,7 +59,7 @@ def api_cards(request):
     return http.JsonResponse(context)
 
 
-@periodic_task(crontab(hour="*"))
+@periodic_task(crontab(hour="*", minute="1"))
 def update_cards_periodically():
     update_cards(limit=10)
 

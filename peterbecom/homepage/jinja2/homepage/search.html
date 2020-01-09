@@ -8,6 +8,32 @@
 
 {% block content %}
 
+{% if debug_search %}
+<form class="ui form">
+  <input type="hidden" name="debug-search">
+  <h4 class="ui dividing header">Debug Search</h4>
+  <div class="fields">
+    <div class="four wide field">
+      <label>Query</label>
+      <input type="text" name="q" value="{{ q }}">
+    </div>
+    <div class="four wide field">
+      <label>Popularity-factor</label>
+      <input type="text" name="popularity-factor" value="{{ popularity_factor }}"/>
+    </div>
+    <div class="four wide field">
+      <label>Boost-mode</label>
+      <input type="text" name="boost-mode" value="{{ boost_mode or 'multiply' }}"/>
+    </div>
+    <div class="four wide field">
+      <label>&nbsp;</label>
+      <input type="submit" class="ui button" value="Search"/>
+    </div>
+  </div>
+
+</form>
+{% endif %}
+
 {% if original_q %}
   <div class="ui info message"
      style="margin-bottom:4px">
@@ -22,7 +48,7 @@
 {% endif %}
 
 {% if q %}
-  <p><small>in {{ floatformat(search_time, 2) }} seconds</small></p>
+  <p><small>{{ count_documents }} matches in {{ floatformat(search_time, 2) }} seconds</small></p>
 {% endif %}
 
 {% if not q %}
@@ -40,16 +66,27 @@
     <h3>
       <a href="{{ document.url }}">{{ document.title|safe }}</a>
       {% if debug_search %}
-        <small>
+        <small style="font-weight: normal">
         <span
           class="ui tag tiny label"
           title="Score straight from Elasticsearch's mouth"
-          >Score {{ floatformat(document.score, 1) }}</span>
+          >Score {{ floatformat(document.score, 6) }}</span>
         <span
           class="ui tag tiny label"
           title="Popularity of document"
-          >Popularity {{ floatformat(document.popularity or 0.0, 4) }}</span>
+          >Popularity {{ floatformat(document.popularity or 0.0, 6) }}
+        ({{ document.popularity_ranking }})</span>
+        <span
+          class="ui tag tiny label"
+          title="Popularity x Score"
+          >Score &times; popularity {{ floatformat(document.score * (document.popularity or 0.0), 6) }}</span>
+        <b
+          class="ui tag tiny label"
+          title="Change thanks to popularity"
+          {% if document.score_boosted %}style="color: {% if document['score_boosted'] > 0 %}green{% elif document['score_boosted'] < 0 %}red{% endif %}"{% endif %}
+          >{{ document.score_boosted }}</b>
         </small>
+
       {% endif %}
       &nbsp;
       <small style="float: right">{{ document.date.strftime('%d %b %Y') }}</small>
