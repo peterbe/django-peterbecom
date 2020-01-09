@@ -1,5 +1,6 @@
 import datetime
 
+from django.core.cache import cache
 from django.utils import timezone
 
 from peterbecom.base.basecommand import BaseCommand
@@ -57,3 +58,9 @@ class Command(BaseCommand):
 
         if count_approved:
             self.out("Approved {} good comments".format(count_approved))
+
+        # This exists so it can be displayed in the admin UI.
+        cache_key = "auto-approve-good-comments"
+        records = cache.get(cache_key, [])
+        records.insert(0, [timezone.now(), count_approved])
+        cache.set(cache_key, records[:10], 60 * 60 * 24)

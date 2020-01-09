@@ -112,6 +112,8 @@ class Comments extends React.Component {
           count: data.count,
           oldest: data.oldest,
           countries: data.countries,
+          auto_approve_good_comments_records:
+            data.auto_approve_good_comments_records,
           loading: false
         });
       } else {
@@ -257,6 +259,7 @@ class Comments extends React.Component {
       loading,
       comments,
       countries,
+      auto_approve_good_comments_records,
       serverError,
       unapprovedOnly,
       autoapprovedOnly
@@ -280,7 +283,6 @@ class Comments extends React.Component {
             unapprovedOnly={unapprovedOnly}
             autoapprovedOnly={autoapprovedOnly}
             update={updates => {
-              console.log('UPDATE:', updates);
               this.setState(updates, () => {
                 let newURL = new URL(
                   this.props.location.pathname,
@@ -370,6 +372,12 @@ class Comments extends React.Component {
               }}
             />
           </Segment>
+        )}
+
+        {!loading && auto_approve_good_comments_records && (
+          <ShowAutoApproveGoodComments
+            records={auto_approve_good_comments_records}
+          />
         )}
 
         {countries && countries.length && !loading ? (
@@ -852,7 +860,7 @@ class ShowCountries extends React.PureComponent {
   render() {
     const { countries } = this.props;
     return (
-      <div style={{ marginBottom: 20 }}>
+      <div style={{ marginBottom: 40 }}>
         <Header as="h3" dividing>
           Countries of Commenters
         </Header>
@@ -879,4 +887,41 @@ class ShowCountries extends React.PureComponent {
       </div>
     );
   }
+}
+
+function ShowAutoApproveGoodComments({ records }) {
+  if (!records || !records.records.length) {
+    return (
+      <p>
+        <i>No previous auto-approve-good-comments records</i>
+      </p>
+    );
+  }
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <Header as="h4" dividing>
+        Countries of Commenters Previous auto approve good comments
+      </Header>
+      <ul>
+        {records.records.map(record => {
+          return (
+            <li key={record[0]}>
+              {record[0]}: <b>{record[1]}</b> approved comments
+            </li>
+          );
+        })}
+      </ul>
+      {!!records.median_frequency_minutes && (
+        <p>
+          Frequency: every <b>{records.median_frequency_minutes}</b> minutes
+        </p>
+      )}
+      {records.next_run && (
+        <p>
+          Next run: <b>{records.next_run.date}</b> (approximately{' '}
+          {(records.next_run.minutes / 60).toFixed(1)} hours from now)
+        </p>
+      )}
+    </div>
+  );
 }

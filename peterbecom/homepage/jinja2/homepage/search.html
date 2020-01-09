@@ -76,18 +76,30 @@
           title="Popularity of document"
           >Popularity {{ floatformat(document.popularity or 0.0, 6) }}
         ({{ document.popularity_ranking }})</span>
-        <span
-          class="ui tag tiny label"
-          title="Popularity x Score"
-          >Score &times; popularity {{ floatformat(document.score * (document.popularity or 0.0), 6) }}</span>
-        <b
-          class="ui tag tiny label"
-          title="Change thanks to popularity"
-          {% if document.score_boosted %}style="color: {% if document['score_boosted'] > 0 %}green{% elif document['score_boosted'] < 0 %}red{% endif %}"{% endif %}
-          >{{ document.score_boosted }}</b>
-        </small>
 
-      {% endif %}
+        {#
+        {% if not document.comment %}
+          {% if boost_mode == 'multiply' %}
+          <span
+            class="ui tag tiny label"
+            title="Popularity x Score"
+            >Score &times; popularity(&times;{{ popularity_factor }}) {{ floatformat(document.score * (document.popularity or 0.0), 6) }}</span>
+          {% elif boost_mode == 'sum' %}
+          <span
+            class="ui tag tiny label"
+            title="Popularity + Score"
+            >Score + popularity(&times;{{ popularity_factor }}) {{ floatformat(document['score'] + popularity_factor * document['popularity'], 6) }}</span>
+          {% endif %}
+
+          {% endif %}
+          #}
+          <b
+            class="ui tag tiny label"
+            title="Change thanks to popularity"
+            {% if document.score_boosted %}style="color: {% if document['score_boosted'] > 0 %}green{% elif document['score_boosted'] < 0 %}red{% endif %}"{% endif %}
+            >{{ document.score_boosted }}</b>
+        {% endif %}
+        </small>
       &nbsp;
       <small style="float: right">{{ document.date.strftime('%d %b %Y') }}</small>
     </h3>
