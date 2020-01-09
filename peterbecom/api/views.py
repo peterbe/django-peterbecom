@@ -11,6 +11,7 @@ from urllib.parse import urlparse
 import requests
 from django import http
 from django.conf import settings
+from django.core.cache import cache
 from django.db.models import Avg, Count, Max, Min, Q, Sum
 from django.db.models.functions import Trunc
 from django.shortcuts import get_object_or_404
@@ -985,7 +986,36 @@ def blogcomments(request):
     countries = sorted(countries_map.values(), key=lambda x: x["count"], reverse=True)
     context["countries"] = countries
 
+    context[
+        "auto_approve_good_comments_records"
+    ] = _get_auto_approve_good_comments_records()
+
     return _response(context)
+
+
+def _get_auto_approve_good_comments_records():
+    records = cache.get("auto-approve-good-comments", [])
+    median_frequency_minutes = None
+    next_run = None
+    if len(records) > 3:
+        distances = []
+        previous = latest = records[0]
+        for i, record in enumerate(records[1:]):
+            previous = record
+            distances.append(previous[0] - record[0])
+        median_frequency = statistics.median(distances)
+        median_frequency_minutes = int(median_frequency.total_seconds() / 60)
+        next_run = latest[0] + median_frequency
+        next_run_minutes = (next_run - timezone.now()).total_seconds() / 60
+
+    return {
+        "records": records,
+        "median_frequency_minutes": median_frequency_minutes,
+        "next_run": next_run and {
+            "date": next_run,
+            "minutes": next_run_minutes
+        } or None
+    }
 
 
 @require_POST
@@ -1079,8 +1109,8 @@ def comment_counts(request):
             previous = aggregate["count"]
             continue
         increase = aggregate["count"] - previous
-        previous = aggregate['count']
-        increase_sign = ''
+        previous = aggregate["count"]
+        increase_sign = ""
         if increase > 0:
             increase_sign = "+"
         elif increase == 0:
@@ -1693,10 +1723,10 @@ def xcache_analyze(request):
     # To make it slighly more possible to test from locally
     url = url.replace("http://peterbecom.local", "https://www.peterbe.com")
     results = get_x_cache(url)
-    with open('/tmp/xcache-analyze-results.log', 'a') as f:
-        f.write('# {}\n'.format(timezone.now()))
-        f.write('{}\n'.format(url))
+    with open("/tmp/xcache-analyze-results.log", "a") as f:
+        f.write("# {}\n".format(timezone.now()))
+        f.write("{}\n".format(url))
         f.write(json.dumps(results))
-        f.write('\n')
+        f.write("\n")
 
     return _response({"xcache": results})

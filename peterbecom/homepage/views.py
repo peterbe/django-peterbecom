@@ -46,7 +46,7 @@ ONE_MONTH = ONE_WEEK * 4
 # has virtually 0 (0.0000001) in popularity, the "matchess score" will dominate.
 # If you, however `BOOST_MODE=sum` but `POPULARITY_FACTOR=10000` that popularity
 # will start to influence more.
-DEFAULT_POPULARITY_FACTOR = 1000.0
+DEFAULT_POPULARITY_FACTOR = 100.0
 DEFAULT_BOOST_MODE = "sum"
 
 
