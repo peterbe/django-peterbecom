@@ -1726,10 +1726,5 @@ def xcache_analyze(request):
     # To make it slighly more possible to test from locally
     url = url.replace("http://peterbecom.local", "https://www.peterbe.com")
     results = get_x_cache(url)
-    with open("/tmp/xcache-analyze-results.log", "a") as f:
-        f.write("# {}\n".format(timezone.now()))
-        f.write("{}\n".format(url))
-        f.write(json.dumps(results))
-        f.write("\n")
 
     return _response({"xcache": results})

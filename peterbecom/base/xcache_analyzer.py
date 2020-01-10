@@ -32,8 +32,20 @@ def get_x_cache(url):
             location = futures[future]
             try:
                 results[location] = future.result()
+
             except (ReadTimeout, EmptyHeaders) as exception:
                 results[location] = {"took": None, "error": str(exception)}
+
+    # TEMPORARY AS OF JAN 2020.
+    from django.utils import timezone
+    import json
+
+    with open("/tmp/xcache-analyze-results.log", "a") as f:
+        f.write("# {}\n".format(timezone.now()))
+        f.write("{}\n".format(url))
+        f.write(json.dumps(results))
+        f.write("\n")
+    # /TEMPORARY
 
     return results
 
