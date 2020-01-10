@@ -211,6 +211,12 @@ class BlogitemsTable extends React.PureComponent {
                     </Label>
                   ))}
 
+                  {item.archived && (
+                    <Label color="red" size="tiny" title={item.archived}>
+                      Archived
+                    </Label>
+                  )}
+
                   {!item._is_published ? (
                     <Label color="orange" size="tiny">
                       Published <DisplayDate date={item.pub_date} />

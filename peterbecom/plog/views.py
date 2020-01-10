@@ -170,12 +170,15 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
     context = {"post": post, "screenshot_mode": screenshot_mode}
     if "/plog/blogitem-040601-1" not in request.path:
         try:
-            context["previous_post"] = post.get_previous_by_pub_date()
+            context["previous_post"] = post.get_previous_by_pub_date(
+                archived__isnull=True
+            )
         except BlogItem.DoesNotExist:
             context["previous_post"] = None
         try:
             context["next_post"] = post.get_next_by_pub_date(
-                pub_date__lt=timezone.now()
+                pub_date__lt=timezone.now(),
+                archived__isnull=True,
             )
         except BlogItem.DoesNotExist:
             context["next_post"] = None
@@ -305,7 +308,8 @@ def get_related_posts_by_keyword(post, limit=5):
         return BlogItem.objects.none()
     return (
         BlogItem.objects.filter(
-            proper_keywords__overlap=post.proper_keywords, pub_date__lt=timezone.now()
+            proper_keywords__overlap=post.proper_keywords, pub_date__lt=timezone.now(),
+            archived__isnull=True
         )
         .exclude(id=post.id)
         .order_by("-pub_date")[:limit]

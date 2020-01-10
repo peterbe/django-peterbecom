@@ -105,6 +105,7 @@ def blogitems(request):
             "categories": [{"id": x.id, "name": x.name} for x in item.categories.all()],
             "keywords": item.proper_keywords,
             "summary": item.summary,
+            "archived": item.archived,
         }
 
     page = int(request.GET.get("page", 1))
@@ -183,6 +184,7 @@ def blogitem(request, oid):
             "awsproducts_count": AWSProduct.objects.exclude(disabled=True)
             .filter(keyword__in=item.get_all_keywords())
             .count(),
+            "archived": item.archived,
         }
     }
     return _response(context)

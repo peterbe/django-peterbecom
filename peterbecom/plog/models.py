@@ -84,6 +84,7 @@ class BlogItem(models.Model):
     screenshot_image = ImageField(upload_to=_upload_to_blogitem, null=True)
     open_graph_image = models.CharField(max_length=400, null=True)
     popularity = models.FloatField(default=0.0, null=True)
+    archived = models.DateTimeField(null=True)
 
     def __repr__(self):
         return "<%s: %r>" % (self.__class__.__name__, self.oid)
