@@ -29,6 +29,8 @@ from peterbecom.plog.search import BlogCommentDoc, BlogItemDoc
 from peterbecom.plog.utils import utc_now, view_function_timer
 
 from .utils import STOPWORDS, make_categories_q, parse_ocs_to_categories, split_search
+from .forms import DebugSearchForm
+
 
 logger = logging.getLogger("homepage")
 
@@ -37,17 +39,6 @@ ONE_HOUR = 60 * 60
 ONE_DAY = ONE_HOUR * 24
 ONE_WEEK = ONE_DAY * 7
 ONE_MONTH = ONE_WEEK * 4
-
-# These parameters are very important and very tricky.
-# How you use them matters in terms of how you combine them.
-# If you use `BOOST_MODE=sum` the scoring is computed by:
-# `score = matchness_score + popularity * popularity_factor`
-# Since the popularity is always a number between 1 and 0, if a document
-# has virtually 0 (0.0000001) in popularity, the "matchess score" will dominate.
-# If you, however `BOOST_MODE=sum` but `POPULARITY_FACTOR=10000` that popularity
-# will start to influence more.
-DEFAULT_POPULARITY_FACTOR = 100.0
-DEFAULT_BOOST_MODE = "sum"
 
 
 def _home_cache_max_age(request, oc=None, page=1):
@@ -292,16 +283,21 @@ def search(request, original_q=None):
     context["search_terms"] = search_terms
     context["search_term_boosts"] = search_term_boosts
 
+    popularity_factor = settings.DEFAULT_POPULARITY_FACTOR
+    boost_mode = settings.DEFAULT_BOOST_MODE
+
     if debug_search:
-        popularity_factor = float(
-            request.GET.get("popularity-factor", DEFAULT_POPULARITY_FACTOR)
-        )
-        context["popularity_factor"] = popularity_factor
-        boost_mode = request.GET.get("boost-mode", DEFAULT_BOOST_MODE)
-        context["boost_mode"] = boost_mode
-    else:
-        popularity_factor = DEFAULT_POPULARITY_FACTOR
-        boost_mode = DEFAULT_BOOST_MODE
+        context["debug_search_form"] = DebugSearchForm(request.GET, initial={
+            "popularity_factor": settings.DEFAULT_POPULARITY_FACTOR,
+            "boost_mode": settings.DEFAULT_BOOST_MODE,
+        })
+        if context["debug_search_form"].is_valid():
+            popularity_factor = context["debug_search_form"].cleaned_data[
+                "popularity_factor"
+            ]
+            boost_mode = context["debug_search_form"].cleaned_data["boost_mode"]
+
+    assert isinstance(popularity_factor, float), repr(popularity_factor)
 
     search_query = _add_function_score(
         search_query, matcher, popularity_factor, boost_mode
@@ -522,8 +518,8 @@ def autocompete(request):
 def _add_function_score(
     search_query,
     matcher,
-    popularity_factor=DEFAULT_POPULARITY_FACTOR,
-    boost_mode=DEFAULT_BOOST_MODE,
+    popularity_factor=settings.DEFAULT_POPULARITY_FACTOR,
+    boost_mode=settings.DEFAULT_BOOST_MODE,
 ):
     # If you don't do any popularity sorting at all, the _score is entirely based
     # in the scoring that Elasticsearch gives which is a function of the boosting
@@ -548,7 +544,7 @@ def _add_function_score(
                 missing=0.0,
             )
         ],
-        boost_mode=boost_mode
+        boost_mode=boost_mode,
     )
 
 

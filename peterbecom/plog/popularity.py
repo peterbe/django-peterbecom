@@ -1,10 +1,15 @@
+import math
+
 from django.db import transaction
 
 from peterbecom.plog.models import BlogItem
 
 
+def score_to_popularity(score):
+    return math.log10(1 + score)
+
+
 def update_all(verbose=False, limit=1000, dry_run=False, reindex=False):
-    # Note! No limit on this. Otherwise we can't fairly normalize the scores.
     query = BlogItem.objects.raw(
         """
             WITH counts AS (
@@ -21,32 +26,23 @@ def update_all(verbose=False, limit=1000, dry_run=False, reindex=False):
             WHERE
                 blogitem_id = b.id AND (NOW() - b.pub_date) > INTERVAL '1 day'
             ORDER BY score desc
-        """
+            LIMIT {limit}
+        """.format(
+            limit=limit
+        )
     )
 
-    normalize = {}
-    previous_popularity = {}
-    sum_scores = 0.0
-    for record in query:
-        if verbose:
-            print((record.score, record.hits, record.age, record.title))
-        normalize[record.id] = record.score
-        previous_popularity[record.id] = record.popularity or 0.0
-        sum_scores += record.score
-
     ids = []
-    flat = [(v, k) for k, v in normalize.items()]
-    flat.sort(reverse=True)
     with transaction.atomic():
-        for score, id in flat[:limit]:
-            popularity = score / sum_scores
-            difference = abs(popularity - previous_popularity[id])
-            if difference < 0.000001:
+        for record in query:
+            popularity = score_to_popularity(record.score)
+            difference = abs(popularity - (record.popularity or 0.0))
+            if difference < 0.00001:
                 # don't bother if it hasn't changed much since the last run.
                 continue
-            ids.append(id)
+            ids.append(record.id)
             if not dry_run:
-                BlogItem.objects.filter(id=id).update(popularity=popularity)
+                BlogItem.objects.filter(id=record.id).update(popularity=popularity)
 
     if not dry_run and ids:
         BlogItem.index_all_blogitems(ids_only=ids, verbose=verbose)

@@ -9,7 +9,7 @@ class Command(BaseCommand):
             "--dry-run",
             action="store_true",
             default=False,
-            help="Don't actually approve the good candidates",
+            help="Don't actually save or do anything persistent",
         )
         parser.add_argument(
             "--reindex",
