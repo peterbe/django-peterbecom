@@ -63,7 +63,7 @@ def _home_cache_max_age(request, oc=None, page=1):
 @variable_cache_control(public=True, max_age=_home_cache_max_age)
 def home(request, oc=None, page=1):
     context = {}
-    qs = BlogItem.objects.filter(pub_date__lt=utc_now())
+    qs = BlogItem.objects.filter(pub_date__lt=utc_now(), archived__isnull=True)
     if oc is not None:
         if not oc:  # empty string
             return redirect("/", permanent=True)
@@ -577,7 +577,7 @@ def sitemap(request):
             etree.SubElement(url, "changefreq").text = changefreq
 
     now = timezone.now()
-    blogitems = BlogItem.objects.filter(pub_date__lt=now)
+    blogitems = BlogItem.objects.filter(pub_date__lt=now, archived__isnull=True)
     latest_pub_date = blogitems.aggregate(pub_date=Max("pub_date"))["pub_date"]
     add("/", priority=1.0, changefreq="daily", lastmod=latest_pub_date)
     add(reverse("about"), changefreq="weekly", priority=0.5)
@@ -604,8 +604,8 @@ def sitemap(request):
         age = (now - blogitem.modify_date).days
         comment_count = approved_comments_count.get(blogitem.id, 0)
         pages = comment_count // settings.MAX_RECENT_COMMENTS
-        if comment_count > settings.MAX_RECENT_COMMENTS:
-            print("PAGES:", pages, blogitem.title)
+        # if comment_count > settings.MAX_RECENT_COMMENTS:
+        #     print("PAGES:", pages, blogitem.title)
         for page in range(1, pages + 2):
             if page > settings.MAX_BLOGCOMMENT_PAGES:
                 break

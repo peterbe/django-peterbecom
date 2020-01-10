@@ -116,18 +116,27 @@
 <div class="bsa-cpc"></div>
 {% endif %}
 
-{% if pub_date_years > 3 and '/plog/blogitem-040601-1' not in request.path %}
-<div class="ui {% if pub_date_years > 6 %}warning{% else %}info{% endif %} message"
-    style="margin-bottom:40px">
-  <div class="header">
-    Mind That Age!
+{% if post.archived %}
+  <div class="ui warning message" style="margin-bottom:40px">
+    <div class="header">
+      Content archived
+    </div>
+    <p>
+      This blog post is archived. It won't appear in indexing.
+    </p>
   </div>
-  <p>
-    This blog post is
-    <b>{{ pub_date_years }} years old!</b> Most likely, its content is outdated.
-    Especially if it's technical.
-  </p>
-</div>
+{% elif pub_date_years > 3 and '/plog/blogitem-040601-1' not in request.path %}
+  <div class="ui {% if pub_date_years > 6 %}warning{% else %}info{% endif %} message"
+      style="margin-bottom:40px">
+    <div class="header">
+      Mind that age!
+    </div>
+    <p>
+      This blog post is
+      <b>{{ pub_date_years }} years old!</b> Most likely, its content is outdated.
+      Especially if it's technical.
+    </p>
+  </div>
 {% endif %}
 
 {% if not_published_yet %}

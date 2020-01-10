@@ -233,6 +233,15 @@ export class EditBlogitem extends React.Component {
             </div>
           </Message>
         )}
+        {blogitem && blogitem.archived && (
+          <Message negative>
+            <Message.Header>Archived</Message.Header>
+            <p>
+              Was archived <b>{blogitem.archived}</b>.<br />
+              Won't show up on indexing but can be viewed
+            </p>
+          </Message>
+        )}
         {blogitem && (
           <EditForm
             accessToken={this.props.accessToken}
