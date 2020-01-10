@@ -471,3 +471,15 @@ QUICKMETRICS_API_KEY = None
 # When asking the CDNPurgeURL model for the next URLs to send to CDN purgning.
 # This number limits the batch size.
 CDN_MAX_PURGE_URLS = 15
+
+
+# These parameters are very important and very tricky.
+# How you use them matters in terms of how you combine them.
+# If you use `BOOST_MODE=sum` the scoring is computed by:
+# `score = matchness_score + popularity * popularity_factor`
+# Since the popularity is always a number between 1 and 0, if a document
+# has virtually 0 (0.0000001) in popularity, the "matchess score" will dominate.
+# If you, however `BOOST_MODE=sum` but `POPULARITY_FACTOR=10000` that popularity
+# will start to influence more.
+DEFAULT_POPULARITY_FACTOR = 10.0
+DEFAULT_BOOST_MODE = "sum"

@@ -15,15 +15,15 @@
   <div class="fields">
     <div class="four wide field">
       <label>Query</label>
-      <input type="text" name="q" value="{{ q }}">
+      {{ debug_search_form.q }}
     </div>
     <div class="four wide field">
       <label>Popularity-factor</label>
-      <input type="text" name="popularity-factor" value="{{ popularity_factor }}"/>
+      {{ debug_search_form.popularity_factor }}
     </div>
     <div class="four wide field">
       <label>Boost-mode</label>
-      <input type="text" name="boost-mode" value="{{ boost_mode or 'multiply' }}"/>
+      {{ debug_search_form.boost_mode }}
     </div>
     <div class="four wide field">
       <label>&nbsp;</label>

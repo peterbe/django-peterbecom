@@ -45,7 +45,7 @@ from peterbecom.plog.models import (
     SpamCommentPattern,
 )
 from peterbecom.plog.utils import rate_blog_comment, valid_email  # move this some day
-
+from peterbecom.plog.popularity import score_to_popularity
 from .forms import (
     BlogCommentBatchForm,
     BlogFileUpload,
@@ -1208,8 +1208,9 @@ def blogitem_hits(request):
                 "pub_date": record.pub_date,
                 "hits": record.hits,
                 "age": record.age,
-                "popularity": record.popularity,
+                "popularity": record.popularity or 0.0,
                 "score": record.score,
+                "log10_score": score_to_popularity(record.score),
                 "_absolute_url": "/plog/{}".format(record.oid),
             }
         )

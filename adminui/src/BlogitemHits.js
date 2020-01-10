@@ -1,5 +1,5 @@
 import React from 'react';
-import { Header, Container, Loader, Table } from 'semantic-ui-react';
+import { Button, Header, Container, Loader, Table } from 'semantic-ui-react';
 
 import { filterToQueryString, ShowServerError } from './Common';
 import { BASE_URL } from './Config';
@@ -12,7 +12,8 @@ class BlogitemHits extends React.Component {
     hits: null,
     categories: null,
     summedCategoryScores: null,
-    filters: null
+    filters: null,
+    loadAll: false
   };
 
   componentDidMount() {
@@ -28,6 +29,10 @@ class BlogitemHits extends React.Component {
     let url = '/api/v0/plog/hits/';
     if (this.state.filters) {
       url += `?${filterToQueryString(this.state.filters)}`;
+    }
+    if (this.state.loadAll) {
+      url += url.includes('?') ? '&' : '?';
+      url += `limit=10000`;
     }
     try {
       response = await fetch(url, {
@@ -61,6 +66,7 @@ class BlogitemHits extends React.Component {
       loading,
       serverError,
       hits,
+      loadAll,
       categories,
       summedCategoryScores
     } = this.state;
@@ -82,6 +88,15 @@ class BlogitemHits extends React.Component {
         )}
 
         {hits && <Hits hits={hits} categories={categories} />}
+        {hits && !loadAll && !loading && (
+          <Button
+            onClick={() => {
+              this.setState({ loadAll: true, loading: true }, this.fetchHits);
+            }}
+          >
+            Load all
+          </Button>
+        )}
         {summedCategoryScores && (
           <Categories summedCategoryScores={summedCategoryScores} />
         )}
@@ -105,6 +120,9 @@ class Hits extends React.PureComponent {
               <abbr title="Document popularity">Pop</abbr>
             </Table.HeaderCell>
             <Table.HeaderCell>Score</Table.HeaderCell>
+            <Table.HeaderCell>
+              Log<sub>10</sub>(Score)
+            </Table.HeaderCell>
             <Table.HeaderCell>Hits</Table.HeaderCell>
             <Table.HeaderCell>Age (days)</Table.HeaderCell>
           </Table.Row>
@@ -137,6 +155,7 @@ class Hits extends React.PureComponent {
                 </Table.Cell>
                 <Table.Cell>{record.popularity.toFixed(4)}</Table.Cell>
                 <Table.Cell>{record.score.toFixed(1)}</Table.Cell>
+                <Table.Cell>{record.log10_score.toFixed(4)}</Table.Cell>
                 <Table.Cell>{record.hits}</Table.Cell>
                 <Table.Cell>{record.age}</Table.Cell>
               </Table.Row>
@@ -153,7 +172,7 @@ class Categories extends React.PureComponent {
     const { summedCategoryScores } = this.props;
 
     return (
-      <div>
+      <div style={{ marginTop: 50 }}>
         <Header as="h2">Categories</Header>
         <Table celled>
           <Table.Header>
