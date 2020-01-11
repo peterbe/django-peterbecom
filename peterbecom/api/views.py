@@ -1029,7 +1029,8 @@ def blogcomments_batch(request, action):
     form = BlogCommentBatchForm(data)
     if form.is_valid():
         context = {"approved": [], "deleted": []}
-        for comment in form.cleaned_data["comments"]:
+        # Important to always approve the (potential) parents before the children.
+        for comment in form.cleaned_data["comments"].order_by('add_date'):
             if action == "approve":
                 # This if statement is to protect against possible
                 # double submissions from the client.

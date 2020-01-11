@@ -27,6 +27,7 @@ class Command(BaseCommand):
             approved=False,
             add_date__gt=timezone.now() - datetime.timedelta(days=14),
             add_date__lt=timezone.now() - datetime.timedelta(hours=1),
+            blogitem__oid="blogitem-040601-1",
         )
 
         def print_comment(comment):
@@ -43,6 +44,9 @@ class Command(BaseCommand):
             if verbose:
                 print_comment(comment)
             if clues["good"] and not clues["bad"]:
+                if comment.parent and not comment.parent.approved:
+                    print("Parent not approved!")
+                    continue
                 if not verbose:
                     print_comment(comment)
 
