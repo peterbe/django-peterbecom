@@ -8,7 +8,7 @@ import {
   Loader,
   Comment,
   Flag,
-  List,
+  // List,
   Header,
   Icon,
   Select,
@@ -258,7 +258,7 @@ class Comments extends React.Component {
     const {
       loading,
       comments,
-      countries,
+      // countries,
       auto_approve_good_comments_records,
       serverError,
       unapprovedOnly,
@@ -380,9 +380,9 @@ class Comments extends React.Component {
           />
         )}
 
-        {countries && countries.length && !loading ? (
+        {/* {countries && countries.length && !loading ? (
           <ShowCountries countries={countries} />
-        ) : null}
+        ) : null} */}
 
         {comments && !loading && (
           <Button
@@ -856,38 +856,38 @@ class EditComment extends React.PureComponent {
   }
 }
 
-class ShowCountries extends React.PureComponent {
-  render() {
-    const { countries } = this.props;
-    return (
-      <div style={{ marginBottom: 40 }}>
-        <Header as="h3" dividing>
-          Countries of Commenters
-        </Header>
-        <List>
-          {countries.map(row => {
-            return (
-              <List.Item key={row.name}>
-                <List.Content>
-                  <List.Header>
-                    {[...Array(row.count).keys()].map(i => (
-                      <Flag
-                        key={`${row.country_code}${i}`}
-                        name={row.country_code.toLowerCase()}
-                        title={`${row.count} from ${row.name}`}
-                      />
-                    ))}
-                    {row.name} <small>({row.count})</small>
-                  </List.Header>
-                </List.Content>
-              </List.Item>
-            );
-          })}
-        </List>
-      </div>
-    );
-  }
-}
+// class ShowCountries extends React.PureComponent {
+//   render() {
+//     const { countries } = this.props;
+//     return (
+//       <div style={{ marginBottom: 40 }}>
+//         <Header as="h3" dividing>
+//           Countries of Commenters
+//         </Header>
+//         <List>
+//           {countries.map(row => {
+//             return (
+//               <List.Item key={row.name}>
+//                 <List.Content>
+//                   <List.Header>
+//                     {[...Array(row.count).keys()].map(i => (
+//                       <Flag
+//                         key={`${row.country_code}${i}`}
+//                         name={row.country_code.toLowerCase()}
+//                         title={`${row.count} from ${row.name}`}
+//                       />
+//                     ))}
+//                     {row.name} <small>({row.count})</small>
+//                   </List.Header>
+//                 </List.Content>
+//               </List.Item>
+//             );
+//           })}
+//         </List>
+//       </div>
+//     );
+//   }
+// }
 
 function ShowAutoApproveGoodComments({ records }) {
   if (!records || !records.records.length) {

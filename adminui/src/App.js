@@ -32,6 +32,7 @@ const LyricsPageHealthcheck = lazy(() => import('./LyricsPageHealthcheck'));
 const SpamCommentPatterns = lazy(() => import('./SpamCommentPatterns'));
 const GeoComments = lazy(() => import('./GeoComments'));
 const CommentCounts = lazy(() => import('./CommentCounts'));
+const CommentAutoApproveds = lazy(() => import('./CommentAutoApproveds'));
 
 // Not a 'const' because we're going to cheekily increase every time it
 // gets mutated later.
@@ -271,6 +272,12 @@ class App extends React.Component {
                     Counts
                   </DropdownLink>
                   <DropdownLink
+                    to="/plog/comments/auto-approved-records"
+                    style={{ color: '#000' }}
+                  >
+                    Auto Approved Records
+                  </DropdownLink>
+                  <DropdownLink
                     to="/plog/comments/geo"
                     style={{ color: '#000' }}
                   >
@@ -358,6 +365,12 @@ class App extends React.Component {
                   path="/plog/comments/counts"
                   exact
                   component={CommentCounts}
+                  accessToken={this.state.accessToken}
+                />
+                <SecureRoute
+                  path="/plog/comments/auto-approved-records"
+                  exact
+                  component={CommentAutoApproveds}
                   accessToken={this.state.accessToken}
                 />
                 <SecureRoute
