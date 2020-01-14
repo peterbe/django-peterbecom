@@ -67,6 +67,11 @@ class DashboardLinks extends React.PureComponent {
             <Link to="/plog/comments/counts">Comment Counts</Link>
           </Segment>
           <Segment>
+            <Link to="/plog/comments/auto-approved-records">
+              Auto Approved Records
+            </Link>
+          </Segment>
+          <Segment>
             <Link to="/plog/comments/geo">Geo Comments</Link>
           </Segment>
         </Segment.Group>

@@ -18,6 +18,7 @@ from django.shortcuts import get_object_or_404
 from django.template import Context
 from django.template.loader import get_template
 from django.urls import reverse
+from django.utils.timesince import timesince as django_timesince
 from django.utils import timezone
 from django.views.decorators.cache import cache_control, never_cache
 from django.views.decorators.http import require_POST
@@ -57,6 +58,10 @@ from .forms import (
     CommentCountsForm,
 )
 from .tasks import send_comment_reply_email
+
+
+def timesince(*args, **kwargs):
+    return django_timesince(*args, **kwargs).replace("\xa0", " ")
 
 
 def api_superuser_required(view_func):
@@ -964,59 +969,68 @@ def blogcomments(request):
     context["comments"].sort(key=lambda c: c["max_add_date"], reverse=True)
     context["oldest"] = oldest
 
-    countries_map = {}
+    # countries_map = {}
 
-    def gather_all_countries(comments):
-        for comment in comments:
-            if comment.get("location"):
-                country = comment["location"]["country_name"]
-                if not country:
-                    continue
-                if country not in countries_map:
-                    assert comment["location"]["country_code"], comment
-                    countries_map[country] = {
-                        "count": 0,
-                        "name": country,
-                        "country_code": comment["location"]["country_code"],
-                    }
-                countries_map[country]["count"] += 1
-            if comment.get("replies"):
-                gather_all_countries(comment["replies"])
+    # def gather_all_countries(comments):
+    #     for comment in comments:
+    #         if comment.get("location"):
+    #             country = comment["location"]["country_name"]
+    #             if not country:
+    #                 continue
+    #             if country not in countries_map:
+    #                 assert comment["location"]["country_code"], comment
+    #                 countries_map[country] = {
+    #                     "count": 0,
+    #                     "name": country,
+    #                     "country_code": comment["location"]["country_code"],
+    #                 }
+    #             countries_map[country]["count"] += 1
+    #         if comment.get("replies"):
+    #             gather_all_countries(comment["replies"])
 
-    gather_all_countries(context["comments"])
+    # gather_all_countries(context["comments"])
 
-    countries = sorted(countries_map.values(), key=lambda x: x["count"], reverse=True)
-    context["countries"] = countries
-
-    context[
-        "auto_approve_good_comments_records"
-    ] = _get_auto_approve_good_comments_records()
+    # countries = sorted(countries_map.values(), key=lambda x: x["count"], reverse=True)
+    # context["countries"] = countries
 
     return _response(context)
 
 
+@api_superuser_required
+def comment_auto_approved_records(request):
+    context = {
+        "records": _get_auto_approve_good_comments_records()
+    }
+    return _response(context)
+
+
 def _get_auto_approve_good_comments_records():
-    records = cache.get("auto-approve-good-comments", [])
+    records = []
+    for date, count in cache.get("auto-approve-good-comments", []):
+        records.append({
+            'date': date,
+            'count': count,
+            'human': timesince(date),
+        })
     median_frequency_minutes = None
     next_run = None
     if len(records) > 3:
         distances = []
         previous = latest = records[0]
         for i, record in enumerate(records[1:]):
+            distances.append(previous['date'] - record['date'])
             previous = record
-            distances.append(previous[0] - record[0])
         median_frequency = statistics.median(distances)
         median_frequency_minutes = int(median_frequency.total_seconds() / 60)
-        next_run = latest[0] + median_frequency
+        next_run = latest['date'] + median_frequency
         next_run_minutes = (next_run - timezone.now()).total_seconds() / 60
 
     return {
         "records": records,
         "median_frequency_minutes": median_frequency_minutes,
-        "next_run": next_run and {
-            "date": next_run,
-            "minutes": next_run_minutes
-        } or None
+        "next_run": next_run
+        and {"date": next_run, "minutes": next_run_minutes}
+        or None,
     }
 
 
@@ -1030,7 +1044,7 @@ def blogcomments_batch(request, action):
     if form.is_valid():
         context = {"approved": [], "deleted": []}
         # Important to always approve the (potential) parents before the children.
-        for comment in form.cleaned_data["comments"].order_by('add_date'):
+        for comment in form.cleaned_data["comments"].order_by("add_date"):
             if action == "approve":
                 # This if statement is to protect against possible
                 # double submissions from the client.
