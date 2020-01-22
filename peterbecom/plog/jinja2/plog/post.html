@@ -35,8 +35,11 @@
     {% endif %}
   {% endif %}
 
-  {% if '/plog/blogitem-040601-1' not in request.path  -%}
-  <link rel="prerender" href="https://songsear.ch/">
+  {% if '/plog/blogitem-040601-1' in request.path  -%}
+  {#
+    preload - works in iOS Safari (https://caniuse.com/#search=preload)
+  #}
+  <link rel="preload" href="https://songsear.ch/">
   {%- endif %}
 {% endblock %}
 
