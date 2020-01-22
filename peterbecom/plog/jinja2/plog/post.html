@@ -34,13 +34,13 @@
     {% endif %}
     {% endif %}
   {% endif %}
-
-  {% if '/plog/blogitem-040601-1' in request.path  -%}
+  {%- if '/plog/blogitem-040601-1' in request.path  -%}
   {#
-    preload - works in iOS Safari (https://caniuse.com/#search=preload)
+    preload - works in iOS Safari, but for assets like scripts and styles
+    prefetch -
   #}
-  <link rel="preload" href="https://songsear.ch/">
-  {%- endif %}
+  <link rel="prefetch" href="https://songsear.ch/">
+  {%- endif -%}
 {% endblock %}
 
 {% block title %}
