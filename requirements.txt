@@ -304,9 +304,9 @@ wcwidth==0.1.8 \
 zope.structuredtext==4.3 \
     --hash=sha256:b104e76b090179f11f0462ef7efb4d31378b0e4e20b1d844eae05d2da5e97d00 \
     --hash=sha256:59e8cac73e4d7e35b92411bb5d14cfef0ac651f495cebdf83f063f396abca29e
-redis==3.3.11 \
-    --hash=sha256:3613daad9ce5951e426f460deddd5caf469e08a3af633e9578fc77d362becf62 \
-    --hash=sha256:8d0fc278d3f5e1249967cba2eb4a5632d19e45ce5c09442b8422d15ee2c22cc2
+redis==3.4.0 \
+    --hash=sha256:7595976eb0b4e1fc3ad5478f1fd44215a814ee184a7820de92726f559bdff9cd \
+    --hash=sha256:e933bdb504c69cbd5bdf4e2bb819a99644a36731cef4c59aa637cebfd5ddd4f9
 dj-database-url==0.5.0 \
     --hash=sha256:851785365761ebe4994a921b433062309eb882fedd318e1b0fcecc607ed02da9 \
     --hash=sha256:4aeaeb1f573c74835b0686a2b46b85990571159ffc21aa57ecd4d1e1cb334163
