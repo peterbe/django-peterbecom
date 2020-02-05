@@ -4,33 +4,41 @@ from django.template.loader import render_to_string
 
 @library.global_function
 def awspa_product(awsproduct, show_action_button=False, hide_image=False):
-    def _fix_item(item):
-        for key in ("Feature", "Author"):
-            if item["ItemAttributes"].get(key) and isinstance(
-                item["ItemAttributes"][key], str
-            ):
-                item["ItemAttributes"][key] = [item["ItemAttributes"][key]]
 
     item = awsproduct.payload
-    _fix_item(item)
 
-    if not item["ItemAttributes"].get("ListPrice"):
-        print("SKIPPING BECAUSE NO LIST PRICE")
-        print(item)
-        # awsproduct.delete()
-        return ""
+    if awsproduct.paapiv5:
+        for key in list(item["prices"]):
+            value = item["prices"][key]
+            if isinstance(value, float):
+                item["prices"]["{}_formatted".format(key)] = "${:.2f}".format(value)
+    else:
 
-    if not item.get("MediumImage"):
-        print("SKIPPIING BECAUSE NO MediumImage")
-        print(item)
-        return ""
+        def _fix_item(item):
+            for key in ("Feature", "Author"):
+                if item["ItemAttributes"].get(key) and isinstance(
+                    item["ItemAttributes"][key], str
+                ):
+                    item["ItemAttributes"][key] = [item["ItemAttributes"][key]]
+
+        _fix_item(item)
+
+        if not item["ItemAttributes"].get("ListPrice"):
+            print("SKIPPING BECAUSE NO LIST PRICE")
+            print(item)
+            # awsproduct.delete()
+            return ""
+
+        if not item.get("MediumImage"):
+            print("SKIPPIING BECAUSE NO MediumImage")
+            print(item)
+            return ""
 
     # if not item['ItemAttributes'].get('Binding'):
     #     from pprint import pprint
     #     print("ITEM")
     #     pprint(item)
     #     print('-'* 100)
-
     html = render_to_string(
         "awspa/item.html",
         {

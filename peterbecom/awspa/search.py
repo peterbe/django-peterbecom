@@ -5,6 +5,11 @@ import tempfile
 import functools
 import shlex
 
+
+from amazon.paapi import AmazonAPI, Product
+from django.conf import settings
+
+
 import delegator
 
 from django.conf import settings
@@ -36,6 +41,10 @@ class RateLimitedError(Exception):
     """
 
 
+class NoProductFoundError(Exception):
+    """You do a lookup by an ASIN but nothing comes back"""
+
+
 def search(keyword, searchindex="All", sleep=0):
     output = _raw_search(keyword=keyword, searchindex=searchindex)
     if sleep > 0:
@@ -50,16 +59,35 @@ def search(keyword, searchindex="All", sleep=0):
     return products, None
 
 
+def product_to_dict(p):
+    assert isinstance(p, Product), type(p)
+    d = {}
+    for key in dir(p):
+        if key.startswith("_"):
+            continue
+        value = getattr(p, key)
+        if isinstance(value, Product):
+            value = product_to_dict(value)
+        d[key] = value
+    return d
+
+
 def lookup(asin, sleep=0):
-    output = _raw_search(asin=asin)
-    if sleep > 0:
-        time.sleep(sleep)
-    items = output["Items"]
-    errors = items["Request"].get("Errors")
-    if errors:
-        return [], errors["Error"]
-    product = items["Item"]
-    return product, None
+    amazon = AmazonAPI(
+        settings.AWS_PAAPI_ACCESS_KEY,
+        settings.AWS_PAAPI_ACCESS_SECRET,
+        settings.AWS_ASSOCIATE_TAG,
+        "US",
+    )
+    try:
+        product = amazon.get_product(asin)
+        if product is None:
+            raise NoProductFoundError(asin)
+        # XXX How do you get errors??
+        return product_to_dict(product), None
+    finally:
+        if sleep > 0:
+            time.sleep(sleep)
 
 
 @with_tmpdir

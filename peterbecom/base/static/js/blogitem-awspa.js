@@ -20,25 +20,29 @@
   }
 
   function loadAwspa(url) {
-    fetch(url).then(function(r) {
-      if (r.ok) {
-        r.text().then(function(response) {
-          container.html(response);
-          var imagesToLoad = 0;
-          $('img', container).each(function() {
-            imagesToLoad++;
-            var i = new Image();
-            i.onload = function() {
-              imagesToLoad--;
-              if (!imagesToLoad) {
-                fadeIn(container[0]);
-              }
-            };
-            i.src = this.src;
+    fetch(url)
+      .then(function(r) {
+        if (r.ok) {
+          r.text().then(function(response) {
+            container.html(response);
+            var imagesToLoad = 0;
+            $('img', container).each(function() {
+              imagesToLoad++;
+              var i = new Image();
+              i.onload = function() {
+                imagesToLoad--;
+                if (!imagesToLoad) {
+                  fadeIn(container[0]);
+                }
+              };
+              i.src = this.src;
+            });
           });
-        });
-      }
-    });
+        }
+      })
+      .catch(function(err) {
+        console.error('Failure to fetch', url, 'error:', err);
+      });
   }
   if ($ && window.fetch) {
     // only if jQuery has loaded and if window.fetch exists
