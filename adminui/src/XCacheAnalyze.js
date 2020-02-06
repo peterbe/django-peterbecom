@@ -10,6 +10,17 @@ class XCacheAnalyze extends React.PureComponent {
     serverError: null
   };
 
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.loading && !this.state.loading) {
+      if (this.props.finished) {
+        this.props.finished();
+      }
+    }
+    if (!prevProps.start && this.props.start && !this.state.loading) {
+      this.start();
+    }
+  }
+
   start = () => {
     this.setState({ loading: true, serverError: null }, async () => {
       const formData = new FormData();
@@ -97,15 +108,14 @@ function XCacheResults({ results }) {
                     Error
                   </Label>
                 )}
-                {data['x-cache'] &&
-                  !data.error && (
-                    <Label
-                      as="span"
-                      color={data['x-cache'].includes('HIT') ? 'green' : 'grey'}
-                    >
-                      {data['x-cache']}
-                    </Label>
-                  )}
+                {data['x-cache'] && !data.error && (
+                  <Label
+                    as="span"
+                    color={data['x-cache'].includes('HIT') ? 'green' : 'grey'}
+                  >
+                    {data['x-cache']}
+                  </Label>
+                )}
               </Table.Cell>
               <Table.Cell>
                 {data.ttfb && (
