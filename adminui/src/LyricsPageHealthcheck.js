@@ -212,7 +212,6 @@ function ShowHealth({ health, checkURL, accessToken }) {
     return false;
   }
 
-  console.log(xcacheAnalyzeAll);
   return (
     <div>
       <div style={{ textAlign: 'right' }}>
