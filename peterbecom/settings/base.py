@@ -483,3 +483,6 @@ CDN_MAX_PURGE_URLS = 15
 # will start to influence more.
 DEFAULT_POPULARITY_FACTOR = 10.0
 DEFAULT_BOOST_MODE = "sum"
+
+# Avoid DB reads and writes as much as possible
+DB_MAINTENANCE_MODE = False
