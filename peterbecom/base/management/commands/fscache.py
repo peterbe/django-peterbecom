@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.management import CommandError
 
 from peterbecom.base.basecommand import BaseCommand
@@ -34,6 +35,10 @@ class Command(BaseCommand):
         )
 
     def handle(self, **options):
+        if settings.DB_MAINTENANCE_MODE:
+            print("DB maintenance mode")
+            return
+
         invalidate_too_old(
             verbose=options["verbosity"] > 1,
             dry_run=options["dry_run"],

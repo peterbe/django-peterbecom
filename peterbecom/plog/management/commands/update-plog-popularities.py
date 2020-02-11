@@ -1,3 +1,5 @@
+from django.conf import settings
+
 from peterbecom.base.basecommand import BaseCommand
 from peterbecom.plog.popularity import update_all
 
@@ -19,6 +21,9 @@ class Command(BaseCommand):
         )
 
     def _handle(self, **options):
+        if settings.DB_MAINTENANCE_MODE:
+            print("DB maintenance mode")
+            return
         limit = int(options["limit"])
         verbose = int(options["verbosity"]) >= 2
         dry_run = options["dry_run"]

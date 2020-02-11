@@ -169,56 +169,119 @@ function ShowLoopCountdown({ nextFetch }) {
 }
 
 function ShowHealth({ health, checkURL, accessToken }) {
+  const [xcacheAnalyzeAll, setXCacheAnalyzeAll] = React.useState(null);
+
+  function startAllXCacheAnalyze() {
+    const todo = new Map();
+    health.forEach((page, i) => {
+      todo.set(page.url, i === 0);
+    });
+    setXCacheAnalyzeAll(todo);
+  }
+
+  function stopAllXCacheAnalyze() {
+    setXCacheAnalyzeAll(null);
+  }
+
+  function nextAllXCacheAnalyze(url) {
+    if (xcacheAnalyzeAll === null) {
+      // It has been stopped!
+      return;
+    }
+    const todo = new Map();
+    let first = true;
+    for (let u of xcacheAnalyzeAll.keys()) {
+      if (u !== url) {
+        todo.set(u, first);
+        first = false;
+      }
+    }
+    if (!todo.size) {
+      // Start over!
+      health.forEach((page, i) => {
+        todo.set(page.url, i === 0);
+      });
+    }
+    setXCacheAnalyzeAll(todo);
+  }
+
+  function isAutoStart(url) {
+    if (xcacheAnalyzeAll) {
+      return xcacheAnalyzeAll.get(url) || false;
+    }
+    return false;
+  }
+
   return (
-    <Segment.Group>
-      {health.map(page => {
-        let color = '';
-        let name = '';
-        if (page.health === 'WARNING') {
-          color = 'orange';
-          name = 'warning sign';
-        } else if (page.health === 'ERROR') {
-          color = 'red';
-          name = 'thumbs down';
-        } else if (page.health === 'OK') {
-          color = 'green';
-          name = 'thumbs up';
-        } else {
-          throw new Error(`Unrecognized enum ${page.health}`);
-        }
-        return (
-          <Segment key={page.url}>
-            <a href={page.url}>{page.url}</a>{' '}
-            <a
-              href={`/cdn?url=${encodeURI(page.url)}`}
-              rel="noopener noreferrer"
-              target="_blank"
-              title="Do a CDN probe"
-            >
-              <small>(CDN probe)</small>
-            </a>{' '}
-            <Button
-              size="mini"
-              onClick={event => {
-                checkURL(page.url);
-              }}
-            >
-              Check again
-            </Button>{' '}
-            <Icon name={name} color={color} size="large" />{' '}
-            <small>took {`${(1000 * page.took).toFixed(1)}ms`}</small>
-            {page.errors && page.errors.length ? (
-              <ShowErrors errors={page.errors} />
-            ) : null}{' '}
-            <XCacheAnalyze
-              accessToken={accessToken}
-              url={page.url}
-              minimalButton={true}
-            />
-          </Segment>
-        );
-      })}
-    </Segment.Group>
+    <div>
+      <div style={{ textAlign: 'right' }}>
+        <Button
+          onClick={event => {
+            startAllXCacheAnalyze();
+          }}
+          disabled={!!xcacheAnalyzeAll}
+        >
+          X-Cache Analyze All
+        </Button>
+        {!!xcacheAnalyzeAll && (
+          <Button onClick={() => stopAllXCacheAnalyze()}>Stop</Button>
+        )}
+      </div>
+
+      <Segment.Group>
+        {health.map(page => {
+          let color = '';
+          let name = '';
+          if (page.health === 'WARNING') {
+            color = 'orange';
+            name = 'warning sign';
+          } else if (page.health === 'ERROR') {
+            color = 'red';
+            name = 'thumbs down';
+          } else if (page.health === 'OK') {
+            color = 'green';
+            name = 'thumbs up';
+          } else {
+            throw new Error(`Unrecognized enum ${page.health}`);
+          }
+          return (
+            <Segment key={page.url}>
+              <a href={page.url}>{page.url}</a>{' '}
+              <a
+                href={`/cdn?url=${encodeURI(page.url)}`}
+                rel="noopener noreferrer"
+                target="_blank"
+                title="Do a CDN probe"
+              >
+                <small>(CDN probe)</small>
+              </a>{' '}
+              <Button
+                size="mini"
+                onClick={event => {
+                  checkURL(page.url);
+                }}
+              >
+                Check again
+              </Button>{' '}
+              <Icon name={name} color={color} size="large" />{' '}
+              <small>took {`${(1000 * page.took).toFixed(1)}ms`}</small>
+              {page.errors && page.errors.length ? (
+                <ShowErrors errors={page.errors} />
+              ) : null}{' '}
+              <XCacheAnalyze
+                accessToken={accessToken}
+                url={page.url}
+                start={isAutoStart(page.url)}
+                finished={() => {
+                  nextAllXCacheAnalyze(page.url);
+                }}
+                minimalButton={true}
+              />
+            </Segment>
+          );
+        })}
+      </Segment.Group>
+    </div>
   );
 }
 
