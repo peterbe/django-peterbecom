@@ -24,7 +24,7 @@ from django.views.decorators.cache import cache_control, never_cache
 from django.views.decorators.http import require_POST
 
 from peterbecom.awspa.models import AWSProduct
-from peterbecom.awspa.search import search as awspa_search
+from peterbecom.awspa.search import search as awspa_search, lookup as awspa_lookup
 from peterbecom.awspa.templatetags.jinja_helpers import awspa_product
 from peterbecom.base.cdn import (
     get_cdn_config,
@@ -56,6 +56,7 @@ from .forms import (
     PreviewBlogForm,
     SpamCommentPatternForm,
     CommentCountsForm,
+    AWSPAFilterForm,
 )
 from .tasks import send_comment_reply_email
 
@@ -377,7 +378,7 @@ def _post_thumbnails(blogitem):
 
 
 @api_superuser_required
-def awspa(request, oid):
+def plog_awspa(request, oid):
     blogitem = get_object_or_404(BlogItem, oid=oid)
 
     if request.method == "POST":
@@ -385,6 +386,15 @@ def awspa(request, oid):
             keyword = request.POST["keyword"]
             searchindex = request.POST["searchindex"]
             load_more_awsproducts(keyword, searchindex)
+        elif request.POST.get("refresh"):
+            id = request.POST["id"]
+            awsproduct = get_object_or_404(AWSProduct, id=id)
+            payload, error = awspa_lookup(awsproduct.asin)
+            if error:
+                raise NotImplementedError(error)
+            awsproduct.payload = payload
+            awsproduct.paapiv5 = True
+            awsproduct.save()
         else:
             id = request.POST["id"]
             awsproduct = get_object_or_404(AWSProduct, id=id)
@@ -412,6 +422,7 @@ def awspa(request, oid):
                     "title": product.title,
                     "add_date": product.add_date,
                     "modify_date": product.modify_date,
+                    "paapiv5": product.paapiv5,
                     "_new": product.add_date > recently,
                 }
             )
@@ -433,16 +444,18 @@ def load_more_awsproducts(keyword, searchindex):
     new = []
 
     for item in items:
-        item.pop("ImageSets", None)
+        # item.pop("ImageSets", None)
         # print('=' * 100)
         # pprint(item)
-        asin = item["ASIN"]
-        title = item["ItemAttributes"]["Title"]
-        if not item["ItemAttributes"].get("ListPrice"):
+        asin = item["asin"]
+        assert asin, item
+        title = item["item_info"]["title"]["display_value"]
+        assert title, item
+        if not item["offers"]["listings"]:
             print("SKIPPING BECAUSE NO LIST PRICE")
             print(item)
             continue
-        if not item.get("MediumImage"):
+        if not item["images"]["primary"]["medium"]:
             print("SKIPPING BECAUSE NO MEDIUM IMAGE")
             print(item)
             continue
@@ -461,10 +474,126 @@ def load_more_awsproducts(keyword, searchindex):
                 keyword=keyword,
                 searchindex=searchindex,
                 disabled=True,
+                paapiv5=True,
             )
             new.append(awsproduct)
 
     return new
+
+
+@api_superuser_required
+def awspa_items(request):
+    qs = AWSProduct.objects.all()
+    form = AWSPAFilterForm(request.GET)
+    if not form.is_valid():
+        return http.HttpResponseBadRequest(form.errors)
+
+    if form.cleaned_data["title"]:
+        qs = qs.filter(
+            Q(title__icontains=form.cleaned_data["title"])
+            | Q(asin=form.cleaned_data["title"])
+        )
+    if form.cleaned_data["disabled"]:
+        qs = qs.filter(disabled=True)
+    elif form.cleaned_data["disabled"] is False:  # ! None
+        qs = qs.exclude(disabled=True)
+    if form.cleaned_data["keyword"]:
+        qs = qs.filter(keyword=form.cleaned_data["keyword"])
+    if form.cleaned_data["searchindex"]:
+        qs = qs.filter(searchindex=form.cleaned_data["searchindex"])
+
+    all_keywords = []
+    for x in (
+        AWSProduct.objects.all()
+        .order_by("keyword")
+        .values("keyword")
+        .annotate(count=Count("keyword"))
+    ):
+        all_keywords.append({"value": x["keyword"], "count": x["count"]})
+    all_searchindexes = []
+    for x in (
+        AWSProduct.objects.all()
+        .order_by("searchindex")
+        .values("searchindex")
+        .annotate(count=Count("searchindex"))
+    ):
+        all_searchindexes.append({"value": x["searchindex"], "count": x["count"]})
+    context = {
+        "products": [],
+        "count": qs.count(),
+        "all_keywords": all_keywords,
+        "all_searchindexes": all_searchindexes,
+    }
+    page = int(request.GET.get("page", 1))
+    batch_size = int(request.GET.get("batch_size", 5))
+    n, m = ((page - 1) * batch_size, page * batch_size)
+    for product in qs.order_by("-add_date")[n:m]:
+        context["products"].append(
+            {
+                "id": product.id,
+                "html": awspa_product(product),
+                "payload": product.payload,
+                "modify_date": product.modify_date,
+                "add_date": product.add_date,
+                "title": product.title,
+                "paapiv5": product.paapiv5,
+                "disabled": product.disabled,
+                "keyword": product.keyword,
+                "searchindex": product.searchindex,
+                "asin": product.asin,
+            }
+        )
+
+    return _response(context)
+
+
+@api_superuser_required
+def awspa_item(request, id):
+    product = get_object_or_404(AWSProduct, id=id)
+
+    if request.method == "POST":
+        if request.POST.get("refresh"):
+            payload, error = awspa_lookup(product.asin)
+            if error:
+                raise NotImplementedError(error)
+            product.payload = payload
+            product.paapiv5 = True
+            product.save()
+
+        elif request.POST.get("disable"):
+            product.disabled = not product.disabled
+            product.save()
+
+        else:
+            raise NotImplementedError
+
+    context = {
+        "id": product.id,
+        "html": awspa_product(product),
+        "payload": product.payload,
+        "modify_date": product.modify_date,
+        "add_date": product.add_date,
+        "title": product.title,
+        "paapiv5": product.paapiv5,
+        "disabled": product.disabled,
+        "keyword": product.keyword,
+        "searchindex": product.searchindex,
+        "asin": product.asin,
+        "same_asin": [],
+    }
+    for p in AWSProduct.objects.exclude(id=product.id).filter(asin=product.asin):
+        context["same_asin"].append(
+            {
+                "id": p.id,
+                "title": p.title,
+                "modify_date": p.modify_date,
+                "add_date": p.add_date,
+                "paapiv5": p.paapiv5,
+                "disabled": p.disabled,
+            }
+        )
+
+    return _response(context)
 
 
 @api_superuser_required
@@ -998,31 +1127,25 @@ def blogcomments(request):
 
 @api_superuser_required
 def comment_auto_approved_records(request):
-    context = {
-        "records": _get_auto_approve_good_comments_records()
-    }
+    context = {"records": _get_auto_approve_good_comments_records()}
     return _response(context)
 
 
 def _get_auto_approve_good_comments_records():
     records = []
     for date, count in cache.get("auto-approve-good-comments", []):
-        records.append({
-            'date': date,
-            'count': count,
-            'human': timesince(date),
-        })
+        records.append({"date": date, "count": count, "human": timesince(date)})
     median_frequency_minutes = None
     next_run = None
     if len(records) > 3:
         distances = []
         previous = latest = records[0]
         for i, record in enumerate(records[1:]):
-            distances.append(previous['date'] - record['date'])
+            distances.append(previous["date"] - record["date"])
             previous = record
         median_frequency = statistics.median(distances)
         median_frequency_minutes = int(median_frequency.total_seconds() / 60)
-        next_run = latest['date'] + median_frequency
+        next_run = latest["date"] + median_frequency
         next_run_minutes = (next_run - timezone.now()).total_seconds() / 60
 
     return {

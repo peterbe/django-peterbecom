@@ -9,7 +9,7 @@ import {
   Segment,
   Select
 } from 'semantic-ui-react';
-
+import { Link } from 'react-router-dom';
 import { BlogitemBreadcrumb, DisplayDate, ShowServerError } from './Common';
 
 class AWSPABlogitem extends React.Component {
@@ -57,6 +57,35 @@ class AWSPABlogitem extends React.Component {
     let response;
     const formData = new FormData();
     formData.append('id', id);
+    try {
+      response = await fetch(`/api/v0/plog/${oid}/awspa`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          Authorization: `Bearer ${this.props.accessToken}`
+        }
+      });
+    } catch (ex) {
+      return this.setState({ loading: false, serverError: ex });
+    }
+    this.setState({ loading: false });
+    if (response.ok) {
+      const data = await response.json();
+      this.setState({ products: data.products, serverError: null });
+    } else {
+      this.setState({ serverError: response });
+    }
+  };
+
+  refreshProduct = async id => {
+    if (!this.props.accessToken) {
+      throw new Error('No accessToken');
+    }
+    const oid = this.props.match.params.oid;
+    let response;
+    const formData = new FormData();
+    formData.append('id', id);
+    formData.append('refresh', true);
     try {
       response = await fetch(`/api/v0/plog/${oid}/awspa`, {
         method: 'POST',
@@ -164,6 +193,8 @@ class AWSPABlogitem extends React.Component {
                 products={products}
                 searchMore={this.searchMore}
                 toggleDisable={this.toggleDisable}
+                refreshProduct={this.refreshProduct}
+                oid={oid}
               />
             ))}
           </div>
@@ -180,13 +211,17 @@ function ShowKeywordProduct({
   keyword,
   products,
   searchMore,
-  toggleDisable
+  toggleDisable,
+  refreshProduct,
+  oid
 }) {
   const [searchindex, setSearchindex] = React.useState('Books');
   const [searching, setSearching] = React.useState(false);
+
   React.useEffect(() => {
     if (searching) setSearching(false);
   }, [products, searching]);
+
   const searchIndexOptions = [
     { key: 'Books', text: 'Books', value: 'Books' },
     { key: 'All', text: 'All', value: 'All' }
@@ -261,8 +296,26 @@ function ShowKeywordProduct({
               >
                 Delete
               </Button>
+              <Button
+                onClick={event => refreshProduct(product.id)}
+                type="button"
+              >
+                Refresh
+              </Button>
               <b>Added:</b> <DisplayDate date={product.add_date} />{' '}
               <b>Modified:</b> <DisplayDate date={product.modify_date} />{' '}
+              <b>PAAPIv5:</b>{' '}
+              {product.paapiv5 ? (
+                <span aria-label="check" role="img">
+                  ✅
+                </span>
+              ) : (
+                <span aria-label="no" role="img">
+                  ❌
+                </span>
+              )}{' '}
+              <b>ASIN:</b>{' '}
+              <Link to={`/awspa/${product.id}?oid=${oid}`}>{product.asin}</Link>
             </div>
           ];
         })}

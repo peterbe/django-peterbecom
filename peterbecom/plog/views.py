@@ -177,8 +177,7 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
             context["previous_post"] = None
         try:
             context["next_post"] = post.get_next_by_pub_date(
-                pub_date__lt=timezone.now(),
-                archived__isnull=True,
+                pub_date__lt=timezone.now(), archived__isnull=True,
             )
         except BlogItem.DoesNotExist:
             context["next_post"] = None
@@ -308,8 +307,9 @@ def get_related_posts_by_keyword(post, limit=5):
         return BlogItem.objects.none()
     return (
         BlogItem.objects.filter(
-            proper_keywords__overlap=post.proper_keywords, pub_date__lt=timezone.now(),
-            archived__isnull=True
+            proper_keywords__overlap=post.proper_keywords,
+            pub_date__lt=timezone.now(),
+            archived__isnull=True,
         )
         .exclude(id=post.id)
         .order_by("-pub_date")[:limit]
@@ -586,13 +586,25 @@ def blog_post_awspa(request, oid, page=None):
     instances = []
     seen = set()
     for awsproduct in awsproducts:
+        if not awsproduct.paapiv5 and 'peterbecom.local' in request.get_host():
+            print("CONVERTING", awsproduct.asin)
+            from copy import copy
+            payload_before = copy(awsproduct.payload)
+            try:
+                awsproduct.convert_to_paapiv5()
+            except Exception:
+                print("PAYLOAD BEFORE:")
+                from pprint import pprint
+                pprint(payload_before)
+                raise
+            awsproduct.refresh_from_db()
 
         # Disable any that don't have a MediumImage any more.
         if isinstance(awsproduct.payload, list):
             # Something must have gone wrong
             awsproduct.delete()
             continue
-        if not awsproduct.payload.get("MediumImage"):
+        if not awsproduct.payload.get("MediumImage") and not awsproduct.paapiv5:
             awsproduct.disabled = True
             awsproduct.save()
 

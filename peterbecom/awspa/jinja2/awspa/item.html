@@ -1,60 +1,146 @@
-<a href="{{ item.DetailPageURL }}" class="ui tiny image">
-  {% if hide_image %}
-  <img class="placeholder"
-        src="https://via.placeholder.com/130x160"
-        data-src="{{ item.MediumImage.URL }}"
-        alt="{{ item.ItemAttributes.Title }}"/>
-  {% else %}
-  <img src="{{ item.MediumImage.URL }}" alt="{{ item.ItemAttributes.Title }}"/>
+{% if awsproduct.paapiv5 %}
+
+
+{#
+<pre>
+  {{ json_print(item, indent=2, sort_keys=True) }}
+</pre>
+#}
+
+  {# THE NEW STUFF #}
+
+  <a href="{{ item.detail_page_url }}" class="ui tiny image">
+    {% if hide_image %}
+    <img class="placeholder"
+          src="https://via.placeholder.com/130x160"
+          data-src="{{ item.image_medium }}"
+          alt="{{ item.title }}"/>
+    {% else %}
+    <img src="{{ item.medium_image }}" alt="{{ item.title }}"/>
+    {% endif %}
+  </a>
+  <div class="content">
+    <a href="{{ item.detail_page_url }}" class="header">{{ item.title }}</a>
+    <div class="meta">
+      {% if item.display_price %}
+      <span class="price" style="font-weight:bold;color:#b12704;">
+        {{ item.display_price }}
+      </span>
+      {% endif %}
+      {% if item.authors %}
+      <span class="authors">By <b>{{ item.authors|join(', ') }}</b></span><br/>
+      {% elif item.brand %}
+      <span class="item-brand">By <b>{{ item.brand }}</b></span><br/>
+      {% endif %}
+    </div>
+    <div class="description">
+
+      {#{% if item.category == 'Book' %}#}
+        {% if item.item_info.content_info and item.item_info.content_info.publication_date %}
+          <b>Publication Date:</b> {{ item.item_info.content_info.publication_date.display_value }}<br />
+        {% endif %}
+        {% if item.item_info.classifications and item.item_info.classifications.binding %}
+          <b>Binding:</b> {{ item.item_info.classifications.binding.display_value }}<br />
+        {% endif %}
+        {% if item.item_info.content_info and item.item_info.content_info.pages_count %}
+          <b>Number of Pages:</b> {{ item.item_info.content_info.pages_count.display_value }}<br />
+        {% endif %}
+      {#{% endif %}#}
+
+      {#
+      {% elif item.ItemAttributes.Feature %}
+        <ul style="padding-left:14px">
+          {% for feature in item.ItemAttributes.Feature %}
+          <li>
+            {{ feature }}
+          </li>
+          {% endfor %}
+        </ul>
+      {% elif item.ItemAttributes.ProductGroup == 'Movie' or item.ItemAttributes.ProductGroup == 'DVD' %}
+        {% if item.ItemAttributes.ReleaseDate %}
+          <b>Release Date:</b> {{ item.ItemAttributes.ReleaseDate }}<br />
+        {% endif %}
+        {% if item.ItemAttributes.Genre %}
+          <b>Genre:</b> {{ item.ItemAttributes.Genre }}<br />
+        {% endif %}
+        {% if item.ItemAttributes.Director %}
+          <b>Director:</b> {{ item.ItemAttributes.Director }}<br />
+        {% endif %}
+      {% else %}
+      <pre>
+        {{ json_print(item.ItemAttributes, indent=2, sort_keys=True) }}
+      </pre>
+      {% endif %}
+      #}
+
+    </div>
+  </div>
+
+
+{% else %}
+
+
+  {# THE LEGACY STUFF #}
+  <a href="{{ item.DetailPageURL }}" class="ui tiny image">
+    {% if hide_image %}
+    <img class="placeholder"
+          src="https://via.placeholder.com/130x160"
+          data-src="{{ item.MediumImage.URL }}"
+          alt="{{ item.ItemAttributes.Title }}"/>
+    {% else %}
+    <img src="{{ item.MediumImage.URL }}" alt="{{ item.ItemAttributes.Title }}"/>
+    {% endif %}
+  </a>
+  <div class="content">
+    <a href="{{ item.DetailPageURL }}" class="header">{{ item.ItemAttributes.Title }}</a>
+    <div class="meta">
+      <span class="price" style="font-weight:bold;color:#b12704;">
+        {{ item.ItemAttributes.ListPrice.FormattedPrice }}
+      </span>
+      {% if item.ItemAttributes.Author %}
+      <span class="authors">By <b>{{ item.ItemAttributes.Author|join(', ') }}</b></span><br/>
+      {% elif item.ItemAttributes.Brand %}
+      <span class="authorsx">By <b>{{ item.ItemAttributes.Brand }}</b></span><br/>
+      {% else %}
+      <span class="authorsx">Product Group <b>{{ item.ItemAttributes.ProductGroup }}</b></span><br/>
+      {% endif %}
+    </div>
+    <div class="description">
+      {% if item.ItemAttributes.ProductGroup == 'Book' %}
+        {% if item.ItemAttributes.PublicationDate %}
+          <b>Publication Date:</b> {{ item.ItemAttributes.PublicationDate }}<br />
+        {% endif %}
+        {% if item.ItemAttributes.Binding %}
+          <b>Binding:</b> {{ item.ItemAttributes.Binding }}<br />
+        {% endif %}
+        {% if item.ItemAttributes.NumberOfPages %}
+          <b>Number of Pages:</b> {{ item.ItemAttributes.NumberOfPages }}<br />
+        {% endif %}
+      {% elif item.ItemAttributes.Feature %}
+        <ul style="padding-left:14px">
+          {% for feature in item.ItemAttributes.Feature %}
+          <li>
+            {{ feature }}
+          </li>
+          {% endfor %}
+        </ul>
+      {% elif item.ItemAttributes.ProductGroup == 'Movie' or item.ItemAttributes.ProductGroup == 'DVD' %}
+        {% if item.ItemAttributes.ReleaseDate %}
+          <b>Release Date:</b> {{ item.ItemAttributes.ReleaseDate }}<br />
+        {% endif %}
+        {% if item.ItemAttributes.Genre %}
+          <b>Genre:</b> {{ item.ItemAttributes.Genre }}<br />
+        {% endif %}
+        {% if item.ItemAttributes.Director %}
+          <b>Director:</b> {{ item.ItemAttributes.Director }}<br />
+        {% endif %}
+      {% else %}
+      <pre>
+        {{ json_print(item.ItemAttributes, indent=2, sort_keys=True) }}
+      </pre>
+      {% endif %}
+    </div>
+  </div>
+
+
   {% endif %}
-</a>
-<div class="content">
-  <a href="{{ item.DetailPageURL }}" class="header">{{ item.ItemAttributes.Title }}</a>
-  <div class="meta">
-    <span class="price" style="font-weight:bold;color:#b12704;">
-      {{ item.ItemAttributes.ListPrice.FormattedPrice }}
-    </span>
-    {% if item.ItemAttributes.Author %}
-    <span class="authors">By <b>{{ item.ItemAttributes.Author|join(', ') }}</b></span><br/>
-    {% elif item.ItemAttributes.Brand %}
-    <span class="authorsx">By <b>{{ item.ItemAttributes.Brand }}</b></span><br/>
-    {% else %}
-    <span class="authorsx">Product Group <b>{{ item.ItemAttributes.ProductGroup }}</b></span><br/>
-    {% endif %}
-  </div>
-  <div class="description">
-    {% if item.ItemAttributes.ProductGroup == 'Book' %}
-      {% if item.ItemAttributes.PublicationDate %}
-        <b>Publication Date:</b> {{ item.ItemAttributes.PublicationDate }}<br />
-      {% endif %}
-      {% if item.ItemAttributes.Binding %}
-        <b>Binding:</b> {{ item.ItemAttributes.Binding }}<br />
-      {% endif %}
-      {% if item.ItemAttributes.NumberOfPages %}
-        <b>Number of Pages:</b> {{ item.ItemAttributes.NumberOfPages }}<br />
-      {% endif %}
-    {% elif item.ItemAttributes.Feature %}
-      <ul style="padding-left:14px">
-        {% for feature in item.ItemAttributes.Feature %}
-        <li>
-          {{ feature }}
-        </li>
-        {% endfor %}
-      </ul>
-    {% elif item.ItemAttributes.ProductGroup == 'Movie' or item.ItemAttributes.ProductGroup == 'DVD' %}
-      {% if item.ItemAttributes.ReleaseDate %}
-        <b>Release Date:</b> {{ item.ItemAttributes.ReleaseDate }}<br />
-      {% endif %}
-      {% if item.ItemAttributes.Genre %}
-        <b>Genre:</b> {{ item.ItemAttributes.Genre }}<br />
-      {% endif %}
-      {% if item.ItemAttributes.Director %}
-        <b>Director:</b> {{ item.ItemAttributes.Director }}<br />
-      {% endif %}
-    {% else %}
-    <pre>
-      {{ json_print(item.ItemAttributes, indent=2, sort_keys=True) }}
-    </pre>
-    {% endif %}
-  </div>
-</div>

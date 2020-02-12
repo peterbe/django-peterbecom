@@ -4,32 +4,40 @@ from django.template.loader import render_to_string
 
 @library.global_function
 def awspa_product(awsproduct, show_action_button=False, hide_image=False):
-    def _fix_item(item):
-        for key in ("Feature", "Author"):
-            if item["ItemAttributes"].get(key) and isinstance(
-                item["ItemAttributes"][key], str
-            ):
-                item["ItemAttributes"][key] = [item["ItemAttributes"][key]]
 
     item = awsproduct.payload
-    _fix_item(item)
 
-    if not item["ItemAttributes"].get("ListPrice"):
-        print("SKIPPING BECAUSE NO LIST PRICE")
-        print(item)
-        # awsproduct.delete()
-        return ""
+    if awsproduct.paapiv5:
+        item["title"] = item["item_info"]["title"]["display_value"]
+        item["display_price"] = item["offers"]["listings"][0]["price"]["display_amount"]
+        item["medium_image"] = item["images"]["primary"]["medium"]["url"]
+        by_line_info = item["item_info"].get("by_line_info") or {}
+        item["authors"] = [x["name"] for x in by_line_info.get("contributors", [])]
+        item["brand"] = (by_line_info.get("brand") or {}).get("display_value")
+        item["category"] = item["item_info"]["classifications"]["product_group"][
+            "display_value"
+        ]
+    else:
 
-    if not item.get("MediumImage"):
-        print("SKIPPIING BECAUSE NO MediumImage")
-        print(item)
-        return ""
+        def _fix_item(item):
+            for key in ("Feature", "Author"):
+                if item["ItemAttributes"].get(key) and isinstance(
+                    item["ItemAttributes"][key], str
+                ):
+                    item["ItemAttributes"][key] = [item["ItemAttributes"][key]]
 
-    # if not item['ItemAttributes'].get('Binding'):
-    #     from pprint import pprint
-    #     print("ITEM")
-    #     pprint(item)
-    #     print('-'* 100)
+        _fix_item(item)
+
+        if not item["ItemAttributes"].get("ListPrice"):
+            print("SKIPPING BECAUSE NO LIST PRICE")
+            print(item)
+            # awsproduct.delete()
+            return ""
+
+        if not item.get("MediumImage"):
+            print("SKIPPIING BECAUSE NO MediumImage")
+            print(item)
+            return ""
 
     html = render_to_string(
         "awspa/item.html",

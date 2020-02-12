@@ -3,6 +3,8 @@ from django.db.models.signals import pre_save
 from django.contrib.postgres.fields import JSONField
 from django.dispatch import receiver
 
+from .search import lookup
+
 
 class AWSProduct(models.Model):
     keyword = models.CharField(max_length=200, db_index=True)
@@ -13,6 +15,7 @@ class AWSProduct(models.Model):
     title = models.CharField(max_length=300)
     add_date = models.DateTimeField(auto_now_add=True)
     modify_date = models.DateTimeField(auto_now=True)
+    paapiv5 = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ("keyword", "asin", "searchindex")
@@ -21,6 +24,19 @@ class AWSProduct(models.Model):
         return "<{} {} {!r}>".format(
             self.__class__.__name__, self.asin, self.title[:70]
         )
+
+    def convert_to_paapiv5(self, sleep=0):
+        assert not self.paapiv5
+
+        payload, errors = lookup(self.asin, sleep=sleep)
+        if errors:
+            raise NotImplementedError(errors)
+        assert payload
+        # That 'offers' thing is a OfferSummary object which is Yuck!
+        payload.pop("offers", None)
+        self.payload = payload
+        self.paapiv5 = True
+        self.save()
 
 
 @receiver(pre_save, sender=AWSProduct)
