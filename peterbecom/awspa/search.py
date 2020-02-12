@@ -1,31 +1,12 @@
-import time
-import json
-import os
-import tempfile
-import functools
-import shlex
-
-
-from amazon.paapi import AmazonAPI, Product
 from django.conf import settings
 
-
-import delegator
-
-from django.conf import settings
-
-
-def with_tmpdir(f):
-    @functools.wraps(f)
-    def inner(*args, **kwargs):
-        with tempfile.TemporaryDirectory() as dir_:
-            return f(dir_, *args, **kwargs)
-
-    return inner
-
-
-class SubprocessError(Exception):
-    """Happens when the subprocess fails"""
+# from vendored.paapi5_python_sdk.rest import ApiException
+from vendored.paapi5_python_sdk.api.default_api import DefaultApi
+from vendored.paapi5_python_sdk.partner_type import PartnerType
+from vendored.paapi5_python_sdk.search_items_request import SearchItemsRequest
+from vendored.paapi5_python_sdk.get_items_request import GetItemsRequest
+# from vendored.paapi5_python_sdk.get_items_resource import GetItemsResource
+from vendored.paapi5_python_sdk.search_items_resource import SearchItemsResource
 
 
 class BadSearchResult(Exception):
@@ -41,85 +22,155 @@ class RateLimitedError(Exception):
     """
 
 
-class NoProductFoundError(Exception):
-    """You do a lookup by an ASIN but nothing comes back"""
+"""
+# Everything in SearchItemsResource
+
+BrowseNodeInfo.BrowseNodes                         -> BROWSENODEINFO_BROWSENODES
+BrowseNodeInfo.BrowseNodes.Ancestor                -> BROWSENODEINFO_BROWSENODES_ANCESTOR
+BrowseNodeInfo.BrowseNodes.SalesRank               -> BROWSENODEINFO_BROWSENODES_SALESRANK
+BrowseNodeInfo.WebsiteSalesRank                    -> BROWSENODEINFO_WEBSITESALESRANK
+Images.Primary.Large                               -> IMAGES_PRIMARY_LARGE
+Images.Primary.Medium                              -> IMAGES_PRIMARY_MEDIUM
+Images.Primary.Small                               -> IMAGES_PRIMARY_SMALL
+Images.Variants.Large                              -> IMAGES_VARIANTS_LARGE
+Images.Variants.Medium                             -> IMAGES_VARIANTS_MEDIUM
+Images.Variants.Small                              -> IMAGES_VARIANTS_SMALL
+ItemInfo.ByLineInfo                                -> ITEMINFO_BYLINEINFO
+ItemInfo.Classifications                           -> ITEMINFO_CLASSIFICATIONS
+ItemInfo.ContentInfo                               -> ITEMINFO_CONTENTINFO
+ItemInfo.ContentRating                             -> ITEMINFO_CONTENTRATING
+ItemInfo.ExternalIds                               -> ITEMINFO_EXTERNALIDS
+ItemInfo.Features                                  -> ITEMINFO_FEATURES
+ItemInfo.ManufactureInfo                           -> ITEMINFO_MANUFACTUREINFO
+ItemInfo.ProductInfo                               -> ITEMINFO_PRODUCTINFO
+ItemInfo.TechnicalInfo                             -> ITEMINFO_TECHNICALINFO
+ItemInfo.Title                                     -> ITEMINFO_TITLE
+ItemInfo.TradeInInfo                               -> ITEMINFO_TRADEININFO
+Offers.Listings.Availability.MaxOrderQuantity      -> OFFERS_LISTINGS_AVAILABILITY_MAXORDERQUANTITY
+Offers.Listings.Availability.Message               -> OFFERS_LISTINGS_AVAILABILITY_MESSAGE
+Offers.Listings.Availability.MinOrderQuantity      -> OFFERS_LISTINGS_AVAILABILITY_MINORDERQUANTITY
+Offers.Listings.Availability.Type                  -> OFFERS_LISTINGS_AVAILABILITY_TYPE
+Offers.Listings.Condition                          -> OFFERS_LISTINGS_CONDITION
+Offers.Listings.Condition.SubCondition             -> OFFERS_LISTINGS_CONDITION_SUBCONDITION
+Offers.Listings.DeliveryInfo.IsAmazonFulfilled     -> OFFERS_LISTINGS_DELIVERYINFO_ISAMAZONFULFILLED
+Offers.Listings.DeliveryInfo.IsFreeShippingEligible -> OFFERS_LISTINGS_DELIVERYINFO_ISFREESHIPPINGELIGIBLE
+Offers.Listings.DeliveryInfo.IsPrimeEligible       -> OFFERS_LISTINGS_DELIVERYINFO_ISPRIMEELIGIBLE
+Offers.Listings.DeliveryInfo.ShippingCharges       -> OFFERS_LISTINGS_DELIVERYINFO_SHIPPINGCHARGES
+Offers.Listings.IsBuyBoxWinner                     -> OFFERS_LISTINGS_ISBUYBOXWINNER
+Offers.Listings.LoyaltyPoints.Points               -> OFFERS_LISTINGS_LOYALTYPOINTS_POINTS
+Offers.Listings.MerchantInfo                       -> OFFERS_LISTINGS_MERCHANTINFO
+Offers.Listings.Price                              -> OFFERS_LISTINGS_PRICE
+Offers.Listings.ProgramEligibility.IsPrimeExclusive -> OFFERS_LISTINGS_PROGRAMELIGIBILITY_ISPRIMEEXCLUSIVE
+Offers.Listings.ProgramEligibility.IsPrimePantry   -> OFFERS_LISTINGS_PROGRAMELIGIBILITY_ISPRIMEPANTRY
+Offers.Listings.Promotions                         -> OFFERS_LISTINGS_PROMOTIONS
+Offers.Listings.SavingBasis                        -> OFFERS_LISTINGS_SAVINGBASIS
+Offers.Summaries.HighestPrice                      -> OFFERS_SUMMARIES_HIGHESTPRICE
+Offers.Summaries.LowestPrice                       -> OFFERS_SUMMARIES_LOWESTPRICE
+Offers.Summaries.OfferCount                        -> OFFERS_SUMMARIES_OFFERCOUNT
+ParentASIN                                         -> PARENTASIN
+RentalOffers.Listings.Availability.MaxOrderQuantity -> RENTALOFFERS_LISTINGS_AVAILABILITY_MAXORDERQUANTITY
+RentalOffers.Listings.Availability.Message         -> RENTALOFFERS_LISTINGS_AVAILABILITY_MESSAGE
+RentalOffers.Listings.Availability.MinOrderQuantity -> RENTALOFFERS_LISTINGS_AVAILABILITY_MINORDERQUANTITY
+RentalOffers.Listings.Availability.Type            -> RENTALOFFERS_LISTINGS_AVAILABILITY_TYPE
+RentalOffers.Listings.BasePrice                    -> RENTALOFFERS_LISTINGS_BASEPRICE
+RentalOffers.Listings.Condition                    -> RENTALOFFERS_LISTINGS_CONDITION
+RentalOffers.Listings.Condition.SubCondition       -> RENTALOFFERS_LISTINGS_CONDITION_SUBCONDITION
+RentalOffers.Listings.DeliveryInfo.IsAmazonFulfilled -> RENTALOFFERS_LISTINGS_DELIVERYINFO_ISAMAZONFULFILLED
+RentalOffers.Listings.DeliveryInfo.IsFreeShippingEligible -> RENTALOFFERS_LISTINGS_DELIVERYINFO_ISFREESHIPPINGELIGIBLE
+RentalOffers.Listings.DeliveryInfo.IsPrimeEligible -> RENTALOFFERS_LISTINGS_DELIVERYINFO_ISPRIMEELIGIBLE
+RentalOffers.Listings.DeliveryInfo.ShippingCharges -> RENTALOFFERS_LISTINGS_DELIVERYINFO_SHIPPINGCHARGES
+RentalOffers.Listings.MerchantInfo                 -> RENTALOFFERS_LISTINGS_MERCHANTINFO
+SearchRefinements                                  -> SEARCHREFINEMENTS
+"""
 
 
-def search(keyword, searchindex="All", sleep=0):
-    output = _raw_search(keyword=keyword, searchindex=searchindex)
-    if sleep > 0:
-        time.sleep(sleep)
-    items = output["Items"]
-    errors = items["Request"].get("Errors")
-    if errors:
-        return [], errors["Error"]
-    products = items["Item"]
-    if isinstance(products, dict):
-        products = [products]
-    return products, None
-
-
-def product_to_dict(p):
-    assert isinstance(p, Product), type(p)
-    d = {}
-    for key in dir(p):
-        if key.startswith("_"):
-            continue
-        value = getattr(p, key)
-        if isinstance(value, Product):
-            value = product_to_dict(value)
-        d[key] = value
-    return d
+def search(keyword, searchindex="All", sleep=0, item_count=10):
+    return _search(keyword=keyword, searchindex=searchindex, item_count=item_count)
 
 
 def lookup(asin, sleep=0):
-    amazon = AmazonAPI(
-        settings.AWS_PAAPI_ACCESS_KEY,
-        settings.AWS_PAAPI_ACCESS_SECRET,
-        settings.AWS_ASSOCIATE_TAG,
-        "US",
-    )
-    try:
-        product = amazon.get_product(asin)
-        if product is None:
-            raise NoProductFoundError(asin)
-        # XXX How do you get errors??
-        return product_to_dict(product), None
-    finally:
-        if sleep > 0:
-            time.sleep(sleep)
+    return _search(asin=asin)
 
 
-@with_tmpdir
-def _raw_search(tmpdir, asin=None, keyword=None, searchindex=None):
-    with open("/tmp/awspa-searches.log", "a") as f:
-        line = "{}\tasin={!r}\tkeyword={!r}\tsearchindex={!r}\n".format(
-            int(time.time()), asin, keyword, searchindex
-        )
-        f.write(line)
-        print("AWSPA_SEARCH:", line)
-    filename = os.path.join(tmpdir, "out.json")
-    cli_path = settings.BASE_DIR / "awspa/cli.js"
+def _search(asin=None, keyword=None, searchindex=None, item_count=10, sleep=0):
+    assert asin or keyword
+    default_api = _get_api()
+
+    # https://webservices.amazon.com/paapi5/documentation/use-cases/organization-of-items-on-amazon/search-index.html
+    # search_index = "All"
+    # search_index = "Books"
+
+    # item_count = 3
+
+    # https://webservices.amazon.com/paapi5/documentation/search-items.html#resources-parameter
+    search_items_resource = _get_search_items_resources()
+    # # print(dir(SearchItemsResource))
+    # dbg = sorted(
+    #     [
+    #         (getattr(SearchItemsResource, x), x)
+    #         for x in dir(SearchItemsResource)
+    #         if x.isupper()
+    #     ]
+    # )
+    # for v, x in dbg:
+    #     print("{} -> {}".format(v.ljust(50), x))
+    # dbg = sorted(
+    #     [
+    #         (getattr(GetItemsResource, x), x)
+    #         for x in dir(GetItemsResource)
+    #         if x.isupper()
+    #     ]
+    # )
+    # for v, x in dbg:
+    #     print("{} -> {}".format(v.ljust(50), x))
+
     if asin:
-        command = "node {} --asin={} --out={}".format(cli_path, asin, filename)
+        get_items_request = GetItemsRequest(
+            partner_tag=settings.AWS_ASSOCIATE_TAG,
+            partner_type=PartnerType.ASSOCIATES,
+            item_ids=[asin],
+            resources=search_items_resource,
+        )
+        response = default_api.get_items(get_items_request)
+        for item in response.items_result.items:
+            return item.to_dict(), None
+        return None, "nothing found"  # :)
     else:
-        assert keyword
-        assert searchindex
-        command = 'node {} --searchindex={} --out={} "{}"'.format(
-            cli_path, searchindex, filename, shlex.quote(keyword)
+        search_items_request = SearchItemsRequest(
+            partner_tag=settings.AWS_ASSOCIATE_TAG,
+            partner_type=PartnerType.ASSOCIATES,
+            keywords=keyword,
+            search_index=searchindex,
+            item_count=item_count,
+            resources=search_items_resource,
         )
-    # print(command)
-    r = delegator.run(command)
-    if r.return_code:
-        err_out = r.err
-        if "You are submitting requests too quickly" in err_out:
-            raise RateLimitedError(err_out)
-        raise SubprocessError(
-            "Return code: {}\tError: {}".format(r.return_code, err_out)
-        )
-    with open(filename) as f:
-        out = f.read()
-    try:
-        return json.loads(out)
-    except json.decoder.JSONDecodeError:
-        raise BadSearchResult(out)
+        response = default_api.search_items(search_items_request)
+        products = []
+        for search_result in response.search_result.items:
+            products.append(search_result.to_dict())
+        return products, None
+
+
+def _get_api():
+    return DefaultApi(
+        access_key=settings.AWS_PAAPI_ACCESS_KEY,
+        secret_key=settings.AWS_PAAPI_ACCESS_SECRET,
+        host="webservices.amazon.com",
+        region="us-east-1",
+    )
+
+
+def _get_search_items_resources():
+    return [
+        SearchItemsResource.ITEMINFO_TITLE,
+        SearchItemsResource.ITEMINFO_PRODUCTINFO,
+        SearchItemsResource.ITEMINFO_TECHNICALINFO,
+        SearchItemsResource.ITEMINFO_FEATURES,
+        SearchItemsResource.ITEMINFO_CLASSIFICATIONS,
+        SearchItemsResource.ITEMINFO_BYLINEINFO,
+        SearchItemsResource.ITEMINFO_CONTENTINFO,
+        SearchItemsResource.IMAGES_PRIMARY_LARGE,
+        SearchItemsResource.IMAGES_PRIMARY_MEDIUM,
+        # SearchItemsResource.IMAGES_PRIMARY_SMALL,
+        SearchItemsResource.OFFERS_LISTINGS_PRICE,
+    ]

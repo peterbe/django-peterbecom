@@ -33,6 +33,8 @@ const SpamCommentPatterns = lazy(() => import('./SpamCommentPatterns'));
 const GeoComments = lazy(() => import('./GeoComments'));
 const CommentCounts = lazy(() => import('./CommentCounts'));
 const CommentAutoApproveds = lazy(() => import('./CommentAutoApproveds'));
+const AWSPA = lazy(() => import('./AWSPA'));
+const AWSPAItem = lazy(() => import('./AWSPAItem'));
 
 // Not a 'const' because we're going to cheekily increase every time it
 // gets mutated later.
@@ -445,6 +447,18 @@ class App extends React.Component {
                   path="/lyrics-page-healthcheck"
                   exact
                   component={LyricsPageHealthcheck}
+                  accessToken={this.state.accessToken}
+                />
+                <SecureRoute
+                  path="/awspa"
+                  exact
+                  component={AWSPA}
+                  accessToken={this.state.accessToken}
+                />
+                <SecureRoute
+                  path="/awspa/:id"
+                  exact
+                  component={AWSPAItem}
                   accessToken={this.state.accessToken}
                 />
 

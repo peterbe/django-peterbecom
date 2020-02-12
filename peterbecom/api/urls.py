@@ -42,11 +42,13 @@ urlpatterns = [
     url(
         r"^plog/(.*)/open-graph-image$", views.open_graph_image, name="open_graph_image"
     ),
-    url(r"^plog/(.*)/awspa$", views.awspa, name="awspa"),
+    url(r"^plog/(.*)/awspa$", views.plog_awspa, name="plog_awspa"),
     url(r"^plog/(.*)$", views.blogitem, name="blogitem"),
     url(r"^categories/?$", views.categories, name="categories"),
     url(r"^postprocessings/", views.postprocessings, name="postprocessings"),
     url(r"^searchresults/", views.searchresults, name="searchresults"),
+    url(r"^awspa$", views.awspa_items, name="awspa_items"),
+    url(r"^awspa/(?P<id>\d+)$", views.awspa_item, name="awspa_item"),
     url(r"^cdn/check", views.cdn_check, name="cdn_check"),
     url(r"^cdn/config", views.cdn_config, name="cdn_config"),
     url(

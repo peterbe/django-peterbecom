@@ -7,6 +7,7 @@ from django.forms.widgets import Textarea
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
+from peterbecom.awspa.models import AWSProduct
 from peterbecom.plog.models import (
     BlogFile,
     BlogItem,
@@ -150,3 +151,25 @@ class SpamCommentPatternForm(forms.ModelForm):
 class CommentCountsForm(forms.Form):
     start = ISODateTimeField()
     end = ISODateTimeField()
+
+
+class AWSPAFilterForm(forms.ModelForm):
+
+    disabled = forms.CharField(required=False)
+
+    class Meta:
+        model = AWSProduct
+        fields = ("paapiv5", "title", "keyword", "searchindex")
+
+    def __init__(self, *args, **kwargs):
+        super(AWSPAFilterForm, self).__init__(*args, **kwargs)
+        for field in self.fields:
+            self.fields[field].required = False
+
+    def clean_disabled(self):
+        value = self.cleaned_data["disabled"]
+        if value == "true":
+            return True
+        elif value == "false":
+            return False
+        return value

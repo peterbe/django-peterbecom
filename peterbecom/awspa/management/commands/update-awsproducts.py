@@ -74,5 +74,6 @@ class Command(BaseCommand):
                 dumb_diff(awsproduct.payload, payload)
 
             awsproduct.payload = payload
+            awsproduct.paapiv5 = True
             awsproduct.save()
             print()
