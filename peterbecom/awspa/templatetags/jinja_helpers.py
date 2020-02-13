@@ -8,8 +8,23 @@ def awspa_product(awsproduct, show_action_button=False, hide_image=False):
     item = awsproduct.payload
 
     if awsproduct.paapiv5:
+        if not item.get("offers"):
+            print("SKIPPING BECAUSE NO offers")
+            return ""
+
         item["title"] = item["item_info"]["title"]["display_value"]
-        item["display_price"] = item["offers"]["listings"][0]["price"]["display_amount"]
+        try:
+            item["display_price"] = item["offers"]["listings"][0]["price"][
+                "display_amount"
+            ]
+        except KeyError:
+            from pprint import pprint
+
+            print("PROBLEM WITH OFFERS...")
+            print(repr(awsproduct))
+            pprint(item)
+            print()
+            raise
         item["medium_image"] = item["images"]["primary"]["medium"]["url"]
         by_line_info = item["item_info"].get("by_line_info") or {}
         item["authors"] = [x["name"] for x in by_line_info.get("contributors", [])]

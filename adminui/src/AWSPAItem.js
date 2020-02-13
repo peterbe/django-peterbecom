@@ -247,7 +247,19 @@ function ShowItem({ toggleDisable, refreshProduct, loading, data }) {
 
       <Header as="h2">Preview</Header>
       <div className="ui divided items">
-        <div className="item" dangerouslySetInnerHTML={{ __html: data.html }} />
+        {data.html ? (
+          <div
+            className="item"
+            dangerouslySetInnerHTML={{ __html: data.html }}
+          />
+        ) : (
+          <div>
+            <Header as="h4" style={{ color: 'red' }}>
+              Preview Error!
+            </Header>
+            <pre>{data.html_error}</pre>
+          </div>
+        )}
       </div>
 
       {data.same_asin && data.same_asin.length ? (
