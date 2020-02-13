@@ -1,16 +1,15 @@
 from django.conf import settings
 
-# from vendored.paapi5_python_sdk.rest import ApiException
-from vendored.paapi5_python_sdk.api.default_api import DefaultApi
-from vendored.paapi5_python_sdk.partner_type import PartnerType
-from vendored.paapi5_python_sdk.search_items_request import SearchItemsRequest
-from vendored.paapi5_python_sdk.get_items_request import GetItemsRequest
-# from vendored.paapi5_python_sdk.get_items_resource import GetItemsResource
-from vendored.paapi5_python_sdk.search_items_resource import SearchItemsResource
+from paapi5_python_sdk.rest import ApiException
+from paapi5_python_sdk.api.default_api import DefaultApi
+from paapi5_python_sdk.partner_type import PartnerType
+from paapi5_python_sdk.search_items_request import SearchItemsRequest
+from paapi5_python_sdk.get_items_request import GetItemsRequest
+from paapi5_python_sdk.search_items_resource import SearchItemsResource
 
 
-class BadSearchResult(Exception):
-    """Happens when the output from the subprocess isn't valid."""
+class NothingFoundError(Exception):
+    """Happens when you search for something and there are no search results."""
 
 
 class RateLimitedError(Exception):
@@ -131,10 +130,17 @@ def _search(asin=None, keyword=None, searchindex=None, item_count=10, sleep=0):
             item_ids=[asin],
             resources=search_items_resource,
         )
-        response = default_api.get_items(get_items_request)
-        for item in response.items_result.items:
-            return item.to_dict(), None
-        return None, "nothing found"  # :)
+        try:
+            response = default_api.get_items(get_items_request)
+        except ApiException as exception:
+            if exception.status == 429:
+                raise RateLimitedError(exception.reason)
+            raise
+            return None, str(exception)
+        if response.items_result:
+            for item in response.items_result.items:
+                return item.to_dict(), None
+        raise NothingFoundError
     else:
         search_items_request = SearchItemsRequest(
             partner_tag=settings.AWS_ASSOCIATE_TAG,

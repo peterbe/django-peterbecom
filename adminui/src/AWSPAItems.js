@@ -19,7 +19,8 @@ class AWSPA extends React.Component {
     data: null,
     serverError: null,
     filters: {},
-    batchsize: JSON.parse(localStorage.getItem('awspabatchsize') || '10')
+    batchsize: JSON.parse(localStorage.getItem('awspabatchsize') || '10'),
+    page: 1
   };
 
   componentDidMount() {
@@ -40,6 +41,7 @@ class AWSPA extends React.Component {
         url += '&disabled=false';
       }
       url += `&batch_size=${this.state.batchsize}`;
+      url += `&page=${this.state.page}`;
 
       try {
         response = await fetch(url, {
@@ -98,6 +100,30 @@ class AWSPA extends React.Component {
     });
   };
 
+  deleteProduct = id => {
+    if (!this.props.accessToken) {
+      throw new Error('No accessToken');
+    }
+    this.setState({ loading: true }, async () => {
+      let response;
+      try {
+        response = await fetch(`/api/v0/awspa/${id}`, {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${this.props.accessToken}`
+          }
+        });
+      } catch (ex) {
+        return this.setState({ loading: false, serverError: ex });
+      }
+      if (response.ok) {
+        this.setState({ serverError: null }, this.fetch);
+      } else {
+        this.setState({ serverError: response, loading: false });
+      }
+    });
+  };
+
   toggleDisable = id => {
     if (!this.props.accessToken) {
       throw new Error('No accessToken');
@@ -126,14 +152,14 @@ class AWSPA extends React.Component {
   };
 
   render() {
-    const { loading, data, batchsize, filters, serverError } = this.state;
+    const { loading, data, batchsize, filters, serverError, page } = this.state;
     const loadingStyle = {};
     if (loading && !data) {
       loadingStyle.margin = '200px 0';
     }
     return (
       <Container>
-        {loading && (
+        {loading && !data && (
           <Loader
             active
             content="Loading AWSPA Items..."
@@ -142,8 +168,14 @@ class AWSPA extends React.Component {
             style={loadingStyle}
           />
         )}
+
         <ShowServerError error={serverError} />
-        {data && <Header as="h1">AWS Affiliate Products ({data.count})</Header>}
+        {data && (
+          <Header as="h1">
+            AWS Affiliate Products ({data.count})
+            {loading && <Loader active inline />}
+          </Header>
+        )}
         {data && (
           <ShowTable
             filters={filters}
@@ -160,11 +192,14 @@ class AWSPA extends React.Component {
         {data && (
           <Pagination
             boundaryRange={0}
-            defaultActivePage={1}
+            activePage={page}
             ellipsisItem={null}
             firstItem={null}
             lastItem={null}
             siblingRange={1}
+            onPageChange={(e, { activePage }) => {
+              this.setState({ page: activePage }, this.fetch);
+            }}
             totalPages={Math.floor(data.count / this.state.batchsize)}
           />
         )}
@@ -313,13 +348,28 @@ function ShowProducts({
         if (product.disabled) {
           style.opacity = 0.35;
         }
+        let preview;
+        if (product.html) {
+          preview = (
+            <div
+              key={product.id}
+              style={style}
+              className="item"
+              dangerouslySetInnerHTML={{ __html: product.html }}
+            />
+          );
+        } else {
+          preview = (
+            <div key={product.id} style={style}>
+              <Header as="h4" style={{ color: 'red' }}>
+                Preview Error!
+              </Header>
+              <pre>{product.html_error}</pre>
+            </div>
+          );
+        }
         return [
-          <div
-            key={product.id}
-            style={style}
-            className="item"
-            dangerouslySetInnerHTML={{ __html: product.html }}
-          />,
+          preview,
           <div key={`${product.id}:buttons`} style={{ marginBottom: 20 }}>
             <Button onClick={event => toggleDisable(product.id)} type="button">
               {product.disabled ? 'Enable' : 'Disable'}

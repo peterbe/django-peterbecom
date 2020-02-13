@@ -9,7 +9,6 @@ exclude=
     peterbecom/settings/__init__.py,
     peterbecom/settings/local.py,
     peterbecom/wsgi.py,
-    vendored
     .git,
     __pycache__,
     # Sphinx docs is best left as is

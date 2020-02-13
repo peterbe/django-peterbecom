@@ -21,6 +21,7 @@ from django.views.decorators.http import require_http_methods, require_POST
 from huey.contrib.djhuey import task
 
 from peterbecom.awspa.models import AWSProduct
+from peterbecom.awspa.search import RateLimitedError
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
 from peterbecom.base.utils import get_base_url
 
@@ -574,9 +575,6 @@ def blog_post_awspa(request, oid, page=None):
 
     keywords = blogitem.get_all_keywords()
     if not keywords:
-        # print("Blog post without any keywords", oid)
-        # with open("/tmp/no-keywords-awsproducts.log", "a") as f:
-        #     f.write("{}\n".format(oid))
         awsproducts = AWSProduct.objects.none()
     else:
         awsproducts = AWSProduct.objects.exclude(disabled=True).filter(
@@ -585,18 +583,20 @@ def blog_post_awspa(request, oid, page=None):
 
     instances = []
     seen = set()
+    ratelimited = False
     for awsproduct in awsproducts:
-        if not awsproduct.paapiv5 and 'peterbecom.local' in request.get_host():
+        if (
+            not awsproduct.paapiv5
+            and "peterbecom.local" in request.get_host()
+            and not ratelimited
+        ):
             print("CONVERTING", awsproduct.asin)
-            from copy import copy
-            payload_before = copy(awsproduct.payload)
             try:
-                awsproduct.convert_to_paapiv5()
-            except Exception:
-                print("PAYLOAD BEFORE:")
-                from pprint import pprint
-                pprint(payload_before)
-                raise
+                awsproduct.convert_to_paapiv5(sleep=1)
+            except RateLimitedError:
+                print("Rate limited!")
+                ratelimited = True
+                continue
             awsproduct.refresh_from_db()
 
         # Disable any that don't have a MediumImage any more.

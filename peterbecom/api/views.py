@@ -24,7 +24,11 @@ from django.views.decorators.cache import cache_control, never_cache
 from django.views.decorators.http import require_POST
 
 from peterbecom.awspa.models import AWSProduct
-from peterbecom.awspa.search import search as awspa_search, lookup as awspa_lookup
+from peterbecom.awspa.search import (
+    search as awspa_search,
+    lookup as awspa_lookup,
+    NothingFoundError,
+)
 from peterbecom.awspa.templatetags.jinja_helpers import awspa_product
 from peterbecom.base.cdn import (
     get_cdn_config,
@@ -412,9 +416,15 @@ def plog_awspa(request, oid):
         qs = AWSProduct.objects.filter(keyword__iexact=keyword)
         recently = timezone.now() - datetime.timedelta(seconds=60)
         for product in qs.order_by("disabled", "-modify_date"):
+            html = html_error = None
+            try:
+                html = awspa_product(product)
+            except Exception as exception:
+                html_error = str(repr(exception))
             context["products"][keyword].append(
                 {
-                    "html": awspa_product(product),
+                    "html": html,
+                    "html_error": html_error,
                     "id": product.id,
                     "searchindex": product.searchindex,
                     "asin": product.asin,
@@ -444,9 +454,6 @@ def load_more_awsproducts(keyword, searchindex):
     new = []
 
     for item in items:
-        # item.pop("ImageSets", None)
-        # print('=' * 100)
-        # pprint(item)
         asin = item["asin"]
         assert asin, item
         title = item["item_info"]["title"]["display_value"]
@@ -528,10 +535,16 @@ def awspa_items(request):
     batch_size = int(request.GET.get("batch_size", 5))
     n, m = ((page - 1) * batch_size, page * batch_size)
     for product in qs.order_by("-add_date")[n:m]:
+        html = html_error = None
+        try:
+            html = awspa_product(product)
+        except Exception as exception:
+            html_error = str(repr(exception))
         context["products"].append(
             {
                 "id": product.id,
-                "html": awspa_product(product),
+                "html": html,
+                "html_error": html_error,
                 "payload": product.payload,
                 "modify_date": product.modify_date,
                 "add_date": product.add_date,
@@ -553,12 +566,15 @@ def awspa_item(request, id):
 
     if request.method == "POST":
         if request.POST.get("refresh"):
-            payload, error = awspa_lookup(product.asin)
-            if error:
-                raise NotImplementedError(error)
-            product.payload = payload
-            product.paapiv5 = True
-            product.save()
+            try:
+                payload, error = awspa_lookup(product.asin)
+            except NothingFoundError:
+                product.disabled = True
+                product.save()
+            else:
+                product.payload = payload
+                product.paapiv5 = True
+                product.save()
 
         elif request.POST.get("disable"):
             product.disabled = not product.disabled
@@ -566,10 +582,19 @@ def awspa_item(request, id):
 
         else:
             raise NotImplementedError
+    elif request.method == "DELETE":
+        product.delete()
+        return _response({"ok": True})
 
+    html = html_error = None
+    try:
+        html = awspa_product(product)
+    except Exception as exception:
+        html_error = str(repr(exception))
     context = {
         "id": product.id,
-        "html": awspa_product(product),
+        "html": html,
+        "html_error": html_error,
         "payload": product.payload,
         "modify_date": product.modify_date,
         "add_date": product.add_date,

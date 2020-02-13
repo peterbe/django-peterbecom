@@ -33,7 +33,7 @@ const SpamCommentPatterns = lazy(() => import('./SpamCommentPatterns'));
 const GeoComments = lazy(() => import('./GeoComments'));
 const CommentCounts = lazy(() => import('./CommentCounts'));
 const CommentAutoApproveds = lazy(() => import('./CommentAutoApproveds'));
-const AWSPA = lazy(() => import('./AWSPA'));
+const AWSPAItems = lazy(() => import('./AWSPAItems'));
 const AWSPAItem = lazy(() => import('./AWSPAItem'));
 
 // Not a 'const' because we're going to cheekily increase every time it
@@ -452,7 +452,7 @@ class App extends React.Component {
                 <SecureRoute
                   path="/awspa"
                   exact
-                  component={AWSPA}
+                  component={AWSPAItems}
                   accessToken={this.state.accessToken}
                 />
                 <SecureRoute
