@@ -10,28 +10,29 @@ def awspa_product(awsproduct, show_action_button=False, hide_image=False):
     if awsproduct.paapiv5:
         if not item.get("offers"):
             print("SKIPPING BECAUSE NO offers")
+            print(repr(awsproduct))
             return ""
 
-        item["title"] = item["item_info"]["title"]["display_value"]
         try:
+            item["title"] = item["item_info"]["title"]["display_value"]
             item["display_price"] = item["offers"]["listings"][0]["price"][
                 "display_amount"
             ]
-        except KeyError:
+            item["medium_image"] = item["images"]["primary"]["medium"]["url"]
+            by_line_info = item["item_info"].get("by_line_info") or {}
+            item["authors"] = [x["name"] for x in by_line_info.get("contributors", [])]
+            item["brand"] = (by_line_info.get("brand") or {}).get("display_value")
+            item["category"] = item["item_info"]["classifications"]["product_group"][
+                "display_value"
+            ]
+        except Exception:
             from pprint import pprint
 
-            print("PROBLEM WITH OFFERS...")
+            print("PROBLEM WITH SHORTCUTS!...")
             print(repr(awsproduct))
             pprint(item)
             print()
             raise
-        item["medium_image"] = item["images"]["primary"]["medium"]["url"]
-        by_line_info = item["item_info"].get("by_line_info") or {}
-        item["authors"] = [x["name"] for x in by_line_info.get("contributors", [])]
-        item["brand"] = (by_line_info.get("brand") or {}).get("display_value")
-        item["category"] = item["item_info"]["classifications"]["product_group"][
-            "display_value"
-        ]
     else:
 
         def _fix_item(item):
