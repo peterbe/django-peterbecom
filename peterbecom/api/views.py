@@ -504,10 +504,18 @@ def awspa_items(request):
         qs = qs.filter(disabled=True)
     elif form.cleaned_data["disabled"] is False:  # ! None
         qs = qs.exclude(disabled=True)
+
+    if form.cleaned_data["converted"]:
+        qs = qs.filter(paapiv5=True)
+    elif form.cleaned_data["converted"] is False:  # ! None
+        qs = qs.exclude(paapiv5=True)
+
     if form.cleaned_data["keyword"]:
         qs = qs.filter(keyword=form.cleaned_data["keyword"])
     if form.cleaned_data["searchindex"]:
         qs = qs.filter(searchindex=form.cleaned_data["searchindex"])
+
+    order_by = form.cleaned_data["order_by"] or "-add_date"
 
     all_keywords = []
     for x in (
@@ -534,7 +542,7 @@ def awspa_items(request):
     page = int(request.GET.get("page", 1))
     batch_size = int(request.GET.get("batch_size", 5))
     n, m = ((page - 1) * batch_size, page * batch_size)
-    for product in qs.order_by("-add_date")[n:m]:
+    for product in qs.order_by(order_by)[n:m]:
         html = html_error = None
         try:
             html = awspa_product(product)

@@ -1,4 +1,5 @@
 import datetime
+import re
 
 from django import forms
 from django.db.models import Count
@@ -156,6 +157,8 @@ class CommentCountsForm(forms.Form):
 class AWSPAFilterForm(forms.ModelForm):
 
     disabled = forms.CharField(required=False)
+    converted = forms.CharField(required=False)
+    order_by = forms.CharField(required=False)
 
     class Meta:
         model = AWSProduct
@@ -172,4 +175,18 @@ class AWSPAFilterForm(forms.ModelForm):
             return True
         elif value == "false":
             return False
+        return value
+
+    def clean_converted(self):
+        value = self.cleaned_data["converted"]
+        if value == "true":
+            return True
+        elif value == "false":
+            return False
+        return value
+
+    def clean_order_by(self):
+        value = self.cleaned_data["order_by"]
+        if re.sub(r"^-?", "", value) not in ("add_date", "modify_date"):
+            raise forms.ValidationError("not valid value")
         return value

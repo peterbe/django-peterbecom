@@ -272,8 +272,10 @@ function ShowHealth({ health, checkURL, accessToken }) {
                 accessToken={accessToken}
                 url={page.url}
                 start={isAutoStart(page.url)}
-                finished={() => {
-                  nextAllXCacheAnalyze(page.url);
+                finished={error => {
+                  if (!error) {
+                    nextAllXCacheAnalyze(page.url);
+                  }
                 }}
                 minimalButton={true}
               />

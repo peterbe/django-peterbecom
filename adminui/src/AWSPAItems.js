@@ -19,8 +19,9 @@ class AWSPA extends React.Component {
     data: null,
     serverError: null,
     filters: {},
-    batchsize: JSON.parse(localStorage.getItem('awspabatchsize') || '10'),
-    page: 1
+    batchsize: JSON.parse(localStorage.getItem('awspa:batchsize') || '10'),
+    page: 1,
+    orderBy: localStorage.getItem('awspa:orderby') || '-add_date'
   };
 
   componentDidMount() {
@@ -34,15 +35,23 @@ class AWSPA extends React.Component {
     }
     this.setState({ loading: true }, async () => {
       let response;
-      let url = '/api/v0/awspa';
-      url += `?${filterToQueryString(this.state.filters)}`;
-      if (this.state.filters.disabled === false) {
-        // hacky exception
-        url += '&disabled=false';
-      }
-      url += `&batch_size=${this.state.batchsize}`;
-      url += `&page=${this.state.page}`;
 
+      const overrides = {
+        batch_size: this.state.batchsize,
+        page: this.state.page
+      };
+      const filters = Object.assign({}, this.state.filters);
+      if (filters.disabled !== null && filters.disabled !== undefined) {
+        filters.disabled = '' + filters.disabled;
+      }
+      if (filters.converted !== null && filters.converted !== undefined) {
+        filters.converted = '' + filters.converted;
+      }
+      if (this.state.orderBy) {
+        overrides.order_by = this.state.orderBy;
+      }
+      let url = '/api/v0/awspa';
+      url += `?${filterToQueryString(filters, overrides)}`;
       try {
         response = await fetch(url, {
           headers: {
@@ -152,7 +161,15 @@ class AWSPA extends React.Component {
   };
 
   render() {
-    const { loading, data, batchsize, filters, serverError, page } = this.state;
+    const {
+      loading,
+      data,
+      batchsize,
+      filters,
+      serverError,
+      page,
+      orderBy
+    } = this.state;
     const loadingStyle = {};
     if (loading && !data) {
       loadingStyle.margin = '200px 0';
@@ -205,7 +222,7 @@ class AWSPA extends React.Component {
         )}
         {data && (
           <Segment>
-            Batch size
+            Batch size{' '}
             <Select
               placeholder="Batch size"
               value={batchsize}
@@ -218,9 +235,42 @@ class AWSPA extends React.Component {
               onChange={(event, data) => {
                 this.setState({ batchsize: data.value }, () => {
                   localStorage.setItem(
-                    'awspabatchsize',
+                    'awspa:batchsize',
                     JSON.stringify(this.state.batchsize)
                   );
+                  this.fetch();
+                });
+              }}
+            />{' '}
+            Order by{' '}
+            <Select
+              placeholder="Order by"
+              value={orderBy}
+              options={[
+                {
+                  key: 'modify_date',
+                  value: 'modify_date',
+                  text: 'Modified (ascending)'
+                },
+                {
+                  key: '-modify_date',
+                  value: '-modify_date',
+                  text: 'Modified (descending)'
+                },
+                {
+                  key: 'add_date',
+                  value: 'add_date',
+                  text: 'Added (ascending)'
+                },
+                {
+                  key: '-add_date',
+                  value: '-add_date',
+                  text: 'Added (descending)'
+                }
+              ]}
+              onChange={(event, data) => {
+                this.setState({ orderBy: data.value }, () => {
+                  localStorage.setItem('awspa:orderby', this.state.orderBy);
                   this.fetch();
                 });
               }}
@@ -270,7 +320,7 @@ function ShowTable({
           onChange={(event, data) => {
             updateFilters({ keyword: data.value });
           }}
-        />
+        />{' '}
         <Select
           placeholder="Searchindex"
           options={allSearchindexes.map(k => ({
@@ -281,38 +331,39 @@ function ShowTable({
           onChange={(event, data) => {
             updateFilters({ searchindex: data.value });
           }}
-        />
-
-        <Button.Group>
-          <Button
-            type="button"
-            disabled={filters.disabled === undefined}
-            onClick={() => {
-              // setDisabled(null);
-            }}
-          >
-            Any
-          </Button>
-          <Button
-            type="button"
-            disabled={filters.disabled === true}
-            onClick={() => {
-              updateFilters({ disabled: true });
-            }}
-          >
-            Disabled
-          </Button>
-          <Button
-            type="button"
-            disabled={filters.disabled === false}
-            onClick={() => {
-              updateFilters({ disabled: false });
-            }}
-          >
-            Enabled
-          </Button>
-        </Button.Group>
-
+        />{' '}
+        <Select
+          value={filters.disabled}
+          placeholder="Disabled/Enabled"
+          options={[
+            { key: 'any', value: undefined, text: 'Any' },
+            { key: 'disabled', value: true, text: 'Disabled' },
+            { key: 'enabled', value: false, text: 'Enabled' }
+          ]}
+          onChange={(event, data) => {
+            if (data.value === undefined) {
+              updateFilters({ disabled: null });
+            } else {
+              updateFilters({ disabled: data.value });
+            }
+          }}
+        />{' '}
+        <Select
+          value={filters.converted}
+          placeholder="PAAPIv5"
+          options={[
+            { key: 'any', value: undefined, text: 'Any' },
+            { key: 'notconverted', value: false, text: 'Not converted' },
+            { key: 'converted', value: true, text: 'Converted' }
+          ]}
+          onChange={(event, data) => {
+            if (data.value === undefined) {
+              updateFilters({ converted: null });
+            } else {
+              updateFilters({ converted: data.value });
+            }
+          }}
+        />{' '}
         <Button
           type="button"
           disabled={

@@ -87,6 +87,9 @@ class DashboardLinks extends React.PureComponent {
         <Segment>
           <Link to="/lyrics-page-healthcheck">Lyrics Page Healthcheck</Link>
         </Segment>
+        <Segment>
+          <Link to="/awspa">AWS Affiliate Products</Link>
+        </Segment>
       </Segment.Group>
     );
   }

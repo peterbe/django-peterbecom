@@ -13,7 +13,7 @@ class XCacheAnalyze extends React.PureComponent {
   componentDidUpdate(prevProps, prevState) {
     if (prevState.loading && !this.state.loading) {
       if (this.props.finished) {
-        this.props.finished();
+        this.props.finished(this.state.serverError);
       }
     }
     if (!prevProps.start && this.props.start && !this.state.loading) {
