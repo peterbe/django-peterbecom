@@ -4,6 +4,8 @@ import os
 import re
 import statistics
 import time
+import traceback
+from io import StringIO
 from collections import defaultdict
 from functools import lru_cache, wraps
 from urllib.parse import urlparse
@@ -18,23 +20,21 @@ from django.shortcuts import get_object_or_404
 from django.template import Context
 from django.template.loader import get_template
 from django.urls import reverse
-from django.utils.timesince import timesince as django_timesince
 from django.utils import timezone
+from django.utils.timesince import timesince as django_timesince
 from django.views.decorators.cache import cache_control, never_cache
 from django.views.decorators.http import require_POST
 
 from peterbecom.awspa.models import AWSProduct
-from peterbecom.awspa.search import (
-    search as awspa_search,
-    lookup as awspa_lookup,
-    NothingFoundError,
-)
+from peterbecom.awspa.search import NothingFoundError
+from peterbecom.awspa.search import lookup as awspa_lookup
+from peterbecom.awspa.search import search as awspa_search
 from peterbecom.awspa.templatetags.jinja_helpers import awspa_product
 from peterbecom.base.cdn import (
+    get_cdn_base_url,
     get_cdn_config,
     keycdn_zone_check,
     purge_cdn_urls,
-    get_cdn_base_url,
 )
 from peterbecom.base.fscache import invalidate_by_url, path_to_fs_path
 from peterbecom.base.models import CDNPurgeURL, PostProcessing, SearchResult
@@ -44,23 +44,24 @@ from peterbecom.plog.models import (
     BlogComment,
     BlogFile,
     BlogItem,
-    BlogItemHit,
     BlogItemDailyHits,
+    BlogItemHit,
     Category,
     SpamCommentPattern,
 )
-from peterbecom.plog.utils import rate_blog_comment, valid_email  # move this some day
 from peterbecom.plog.popularity import score_to_popularity
+from peterbecom.plog.utils import rate_blog_comment, valid_email  # move this some day
+
 from .forms import (
+    AWSPAFilterForm,
     BlogCommentBatchForm,
     BlogFileUpload,
     BlogitemRealtimeHitsForm,
+    CommentCountsForm,
     EditBlogCommentForm,
     EditBlogForm,
     PreviewBlogForm,
     SpamCommentPatternForm,
-    CommentCountsForm,
-    AWSPAFilterForm,
 )
 from .tasks import send_comment_reply_email
 
@@ -510,6 +511,11 @@ def awspa_items(request):
     elif form.cleaned_data["converted"] is False:  # ! None
         qs = qs.exclude(paapiv5=True)
 
+    if form.cleaned_data["hasoffers"]:
+        qs = qs.exclude(payload__offers=None)
+    elif form.cleaned_data["hasoffers"] is False:  # ! None
+        qs = qs.exclude(payload__has_key="offers")
+
     if form.cleaned_data["keyword"]:
         qs = qs.filter(keyword=form.cleaned_data["keyword"])
     if form.cleaned_data["searchindex"]:
@@ -597,8 +603,11 @@ def awspa_item(request, id):
     html = html_error = None
     try:
         html = awspa_product(product)
-    except Exception as exception:
-        html_error = str(repr(exception))
+    except Exception:
+        out = StringIO()
+        traceback.print_exc(file=out)
+        html_error = out.getvalue()
+
     context = {
         "id": product.id,
         "html": html,

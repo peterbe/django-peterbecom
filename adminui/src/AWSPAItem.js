@@ -116,6 +116,34 @@ class AWSPAItem extends React.Component {
     });
   };
 
+  deleteProduct = () => {
+    if (!this.props.accessToken) {
+      throw new Error('No accessToken');
+    }
+    this.setState({ loading: true }, async () => {
+      const id = this.props.match.params.id;
+      let response;
+      try {
+        response = await fetch(`/api/v0/awspa/${id}`, {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${this.props.accessToken}`
+          }
+        });
+      } catch (ex) {
+        return this.setState({ loading: false, serverError: ex });
+      }
+      this.setState({ loading: false });
+      if (response.ok) {
+        this.setState({ serverError: null }, () => {
+          window.location.href = '/awspa';
+        });
+      } else {
+        this.setState({ serverError: response });
+      }
+    });
+  };
+
   render() {
     const { loading, data, serverError } = this.state;
 
@@ -156,11 +184,17 @@ class AWSPAItem extends React.Component {
 export default AWSPAItem;
 
 function GoBackLink({ search }) {
-  if (!search) return null;
-  var params = new URLSearchParams(search.slice(1));
-  const oid = params.get('oid');
+  let oid = null;
+  if (search) {
+    const params = new URLSearchParams(search.slice(1));
+    oid = params.get('oid');
+  }
   if (!oid) {
-    return null;
+    return (
+      <Message>
+        <Link to={`/awspa`}>All AWS Affiliate Product items</Link>
+      </Message>
+    );
   }
   return (
     <Message positive>
@@ -169,7 +203,13 @@ function GoBackLink({ search }) {
   );
 }
 
-function ShowItem({ toggleDisable, refreshProduct, loading, data }) {
+function ShowItem({
+  toggleDisable,
+  refreshProduct,
+  deleteProduct,
+  loading,
+  data
+}) {
   return (
     <div>
       {data.disabled && (
@@ -233,12 +273,7 @@ function ShowItem({ toggleDisable, refreshProduct, loading, data }) {
       <Button disabled={loading} onClick={toggleDisable}>
         {data.disabled ? 'Enable' : 'Disable'}
       </Button>
-      <Button
-        disabled={loading}
-        onClick={() => {
-          window.alert('Not implemented yet');
-        }}
-      >
+      <Button disabled={loading} onClick={deleteProduct}>
         Delete
       </Button>
       <Button disabled={loading} onClick={refreshProduct}>

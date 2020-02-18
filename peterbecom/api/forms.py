@@ -158,6 +158,7 @@ class AWSPAFilterForm(forms.ModelForm):
 
     disabled = forms.CharField(required=False)
     converted = forms.CharField(required=False)
+    hasoffers = forms.CharField(required=False)
     order_by = forms.CharField(required=False)
 
     class Meta:
@@ -171,17 +172,25 @@ class AWSPAFilterForm(forms.ModelForm):
 
     def clean_disabled(self):
         value = self.cleaned_data["disabled"]
-        if value == "true":
+        if value == "yes":
             return True
-        elif value == "false":
+        elif value == "no":
             return False
         return value
 
     def clean_converted(self):
         value = self.cleaned_data["converted"]
-        if value == "true":
+        if value == "yes":
             return True
-        elif value == "false":
+        elif value == "no":
+            return False
+        return value
+
+    def clean_hasoffers(self):
+        value = self.cleaned_data["hasoffers"]
+        if value == "yes":
+            return True
+        elif value == "no":
             return False
         return value
 
