@@ -578,6 +578,8 @@ def awspa_items(request):
 def awspa_item(request, id):
     product = get_object_or_404(AWSProduct, id=id)
 
+    nothing_found = None
+
     if request.method == "POST":
         if request.POST.get("refresh"):
             try:
@@ -585,6 +587,7 @@ def awspa_item(request, id):
             except NothingFoundError:
                 product.disabled = True
                 product.save()
+                nothing_found = True
             else:
                 product.payload = payload
                 product.paapiv5 = True
@@ -622,6 +625,7 @@ def awspa_item(request, id):
         "searchindex": product.searchindex,
         "asin": product.asin,
         "same_asin": [],
+        "nothing_found": nothing_found,
     }
     for p in AWSProduct.objects.exclude(id=product.id).filter(asin=product.asin):
         context["same_asin"].append(

@@ -99,29 +99,8 @@ def _search(asin=None, keyword=None, searchindex=None, item_count=10):
     # search_index = "All"
     # search_index = "Books"
 
-    # item_count = 3
-
     # https://webservices.amazon.com/paapi5/documentation/search-items.html#resources-parameter
     search_items_resource = _get_search_items_resources()
-    # # print(dir(SearchItemsResource))
-    # dbg = sorted(
-    #     [
-    #         (getattr(SearchItemsResource, x), x)
-    #         for x in dir(SearchItemsResource)
-    #         if x.isupper()
-    #     ]
-    # )
-    # for v, x in dbg:
-    #     print("{} -> {}".format(v.ljust(50), x))
-    # dbg = sorted(
-    #     [
-    #         (getattr(GetItemsResource, x), x)
-    #         for x in dir(GetItemsResource)
-    #         if x.isupper()
-    #     ]
-    # )
-    # for v, x in dbg:
-    #     print("{} -> {}".format(v.ljust(50), x))
 
     if asin:
         get_items_request = GetItemsRequest(

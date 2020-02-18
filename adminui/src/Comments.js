@@ -8,7 +8,6 @@ import {
   Loader,
   Comment,
   Flag,
-  // List,
   Header,
   Icon,
   Select,
@@ -607,6 +606,11 @@ class CommentTree extends React.PureComponent {
     } = this.props;
 
     const showAvatars = !window.matchMedia('(max-width: 600px)').matches;
+
+    if (comment.location.country_code.toLowerCase() === 'im') {
+      // Isle of Man is not recognized, so fake it
+      comment.location.country_code = 'uk';
+    }
 
     return (
       <Comment>

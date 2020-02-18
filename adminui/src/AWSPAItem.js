@@ -15,7 +15,8 @@ class AWSPAItem extends React.Component {
   state = {
     loading: true,
     data: null,
-    serverError: null
+    serverError: null,
+    nothingFoundError: false
   };
 
   componentDidMount() {
@@ -109,7 +110,11 @@ class AWSPAItem extends React.Component {
       this.setState({ loading: false });
       if (response.ok) {
         const data = await response.json();
-        this.setState({ data, serverError: null });
+        this.setState({
+          data,
+          nothingFoundError: !!data.nothing_found,
+          serverError: null
+        });
       } else {
         this.setState({ serverError: response });
       }
@@ -145,7 +150,7 @@ class AWSPAItem extends React.Component {
   };
 
   render() {
-    const { loading, data, serverError } = this.state;
+    const { loading, data, serverError, nothingFoundError } = this.state;
 
     if (!serverError && loading) {
       return (
@@ -165,6 +170,14 @@ class AWSPAItem extends React.Component {
         <ShowServerError error={this.state.serverError} />
         <GoBackLink search={this.props.location.search} />
         <Header as="h1">AWSPA Item {data && <code>{data.asin}</code>}</Header>
+        {nothingFoundError && (
+          <Message negative>
+            <Message.Header>Nothing Found Error</Message.Header>
+            <p>
+              When not found, by <code>asin</code>, on AWSPA, it gets disabled.
+            </p>
+          </Message>
+        )}
         {data && (
           <div className="all-keywords">
             <ShowItem
