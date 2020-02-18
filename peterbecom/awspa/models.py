@@ -28,7 +28,7 @@ class AWSProduct(models.Model):
             self.__class__.__name__, self.asin, self.title[:50], extra
         )
 
-    def convert_to_paapiv5(self):
+    def convert_to_paapiv5(self, raise_if_nothing_found=False):
         assert not self.paapiv5
 
         try:
@@ -36,6 +36,8 @@ class AWSProduct(models.Model):
             if errors:
                 raise NotImplementedError(errors)
         except NothingFoundError:
+            if raise_if_nothing_found:
+                raise
             self.disabled = True
             self.save()
         else:
