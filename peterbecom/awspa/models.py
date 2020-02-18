@@ -25,11 +25,11 @@ class AWSProduct(models.Model):
             self.__class__.__name__, self.asin, self.title[:70]
         )
 
-    def convert_to_paapiv5(self, sleep=0):
+    def convert_to_paapiv5(self):
         assert not self.paapiv5
 
         try:
-            payload, errors = lookup(self.asin, sleep=sleep)
+            payload, errors = lookup(self.asin)
             if errors:
                 raise NotImplementedError(errors)
         except NothingFoundError:

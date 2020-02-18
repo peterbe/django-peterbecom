@@ -13,12 +13,25 @@ import {
 import { Link } from 'react-router-dom';
 import { DisplayDate, filterToQueryString, ShowServerError } from './Common';
 
+function getDefaultFilters(props) {
+  const filters = {};
+  const { location } = props;
+  if (location.search) {
+    const searchParams = new URLSearchParams(
+      location.search.slice(1, location.search.length)
+    );
+    for (const [key, value] of searchParams) {
+      filters[key] = value;
+    }
+  }
+  return filters;
+}
 class AWSPA extends React.Component {
   state = {
     loading: false,
     data: null,
     serverError: null,
-    filters: {},
+    filters: getDefaultFilters(this.props),
     batchsize: JSON.parse(localStorage.getItem('awspa:batchsize') || '10'),
     page: 1,
     orderBy: localStorage.getItem('awspa:orderby') || '-add_date'
@@ -41,12 +54,6 @@ class AWSPA extends React.Component {
         page: this.state.page
       };
       const filters = Object.assign({}, this.state.filters);
-      if (filters.disabled !== null && filters.disabled !== undefined) {
-        filters.disabled = '' + filters.disabled;
-      }
-      if (filters.converted !== null && filters.converted !== undefined) {
-        filters.converted = '' + filters.converted;
-      }
       if (this.state.orderBy) {
         overrides.order_by = this.state.orderBy;
       }
@@ -74,12 +81,21 @@ class AWSPA extends React.Component {
   updateFilters = update => {
     if (update === null) {
       // Reset!
-      this.setState({ filters: {} }, this.fetch);
+      this.setState({ filters: {} }, this.updateUrlThenFetch);
     } else {
       const clone = Object.assign({}, this.state.filters);
       const filters = Object.assign(clone, update);
-      this.setState({ filters }, this.fetch);
+      this.setState({ filters }, this.updateUrlThenFetch);
     }
+  };
+
+  updateUrlThenFetch = () => {
+    let newURL = new URL(this.props.location.pathname, document.location.href);
+    Object.entries(this.state.filters).forEach(([key, value]) => {
+      if (value) newURL.searchParams.set(key, value);
+    });
+    this.props.history.push(newURL.pathname + newURL.search);
+    this.fetch();
   };
 
   refreshProduct = id => {
@@ -174,6 +190,7 @@ class AWSPA extends React.Component {
     if (loading && !data) {
       loadingStyle.margin = '200px 0';
     }
+
     return (
       <Container>
         {loading && !data && (
@@ -322,6 +339,7 @@ function ShowTable({
           }}
         />{' '}
         <Select
+          value={filters.searchindex}
           placeholder="Searchindex"
           options={allSearchindexes.map(k => ({
             key: k.value,
@@ -333,12 +351,12 @@ function ShowTable({
           }}
         />{' '}
         <Select
-          value={filters.disabled}
+          value={filters.disabled || ''}
           placeholder="Disabled/Enabled"
           options={[
-            { key: 'any', value: undefined, text: 'Any' },
-            { key: 'disabled', value: true, text: 'Disabled' },
-            { key: 'enabled', value: false, text: 'Enabled' }
+            { key: 'any', value: '', text: 'Any' },
+            { key: 'disabled', value: 'yes', text: 'Disabled' },
+            { key: 'enabled', value: 'no', text: 'Enabled' }
           ]}
           onChange={(event, data) => {
             if (data.value === undefined) {
@@ -349,19 +367,27 @@ function ShowTable({
           }}
         />{' '}
         <Select
-          value={filters.converted}
+          value={filters.converted || ''}
           placeholder="PAAPIv5"
           options={[
-            { key: 'any', value: undefined, text: 'Any' },
-            { key: 'notconverted', value: false, text: 'Not converted' },
-            { key: 'converted', value: true, text: 'Converted' }
+            { key: 'any', value: '', text: 'Any' },
+            { key: 'notconverted', value: 'no', text: 'Not converted' },
+            { key: 'converted', value: 'yes', text: 'Converted' }
           ]}
           onChange={(event, data) => {
-            if (data.value === undefined) {
-              updateFilters({ converted: null });
-            } else {
-              updateFilters({ converted: data.value });
-            }
+            updateFilters({ converted: data.value });
+          }}
+        />{' '}
+        <Select
+          value={filters.hasoffers || ''}
+          placeholder="Has offers"
+          options={[
+            { key: 'any', value: '', text: 'Any' },
+            { key: 'has', value: 'no', text: 'No offers' },
+            { key: 'hasnot', value: 'yes', text: 'Has offers' }
+          ]}
+          onChange={(event, data) => {
+            updateFilters({ hasoffers: data.value });
           }}
         />{' '}
         <Button
@@ -371,6 +397,8 @@ function ShowTable({
               filters.title ||
               filters.keyword ||
               filters.searchindex ||
+              filters.hasoffers ||
+              filters.converted ||
               filters.disabled !== null
             )
           }

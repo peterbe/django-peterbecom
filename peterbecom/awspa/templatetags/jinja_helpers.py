@@ -20,7 +20,13 @@ def awspa_product(awsproduct, show_action_button=False, hide_image=False):
             ]
             item["medium_image"] = item["images"]["primary"]["medium"]["url"]
             by_line_info = item["item_info"].get("by_line_info") or {}
-            item["authors"] = [x["name"] for x in by_line_info.get("contributors", [])]
+
+            item["authors"] = [
+                x["name"] for x in by_line_info.get("contributors") or []
+            ]
+            item["manufacturer"] = (by_line_info.get("manufacturer") or {}).get(
+                "display_value"
+            )
             item["brand"] = (by_line_info.get("brand") or {}).get("display_value")
             item["category"] = item["item_info"]["classifications"]["product_group"][
                 "display_value"

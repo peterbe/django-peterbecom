@@ -83,15 +83,15 @@ SearchRefinements                                  -> SEARCHREFINEMENTS
 """
 
 
-def search(keyword, searchindex="All", sleep=0, item_count=10):
+def search(keyword, searchindex="All", item_count=10):
     return _search(keyword=keyword, searchindex=searchindex, item_count=item_count)
 
 
-def lookup(asin, sleep=0):
+def lookup(asin):
     return _search(asin=asin)
 
 
-def _search(asin=None, keyword=None, searchindex=None, item_count=10, sleep=0):
+def _search(asin=None, keyword=None, searchindex=None, item_count=10):
     assert asin or keyword
     default_api = _get_api()
 

@@ -1,11 +1,4 @@
-{% if awsproduct.paapiv5 %}
-
-
-{#
-<pre>
-  {{ json_print(item, indent=2, sort_keys=True) }}
-</pre>
-#}
+{%- if awsproduct.paapiv5 -%}
 
   {# THE NEW STUFF #}
 
@@ -35,7 +28,6 @@
     </div>
     <div class="description">
 
-      {#{% if item.category == 'Book' %}#}
         {% if item.item_info.content_info and item.item_info.content_info.publication_date %}
           <b>Publication Date:</b> {{ item.item_info.content_info.publication_date.display_value }}<br />
         {% endif %}
@@ -45,39 +37,15 @@
         {% if item.item_info.content_info and item.item_info.content_info.pages_count %}
           <b>Number of Pages:</b> {{ item.item_info.content_info.pages_count.display_value }}<br />
         {% endif %}
-      {#{% endif %}#}
-
-      {#
-      {% elif item.ItemAttributes.Feature %}
-        <ul style="padding-left:14px">
-          {% for feature in item.ItemAttributes.Feature %}
-          <li>
-            {{ feature }}
-          </li>
-          {% endfor %}
-        </ul>
-      {% elif item.ItemAttributes.ProductGroup == 'Movie' or item.ItemAttributes.ProductGroup == 'DVD' %}
-        {% if item.ItemAttributes.ReleaseDate %}
-          <b>Release Date:</b> {{ item.ItemAttributes.ReleaseDate }}<br />
+        {% if item.manufacturer %}
+          <b>Manufacturer:</b> {{ item.manufacturer }}<br />
         {% endif %}
-        {% if item.ItemAttributes.Genre %}
-          <b>Genre:</b> {{ item.ItemAttributes.Genre }}<br />
-        {% endif %}
-        {% if item.ItemAttributes.Director %}
-          <b>Director:</b> {{ item.ItemAttributes.Director }}<br />
-        {% endif %}
-      {% else %}
-      <pre>
-        {{ json_print(item.ItemAttributes, indent=2, sort_keys=True) }}
-      </pre>
-      {% endif %}
-      #}
 
     </div>
   </div>
 
 
-{% else %}
+{%- else -%}
 
 
   {# THE LEGACY STUFF #}
@@ -143,4 +111,4 @@
   </div>
 
 
-  {% endif %}
+{% endif %}

@@ -510,6 +510,11 @@ def awspa_items(request):
     elif form.cleaned_data["converted"] is False:  # ! None
         qs = qs.exclude(paapiv5=True)
 
+    if form.cleaned_data["hasoffers"]:
+        qs = qs.exclude(payload__offers=None)
+    elif form.cleaned_data["hasoffers"] is False:  # ! None
+        qs = qs.exclude(payload__has_key="offers")
+
     if form.cleaned_data["keyword"]:
         qs = qs.filter(keyword=form.cleaned_data["keyword"])
     if form.cleaned_data["searchindex"]:
