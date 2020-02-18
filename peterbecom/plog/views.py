@@ -592,7 +592,7 @@ def blog_post_awspa(request, oid, page=None):
         ):
             print("CONVERTING", awsproduct.asin)
             try:
-                awsproduct.convert_to_paapiv5(sleep=1)
+                awsproduct.convert_to_paapiv5()
             except RateLimitedError:
                 print("Rate limited!")
                 ratelimited = True
