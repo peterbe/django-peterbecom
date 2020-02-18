@@ -21,15 +21,24 @@ def diff(d1, d2, indent=None):
         if isinstance(d1[k], dict):
             diff(d1[k], d2[k], indent=indent + [k])
         else:
-            print(".".join(indent) + "." + k, ":", d1[k], "->", d2.get(k))
+            key = ".".join(indent + [k])
+            print("{}:".format(key))
+            dumb_diff(
+                d1[k],
+                d2.get(k),
+                fromfile="old {}".format(key),
+                tofile="new {}".format(key),
+            )
 
 
-def dumb_diff(d1, d2):
+def dumb_diff(d1, d2, fromfile="old", tofile="new"):
     json1 = json.dumps(d1, indent=2, sort_keys=True).splitlines()
     json2 = json.dumps(d2, indent=2, sort_keys=True).splitlines()
 
     print(
-        "\n".join(difflib.context_diff(json1, json2, fromfile="old", tofile="new", n=2))
+        "\n".join(
+            difflib.context_diff(json1, json2, fromfile=fromfile, tofile=tofile, n=2)
+        )
     )
 
 
@@ -78,9 +87,11 @@ class Command(BaseCommand):
                     "Error looking up {!r} ({!r})".format(awsproduct, error)
                 )
 
+            # dumb_diff(awsproduct.payload, payload)
             try:
                 diff(awsproduct.payload, payload)
-            except (AttributeError, KeyError):
+            except (AttributeError, KeyError) as e:
+                print("EXCEPTION:", e)
                 dumb_diff(awsproduct.payload, payload)
 
             awsproduct.payload = payload
