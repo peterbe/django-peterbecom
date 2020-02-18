@@ -28,8 +28,8 @@
     </div>
     <div class="description">
 
-        {% if item.item_info.content_info and item.item_info.content_info.publication_date %}
-          <b>Publication Date:</b> {{ item.item_info.content_info.publication_date.display_value }}<br />
+        {% if item.publication_date %}
+          <b>Publication Date:</b> {{ item.publication_date }}<br />
         {% endif %}
         {% if item.item_info.classifications and item.item_info.classifications.binding %}
           <b>Binding:</b> {{ item.item_info.classifications.binding.display_value }}<br />

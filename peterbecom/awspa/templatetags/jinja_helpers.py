@@ -31,6 +31,10 @@ def awspa_product(awsproduct, show_action_button=False, hide_image=False):
             item["category"] = item["item_info"]["classifications"]["product_group"][
                 "display_value"
             ]
+            content_info = item["item_info"].get("content_info") or {}
+            item["publication_date"] = (content_info.get("publication_date") or {}).get(
+                "display_value"
+            )
         except Exception:
             from pprint import pprint
 
