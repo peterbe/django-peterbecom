@@ -50,12 +50,7 @@ class Command(BaseCommand):
 
         self.notice(qs.count(), "products that can be updated")
         for awsproduct in qs.order_by("modify_date")[:limit]:
-            # print(
-            #     awsproduct.asin,
-            #     awsproduct.modify_date,
-            #     repr(awsproduct.keyword),
-            #     awsproduct.searchindex,
-            # )
+            print(repr(awsproduct))
             if not awsproduct.paapiv5:
                 self.out("Converting", repr(awsproduct), "to paapiv5")
                 try:
@@ -67,7 +62,7 @@ class Command(BaseCommand):
                 continue
 
             try:
-                payload, error = lookup(awsproduct.asin, sleep=sleep)
+                payload, error = lookup(awsproduct.asin)
             except RateLimitedError as exception:
                 self.out("RateLimitedError", exception)
                 break
@@ -91,6 +86,5 @@ class Command(BaseCommand):
             awsproduct.payload = payload
             awsproduct.paapiv5 = True
             awsproduct.save()
-            print()
 
             time.sleep(sleep)

@@ -21,8 +21,11 @@ class AWSProduct(models.Model):
         unique_together = ("keyword", "asin", "searchindex")
 
     def __repr__(self):
-        return "<{} {} {!r}>".format(
-            self.__class__.__name__, self.asin, self.title[:70]
+        extra = ""
+        if not self.paapiv5:
+            extra += " (not paapiv5)"
+        return "<{} {} {!r}{}>".format(
+            self.__class__.__name__, self.asin, self.title[:50], extra
         )
 
     def convert_to_paapiv5(self):
