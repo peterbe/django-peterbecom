@@ -607,7 +607,10 @@ class CommentTree extends React.PureComponent {
 
     const showAvatars = !window.matchMedia('(max-width: 600px)').matches;
 
-    if (comment.location.country_code.toLowerCase() === 'im') {
+    if (
+      comment.location &&
+      comment.location.country_code.toLowerCase() === 'im'
+    ) {
       // Isle of Man is not recognized, so fake it
       comment.location.country_code = 'uk';
     }
