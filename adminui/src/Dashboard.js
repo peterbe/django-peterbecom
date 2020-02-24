@@ -4,7 +4,7 @@ import { Container, Header, Button, Segment } from 'semantic-ui-react';
 
 class Dashboard extends React.Component {
   componentDidMount() {
-    document.title = 'Peterbe.com Admin UI';
+    document.title = 'Peterbe.com Admin';
   }
   render() {
     return (
@@ -75,6 +75,14 @@ class DashboardLinks extends React.PureComponent {
             <Link to="/plog/comments/geo">Geo Comments</Link>
           </Segment>
         </Segment.Group>
+        <Segment.Group>
+          <Segment>
+            <Link to="/awspa">AWS Affiliate Products</Link>
+          </Segment>
+          <Segment>
+            <Link to="/awspa/search">Search AWS Affiliate Products</Link>
+          </Segment>
+        </Segment.Group>
         <Segment>
           <Link to="/postprocessings">Post Processings</Link>
         </Segment>
@@ -86,9 +94,6 @@ class DashboardLinks extends React.PureComponent {
         </Segment>
         <Segment>
           <Link to="/lyrics-page-healthcheck">Lyrics Page Healthcheck</Link>
-        </Segment>
-        <Segment>
-          <Link to="/awspa">AWS Affiliate Products</Link>
         </Segment>
       </Segment.Group>
     );

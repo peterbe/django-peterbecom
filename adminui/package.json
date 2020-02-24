@@ -30,7 +30,8 @@
     "lodash.merge": ">=4.6.2",
     "set-value": ">=2.0.1",
     "handlebars": ">=4.7.3",
-    "serialize-javascript": ">=2.1.1"
+    "serialize-javascript": ">=2.1.1",
+    "caniuse-lite": ">=1.0.30001028"
   },
   "scripts": {
     "start": "react-scripts start",

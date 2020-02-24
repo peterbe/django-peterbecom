@@ -157,7 +157,6 @@ class CommentCountsForm(forms.Form):
 class AWSPAFilterForm(forms.ModelForm):
 
     disabled = forms.CharField(required=False)
-    converted = forms.CharField(required=False)
     hasoffers = forms.CharField(required=False)
     order_by = forms.CharField(required=False)
 
@@ -178,14 +177,6 @@ class AWSPAFilterForm(forms.ModelForm):
             return False
         return value
 
-    def clean_converted(self):
-        value = self.cleaned_data["converted"]
-        if value == "yes":
-            return True
-        elif value == "no":
-            return False
-        return value
-
     def clean_hasoffers(self):
         value = self.cleaned_data["hasoffers"]
         if value == "yes":
@@ -199,3 +190,14 @@ class AWSPAFilterForm(forms.ModelForm):
         if re.sub(r"^-?", "", value) not in ("add_date", "modify_date"):
             raise forms.ValidationError("not valid value")
         return value
+
+
+class AWSPASearchForm(forms.Form):
+
+    keyword = forms.CharField(required=True)
+    searchindex = forms.CharField(required=True)
+
+
+class AWSPASaveForm(AWSPASearchForm):
+
+    asin = forms.CharField(required=True)

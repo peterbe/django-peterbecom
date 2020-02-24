@@ -115,10 +115,9 @@ def _search(asin=None, keyword=None, searchindex=None, item_count=10):
             if exception.status == 429:
                 raise RateLimitedError(exception.reason)
             raise
-            return None, str(exception)
         if response.items_result:
             for item in response.items_result.items:
-                return item.to_dict(), None
+                return item.to_dict()
         raise NothingFoundError
     else:
         search_items_request = SearchItemsRequest(
@@ -133,7 +132,7 @@ def _search(asin=None, keyword=None, searchindex=None, item_count=10):
         products = []
         for search_result in response.search_result.items:
             products.append(search_result.to_dict())
-        return products, None
+        return products
 
 
 def _get_api():

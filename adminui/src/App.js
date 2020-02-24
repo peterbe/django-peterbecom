@@ -35,6 +35,7 @@ const CommentCounts = lazy(() => import('./CommentCounts'));
 const CommentAutoApproveds = lazy(() => import('./CommentAutoApproveds'));
 const AWSPAItems = lazy(() => import('./AWSPAItems'));
 const AWSPAItem = lazy(() => import('./AWSPAItem'));
+const AWSPASearch = lazy(() => import('./AWSPASearch'));
 
 // Not a 'const' because we're going to cheekily increase every time it
 // gets mutated later.
@@ -47,7 +48,7 @@ class App extends React.Component {
     purgeUrlsCount: null
   };
   componentDidMount() {
-    document.title = 'Peterbe.com Admin UI';
+    document.title = 'Peterbe.com Admin';
     this.authenticate();
 
     // Delay this loop a little so that it starts after other more important
@@ -235,7 +236,7 @@ class App extends React.Component {
           <Menu fixed="top" inverted>
             <Container>
               <Menu.Item header>
-                <Link to="/">Peterbe.com Admin UI</Link>
+                <Link to="/">Peterbe.com Admin</Link>
               </Menu.Item>
               <Dropdown item simple text="Blogitems">
                 <Dropdown.Menu>
@@ -453,6 +454,12 @@ class App extends React.Component {
                   path="/awspa"
                   exact
                   component={AWSPAItems}
+                  accessToken={this.state.accessToken}
+                />
+                <SecureRoute
+                  path="/awspa/search"
+                  exact
+                  component={AWSPASearch}
                   accessToken={this.state.accessToken}
                 />
                 <SecureRoute

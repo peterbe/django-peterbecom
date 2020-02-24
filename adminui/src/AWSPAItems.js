@@ -367,18 +367,6 @@ function ShowTable({
           }}
         />{' '}
         <Select
-          value={filters.converted || ''}
-          placeholder="PAAPIv5"
-          options={[
-            { key: 'any', value: '', text: 'Any' },
-            { key: 'notconverted', value: 'no', text: 'Not converted' },
-            { key: 'converted', value: 'yes', text: 'Converted' }
-          ]}
-          onChange={(event, data) => {
-            updateFilters({ converted: data.value });
-          }}
-        />{' '}
-        <Select
           value={filters.hasoffers || ''}
           placeholder="Has offers"
           options={[
@@ -398,7 +386,6 @@ function ShowTable({
               filters.keyword ||
               filters.searchindex ||
               filters.hasoffers ||
-              filters.converted ||
               filters.disabled !== null
             )
           }
@@ -462,19 +449,15 @@ function ShowProducts({
             <br />
             <b>Added:</b> <DisplayDate date={product.add_date} />{' '}
             <b>Modified:</b> <DisplayDate date={product.modify_date} />{' '}
-            <b>PAAPIv5:</b>{' '}
-            {product.paapiv5 ? (
-              <span aria-label="check" role="img">
-                ✅
-              </span>
-            ) : (
-              <span aria-label="no" role="img">
-                ❌
-              </span>
-            )}{' '}
-            <b>ASIN:</b> <Link to={`/awspa/${product.id}`}>{product.asin}</Link>{' '}
-            <b>Keyword:</b> <code>{product.keyword}</code> <b>Searchindex:</b>{' '}
-            <code>{product.searchindex}</code>
+            <b>PAAPIv5:</b> <b>ASIN:</b>{' '}
+            <Link to={`/awspa/${product.id}`}>{product.asin}</Link>{' '}
+            <b>Keywords:</b>
+            {product.keywords.map(kw => (
+              <code key={kw} style={{ marginRight: 5 }}>
+                {kw}
+              </code>
+            ))}{' '}
+            <b>Searchindex:</b> <code>{product.searchindex}</code>
           </div>
         ];
       })}
