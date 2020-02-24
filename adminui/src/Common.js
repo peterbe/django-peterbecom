@@ -90,16 +90,6 @@ export function BlogitemBreadcrumb({ blogitem, oid, page }) {
         )}
       </Breadcrumb.Section>
       <Breadcrumb.Divider />
-      <Breadcrumb.Section active={page === 'awspa'}>
-        {page === 'awspa' ? (
-          'AWSPA'
-        ) : (
-          <Link to={`/plog/${oid}/awspa`}>
-            AWSPA {blogitem && `(${blogitem.awsproducts_count})`}
-          </Link>
-        )}
-      </Breadcrumb.Section>
-      <Breadcrumb.Divider />
       <Breadcrumb.Section>
         <a href={BASE_URL + `/plog/${oid}`}>View</a>
       </Breadcrumb.Section>

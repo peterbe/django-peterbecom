@@ -48,6 +48,12 @@ urlpatterns = [
     url(r"^postprocessings/", views.postprocessings, name="postprocessings"),
     url(r"^searchresults/", views.searchresults, name="searchresults"),
     url(r"^awspa$", views.awspa_items, name="awspa_items"),
+    url(r"^awspa/search$", views.awspa_items_search, name="awspa_items_search"),
+    url(
+        r"^awspa/search/keywords$",
+        views.awspa_items_search_keywords,
+        name="awspa_items_search_keywords",
+    ),
     url(r"^awspa/(?P<id>\d+)$", views.awspa_item, name="awspa_item"),
     url(r"^cdn/check", views.cdn_check, name="cdn_check"),
     url(r"^cdn/config", views.cdn_config, name="cdn_config"),

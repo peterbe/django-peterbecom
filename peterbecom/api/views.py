@@ -26,9 +26,11 @@ from django.views.decorators.cache import cache_control, never_cache
 from django.views.decorators.http import require_POST
 
 from peterbecom.awspa.models import AWSProduct
-from peterbecom.awspa.search import NothingFoundError
-from peterbecom.awspa.search import lookup as awspa_lookup
-from peterbecom.awspa.search import search as awspa_search
+from peterbecom.awspa.search import (
+    NothingFoundError,
+    lookup as awspa_lookup,
+    search as awspa_search,
+)
 from peterbecom.awspa.templatetags.jinja_helpers import awspa_product
 from peterbecom.base.cdn import (
     get_cdn_base_url,
@@ -54,6 +56,8 @@ from peterbecom.plog.utils import rate_blog_comment, valid_email  # move this so
 
 from .forms import (
     AWSPAFilterForm,
+    AWSPASearchForm,
+    AWSPASaveForm,
     BlogCommentBatchForm,
     BlogFileUpload,
     BlogitemRealtimeHitsForm,
@@ -64,6 +68,15 @@ from .forms import (
     SpamCommentPatternForm,
 )
 from .tasks import send_comment_reply_email
+
+
+def awspa_search_cached(*args, **kwargs):
+    cache_key = "awspa_search_cached:{}:{}".format(args, kwargs)
+    value = cache.get(cache_key)
+    if value is None:
+        value = awspa_search(*args, **kwargs)
+        cache.set(cache_key, value, 60 * 60)
+    return value
 
 
 def timesince(*args, **kwargs):
@@ -384,6 +397,7 @@ def _post_thumbnails(blogitem):
 
 @api_superuser_required
 def plog_awspa(request, oid):
+    raise NotImplementedError("deprecated")
     blogitem = get_object_or_404(BlogItem, oid=oid)
 
     if request.method == "POST":
@@ -394,9 +408,7 @@ def plog_awspa(request, oid):
         elif request.POST.get("refresh"):
             id = request.POST["id"]
             awsproduct = get_object_or_404(AWSProduct, id=id)
-            payload, error = awspa_lookup(awsproduct.asin)
-            if error:
-                raise NotImplementedError(error)
+            payload = awspa_lookup(awsproduct.asin)
             awsproduct.payload = payload
             awsproduct.paapiv5 = True
             awsproduct.save()
@@ -433,7 +445,6 @@ def plog_awspa(request, oid):
                     "title": product.title,
                     "add_date": product.add_date,
                     "modify_date": product.modify_date,
-                    "paapiv5": product.paapiv5,
                     "_new": product.add_date > recently,
                 }
             )
@@ -446,10 +457,8 @@ class AWSPAError(Exception):
 
 
 def load_more_awsproducts(keyword, searchindex):
-    items, error = awspa_search(keyword, searchindex=searchindex, sleep=1)
-    if error:
-        raise AWSPAError(error)
-
+    raise NotImplementedError("use /awspa/search instead")
+    items = awspa_search(keyword, searchindex=searchindex, sleep=1)
     keyword = keyword.lower()
 
     new = []
@@ -506,18 +515,13 @@ def awspa_items(request):
     elif form.cleaned_data["disabled"] is False:  # ! None
         qs = qs.exclude(disabled=True)
 
-    if form.cleaned_data["converted"]:
-        qs = qs.filter(paapiv5=True)
-    elif form.cleaned_data["converted"] is False:  # ! None
-        qs = qs.exclude(paapiv5=True)
-
     if form.cleaned_data["hasoffers"]:
         qs = qs.exclude(payload__offers=None)
     elif form.cleaned_data["hasoffers"] is False:  # ! None
         qs = qs.exclude(payload__has_key="offers")
 
     if form.cleaned_data["keyword"]:
-        qs = qs.filter(keyword=form.cleaned_data["keyword"])
+        qs = qs.filter(keywords__overlap=[form.cleaned_data["keyword"]])
     if form.cleaned_data["searchindex"]:
         qs = qs.filter(searchindex=form.cleaned_data["searchindex"])
 
@@ -563,15 +567,133 @@ def awspa_items(request):
                 "modify_date": product.modify_date,
                 "add_date": product.add_date,
                 "title": product.title,
-                "paapiv5": product.paapiv5,
                 "disabled": product.disabled,
-                "keyword": product.keyword,
+                "keywords": product.keywords,
                 "searchindex": product.searchindex,
                 "asin": product.asin,
             }
         )
 
     return _response(context)
+
+
+@api_superuser_required
+def awspa_items_search(request):
+
+    ignore_asins = cache.get("awspa_items_search_ignore", [])
+
+    if request.method == "POST" and request.POST.get("remove"):
+        asin = request.POST["remove"]
+        ignore_asins.append(asin)
+        cache.set("awspa_items_search_ignore", ignore_asins, 60 * 5)
+    elif request.method == "POST":
+        form = AWSPASaveForm(request.POST)
+        if not form.is_valid():
+            return http.HttpResponseBadRequest(form.errors)
+
+        asin = form.cleaned_data["asin"]
+        keyword = form.cleaned_data["keyword"]
+        searchindex = form.cleaned_data["searchindex"]
+        assert not AWSProduct.objects.filter(asin=asin).exists()
+        payload = awspa_lookup(asin)
+        title = payload["item_info"]["title"]["display_value"]
+        AWSProduct.objects.create(
+            asin=asin,
+            title=title,
+            payload=payload,
+            keywords=[keyword],
+            searchindex=searchindex,
+            disabled=False,
+        )
+        return _response({"ok": True})
+
+    form = AWSPASearchForm(request.GET)
+    if not form.is_valid():
+        return http.HttpResponseBadRequest(form.errors)
+
+    searchindex = form.cleaned_data["searchindex"]
+    keyword = form.cleaned_data["keyword"].lower()
+
+    item_count = 25
+    finds = awspa_search_cached(keyword, searchindex=searchindex, item_count=item_count)
+    context = {
+        "products": [],
+    }
+    for find in finds:
+        if find["asin"] in ignore_asins:
+            continue
+        new = False
+        updated = False
+        for product in AWSProduct.objects.filter(asin=find["asin"]):
+            title = find["item_info"]["title"]["display_value"]
+            if title != product.title or find != product.payload:
+                product.title = title
+                product.payload = find
+                product.save()
+                updated = True
+            break
+
+        else:
+            product = AWSProduct(
+                asin=find["asin"],
+                title=find["item_info"]["title"]["display_value"],
+                payload=find,
+                disabled=False,
+                paapiv5=True,
+                keywords=[keyword],
+                searchindex=searchindex,
+                add_date=timezone.now(),
+                modify_date=timezone.now(),
+            )
+            new = True
+
+        html = html_error = None
+        try:
+            html = awspa_product(product)
+        except Exception as exception:
+            html_error = str(repr(exception))
+        item = {
+            "id": product.id,
+            "html": html,
+            "html_error": html_error,
+            "payload": product.payload,
+            "modify_date": product.modify_date,
+            "add_date": product.add_date,
+            "title": product.title,
+            "disabled": product.disabled,
+            "keywords": product.keywords,
+            "searchindex": product.searchindex,
+            "asin": product.asin,
+            "new": new,
+            "updated": updated,
+        }
+        context["products"].append(item)
+
+    context["products"].sort(key=lambda x: x["new"], reverse=True)
+
+    return _response(context)
+
+
+def awspa_items_search_keywords(request):
+    context = {"all_possible_keywords": get_all_possible_keywords()}
+    return _response(context)
+
+
+def get_all_possible_keywords():
+    keywords = []
+    # keywords_seen = set()
+    for name in Category.objects.all().values_list("name", flat=True):
+        keyword = name.lower()
+        keywords.append(
+            {
+                "keyword": keyword,
+                "products": AWSProduct.objects.filter(
+                    keywords__overlap=[keyword]
+                ).count(),
+            }
+        )
+
+    return keywords
 
 
 @api_superuser_required
@@ -583,7 +705,7 @@ def awspa_item(request, id):
     if request.method == "POST":
         if request.POST.get("refresh"):
             try:
-                payload, error = awspa_lookup(product.asin)
+                payload = awspa_lookup(product.asin)
             except NothingFoundError:
                 product.disabled = True
                 product.save()
@@ -619,9 +741,8 @@ def awspa_item(request, id):
         "modify_date": product.modify_date,
         "add_date": product.add_date,
         "title": product.title,
-        "paapiv5": product.paapiv5,
         "disabled": product.disabled,
-        "keyword": product.keyword,
+        "keywords": product.keywords,
         "searchindex": product.searchindex,
         "asin": product.asin,
         "same_asin": [],
@@ -634,7 +755,6 @@ def awspa_item(request, id):
                 "title": p.title,
                 "modify_date": p.modify_date,
                 "add_date": p.add_date,
-                "paapiv5": p.paapiv5,
                 "disabled": p.disabled,
             }
         )

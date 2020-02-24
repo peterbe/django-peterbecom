@@ -247,8 +247,14 @@ function ShowItem({
             </Table.Cell>
           </Table.Row>
           <Table.Row>
-            <Table.Cell>Keyword</Table.Cell>
-            <Table.Cell>{data.keyword}</Table.Cell>
+            <Table.Cell>Keywords</Table.Cell>
+            <Table.Cell>
+              {data.keywords.map(keyword => (
+                <span key={keyword} style={{ marginRight: 7 }}>
+                  <code>{keyword}</code>
+                </span>
+              ))}
+            </Table.Cell>
           </Table.Row>
           <Table.Row>
             <Table.Cell>Searchindex</Table.Cell>
@@ -264,20 +270,6 @@ function ShowItem({
             <Table.Cell>Modified</Table.Cell>
             <Table.Cell>
               <DisplayDate date={data.modify_date} />
-            </Table.Cell>
-          </Table.Row>
-          <Table.Row>
-            <Table.Cell>PAAPIv5</Table.Cell>
-            <Table.Cell>
-              {data.paapiv5 ? (
-                <span aria-label="check" role="img">
-                  ✅
-                </span>
-              ) : (
-                <span aria-label="no" role="img">
-                  ❌
-                </span>
-              )}
             </Table.Cell>
           </Table.Row>
         </Table.Body>
@@ -327,16 +319,6 @@ function ShowItem({
                     <List.Description>
                       <b>Added:</b> <DisplayDate date={p.add_date} />{' '}
                       <b>Modified:</b> <DisplayDate date={p.modify_date} />{' '}
-                      <b>PAAPIv5:</b>{' '}
-                      {p.paapiv5 ? (
-                        <span aria-label="check" role="img">
-                          ✅
-                        </span>
-                      ) : (
-                        <span aria-label="no" role="img">
-                          ❌
-                        </span>
-                      )}{' '}
                     </List.Description>
                   </List.Content>
                 </List.Item>

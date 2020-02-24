@@ -81,21 +81,10 @@ class Command(BaseCommand):
                 continue
 
             try:
-                payload, error = lookup(awsproduct.asin)
+                payload = lookup(awsproduct.asin)
             except RateLimitedError as exception:
                 self.out("RateLimitedError", exception)
                 break
-            if error:
-                self.error("Error looking up {!r} ({!r})".format(awsproduct, error))
-                if isinstance(error, dict) and error.get("Message"):
-                    if "is not a valid value for ItemId" in error["Message"]:
-                        # Let's not bother with that AWSProduct any more.
-                        awsproduct.disabled = True
-                        awsproduct.save()
-                        continue
-                raise UpdateAWSError(
-                    "Error looking up {!r} ({!r})".format(awsproduct, error)
-                )
 
             # dumb_diff(awsproduct.payload, payload)
             try:

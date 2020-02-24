@@ -578,7 +578,7 @@ def blog_post_awspa(request, oid, page=None):
         awsproducts = AWSProduct.objects.none()
     else:
         awsproducts = AWSProduct.objects.exclude(disabled=True).filter(
-            keyword__in=keywords
+            keywords__overlap=keywords
         )
 
     instances = []
