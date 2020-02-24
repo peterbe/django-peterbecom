@@ -1,14 +1,4 @@
-import { Index, TimeSeries } from 'pondjs';
 import React from 'react';
-import {
-  BarChart,
-  ChartContainer,
-  ChartRow,
-  Charts,
-  Resizable,
-  YAxis,
-  styler
-} from 'react-timeseries-charts';
 import {
   Button,
   Checkbox,
@@ -660,8 +650,7 @@ class PurgeURLs extends React.PureComponent {
     loopSeconds: defaultLoopSeconds(),
     queued: null,
     recent: null,
-    serverError: null,
-    timeSeries: []
+    serverError: null
   };
 
   componentDidMount() {
@@ -680,9 +669,6 @@ class PurgeURLs extends React.PureComponent {
     }
     let response;
     let url = '/api/v0/cdn/purge/urls';
-    // if (this.state.filters) {
-    //   url += `?${filterToQueryString(this.state.filters)}`;
-    // }
     try {
       response = await fetch(url, {
         headers: {
@@ -702,8 +688,7 @@ class PurgeURLs extends React.PureComponent {
         {
           queued: data.queued,
           recent: data.recent,
-          serverError: null,
-          timeSeries: data.time_series
+          serverError: null
         },
         () => {
           if (this.state.queued.length) {
@@ -731,7 +716,7 @@ class PurgeURLs extends React.PureComponent {
   };
 
   render() {
-    const { queued, recent, serverError, timeSeries } = this.state;
+    const { queued, recent, serverError } = this.state;
     if (!queued || !recent) {
       return (
         <p>
@@ -820,56 +805,7 @@ class PurgeURLs extends React.PureComponent {
             })}
           </Table.Body>
         </Table>
-
-        {!!timeSeries.length && <PurgeTimeSeries data={timeSeries} />}
       </div>
-    );
-  }
-}
-
-class PurgeTimeSeries extends React.PureComponent {
-  render() {
-    const { data } = this.props;
-    const style = styler([
-      { color: '#A5C8E1', key: 'created', selected: '#2CB1CF' },
-      { color: '#EFAB91', key: 'processed', selected: '#2CB1CF' }
-    ]);
-
-    const series = new TimeSeries({
-      columns: ['index', 'created', 'processed'],
-      name: 'purge_count',
-      points: data.map(([d, ...value]) => [
-        Index.getIndexString('1h', new Date(d)),
-        ...value
-      ])
-    });
-    const maxValue = Math.max(...data.map(row => Math.max(row[1], row[2])));
-    return (
-      <Resizable>
-        <ChartContainer timeRange={series.range()}>
-          <ChartRow height={250} title="Purge CDN URLs per hour">
-            <YAxis
-              format=".0f"
-              id="count"
-              label="Count"
-              max={maxValue}
-              min={0}
-              type="linear"
-              width="70"
-            />
-            <Charts>
-              <BarChart
-                axis="count"
-                columns={['created', 'processed']}
-                minBarHeight={1}
-                series={series}
-                spacing={1}
-                style={style}
-              />
-            </Charts>
-          </ChartRow>
-        </ChartContainer>
-      </Resizable>
     );
   }
 }

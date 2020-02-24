@@ -1,5 +1,3 @@
-# import codecs
-# import hashlib
 import logging
 import os
 import re
@@ -10,8 +8,6 @@ from urllib.parse import urlparse
 import delegator
 import requests
 from django.conf import settings
-
-# from django.core.cache import cache
 
 from pyquery import PyQuery
 

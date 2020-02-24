@@ -19,7 +19,13 @@ def contains_spam_url_patterns(text):
 
     def scrutinize_link(attrs, new, **kwargs):
         href_key = (None, "href")
-        href = attrs[href_key]
+        try:
+            href = attrs[href_key]
+        except KeyError:
+            # If the <a> tag doesn't have a 'href', it's definitely bad.
+            problems.append("no href attribute")
+            return
+
         if href.startswith("mailto:") or href.startswith("tel:"):
             # Leave untouched
             return
