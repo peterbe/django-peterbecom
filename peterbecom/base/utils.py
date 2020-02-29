@@ -1,7 +1,10 @@
+import json
+
 import requests
+from django.conf import settings
+from django_redis import get_redis_connection
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
-from django.conf import settings
 
 
 def get_base_url(request):
@@ -51,3 +54,13 @@ def requests_retry_session(
     session.mount("http://", adapter)
     session.mount("https://", adapter)
     return session
+
+
+def send_pulse_message(msg, raise_errors=False):
+    client = get_redis_connection("default")
+    if not isinstance(msg, str):
+        msg = json.dumps(msg)
+    print("PUBLISHING:", msg)
+    # XXX not entirely sure what errors can come of this
+    # but once confident use the `raise_errors`
+    client.publish("pulse", msg)

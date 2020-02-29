@@ -7,10 +7,12 @@ from django.conf import settings
 from django.contrib.postgres.fields import ArrayField, JSONField
 from django.db import models, transaction
 from django.db.models import F
-from django.db.models.signals import pre_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 from jsonfield import JSONField as LegacyJSONField
+
+from peterbecom.base.utils import send_pulse_message
 
 
 class CommandRun(models.Model):
@@ -82,6 +84,13 @@ class SearchResult(models.Model):
     )
     keywords = JSONField(default=dict)
     created = models.DateTimeField(auto_now_add=True)
+
+
+@receiver(post_save, sender=SearchResult)
+def send_search_result_pulse_message(sender, instance, **kwargs):
+    send_pulse_message(
+        {"searched": {"q": instance.q, "documents_found": instance.documents_found}}
+    )
 
 
 class CDNPurgeURL(models.Model):

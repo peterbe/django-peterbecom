@@ -3,14 +3,13 @@ from urllib.parse import urlparse
 
 import keycdn
 import requests
-from requests.exceptions import RequestException
-from django.utils import timezone
 from django.conf import settings
 from django.core.cache import cache
-from requests.exceptions import RetryError
+from django.utils import timezone
+from requests.exceptions import RequestException, RetryError
 
-from peterbecom.base.utils import requests_retry_session
 from peterbecom.base.models import CDNPurgeURL
+from peterbecom.base.utils import requests_retry_session, send_pulse_message
 
 
 def get_stack_signature():
@@ -59,6 +58,8 @@ def purge_cdn_urls(urls, api=None):
         # Note! This Nginx trick will not just purge the proxy_cache, it will
         # immediately trigger a refetch.
         x_cache_headers = []
+        urls_succeeded = []
+        urls_failed = []
         for url in urls:
             if "://" not in url:
                 url = settings.NGINX_BYPASS_BASEURL + url
@@ -68,11 +69,15 @@ def purge_cdn_urls(urls, api=None):
                 x_cache_headers.append(
                     {"url": url, "x-cache": r.headers.get("x-cache")}
                 )
-                # print("X-CACHE-HEADERS", x_cache_headers)
-                CDNPurgeURL.succeeded(urls)
+                urls_succeeded.append(url)
             except Exception:
-                CDNPurgeURL.failed(urls)
+                urls_failed.append(url)
                 raise
+        if urls_succeeded:
+            CDNPurgeURL.succeeded(urls_succeeded)
+        if urls_failed:
+            CDNPurgeURL.failed(urls_failed)
+        send_pulse_message({"cdn_purge_urls": urls})
         return {"all_urls": urls, "result": x_cache_headers}
 
     if not keycdn_zone_check():
@@ -130,9 +135,11 @@ def purge_cdn_urls(urls, api=None):
         try:
             r = api.delete(call, params)
             CDNPurgeURL.succeeded(get_original_urls(all_urls))
+
         except Exception:
             CDNPurgeURL.failed(get_original_urls(all_urls))
             raise
+        send_pulse_message({"cdn_purge_urls": all_urls})
         print(
             "SENT CDN PURGE FOR: {!r}\tORIGINAL URLS: {!r}\tRESULT: {}".format(
                 all_urls, urls, r

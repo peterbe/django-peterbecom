@@ -287,10 +287,13 @@ def search(request, original_q=None):
     boost_mode = settings.DEFAULT_BOOST_MODE
 
     if debug_search:
-        context["debug_search_form"] = DebugSearchForm(request.GET, initial={
-            "popularity_factor": settings.DEFAULT_POPULARITY_FACTOR,
-            "boost_mode": settings.DEFAULT_BOOST_MODE,
-        })
+        context["debug_search_form"] = DebugSearchForm(
+            request.GET,
+            initial={
+                "popularity_factor": settings.DEFAULT_POPULARITY_FACTOR,
+                "boost_mode": settings.DEFAULT_BOOST_MODE,
+            },
+        )
         if context["debug_search_form"].is_valid():
             popularity_factor = context["debug_search_form"].cleaned_data[
                 "popularity_factor"

@@ -1,10 +1,12 @@
 import auth0 from 'auth0-js';
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { formatDistance } from 'date-fns/esm';
 import { BrowserRouter as Router, Link, Route, Switch } from 'react-router-dom';
 import 'semantic-ui-css/semantic.min.css';
 import { Container, Dropdown, Loader, Menu } from 'semantic-ui-react';
 import { SemanticToastContainer } from 'react-semantic-toasts';
+import Sockette from 'sockette';
+import { toast } from 'react-semantic-toasts';
 import 'react-semantic-toasts/styles/react-semantic-alert.css';
 import './copy-of-highlight.css';
 import './App.css';
@@ -39,7 +41,7 @@ const AWSPASearch = lazy(() => import('./AWSPASearch'));
 
 // Not a 'const' because we're going to cheekily increase every time it
 // gets mutated later.
-let CDN_PURGE_URLS_LOOP_SECONDS = 10;
+// let CDN_PURGE_URLS_LOOP_SECONDS = 10;
 
 class App extends React.Component {
   state = {
@@ -51,16 +53,16 @@ class App extends React.Component {
     document.title = 'Peterbe.com Admin';
     this.authenticate();
 
-    // Delay this loop a little so that it starts after other more important
-    // XHR fetches.
-    setTimeout(() => {
-      !this.dismounted && this.startCDNPurgeURLsLoop();
-    }, 1000);
+    // // Delay this loop a little so that it starts after other more important
+    // // XHR fetches.
+    // setTimeout(() => {
+    //   !this.dismounted && this.startCDNPurgeURLsLoop();
+    // }, 10000);
   }
 
   componentWillUnmount() {
     this.dismounted = true;
-    if (this._cdnPurgeURLsLoop) window.clearTimeout(this._cdnPurgeURLsLoop);
+    // if (this._cdnPurgeURLsLoop) window.clearTimeout(this._cdnPurgeURLsLoop);
   }
 
   // Sign in either by localStorage or by window.location.hash
@@ -199,19 +201,34 @@ class App extends React.Component {
     });
   };
 
-  startCDNPurgeURLsLoop = () => {
-    this.fetchPurgeURLsCount();
-    if (this._cdnPurgeURLsLoop) {
-      window.clearTimeout(this._cdnPurgeURLsLoop);
+  onWebSocketMessage = msg => {
+    console.log('WS MESSAGE:', msg);
+    if (msg.cdn_purge_urls) {
+      this.fetchPurgeURLsCount();
+    } else {
+      toast({
+        type: 'info',
+        title: 'Pulse message',
+        description: JSON.stringify(msg),
+        time: 5000
+        // size: null // https://github.com/academia-de-codigo/react-semantic-toasts/issues/40
+      });
     }
-    this._cdnPurgeURLsLoop = window.setTimeout(() => {
-      this.startCDNPurgeURLsLoop();
-      // Just a little hack. This way the timeout happens more and more rarely
-      // as time goes by. Just to avoid it running too frequently when the tab
-      // gets left open. Weird but fun. Perhaps delete some day.
-      CDN_PURGE_URLS_LOOP_SECONDS++;
-    }, 1000 * CDN_PURGE_URLS_LOOP_SECONDS);
   };
+
+  // startCDNPurgeURLsLoop = () => {
+  //   this.fetchPurgeURLsCount();
+  //   if (this._cdnPurgeURLsLoop) {
+  //     window.clearTimeout(this._cdnPurgeURLsLoop);
+  //   }
+  //   this._cdnPurgeURLsLoop = window.setTimeout(() => {
+  //     this.startCDNPurgeURLsLoop();
+  //     // Just a little hack. This way the timeout happens more and more rarely
+  //     // as time goes by. Just to avoid it running too frequently when the tab
+  //     // gets left open. Weird but fun. Perhaps delete some day.
+  //     CDN_PURGE_URLS_LOOP_SECONDS++;
+  //   }, 1000 * CDN_PURGE_URLS_LOOP_SECONDS);
+  // };
 
   fetchPurgeURLsCount = async () => {
     let response;
@@ -472,6 +489,7 @@ class App extends React.Component {
                 <Route component={NoMatch} />
               </Switch>
             </Suspense>
+            <Websocket onMessage={this.onWebSocketMessage} />
           </Container>
         </div>
       </Router>
@@ -480,6 +498,63 @@ class App extends React.Component {
 }
 
 export default App;
+
+function Websocket({ onMessage }) {
+  const [connected, setConnected] = useState(null);
+  const [websocketError, setWebsocketError] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const wsHostname = process.env.REACT_WS_PORT || document.location.hostname;
+    const wsPort = process.env.REACT_WS_PORT || '8080';
+
+    const wsUrl = `ws://${wsHostname}:${wsPort}`;
+    console.log(`Setting up WebSocket connection to ${wsUrl}`);
+    const wss = new Sockette(wsUrl, {
+      timeout: 5e3,
+      maxAttempts: 25,
+      onopen: e => {
+        if (mounted) setConnected(true);
+      },
+      onmessage: e => {
+        let data;
+        try {
+          data = JSON.parse(e.data);
+        } catch (ex) {
+          console.warn('WebSocket message data is not JSON');
+          data = e.data;
+        }
+        onMessage(data);
+      },
+      onreconnect: e => {},
+      onmaximum: e => {},
+      onclose: e => {
+        if (mounted) setConnected(false);
+      },
+      onerror: e => {
+        if (mounted) setWebsocketError(e);
+      }
+    });
+    return () => {
+      mounted = false;
+      wss.close();
+    };
+  }, [onMessage]);
+
+  return (
+    <p>
+      {websocketError ? (
+        <b>
+          WebSocket error <code>{websocketError.toString()}</code>
+        </b>
+      ) : connected ? (
+        'connected!'
+      ) : (
+        'not connected'
+      )}
+    </p>
+  );
+}
 
 function DropdownLink({ children, ...props }) {
   return (
