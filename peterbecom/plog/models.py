@@ -315,8 +315,6 @@ class BlogItemHit(models.Model):
 
     blogitem = models.ForeignKey(BlogItem, on_delete=models.CASCADE)
     add_date = models.DateTimeField(auto_now_add=True)
-    http_user_agent = models.TextField(null=True)
-    http_accept_language = models.TextField(null=True)
     remote_addr = models.GenericIPAddressField(null=True)
     http_referer = models.URLField(max_length=450, null=True)
     page = models.PositiveIntegerField(null=True)
