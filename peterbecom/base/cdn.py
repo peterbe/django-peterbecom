@@ -72,11 +72,10 @@ def purge_cdn_urls(urls, api=None):
                 urls_succeeded.append(url)
             except Exception:
                 urls_failed.append(url)
+                CDNPurgeURL.failed(urls_failed)
                 raise
         if urls_succeeded:
             CDNPurgeURL.succeeded(urls_succeeded)
-        if urls_failed:
-            CDNPurgeURL.failed(urls_failed)
         send_pulse_message({"cdn_purge_urls": urls})
         return {"all_urls": urls, "result": x_cache_headers}
 

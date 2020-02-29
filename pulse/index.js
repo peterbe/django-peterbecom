@@ -5,6 +5,9 @@ const REDIS_URL = process.env.REDIS_URL || null;
 const WEBSOCKET_PORT = JSON.parse(process.env.WEBSOCKET_PORT || '8080');
 
 const webSocketServer = new WebSocket.Server({ port: WEBSOCKET_PORT });
+// In the future, consider making it so that there's an option to register
+// for what kind of messages you're interested in. Then there could be a
+// map between, say, namespace to clients. E.g. map.set('cdn', [client1, client2])
 webSocketServer.on('connection', () => {
   console.log(`WebSocket server connection started on :${WEBSOCKET_PORT}`);
 });
@@ -55,7 +58,7 @@ subscriber.on('message', (channel, message) => {
   } catch (ex) {
     // not JSON
   }
-  console.log('INCOMING MESSAGE:', message);
+  // console.log('INCOMING PULSE MESSAGE:', message);
   broadcastWebsocketMessage(message);
 });
 subscriber.subscribe('pulse');

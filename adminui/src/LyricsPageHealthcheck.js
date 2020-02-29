@@ -11,7 +11,7 @@ import {
 import { ShowServerError } from './Common';
 import XCacheAnalyze from './XCacheAnalyze';
 
-function defaultLoopSeconds(default_ = 60) {
+function defaultLoopSeconds(default_ = 40) {
   try {
     return parseInt(
       window.localStorage.getItem('lyrics-page-healthcheck-loopseconds') ||

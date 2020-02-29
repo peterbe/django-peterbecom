@@ -1,11 +1,10 @@
 import auth0 from 'auth0-js';
-import React, { Suspense, lazy, useEffect, useState } from 'react';
+import React, { Suspense, lazy } from 'react';
 import { formatDistance } from 'date-fns/esm';
 import { BrowserRouter as Router, Link, Route, Switch } from 'react-router-dom';
 import 'semantic-ui-css/semantic.min.css';
 import { Container, Dropdown, Loader, Menu } from 'semantic-ui-react';
 import { SemanticToastContainer } from 'react-semantic-toasts';
-import Sockette from 'sockette';
 import { toast } from 'react-semantic-toasts';
 import 'react-semantic-toasts/styles/react-semantic-alert.css';
 import './copy-of-highlight.css';
@@ -16,6 +15,7 @@ import {
   OIDC_CLIENT_ID,
   OIDC_DOMAIN
 } from './Config';
+import Pulse from './Pulse';
 import Blogitems from './Blogitems';
 import Comments from './Comments';
 import Dashboard from './Dashboard';
@@ -58,6 +58,7 @@ class App extends React.Component {
     // setTimeout(() => {
     //   !this.dismounted && this.startCDNPurgeURLsLoop();
     // }, 10000);
+    this.fetchPurgeURLsCount();
   }
 
   componentWillUnmount() {
@@ -202,7 +203,7 @@ class App extends React.Component {
   };
 
   onWebSocketMessage = msg => {
-    console.log('WS MESSAGE:', msg);
+    // console.log('WS MESSAGE:', msg);
     if (msg.cdn_purge_urls) {
       this.fetchPurgeURLsCount();
     } else {
@@ -251,6 +252,7 @@ class App extends React.Component {
         <div>
           <SemanticToastContainer />
           <Menu fixed="top" inverted>
+            <Pulse onMessage={this.onWebSocketMessage} />
             <Container>
               <Menu.Item header>
                 <Link to="/">Peterbe.com Admin</Link>
@@ -489,7 +491,6 @@ class App extends React.Component {
                 <Route component={NoMatch} />
               </Switch>
             </Suspense>
-            <Websocket onMessage={this.onWebSocketMessage} />
           </Container>
         </div>
       </Router>
@@ -498,63 +499,6 @@ class App extends React.Component {
 }
 
 export default App;
-
-function Websocket({ onMessage }) {
-  const [connected, setConnected] = useState(null);
-  const [websocketError, setWebsocketError] = useState(null);
-
-  useEffect(() => {
-    let mounted = true;
-    const wsHostname = process.env.REACT_WS_PORT || document.location.hostname;
-    const wsPort = process.env.REACT_WS_PORT || '8080';
-
-    const wsUrl = `ws://${wsHostname}:${wsPort}`;
-    console.log(`Setting up WebSocket connection to ${wsUrl}`);
-    const wss = new Sockette(wsUrl, {
-      timeout: 5e3,
-      maxAttempts: 25,
-      onopen: e => {
-        if (mounted) setConnected(true);
-      },
-      onmessage: e => {
-        let data;
-        try {
-          data = JSON.parse(e.data);
-        } catch (ex) {
-          console.warn('WebSocket message data is not JSON');
-          data = e.data;
-        }
-        onMessage(data);
-      },
-      onreconnect: e => {},
-      onmaximum: e => {},
-      onclose: e => {
-        if (mounted) setConnected(false);
-      },
-      onerror: e => {
-        if (mounted) setWebsocketError(e);
-      }
-    });
-    return () => {
-      mounted = false;
-      wss.close();
-    };
-  }, [onMessage]);
-
-  return (
-    <p>
-      {websocketError ? (
-        <b>
-          WebSocket error <code>{websocketError.toString()}</code>
-        </b>
-      ) : connected ? (
-        'connected!'
-      ) : (
-        'not connected'
-      )}
-    </p>
-  );
-}
 
 function DropdownLink({ children, ...props }) {
   return (

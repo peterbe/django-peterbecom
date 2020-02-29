@@ -60,7 +60,7 @@ def send_pulse_message(msg, raise_errors=False):
     client = get_redis_connection("default")
     if not isinstance(msg, str):
         msg = json.dumps(msg)
-    print("PUBLISHING:", msg)
+    print("PUBLISHING PULSE MESSAGE:", msg)
     # XXX not entirely sure what errors can come of this
     # but once confident use the `raise_errors`
     client.publish("pulse", msg)

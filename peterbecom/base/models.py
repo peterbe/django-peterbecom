@@ -139,18 +139,29 @@ class CDNPurgeURL(models.Model):
         if not max_urls:
             max_urls = settings.CDN_MAX_PURGE_URLS
         qs = cls.objects.filter(cancelled__isnull=True, processed__isnull=True)
-        return list(qs.order_by("created")[:max_urls].values_list("url", flat=True))
+        urls = list(qs.order_by("created")[:max_urls].values_list("url", flat=True))
+        return urls
 
     @classmethod
     def succeeded(cls, urls):
         if isinstance(urls, str):
             urls = [urls]
+        for i, url in enumerate(urls):
+            if "://" in url:
+                url = urlparse(url).path
+                urls[i] = url
+            assert url.startswith("/"), url
         cls.objects.filter(url__in=urls).update(processed=timezone.now())
 
     @classmethod
     def failed(cls, urls):
         if isinstance(urls, str):
             urls = [urls]
+        for i, url in enumerate(urls):
+            if "://" in url:
+                url = urlparse(url).path
+                urls[i] = url
+            assert url.startswith("/"), url
         etype, evalue, tb = sys.exc_info()
         out = StringIO()
         traceback.print_exception(etype, evalue, tb, file=out)

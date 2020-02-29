@@ -86,34 +86,21 @@ def blog_post_ping(request, oid, page=None):
             if current_url == http_referer:
                 http_referer = None
         increment_blogitem_hit(
-            oid,
-            http_user_agent=user_agent,
-            http_accept_language=request.headers.get("Accept-Language"),
-            remote_addr=remote_addr,
-            http_referer=http_referer,
-            page=page,
+            oid, remote_addr=remote_addr, http_referer=http_referer, page=page,
         )
     return http.JsonResponse({"ok": True})
 
 
 @task()
 def increment_blogitem_hit(
-    oid,
-    http_user_agent=None,
-    http_accept_language=None,
-    remote_addr=None,
-    http_referer=None,
-    page=None,
+    oid, remote_addr=None, http_referer=None, page=None,
 ):
     if http_referer and len(http_referer) > 450:
         http_referer = http_referer[: 450 - 3] + "..."
     try:
         blogitem_id = BlogItem.objects.values_list("id", flat=True).get(oid=oid)
         BlogItemHit.objects.create(
-            # blogitem=BlogItem.objects.get(oid=oid),
             blogitem_id=blogitem_id,
-            http_user_agent=http_user_agent,
-            http_accept_language=http_accept_language,
             http_referer=http_referer,
             remote_addr=remote_addr,
             page=page,
