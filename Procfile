@@ -4,5 +4,5 @@ web: ./bin/run.sh web
 minimalcss: cd minimalcss && PORT=5000 yarn run start
 #huey: ./manage.py run_huey --flush-locks --huey-verbose
 huey: ./manage.py run_huey --flush-locks
-adminui: cd adminui && REACT_APP_BASE_URL=http://peterbecom.local BROWSER=none PORT=4000 yarn start
+adminui: cd adminui && REACT_APP_WS_URL=ws://localhost:8080 REACT_APP_BASE_URL=http://peterbecom.local BROWSER=none PORT=4000 yarn start
 pulse: cd pulse && yarn run dev

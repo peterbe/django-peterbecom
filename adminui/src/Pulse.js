@@ -10,10 +10,8 @@ export default function Pulse({ onMessage }) {
   let wssRef = useRef();
   useEffect(() => {
     let mounted = true;
-    const wsHostname = process.env.REACT_WS_PORT || document.location.hostname;
-    const wsPort = process.env.REACT_WS_PORT || '8080';
+    const wsUrl = process.env.REACT_APP_WS_URL || 'wss://admin.peterbe.com/ws';
 
-    const wsUrl = `ws://${wsHostname}:${wsPort}/ws`;
     console.log(`Setting up WebSocket connection to ${wsUrl}`);
     wssRef.current = new Sockette(wsUrl, {
       timeout: 5e3,
