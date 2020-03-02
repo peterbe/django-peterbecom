@@ -63,28 +63,35 @@ class Command(BaseCommand):
         self.notice(qs.count(), "products that can be updated")
         for i, awsproduct in enumerate(qs.order_by("modify_date")[:limit]):
             print(i + 1, repr(awsproduct))
-            if not awsproduct.paapiv5:
-                self.out("Converting", repr(awsproduct), "to paapiv5")
-                try:
-                    awsproduct.convert_to_paapiv5(raise_if_nothing_found=True)
-                except RateLimitedError as exception:
-                    self.out("RateLimitedError", exception)
-                    break
-                except NothingFoundError:
-                    self.notice(
-                        "NothingFoundError on {!r}. So, disabling".format(awsproduct)
-                    )
-                    awsproduct.disabled = True
-                    awsproduct.save()
+            # if not awsproduct.paapiv5:
+            #     self.out("Converting", repr(awsproduct), "to paapiv5")
+            #     try:
+            #         awsproduct.convert_to_paapiv5(raise_if_nothing_found=True)
+            #     except RateLimitedError as exception:
+            #         self.out("RateLimitedError", exception)
+            #         break
+            #     except NothingFoundError:
+            #         self.notice(
+            #             "NothingFoundError on {!r}. So, disabling".format(awsproduct)
+            #         )
+            #         awsproduct.disabled = True
+            #         awsproduct.save()
 
-                time.sleep(sleep)
-                continue
+            #     time.sleep(sleep)
+            #     continue
 
             try:
                 payload = lookup(awsproduct.asin)
             except RateLimitedError as exception:
                 self.out("RateLimitedError", exception)
                 break
+            except NothingFoundError:
+                self.notice(
+                    "Nothing found any more for ASIN {}".format(awsproduct.asin)
+                )
+                awsproduct.disabled = True
+                awsproduct.save()
+                continue
 
             # dumb_diff(awsproduct.payload, payload)
             try:
