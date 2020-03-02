@@ -22,6 +22,7 @@ from elasticsearch_dsl.connections import connections
 from sorl.thumbnail import ImageField
 
 from peterbecom.base.geo import ip_to_city
+from peterbecom.base.utils import send_pulse_message
 from peterbecom.base.search import es_retry
 from peterbecom.plog.search import BlogCommentDoc, BlogItemDoc
 
@@ -430,6 +431,14 @@ class BlogComment(models.Model):
 @receiver(pre_save, sender=BlogComment)
 def update_comment_rendered(sender, instance, **kwargs):
     instance.comment_rendered = sender.get_rendered_comment(instance.comment)
+
+
+@receiver(post_save, sender=BlogComment)
+def send_search_result_pulse_message(sender, instance, **kwargs):
+    if kwargs.get("created"):
+        send_pulse_message(
+            {"commented": {"oid": instance.oid, "blogitem": instance.blogitem.oid}}
+        )
 
 
 def _uploader_dir(instance, filename):

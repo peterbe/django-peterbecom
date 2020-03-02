@@ -88,9 +88,10 @@ class SearchResult(models.Model):
 
 @receiver(post_save, sender=SearchResult)
 def send_search_result_pulse_message(sender, instance, **kwargs):
-    send_pulse_message(
-        {"searched": {"q": instance.q, "documents_found": instance.documents_found}}
-    )
+    if kwargs.get("created"):
+        send_pulse_message(
+            {"searched": {"q": instance.q, "documents_found": instance.documents_found}}
+        )
 
 
 class CDNPurgeURL(models.Model):
