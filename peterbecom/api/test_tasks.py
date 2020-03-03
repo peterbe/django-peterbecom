@@ -13,6 +13,16 @@ from peterbecom.api import tasks
 @pytest.mark.django_db
 def test_send_comment_reply_email_page_1():
 
+    from django.conf import settings
+
+    print("REDIS_URL:", settings.REDIS_URL)
+    print("CACHES:", settings.CACHES)
+
+    from django.core.cache import cache
+
+    cache.set("foo", "bar", 3)
+    assert cache.get("foo") == "bar"
+
     blogitem = BlogItem.objects.create(
         oid="myoid",
         title="TITLEX",

@@ -7,7 +7,7 @@ dist: trusty
 
 services:
   - postgresql
-  - redis
+  - redis-server
 
 language: python
 
