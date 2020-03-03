@@ -23,12 +23,6 @@ ES_CONNECTIONS = {
 REDIS_URL = 'redis://localhost:6379/0'
 HMAC_KEYS = {'some': 'thing'}
 SECRET_KEY = 'something'
-CACHES = {
-    'default': {
-        'BACKEND': 'peterbecom.cache_backends.LockMemCache',
-        'LOCATION': 'unique-snowflake'
-    }
-}
 GEOIP_PATH = base.path('GeoIP2-City-Test.mmdb')
 SETTINGS
 
