@@ -57,7 +57,10 @@ class EmptyHeaders(Exception):
 def _post_x_cache(session, token, url, location):
     t0 = time.time()
     r = session.post(
-        URL, data={"location": location, "url": url, "token": token}, timeout=10
+        URL,
+        data={"location": location, "url": url, "token": token},
+        timeout=10,
+        headers={"Referer": "https://tools.keycdn.com/performance"},
     )
     t1 = time.time()
     print(url, "FORM", location, "TOOK", t1 - t0)
