@@ -43,3 +43,6 @@ assert os.path.isfile(GEOIP_PATH), GEOIP_PATH
 
 # Set this explicitly on in individual tests
 TRASH_COMMENT_COMBINATIONS = []
+
+# Because ideally no WebSocket should be listening when running tests.
+SEND_PULSE_MESSAGES = False

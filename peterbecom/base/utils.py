@@ -57,10 +57,12 @@ def requests_retry_session(
 
 
 def send_pulse_message(msg, raise_errors=False):
+    if not settings.SEND_PULSE_MESSAGES:
+        return
     client = get_redis_connection("default")
     if not isinstance(msg, str):
         msg = json.dumps(msg)
-    print("PUBLISHING PULSE MESSAGE:", msg)
+    # print("PUBLISHING PULSE MESSAGE:", msg)
     # XXX not entirely sure what errors can come of this
     # but once confident use the `raise_errors`
     client.publish("pulse", msg)

@@ -14,7 +14,7 @@
   {% endif -%}
 
   <meta name="description" content="{% block meta_description %}Stuff in Peter's head{% endblock %}">
-  <link rel="shortcut icon" href="{{ static("images/favicon-32.png") }}">
+  <link rel="shortcut icon" href="{{ static('images/favicon-32.png') }}">
   <link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
 
   {% if use_google_analytics -%}
@@ -27,7 +27,10 @@
   <script src="https://www.google-analytics.com/analytics.js" async></script>
   {%- endif %}
 
-  <script>window.fetch||document.write('<script src="https://unpkg.com/unfetch/polyfill"><\/script>')</script>
+  {% if '/plog/blogitem-040601-1' not in request.path %}
+    {# Because how the autocomplete Preact thing works, it already gets a polyfill for fetch #}
+    <script>window.fetch||document.write('<script src="https://unpkg.com/unfetch/polyfill"><\/script>')</script>
+  {% endif %}
 
   {% block extrahead %}{% endblock %}
 
@@ -141,10 +144,8 @@ var _rollbarConfig = {
   {% block basejs %}
   {%- if '/plog/blogitem-040601-1' in request.path  %}
   {% javascript 'lyrics' %}
-  {% javascript 'loadcss' %}
   {% else %}
   {% javascript 'base' %}
-  {% javascript 'loadcss' %}
   {% javascript 'prefetcher' %}
   {% endif -%}
 

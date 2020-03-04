@@ -47,17 +47,11 @@ def mincss_html(html, abs_uri, include_minimalcss_stats=True):
 
     found_link_hrefs = list(result["stylesheetContents"].keys())
 
-    if 0 and "/plog/blogitem-040601-1" in abs_uri:
-        template = (
-            '<link rel="preload" href="{url}" as="style" media="delayed">\n'
-            '<noscript><link rel="stylesheet" href="{url}"></noscript>'
-        )
-    else:
-        template = (
-            '<link rel="preload" href="{url}" as="style" '
-            "onload=\"this.onload=null;this.rel='stylesheet'\">\n"
-            '<noscript><link rel="stylesheet" href="{url}"></noscript>'
-        )
+    template = (
+        '<link rel="stylesheet" href="{url}" media="print" onload="this.media=\'all\'">'
+        "\n"
+        '<noscript><link rel="stylesheet" href="{url}"></noscript>'
+    )
 
     def equal_uris(uri1, uri2):
         # If any one of them is relative, compare their paths
@@ -186,8 +180,13 @@ def _clean_with_csso(cssstring):
 
 def has_been_css_minified(html):
     doc = PyQuery(html)
-    for link in doc('link[rel="preload"]').items():
-        if link.attr("href") and link.attr("href").endswith(".css"):
+    for link in doc('link[rel="stylesheet"]').items():
+        if (
+            link.attr("href")
+            and link.attr("href").endswith(".css")
+            and link.attr("media") == "print"
+            and link.attr("onload")
+        ):
             # Second test, does it have a big fat style text:
             for style in doc("style").items():
                 style_text = style.text()

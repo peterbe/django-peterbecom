@@ -70,7 +70,7 @@ PIPELINE_CSS = {
 
 PIPELINE_JS = {
     "base": {
-        "source_filenames": ("libs/cash-5.0.0.min.js", "js/site.js", "js/blogitem.js"),
+        "source_filenames": ("libs/cash-6.0.2.min.js", "js/site.js", "js/blogitem.js"),
         "output_filename": "js/base.min.js",
         "extra_context": {"defer": True},
         "template_name": "custom_pipeline/js.html",
@@ -82,7 +82,7 @@ PIPELINE_JS = {
         "template_name": "custom_pipeline/js.html",
     },
     "lyrics": {
-        "source_filenames": ("libs/cash-5.0.0.min.js", "js/blogitem.js"),
+        "source_filenames": ("libs/cash-6.0.2.min.js", "js/blogitem.js"),
         "output_filename": "js/lyrics.min.js",
         "extra_context": {"defer": True},
         "template_name": "custom_pipeline/js.html",

@@ -125,6 +125,8 @@ class CDNPurgeURL(models.Model):
     def add(cls, urls):
         if isinstance(urls, str):
             urls = [urls]
+        if not urls:
+            return
         # Turn every URL into just the path
         for i, url in enumerate(urls):
             if "://" in url:
@@ -134,6 +136,7 @@ class CDNPurgeURL(models.Model):
                 url__in=urls, cancelled__isnull=True, processed__isnull=True
             ).update(cancelled=timezone.now())
             cls.objects.bulk_create([cls(url=url) for url in urls])
+        cls.pulse_about_queue_count()
 
     @classmethod
     def get(cls, max_urls=None):
@@ -153,6 +156,7 @@ class CDNPurgeURL(models.Model):
                 urls[i] = url
             assert url.startswith("/"), url
         cls.objects.filter(url__in=urls).update(processed=timezone.now())
+        cls.pulse_about_queue_count()
 
     @classmethod
     def failed(cls, urls):
@@ -172,3 +176,10 @@ class CDNPurgeURL(models.Model):
         ).update(
             attempted=timezone.now(), attempts=F("attempts") + 1, exception=exception
         )
+
+    @classmethod
+    def pulse_about_queue_count(cls):
+        count = cls.objects.filter(
+            cancelled__isnull=True, processed__isnull=True
+        ).count()
+        send_pulse_message({"cdn_purge_urls": count})

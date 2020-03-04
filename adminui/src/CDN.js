@@ -19,10 +19,6 @@ class CDN extends React.Component {
     document.title = 'CDN';
   }
 
-  componentWillUnmount() {
-    this.dismounted = true;
-  }
-
   render() {
     return (
       <Container textAlign="center">
@@ -634,7 +630,7 @@ function ShowZoneConfig({ config }) {
   );
 }
 
-function defaultLoopSeconds(default_ = 10) {
+function defaultLoopSeconds(default_ = 60) {
   try {
     return parseInt(
       window.localStorage.getItem('purgeurls-loopseconds') || default_,
@@ -658,12 +654,21 @@ class PurgeURLs extends React.PureComponent {
     this.originalTitle = 'CDN';
   }
 
+  componentDidUpdate(prevProps) {
+    const newCount = this.props.purgeUrlsCount;
+    const oldCount = prevProps.purgeUrlsCount;
+    if (newCount !== null && oldCount !== null && newCount !== oldCount) {
+      this.fetchPurgeURLs();
+    }
+  }
+
   componentWillUnmount() {
     this.dismounted = true;
     if (this._loop) window.clearTimeout(this._loop);
   }
 
-  fetchPurgeURLs = async accessToken => {
+  fetchPurgeURLs = async () => {
+    const { accessToken } = this.props;
     if (!accessToken) {
       throw new Error('No accessToken');
     }

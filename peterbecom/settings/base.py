@@ -359,7 +359,7 @@ ES_CONNECTIONS = {"default": {"hosts": ["localhost:9200"]}}
 
 LATEST_PODCAST_CUTOFF_DAYS = 300
 
-MAX_RECENT_COMMENTS = 100
+MAX_RECENT_COMMENTS = 95
 
 MAX_BLOGCOMMENT_PAGES = 16
 
@@ -486,3 +486,5 @@ DEFAULT_BOOST_MODE = "sum"
 
 # Avoid DB reads and writes as much as possible
 DB_MAINTENANCE_MODE = False
+
+SEND_PULSE_MESSAGES = True

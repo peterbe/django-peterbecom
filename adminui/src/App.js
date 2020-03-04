@@ -204,8 +204,8 @@ class App extends React.Component {
 
   onWebSocketMessage = msg => {
     // console.log('WS MESSAGE:', msg);
-    if (msg.cdn_purge_urls) {
-      this.fetchPurgeURLsCount();
+    if (typeof msg.cdn_purge_urls !== undefined) {
+      this.setState({ purgeUrlsCount: msg.cdn_purge_urls });
     } else {
       toast({
         type: 'info',
@@ -216,20 +216,6 @@ class App extends React.Component {
       });
     }
   };
-
-  // startCDNPurgeURLsLoop = () => {
-  //   this.fetchPurgeURLsCount();
-  //   if (this._cdnPurgeURLsLoop) {
-  //     window.clearTimeout(this._cdnPurgeURLsLoop);
-  //   }
-  //   this._cdnPurgeURLsLoop = window.setTimeout(() => {
-  //     this.startCDNPurgeURLsLoop();
-  //     // Just a little hack. This way the timeout happens more and more rarely
-  //     // as time goes by. Just to avoid it running too frequently when the tab
-  //     // gets left open. Weird but fun. Perhaps delete some day.
-  //     CDN_PURGE_URLS_LOOP_SECONDS++;
-  //   }, 1000 * CDN_PURGE_URLS_LOOP_SECONDS);
-  // };
 
   fetchPurgeURLsCount = async () => {
     let response;
@@ -462,6 +448,7 @@ class App extends React.Component {
                   exact
                   component={CDN}
                   accessToken={this.state.accessToken}
+                  purgeUrlsCount={this.state.purgeUrlsCount}
                 />
                 <SecureRoute
                   path="/lyrics-page-healthcheck"
@@ -545,7 +532,9 @@ class SecureRoute extends React.Component {
       <Route
         path={path}
         render={props => {
-          return <Component {...props} accessToken={accessToken} />;
+          return (
+            <Component {...this.props} {...props} accessToken={accessToken} />
+          );
         }}
       />
     );

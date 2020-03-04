@@ -9,7 +9,7 @@ from django.utils import timezone
 from requests.exceptions import RequestException, RetryError
 
 from peterbecom.base.models import CDNPurgeURL
-from peterbecom.base.utils import requests_retry_session, send_pulse_message
+from peterbecom.base.utils import requests_retry_session
 
 
 def get_stack_signature():
@@ -76,7 +76,6 @@ def purge_cdn_urls(urls, api=None):
                 raise
         if urls_succeeded:
             CDNPurgeURL.succeeded(urls_succeeded)
-        send_pulse_message({"cdn_purge_urls": urls})
         return {"all_urls": urls, "result": x_cache_headers}
 
     if not keycdn_zone_check():
@@ -138,7 +137,6 @@ def purge_cdn_urls(urls, api=None):
         except Exception:
             CDNPurgeURL.failed(get_original_urls(all_urls))
             raise
-        send_pulse_message({"cdn_purge_urls": all_urls})
         print(
             "SENT CDN PURGE FOR: {!r}\tORIGINAL URLS: {!r}\tRESULT: {}".format(
                 all_urls, urls, r
