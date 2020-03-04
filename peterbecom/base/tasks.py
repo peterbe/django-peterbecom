@@ -7,6 +7,7 @@ import shutil
 import sys
 import time
 import traceback
+from urllib.parse import urlparse
 from io import StringIO
 
 from django.conf import settings
@@ -181,6 +182,8 @@ def _post_process_cached_html(filepath, url, postprocessing, original_url):
         t1 = time.perf_counter()
         postprocessing.notes.append("Took {:.1f}s to Brotli HTML".format(t1 - t0))
 
+    if "://" in url:
+        url = urlparse(url).path
     CDNPurgeURL.add(url)
 
 

@@ -1,7 +1,6 @@
 import sys
 import traceback
 from io import StringIO
-from urllib.parse import urlparse
 
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField, JSONField
@@ -127,11 +126,7 @@ class CDNPurgeURL(models.Model):
             urls = [urls]
         if not urls:
             return
-        # Turn every URL into just the path
-        for i, url in enumerate(urls):
-            if "://" in url:
-                raise ValueError("How the heck did {!r} get in?!".format(url))
-                # urls[i] = urlparse(url).path
+        cls._validate_urls(urls)
         with transaction.atomic():
             cls.objects.filter(
                 url__in=urls, cancelled__isnull=True, processed__isnull=True
@@ -151,11 +146,7 @@ class CDNPurgeURL(models.Model):
     def succeeded(cls, urls):
         if isinstance(urls, str):
             urls = [urls]
-        for i, url in enumerate(urls):
-            if "://" in url:
-                url = urlparse(url).path
-                urls[i] = url
-            assert url.startswith("/"), url
+        cls._validate_urls(urls)
         cls.objects.filter(url__in=urls).update(processed=timezone.now())
         cls.pulse_about_queue_count()
 
@@ -163,11 +154,7 @@ class CDNPurgeURL(models.Model):
     def failed(cls, urls):
         if isinstance(urls, str):
             urls = [urls]
-        for i, url in enumerate(urls):
-            if "://" in url:
-                url = urlparse(url).path
-                urls[i] = url
-            assert url.startswith("/"), url
+        cls._validate_urls(urls)
         etype, evalue, tb = sys.exc_info()
         out = StringIO()
         traceback.print_exception(etype, evalue, tb, file=out)
@@ -177,6 +164,15 @@ class CDNPurgeURL(models.Model):
         ).update(
             attempted=timezone.now(), attempts=F("attempts") + 1, exception=exception
         )
+
+    @classmethod
+    def _validate_urls(cls, urls):
+        for url in urls:
+            if "://" in url and url.startswith("http"):
+                raise ValueError(
+                    "Only add pathnames, not absolute URLs ({!r})".format(url)
+                )
+            assert url.startswith("/"), url
 
     @classmethod
     def pulse_about_queue_count(cls):
