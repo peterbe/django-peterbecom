@@ -130,7 +130,8 @@ class CDNPurgeURL(models.Model):
         # Turn every URL into just the path
         for i, url in enumerate(urls):
             if "://" in url:
-                urls[i] = urlparse(url).path
+                raise ValueError("How the heck did {!r} get in?!".format(url))
+                # urls[i] = urlparse(url).path
         with transaction.atomic():
             cls.objects.filter(
                 url__in=urls, cancelled__isnull=True, processed__isnull=True
