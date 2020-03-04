@@ -112,10 +112,10 @@ def purge_cdn_urls(urls, api=None):
     def get_original_urls(cdn_urls):
         original = set()
         for url in cdn_urls:
-            original = original_urls[url]
-            if "://" in original and original.startswith("http"):
-                original = urlparse(original).path
-            original.add(original)
+            original_url = original_urls[url]
+            if "://" in original_url and original_url.startswith("http"):
+                original_url = urlparse(original_url).path
+            original.add(original_url)
         return original
 
     # Break it up into lists of 100
