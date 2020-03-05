@@ -46,7 +46,7 @@ def test_post_process_cached_html_happy_path(tmpfscacheroot, requestsmock, setti
 
     assert "<h1 class=header>Header</h1>" in optimized_html
 
-    # The loadCSS *and* the html minification at work.
+    # The smart css warmup and the html minification at work.
     assert "<link rel=stylesheet href=/foo.css media=print" in optimized_html
 
     assert "body{color:blue}h1{font-weight:bold}</style>" in optimized_html

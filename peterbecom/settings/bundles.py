@@ -87,12 +87,6 @@ PIPELINE_JS = {
         "extra_context": {"defer": True},
         "template_name": "custom_pipeline/js.html",
     },
-    "loadcss": {
-        "source_filenames": ("js/loadCSS.js",),
-        "output_filename": "js/loadcss.min.js",
-        "extra_context": {"async": True},
-        "template_name": "custom_pipeline/js.html",
-    },
     "delayedcss": {
         "source_filenames": ("js/delayedcss.js",),
         "output_filename": "js/delayedcss.min.js",
