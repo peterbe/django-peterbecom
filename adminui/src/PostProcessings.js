@@ -10,6 +10,7 @@ import {
   Statistic,
   Table
 } from 'semantic-ui-react';
+import { throttle } from 'throttle-debounce';
 
 import {
   DisplayDate,
@@ -18,22 +19,22 @@ import {
   ShowServerError
 } from './Common';
 
-function defaultLoopSeconds(default_ = 10) {
-  try {
-    return parseInt(
-      window.localStorage.getItem('postprocess-loopseconds') || default_,
-      10
-    );
-  } catch (ex) {
-    return default_;
+function differentObjects(o1, o2) {
+  if (o1 === null || o2 === null) {
+    return o1 !== o2;
   }
+  for (const key of Object.keys(o1)) {
+    if (o1[key] !== o2[key]) {
+      return true;
+    }
+  }
+  return false;
 }
 
 class PostProcessings extends React.Component {
   state = {
     filters: null,
     loading: false,
-    loopSeconds: defaultLoopSeconds(),
     ongoing: null,
     records: null,
     serverError: null,
@@ -42,16 +43,29 @@ class PostProcessings extends React.Component {
 
   componentDidMount() {
     document.title = 'Post Processing';
-    this.startLoop();
+    this.fetchPostProcessings();
+  }
+
+  componentDidUpdate(prevProps) {
+    // This might mean one was null, the other an object.
+    // But any two objects are always different too. If both are objects
+    // we need to compare individual key/value pairs.
+    if (
+      differentObjects(
+        prevProps.latestPostProcessing,
+        this.props.latestPostProcessing
+      )
+    ) {
+      this.throttled_fetchPostProcessings();
+    }
   }
 
   componentWillUnmount() {
     this.dismounted = true;
-    if (this._loop) window.clearTimeout(this._loop);
   }
 
-  fetchPostProcessings = async accessToken => {
-    if (!accessToken) {
+  fetchPostProcessings = async () => {
+    if (!this.props.accessToken) {
       throw new Error('No accessToken');
     }
     let response;
@@ -62,11 +76,12 @@ class PostProcessings extends React.Component {
     try {
       response = await fetch(url, {
         headers: {
-          Authorization: `Bearer ${accessToken}`
+          Authorization: `Bearer ${this.props.accessToken}`
         }
       });
     } catch (ex) {
-      return this.setState({ serverError: ex });
+      if (!this.dismounted) this.setState({ serverError: ex });
+      return;
     }
 
     if (this.dismounted) {
@@ -84,17 +99,7 @@ class PostProcessings extends React.Component {
     }
   };
 
-  startLoop = () => {
-    this.fetchPostProcessings(this.props.accessToken);
-    if (this._loop) {
-      window.clearTimeout(this._loop);
-    }
-    if (this.state.loopSeconds) {
-      this._loop = window.setTimeout(() => {
-        this.startLoop();
-      }, 1000 * this.state.loopSeconds);
-    }
-  };
+  throttled_fetchPostProcessings = throttle(2000, this.fetchPostProcessings);
 
   render() {
     const { filters, loading, records, serverError, statistics } = this.state;

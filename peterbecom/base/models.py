@@ -53,6 +53,24 @@ class PostProcessing(models.Model):
         return cls.objects.filter(exception__isnull=True, duration__isnull=True)
 
 
+@receiver(post_save, sender=PostProcessing)
+def send_post_processing_pulse(sender, instance, **kwargs):
+    # The duration gets set when the post processing is done.
+    if not kwargs.get("created") and instance.duration:
+        send_pulse_message(
+            {
+                "post_processed": {
+                    "filepath": instance.filepath,
+                    "url": instance.url,
+                    "original_url": instance.original_url,
+                    "duration": instance.duration.total_seconds(),
+                    "notes": instance.notes,
+                    "exception": instance.exception,
+                }
+            }
+        )
+
+
 @receiver(pre_save, sender=PostProcessing)
 def set_previous(sender, instance, **kwargs):
     qs = PostProcessing.objects.filter(url=instance.url)

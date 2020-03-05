@@ -62,12 +62,12 @@ def purge_cdn_urls(urls, api=None):
         urls_failed = []
         for url in urls:
             if "://" not in url:
-                url = settings.NGINX_BYPASS_BASEURL + url
+                absolute_url = settings.NGINX_BYPASS_BASEURL + url
             try:
-                r = requests.get(url, headers={"secret-header": "true"})
+                r = requests.get(absolute_url, headers={"secret-header": "true"})
                 r.raise_for_status()
                 x_cache_headers.append(
-                    {"url": url, "x-cache": r.headers.get("x-cache")}
+                    {"url": absolute_url, "x-cache": r.headers.get("x-cache")}
                 )
                 urls_succeeded.append(url)
             except Exception:

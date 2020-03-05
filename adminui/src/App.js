@@ -47,7 +47,8 @@ class App extends React.Component {
   state = {
     accessToken: null,
     userInfo: null,
-    purgeUrlsCount: null
+    purgeUrlsCount: null,
+    latestPostProcessing: null
   };
   componentDidMount() {
     document.title = 'Peterbe.com Admin';
@@ -204,8 +205,10 @@ class App extends React.Component {
 
   onWebSocketMessage = msg => {
     // console.log('WS MESSAGE:', msg);
-    if (typeof msg.cdn_purge_urls !== undefined) {
+    if (msg.cdn_purge_urls !== undefined) {
       this.setState({ purgeUrlsCount: msg.cdn_purge_urls });
+    } else if (msg.post_processed) {
+      this.setState({ latestPostProcessing: msg.post_processed });
     } else {
       toast({
         type: 'info',
@@ -436,6 +439,7 @@ class App extends React.Component {
                   exact
                   component={PostProcessings}
                   accessToken={this.state.accessToken}
+                  latestPostProcessing={this.state.latestPostProcessing}
                 />
                 <SecureRoute
                   path="/searchresults"
