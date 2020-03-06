@@ -19,6 +19,7 @@ import {
   ShowServerError
 } from './Common';
 
+// Note! It only works "shallowly"
 function differentObjects(o1, o2) {
   if (o1 === null || o2 === null) {
     return o1 !== o2;
@@ -46,7 +47,7 @@ class PostProcessings extends React.Component {
     this.fetchPostProcessings();
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps, prevState) {
     // This might mean one was null, the other an object.
     // But any two objects are always different too. If both are objects
     // we need to compare individual key/value pairs.
@@ -54,7 +55,8 @@ class PostProcessings extends React.Component {
       differentObjects(
         prevProps.latestPostProcessing,
         this.props.latestPostProcessing
-      )
+      ) ||
+      differentObjects(this.state.filters, prevState.filters)
     ) {
       this.throttled_fetchPostProcessings();
     }
@@ -190,11 +192,13 @@ class Statistics extends React.PureComponent {
       const differentKeys = [];
       now.groups.forEach((group, i) => {
         const otherGroup = before.groups[i];
-        group.items.forEach((item, j) => {
-          if (item.value !== otherGroup.items[j].value) {
-            differentKeys.push(group.key + item.key);
-          }
-        });
+        if (otherGroup) {
+          group.items.forEach((item, j) => {
+            if (item.value !== otherGroup.items[j].value) {
+              differentKeys.push(group.key + item.key);
+            }
+          });
+        }
       });
       if (!equalArrays(differentKeys, this.state.differentKeys)) {
         this.setState({ differentKeys });
