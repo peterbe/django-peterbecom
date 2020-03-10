@@ -17,7 +17,7 @@ class ScrapingError(Exception):
     """Something went wrong."""
 
 
-@cache_control(max_age=settings.DEBUG and 10 or 60, public=True)
+@cache_control(max_age=settings.DEBUG and 10 or 60 * 60, public=True)
 def api_cards(request):
     context = {"cards": []}
     qs = Card.objects
@@ -74,7 +74,7 @@ def update_cards(limit=None):
                 Card.objects.create(url=url, data=card)
 
 
-@cache_control(max_age=settings.DEBUG and 10 or 60 * 60, public=True)
+@cache_control(max_age=settings.DEBUG and 10 or 60 * 60 * 6, public=True)
 def api_card(request, pk):
     card = get_object_or_404(Card, pk=pk)
     if request.GET.get("url"):
