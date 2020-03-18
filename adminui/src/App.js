@@ -39,6 +39,53 @@ const AWSPAItems = lazy(() => import('./AWSPAItems'));
 const AWSPAItem = lazy(() => import('./AWSPAItem'));
 const AWSPASearch = lazy(() => import('./AWSPASearch'));
 
+// /**
+//  * THis is a horrible hack but gotta start somewhere.
+//  * Ideally it should be stacking up messages just a regular toast/growler
+//  * works.
+//  */
+// let busy = false;
+// function toastDocumentTitle(config) {
+//   if (document.hidden) {
+
+//   }
+//   const { text, time } = config;
+//   if (busy) {
+//     setTimeout(() => {
+//       toastDocumentTitle(config);
+//     }, 1000);
+//     return;
+//   }
+//   let current = document.title;
+//   document.title = text;
+//   let interval;
+//   busy = true;
+//   setTimeout(() => {
+//     interval = setInterval(() => {
+//       document.title = document.title.slice(1);
+//       if (!document.title) {
+//         document.title = current;
+//         clearInterval(interval);
+//         busy = false;
+//       }
+//     }, 50);
+//   }, 2000);
+
+//   setTimeout(() => {
+//     if (interval) clearInterval(interval);
+//     document.title = current;
+//     busy = false;
+//   }, time);
+// }
+
+// document.addEventListener(
+//   'visibilitychange',
+//   event => {
+//     document.title = `hidden? = ${document.hidden}`;
+//   },
+//   false
+// );
+
 // Not a 'const' because we're going to cheekily increase every time it
 // gets mutated later.
 // let CDN_PURGE_URLS_LOOP_SECONDS = 10;
@@ -210,13 +257,26 @@ class App extends React.Component {
     } else if (msg.post_processed) {
       this.setState({ latestPostProcessing: msg.post_processed });
     } else {
-      toast({
-        type: 'info',
-        title: 'Pulse message',
-        description: JSON.stringify(msg),
-        time: 5000
-        // size: null // https://github.com/academia-de-codigo/react-semantic-toasts/issues/40
-      });
+      let description = JSON.stringify(msg);
+      if (typeof msg === 'object') {
+        // Perhaps we can do better!
+        if (msg.searched) {
+          description = `Someone searched for '${msg.searched.q}' and found ${msg.searched.documents_found} documents.`;
+        }
+      }
+      if (!document.hidden) {
+        toast({
+          type: 'info',
+          title: 'Pulse message',
+          description,
+          time: 7000
+          // size: null // https://github.com/academia-de-codigo/react-semantic-toasts/issues/40
+        });
+        // toastDocumentTitle({
+        //   text: description,
+        //   time: 5000
+        // });
+      }
     }
   };
 
