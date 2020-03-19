@@ -1,5 +1,5 @@
 import auth0 from 'auth0-js';
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense } from 'react';
 import { formatDistance } from 'date-fns/esm';
 import { BrowserRouter as Router, Link, Route, Switch } from 'react-router-dom';
 import 'semantic-ui-css/semantic.min.css';
@@ -25,19 +25,21 @@ import OpenGraphImageBlogitem from './OpenGraphImageBlogitem';
 import AWSPABlogitem from './AWSPABlogitem';
 import UploadImages from './UploadImages';
 
-const PostProcessings = lazy(() => import('./PostProcessings'));
-const SearchResults = lazy(() => import('./SearchResults'));
-const BlogitemHits = lazy(() => import('./BlogitemHits'));
-const RealtimeBlogitemHits = lazy(() => import('./RealtimeBlogitemHits'));
-const CDN = lazy(() => import('./CDN'));
-const LyricsPageHealthcheck = lazy(() => import('./LyricsPageHealthcheck'));
-const SpamCommentPatterns = lazy(() => import('./SpamCommentPatterns'));
-const GeoComments = lazy(() => import('./GeoComments'));
-const CommentCounts = lazy(() => import('./CommentCounts'));
-const CommentAutoApproveds = lazy(() => import('./CommentAutoApproveds'));
-const AWSPAItems = lazy(() => import('./AWSPAItems'));
-const AWSPAItem = lazy(() => import('./AWSPAItem'));
-const AWSPASearch = lazy(() => import('./AWSPASearch'));
+const PostProcessings = React.lazy(() => import('./PostProcessings'));
+const SearchResults = React.lazy(() => import('./SearchResults'));
+const BlogitemHits = React.lazy(() => import('./BlogitemHits'));
+const RealtimeBlogitemHits = React.lazy(() => import('./RealtimeBlogitemHits'));
+const CDN = React.lazy(() => import('./CDN'));
+const LyricsPageHealthcheck = React.lazy(() =>
+  import('./LyricsPageHealthcheck')
+);
+const SpamCommentPatterns = React.lazy(() => import('./SpamCommentPatterns'));
+const GeoComments = React.lazy(() => import('./GeoComments'));
+const CommentCounts = React.lazy(() => import('./CommentCounts'));
+const CommentAutoApproveds = React.lazy(() => import('./CommentAutoApproveds'));
+const AWSPAItems = React.lazy(() => import('./AWSPAItems'));
+const AWSPAItem = React.lazy(() => import('./AWSPAItem'));
+const AWSPASearch = React.lazy(() => import('./AWSPASearch'));
 
 // /**
 //  * THis is a horrible hack but gotta start somewhere.
@@ -253,9 +255,11 @@ class App extends React.Component {
   onWebSocketMessage = msg => {
     // console.log('WS MESSAGE:', msg);
     if (msg.cdn_purge_urls !== undefined) {
-      this.setState({ purgeUrlsCount: msg.cdn_purge_urls });
+      if (!this.dismounted)
+        this.setState({ purgeUrlsCount: msg.cdn_purge_urls });
     } else if (msg.post_processed) {
-      this.setState({ latestPostProcessing: msg.post_processed });
+      if (!this.dismounted)
+        this.setState({ latestPostProcessing: msg.post_processed });
     } else {
       let description = JSON.stringify(msg);
       if (typeof msg === 'object') {
