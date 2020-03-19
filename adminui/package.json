@@ -32,9 +32,7 @@
     "set-value": ">=2.0.1",
     "handlebars": ">=4.7.3",
     "serialize-javascript": ">=2.1.1",
-    "caniuse-lite": ">=1.0.30001028",
-    "acorn": ">=5.7.4",
-    "kind-of": ">=6.0.3"
+    "caniuse-lite": ">=1.0.30001028"
   },
   "scripts": {
     "start": "react-scripts start",
