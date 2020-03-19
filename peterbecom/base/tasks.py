@@ -258,7 +258,6 @@ def _minify_html(filepath, url):
             format(before_gz - after_gz, ","),
         )
     )
-    # shutil.move(filepath, filepath.replace(".html", ".not-minified.html"))
     with open(filepath, "w") as f:
         f.write(minified_html)
     print("HTML optimized {}".format(filepath))

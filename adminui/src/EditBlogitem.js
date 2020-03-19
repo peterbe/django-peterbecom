@@ -794,6 +794,9 @@ class Thumbnails extends React.PureComponent {
           Authorization: `Bearer ${this.props.accessToken}`
         }
       });
+      if (this.dismounted) {
+        return;
+      }
       this.setState({ loading: false });
       if (response.ok) {
         const json = await response.json();
@@ -809,6 +812,11 @@ class Thumbnails extends React.PureComponent {
       });
     }
   }
+
+  componentWillUnmount() {
+    this.dismounted = true;
+  }
+
   setCopied = key => {
     this.setState({ copied: key }, () => {
       if (this.timeout) {
@@ -821,6 +829,7 @@ class Thumbnails extends React.PureComponent {
       }, 3000);
     });
   };
+
   render() {
     if (!this.state.show && !this.state.images) {
       return null;
