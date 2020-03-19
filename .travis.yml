@@ -7,7 +7,7 @@ sudo: required
 
 services:
   - postgresql
-  - redis-server
+  - redis
 
 language: python
 
