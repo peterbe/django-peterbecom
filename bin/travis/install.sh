@@ -19,5 +19,8 @@ yarn
 # Switch to Xenial opened up other errors. Too lazy to fix this now.
 echo "Install packages for adminui"
 pushd adminui
+echo "VERSIONS VERSIONS VERSIONS VERSIONS VERSIONS VERSIONS VERSIONS VERSIONS "
+yarn --version
+node --version
 yarn
 popd
