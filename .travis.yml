@@ -23,9 +23,6 @@ branches:
 
 addons:
   postgresql: "9.5"
-  # apt:
-  #   packages:
-  #     - oracle-java9-set-default
 
 before_install:
   - curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.2.1.deb && sudo dpkg -i --force-confnew elasticsearch-6.2.1.deb && sudo service elasticsearch start
