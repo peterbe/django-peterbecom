@@ -10,6 +10,6 @@ pytest peterbecom
 
 # See comment in install.sh for why this commented out.
 # # Go into the adminui directory and expect to be able to run yarn run build
-# pushd adminui
-# yarn run build
-# popd
+pushd adminui
+yarn run build
+popd
