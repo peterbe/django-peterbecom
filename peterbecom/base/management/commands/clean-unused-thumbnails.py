@@ -23,6 +23,8 @@ class Command(BaseCommand):
         deleted_size = []
 
         def walk(directory):
+            if len(deleted_size) >= limit:
+                return
             for file in directory.iterdir():
                 if file.is_dir():
                     walk(file)
@@ -45,7 +47,6 @@ class Command(BaseCommand):
                             filesizeformat(size),
                             formatseconds(age),
                         )
-
                         if not dry_run:
                             file.unlink()
                         deleted_size.append(size)
