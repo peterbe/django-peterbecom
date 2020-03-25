@@ -884,30 +884,41 @@ class Thumbnails extends React.PureComponent {
                       <Card.Meta>
                         <span className="date">{`${thumb.width}x${thumb.height}`}</span>
                       </Card.Meta>
-                      <Card.Description>{thumb.alt}</Card.Description>
-                      {this.state.copied === key ? (
-                        <small>copied!</small>
-                      ) : null}
+                      <Card.Description>
+                        {thumb.alt}{' '}
+                        {this.state.copied === thumb.url ? (
+                          <small>copied!</small>
+                        ) : null}
+                      </Card.Description>
                     </Card.Content>
                     <Card.Content extra>
-                      <Icon name="copy" loading={this.state.copied === key} />
+                      <Icon
+                        name="copy"
+                        loading={this.state.copied === thumb.url}
+                      />
                       <CopyToClipboard
                         text={thumb.url}
-                        onCopy={() => this.setCopied(key)}
+                        onCopy={() => this.setCopied(thumb.url)}
                       >
-                        <Button size="mini">URL</Button>
+                        <Button size="mini" type="button">
+                          URL
+                        </Button>
                       </CopyToClipboard>
                       <CopyToClipboard
                         text={imageTagHtml}
-                        onCopy={() => this.setCopied(key)}
+                        onCopy={() => this.setCopied(thumb.url)}
                       >
-                        <Button size="mini">Image tag</Button>
+                        <Button size="mini" type="button">
+                          Image tag
+                        </Button>
                       </CopyToClipboard>
                       <CopyToClipboard
                         text={aTagHtml}
-                        onCopy={() => this.setCopied(key)}
+                        onCopy={() => this.setCopied(thumb.url)}
                       >
-                        <Button size="mini">Whole tag</Button>
+                        <Button size="mini" type="button">
+                          Whole tag
+                        </Button>
                       </CopyToClipboard>
                     </Card.Content>
                   </Card>
