@@ -609,6 +609,7 @@ class CommentTree extends React.PureComponent {
 
     if (
       comment.location &&
+      comment.location.country_code &&
       comment.location.country_code.toLowerCase() === 'im'
     ) {
       // Isle of Man is not recognized, so fake it

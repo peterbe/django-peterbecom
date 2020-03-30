@@ -13,6 +13,7 @@ from peterbecom.api.views import actually_approve_comment
 class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("--limit", default=25)
+        parser.add_argument("--min-to-execute", default=3)
         parser.add_argument(
             "--dry-run",
             action="store_true",
@@ -27,6 +28,23 @@ class Command(BaseCommand):
         limit = int(options["limit"])
         verbose = int(options["verbosity"]) >= 2
         dry_run = options["dry_run"]
+        min_to_execute = int(options["min_to_execute"])
+
+        count_would_approve = self._run(limit, verbose, True)
+        if not count_would_approve:
+            print("There are no comments to auto-approve.")
+        elif count_would_approve < min_to_execute:
+            print(
+                "There are only {} comments to auto-approve,"
+                "which is less than minimum of {}".format(
+                    count_would_approve, min_to_execute
+                )
+            )
+
+        if not dry_run and count_would_approve >= min_to_execute:
+            self._run(limit, verbose, False)
+
+    def _run(self, limit, verbose, dry_run):
         comments = BlogComment.objects.filter(
             approved=False,
             add_date__gt=timezone.now() - datetime.timedelta(days=14),
@@ -65,7 +83,14 @@ class Command(BaseCommand):
                     break
 
         if count_approved:
-            self.out("Approved {} good comments".format(count_approved))
+            self.out(
+                "{} {} good comments".format(
+                    "Would approve" if dry_run else "Approved", count_approved
+                )
+            )
+
+        if dry_run:
+            return count_approved
 
         # This exists so it can be displayed in the admin UI.
         cache_key = "auto-approve-good-comments"
