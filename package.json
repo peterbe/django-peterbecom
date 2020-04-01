@@ -17,7 +17,7 @@
     "ws": "7.2.3"
   },
   "devDependencies": {
-    "@babel/preset-env": "7.6.0"
+    "@babel/preset-env": "7.9.0"
   },
   "resolutions": {
     "braces": ">=2.3.1",
