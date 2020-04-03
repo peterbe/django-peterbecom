@@ -7,7 +7,7 @@ class XCacheAnalyze extends React.PureComponent {
   state = {
     loading: false,
     results: null,
-    serverError: null
+    serverError: null,
   };
 
   componentDidUpdate(prevProps, prevState) {
@@ -32,8 +32,8 @@ class XCacheAnalyze extends React.PureComponent {
           method: 'POST',
           body: formData,
           headers: {
-            Authorization: `Bearer ${this.props.accessToken}`
-          }
+            Authorization: `Bearer ${this.props.accessToken}`,
+          },
         });
       } catch (ex) {
         return this.setState({ loading: false, serverError: ex });
@@ -45,7 +45,7 @@ class XCacheAnalyze extends React.PureComponent {
       this.setState({
         loading: false,
         results,
-        serverError: null
+        serverError: null,
       });
     });
   };
@@ -90,7 +90,7 @@ function XCacheResults({ results }) {
     cato: 'Toronto',
     jptk: 'Tokyo',
     inba: 'Bangalore',
-    sgsg: 'Singapore'
+    sgsg: 'Singapore',
   };
   return (
     <Table basic="very" celled collapsing>

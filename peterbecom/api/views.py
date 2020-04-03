@@ -11,6 +11,7 @@ from functools import lru_cache, wraps
 from urllib.parse import urlparse
 
 import requests
+from requests.exceptions import ConnectionError
 from django import http
 from django.conf import settings
 from django.core.cache import cache
@@ -1998,6 +1999,10 @@ def xcache_analyze(request):
 
     # To make it slighly more possible to test from locally
     url = url.replace("http://peterbecom.local", "https://www.peterbe.com")
-    results = get_x_cache(url)
+    try:
+        results = get_x_cache(url)
+    except ConnectionError:
+        # Not really a huge problem
+        return http.HttpResponseServerError("ConnectionError")
 
     return _response({"xcache": results})
