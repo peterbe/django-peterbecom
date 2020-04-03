@@ -7,7 +7,12 @@ from django.utils import timezone
 
 from peterbecom.base.basecommand import BaseCommand
 from peterbecom.awspa.models import AWSProduct
-from peterbecom.awspa.search import lookup, RateLimitedError, NothingFoundError
+from peterbecom.awspa.search import (
+    lookup,
+    RateLimitedError,
+    NothingFoundError,
+    ApiException,
+)
 
 
 class UpdateAWSError(Exception):
@@ -92,6 +97,9 @@ class Command(BaseCommand):
                 awsproduct.disabled = True
                 awsproduct.save()
                 continue
+            except ApiException as exception:
+                self.error("Some other ApiException from awps", str(exception))
+                break
 
             # dumb_diff(awsproduct.payload, payload)
             try:
