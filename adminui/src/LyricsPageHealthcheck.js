@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   Button,
   Container,
@@ -6,7 +6,7 @@ import {
   Header,
   Icon,
   Loader,
-  Segment
+  Segment,
 } from 'semantic-ui-react';
 import { ShowServerError } from './Common';
 import XCacheAnalyze from './XCacheAnalyze';
@@ -29,7 +29,7 @@ class LyricsPageHealthcheck extends React.Component {
     loading: false,
     fetched: null,
     serverError: null,
-    loopSeconds: defaultLoopSeconds()
+    loopSeconds: defaultLoopSeconds(),
   };
   componentDidMount() {
     document.title = 'Lyrics Page Healthcheck';
@@ -65,7 +65,7 @@ class LyricsPageHealthcheck extends React.Component {
         return this.setState({
           loading: false,
           serverError: ex,
-          fetched: new Date()
+          fetched: new Date(),
         });
       }
 
@@ -79,7 +79,7 @@ class LyricsPageHealthcheck extends React.Component {
             throw new Error('Not implemented');
           }
           // Update just one from the existing array.
-          const health = this.state.health.map(h => {
+          const health = this.state.health.map((h) => {
             if (h.url === url) {
               return result.health[0];
             } else {
@@ -90,27 +90,27 @@ class LyricsPageHealthcheck extends React.Component {
             health,
             loading: false,
             serverError: null,
-            fetched: new Date()
+            fetched: new Date(),
           });
         } else {
           this.setState({
             health: result.health,
             loading: false,
             serverError: null,
-            fetched: new Date()
+            fetched: new Date(),
           });
         }
       } else {
         this.setState({
           loading: false,
           serverError: response,
-          fetched: new Date()
+          fetched: new Date(),
         });
       }
     });
   };
 
-  checkURL = url => {
+  checkURL = (url) => {
     this.loadHealth(url);
   };
 
@@ -171,6 +171,16 @@ function ShowLoopCountdown({ nextFetch }) {
 function ShowHealth({ health, checkURL, accessToken }) {
   const [xcacheAnalyzeAll, setXCacheAnalyzeAll] = React.useState(null);
 
+  const [xcacheAnalysisDone, setXCacheAnalysisDone] = React.useState(0);
+  const documentTitleRef = useRef(document.title);
+  useEffect(() => {
+    if (xcacheAnalysisDone) {
+      document.title = `(${xcacheAnalysisDone}) ${documentTitleRef.current}`;
+    } else {
+      document.title = documentTitleRef.current;
+    }
+  }, [xcacheAnalysisDone]);
+
   function startAllXCacheAnalyze() {
     const todo = new Map();
     health.forEach((page, i) => {
@@ -181,6 +191,7 @@ function ShowHealth({ health, checkURL, accessToken }) {
 
   function stopAllXCacheAnalyze() {
     setXCacheAnalyzeAll(null);
+    setXCacheAnalysisDone(0);
   }
 
   function nextAllXCacheAnalyze(url) {
@@ -216,7 +227,7 @@ function ShowHealth({ health, checkURL, accessToken }) {
     <div>
       <div style={{ textAlign: 'right' }}>
         <Button
-          onClick={event => {
+          onClick={(event) => {
             startAllXCacheAnalyze();
           }}
           disabled={!!xcacheAnalyzeAll}
@@ -229,7 +240,7 @@ function ShowHealth({ health, checkURL, accessToken }) {
       </div>
 
       <Segment.Group>
-        {health.map(page => {
+        {health.map((page) => {
           let color = '';
           let name = '';
           if (page.health === 'WARNING') {
@@ -257,7 +268,7 @@ function ShowHealth({ health, checkURL, accessToken }) {
               </a>{' '}
               <Button
                 size="mini"
-                onClick={event => {
+                onClick={(event) => {
                   checkURL(page.url);
                 }}
               >
@@ -272,9 +283,10 @@ function ShowHealth({ health, checkURL, accessToken }) {
                 accessToken={accessToken}
                 url={page.url}
                 start={isAutoStart(page.url)}
-                finished={error => {
+                finished={(error) => {
                   if (!error) {
                     nextAllXCacheAnalyze(page.url);
+                    setXCacheAnalysisDone(xcacheAnalysisDone + 1);
                   }
                 }}
                 minimalButton={true}
