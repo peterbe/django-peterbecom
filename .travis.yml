@@ -3,7 +3,7 @@
 # Needed to install custom java and elasticsearch
 sudo: required
 
-dist: xenial
+dist: bionic
 
 services:
   - postgresql
