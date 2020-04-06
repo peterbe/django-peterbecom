@@ -10,7 +10,7 @@
   "dependencies": {
     "@babel/cli": "7.8.4",
     "@babel/core": "7.9.0",
-    "csso-cli": "2.0.2",
+    "csso-cli": "3.0.0",
     "html-minifier": "4.0.0",
     "puppeteer": "2.1.1",
     "uglify-js": "^3.8.1",
