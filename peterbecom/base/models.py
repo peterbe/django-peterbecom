@@ -144,7 +144,7 @@ class CDNPurgeURL(models.Model):
             urls = [urls]
         if not urls:
             return
-        cls._validate_urls(urls)
+        cls.validate_urls(urls)
         with transaction.atomic():
             cls.objects.filter(
                 url__in=urls, cancelled__isnull=True, processed__isnull=True
@@ -164,7 +164,7 @@ class CDNPurgeURL(models.Model):
     def succeeded(cls, urls):
         if isinstance(urls, str):
             urls = [urls]
-        cls._validate_urls(urls)
+        cls.validate_urls(urls)
         cls.objects.filter(url__in=urls).update(processed=timezone.now())
         cls.pulse_about_queue_count()
 
@@ -172,7 +172,7 @@ class CDNPurgeURL(models.Model):
     def failed(cls, urls):
         if isinstance(urls, str):
             urls = [urls]
-        cls._validate_urls(urls)
+        cls.validate_urls(urls)
         etype, evalue, tb = sys.exc_info()
         out = StringIO()
         traceback.print_exception(etype, evalue, tb, file=out)
@@ -184,13 +184,14 @@ class CDNPurgeURL(models.Model):
         )
 
     @classmethod
-    def _validate_urls(cls, urls):
+    def validate_urls(cls, urls):
         for url in urls:
             if "://" in url and url.startswith("http"):
                 raise ValueError(
                     "Only add pathnames, not absolute URLs ({!r})".format(url)
                 )
-            assert url.startswith("/"), url
+            if not url.startswith("/"):
+                raise ValueError("{} doesn't start with /".format(url))
 
     @classmethod
     def pulse_about_queue_count(cls):

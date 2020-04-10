@@ -1753,7 +1753,18 @@ def cdn_probe(request):
 @api_superuser_required
 def cdn_purge(request):
     context = {"deleted": []}
-    urls = request.POST.getlist("urls")
+    urls_raw = request.POST.getlist("urls")
+    urls = []
+    for url in urls_raw:
+        if "://" in url:
+            url = urlparse(url).path
+        urls.append(url)
+
+    try:
+        CDNPurgeURL.validate_urls(urls)
+    except ValueError as exception:
+        return http.HttpResponseBadRequest(str(exception))
+
     if request.POST.get("fscache"):
         # Need to find FSCache files by URL
         for url in urls:

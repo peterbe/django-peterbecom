@@ -7,9 +7,16 @@ import {
   Icon,
   Loader,
   Segment,
+  Select,
 } from 'semantic-ui-react';
-import { ShowServerError } from './Common';
+import { ShowServerError, useLocalStorage } from './Common';
 import XCacheAnalyze from './XCacheAnalyze';
+
+const xcacheAnalyzeLoopOptions = [...Array(5 + 1).keys()]
+  .filter((n) => !!n)
+  .map((n) => {
+    return { key: n, value: n, text: `${n} time${n === 1 ? '' : 's'}` };
+  });
 
 function defaultLoopSeconds(default_ = 40) {
   try {
@@ -170,6 +177,11 @@ function ShowLoopCountdown({ nextFetch }) {
 
 function ShowHealth({ health, checkURL, accessToken }) {
   const [xcacheAnalyzeAll, setXCacheAnalyzeAll] = React.useState(null);
+  const [loopsDone, setLoopsDone] = React.useState(0);
+  const [
+    maxXCacheAnalyzeAllLoops,
+    setMaxXCacheAnalyzeAllLoops,
+  ] = useLocalStorage('max-xcache-analyze-all-loops', 1);
 
   const [xcacheAnalysisDone, setXCacheAnalysisDone] = React.useState(0);
   const documentTitleRef = useRef(document.title);
@@ -192,6 +204,7 @@ function ShowHealth({ health, checkURL, accessToken }) {
   function stopAllXCacheAnalyze() {
     setXCacheAnalyzeAll(null);
     setXCacheAnalysisDone(0);
+    setLoopsDone(0);
   }
 
   function nextAllXCacheAnalyze(url) {
@@ -209,9 +222,15 @@ function ShowHealth({ health, checkURL, accessToken }) {
     }
     if (!todo.size) {
       // Start over!
-      health.forEach((page, i) => {
-        todo.set(page.url, i === 0);
-      });
+      if (loopsDone + 1 < maxXCacheAnalyzeAllLoops) {
+        health.forEach((page, i) => {
+          todo.set(page.url, i === 0);
+        });
+      } else {
+        setXCacheAnalyzeAll(null);
+        return;
+      }
+      setLoopsDone(loopsDone + 1);
     }
     setXCacheAnalyzeAll(todo);
   }
@@ -227,7 +246,7 @@ function ShowHealth({ health, checkURL, accessToken }) {
     <div>
       <div style={{ textAlign: 'right' }}>
         <Button
-          onClick={(event) => {
+          onClick={() => {
             startAllXCacheAnalyze();
           }}
           disabled={!!xcacheAnalyzeAll}
@@ -237,7 +256,31 @@ function ShowHealth({ health, checkURL, accessToken }) {
         {!!xcacheAnalyzeAll && (
           <Button onClick={() => stopAllXCacheAnalyze()}>Stop</Button>
         )}
+        {!!xcacheAnalyzeAll && (
+          <div>
+            Max. loops
+            <Select
+              placeholder="Max. loops"
+              options={xcacheAnalyzeLoopOptions}
+              onChange={(event, data) =>
+                setMaxXCacheAnalyzeAllLoops(data.value)
+              }
+              value={maxXCacheAnalyzeAllLoops}
+            />
+            <br />
+            Loops done: {loopsDone}
+            {loopsDone >= maxXCacheAnalyzeAllLoops ? (
+              <p>
+                <b>Stopped after {loopsDone} loops!</b>
+              </p>
+            ) : null}
+          </div>
+        )}
       </div>
+
+      {xcacheAnalyzeAll && (
+        <ShowCurrentXCacheAnalysisURL todo={xcacheAnalyzeAll} />
+      )}
 
       <Segment.Group>
         {health.map((page) => {
@@ -306,5 +349,22 @@ function ShowErrors({ errors }) {
         <p key={i}>{error}</p>
       ))}
     </div>
+  );
+}
+
+function ShowCurrentXCacheAnalysisURL({ todo }) {
+  let current = '';
+  let left = 0;
+  for (let u of todo.keys()) {
+    if (todo.get(u)) {
+      current = u;
+    } else {
+      left++;
+    }
+  }
+  return (
+    <p>
+      Currently x-cache checking <a href={current}>{current}</a> ({left} left)
+    </p>
   );
 }
