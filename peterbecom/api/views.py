@@ -194,6 +194,7 @@ def blogitem(request, oid):
             "oid": item.oid,
             "title": item.title,
             "pub_date": item.pub_date,
+            "_published": item.pub_date < timezone.now(),
             "text": item.text,
             "keywords": item.proper_keywords,
             "categories": [{"id": x.id, "name": x.name} for x in item.categories.all()],

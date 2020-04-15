@@ -14,7 +14,7 @@ import {
   Checkbox,
   TextArea,
   Select,
-  Statistic
+  Statistic,
 } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
 import { addHours } from 'date-fns/esm';
@@ -44,7 +44,7 @@ export class EditBlogitem extends React.Component {
     updated: null,
     validationErrors: null,
     preview: null,
-    loading: true
+    loading: true,
   };
 
   componentWillUnmount() {
@@ -69,8 +69,8 @@ export class EditBlogitem extends React.Component {
     try {
       const response = await fetch('/api/v0/categories', {
         headers: {
-          Authorization: `Bearer ${this.props.accessToken}`
-        }
+          Authorization: `Bearer ${this.props.accessToken}`,
+        },
       });
       if (this.dismounted) return;
       if (response.ok) {
@@ -89,13 +89,13 @@ export class EditBlogitem extends React.Component {
     }
   };
 
-  fetchBlogitem = async oid => {
+  fetchBlogitem = async (oid) => {
     let response;
     try {
       response = await fetch(`/api/v0/plog/${encodeURIComponent(oid)}`, {
         headers: {
-          Authorization: `Bearer ${this.props.accessToken}`
-        }
+          Authorization: `Bearer ${this.props.accessToken}`,
+        },
       });
     } catch (ex) {
       return this.setState({ serverError: ex, loading: false });
@@ -108,7 +108,7 @@ export class EditBlogitem extends React.Component {
     this.setState({ blogitem: json.blogitem, loading: false });
   };
 
-  previewBlogitem = async data => {
+  previewBlogitem = async (data) => {
     if (!this.props.accessToken) {
       throw new Error('No accessToken');
     }
@@ -119,9 +119,9 @@ export class EditBlogitem extends React.Component {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.props.accessToken}`
+          Authorization: `Bearer ${this.props.accessToken}`,
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
       });
       if (this.dismounted) return;
     } catch (ex) {
@@ -134,7 +134,7 @@ export class EditBlogitem extends React.Component {
     this.setState({ preview: result.blogitem });
   };
 
-  updateBlogitem = async data => {
+  updateBlogitem = async (data) => {
     if (!this.props.accessToken) {
       throw new Error('No accessToken');
     }
@@ -146,16 +146,16 @@ export class EditBlogitem extends React.Component {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.props.accessToken}`
+          Authorization: `Bearer ${this.props.accessToken}`,
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
       });
     } catch (ex) {
       return this.setState({ serverError: ex }, () => {
         toast({
           type: 'error',
           title: 'Server Error!',
-          time: 5000
+          time: 5000,
         });
       });
     }
@@ -167,14 +167,14 @@ export class EditBlogitem extends React.Component {
         {
           blogitem: data.blogitem,
           validationErrors: null,
-          serverError: null
+          serverError: null,
         },
         () => {
           toast({
             type: 'success',
             title: 'Successfully updated',
             time: 5000,
-            size: null // https://github.com/academia-de-codigo/react-semantic-toasts/issues/40
+            size: null, // https://github.com/academia-de-codigo/react-semantic-toasts/issues/40
           });
         }
       );
@@ -189,7 +189,7 @@ export class EditBlogitem extends React.Component {
           toast({
             type: 'warning',
             title: 'Validation Errors!',
-            time: 5000
+            time: 5000,
           });
         }
       );
@@ -198,7 +198,7 @@ export class EditBlogitem extends React.Component {
         toast({
           type: 'error',
           title: 'Server Error!',
-          time: 5000
+          time: 5000,
         });
       });
     }
@@ -248,10 +248,10 @@ export class EditBlogitem extends React.Component {
             blogitem={blogitem}
             allCategories={this.state.allCategories}
             validationErrors={this.state.validationErrors}
-            onLoadPreview={async data => {
+            onLoadPreview={async (data) => {
               this.previewBlogitem(data, this.props.accessToken);
             }}
-            onSubmitData={data => {
+            onSubmitData={(data) => {
               this.setState({ updated: null });
               this.updateBlogitem(data, this.props.accessToken);
             }}
@@ -259,7 +259,7 @@ export class EditBlogitem extends React.Component {
         )}
         <PreviewBlogitem data={this.state.preview} />
 
-        {this.state.blogitem && (
+        {this.state.blogitem && this.state.blogitem._published && (
           <BlogitemHits
             accessToken={this.props.accessToken}
             blogitem={blogitem}
@@ -282,8 +282,8 @@ export class AddBlogitem extends EditBlogitem {
       pub_date: addHours(new Date(), 1).toISOString(),
       display_format: 'markdown',
       categories: [],
-      keywords: []
-    }
+      keywords: [],
+    },
   };
   componentDidMount() {
     document.title = 'Add Blogitem';
@@ -291,7 +291,7 @@ export class AddBlogitem extends EditBlogitem {
     this.fetchAllCategories(this.props.accessToken);
   }
 
-  createBlogitem = async data => {
+  createBlogitem = async (data) => {
     if (!this.props.accessToken) {
       throw new Error('No accessToken');
     }
@@ -302,9 +302,9 @@ export class AddBlogitem extends EditBlogitem {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.props.accessToken}`
+          Authorization: `Bearer ${this.props.accessToken}`,
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
       });
     } catch (err) {
       return this.setState({ serverError: err });
@@ -325,7 +325,7 @@ export class AddBlogitem extends EditBlogitem {
           toast({
             type: 'warning',
             title: 'Validation Error!',
-            time: 5000
+            time: 5000,
           });
         }
       );
@@ -359,8 +359,8 @@ export class AddBlogitem extends EditBlogitem {
           blogitem={this.state.skeleton}
           allCategories={this.state.allCategories}
           validationErrors={this.state.validationErrors}
-          onLoadPreview={async data => {}}
-          onSubmitData={async data => {
+          onLoadPreview={async (data) => {}}
+          onSubmitData={async (data) => {
             sessionStorage.setItem(
               'AddBlogitem',
               JSON.stringify(data, null, 2)
@@ -377,11 +377,7 @@ export class AddBlogitem extends EditBlogitem {
 }
 
 function slugify(s) {
-  return s
-    .trim()
-    .replace(/\s+/gi, '-')
-    .replace(/['?]/g, '')
-    .toLowerCase();
+  return s.trim().replace(/\s+/gi, '-').replace(/['?]/g, '').toLowerCase();
 }
 
 class EditForm extends React.PureComponent {
@@ -391,7 +387,7 @@ class EditForm extends React.PureComponent {
     saving: false,
     categories: null,
     useTuiEditor: window.sessionStorage.getItem('useTuiEditor') ? true : false,
-    summaryTouched: false
+    summaryTouched: false,
   };
 
   componentDidMount() {
@@ -406,7 +402,7 @@ class EditForm extends React.PureComponent {
     }
   }
 
-  copyToState = blogitem => {
+  copyToState = (blogitem) => {
     const data = {};
     const simpleKeys = [
       'oid',
@@ -416,9 +412,9 @@ class EditForm extends React.PureComponent {
       'text',
       'summary',
       'display_format',
-      'codesyntax'
+      'codesyntax',
     ];
-    simpleKeys.forEach(key => {
+    simpleKeys.forEach((key) => {
       data[key] = blogitem[key] || '';
     });
     data.keywords = blogitem.keywords.join('\n');
@@ -427,15 +423,15 @@ class EditForm extends React.PureComponent {
     this.setState(data);
   };
 
-  setCategories = categories => {
-    this.setState({ categories: categories.map(category => category.id) });
+  setCategories = (categories) => {
+    this.setState({ categories: categories.map((category) => category.id) });
   };
 
   onTextBlur = () => {
     this._submit(true);
   };
 
-  submitForm = event => {
+  submitForm = (event) => {
     event.preventDefault();
     this._submit();
   };
@@ -467,17 +463,17 @@ class EditForm extends React.PureComponent {
 
     let categoryOptions = [];
     if (allCategories) {
-      categoryOptions = allCategories.map(cat => ({
+      categoryOptions = allCategories.map((cat) => ({
         key: cat.id,
         text: `${cat.name} (${cat.count})`,
         name: cat.name,
-        value: cat.id
+        value: cat.id,
       }));
     }
     // const keywords = blogitem.keywords.map(keyword => keyword);
     // this.categories = blogitem.categories.map(category => category.id);
     // const displayFormat = blogitem.display_format;
-    const displayFormatOptions = ['markdown', 'structuredtext'].map(o => {
+    const displayFormatOptions = ['markdown', 'structuredtext'].map((o) => {
       return { key: o, text: o, name: o, value: o };
     });
 
@@ -493,7 +489,7 @@ class EditForm extends React.PureComponent {
           <Button
             size="mini"
             secondary={!this.state.hideLabels}
-            onClick={event => {
+            onClick={(event) => {
               event.preventDefault();
               this.setState({ hideLabels: !this.state.hideLabels }, () => {
                 localStorage.setItem(
@@ -508,10 +504,10 @@ class EditForm extends React.PureComponent {
           <Button
             size="mini"
             secondary={showUnimportantFields}
-            onClick={event => {
+            onClick={(event) => {
               event.preventDefault();
               this.setState({
-                showUnimportantFields: !showUnimportantFields
+                showUnimportantFields: !showUnimportantFields,
               });
             }}
           >
@@ -556,7 +552,7 @@ class EditForm extends React.PureComponent {
               onBlur={() => {
                 this.onTextBlur();
               }}
-              onChange={text => {
+              onChange={(text) => {
                 this.setState({ text });
               }}
               initial={this.state.text || ''}
@@ -566,7 +562,7 @@ class EditForm extends React.PureComponent {
             name="text"
             className="monospaced"
             rows={25}
-            onBlur={event => {
+            onBlur={(event) => {
               event.preventDefault(); // is this needed?
               this.onTextBlur();
             }}
@@ -574,12 +570,12 @@ class EditForm extends React.PureComponent {
             onChange={this.handleChange}
             style={{
               overscrollBehaviorY: 'contain',
-              display: this.state.useTuiEditor ? 'none' : null
+              display: this.state.useTuiEditor ? 'none' : null,
             }}
           />
           <Button
             size="mini"
-            onClick={event => {
+            onClick={(event) => {
               event.preventDefault();
               this.setState({ useTuiEditor: !this.state.useTuiEditor }, () => {
                 if (this.state.useTuiEditor) {
@@ -610,7 +606,7 @@ class EditForm extends React.PureComponent {
           {!this.state.summaryTouched && (
             <Button
               size="mini"
-              onClick={event => {
+              onClick={(event) => {
                 event.preventDefault();
                 let summary = this.state.text.split(/\n\n+/)[0];
                 while (summary.startsWith('*') && summary.endsWith('*')) {
@@ -653,7 +649,7 @@ class EditForm extends React.PureComponent {
             onChange={(event, data) => {
               this.setState({ categories: data.value });
             }}
-            renderLabel={item => item.name}
+            renderLabel={(item) => item.name}
           />
         </Form.Field>
         <Form.Field>
@@ -675,7 +671,7 @@ class EditForm extends React.PureComponent {
               options={displayFormatOptions}
               selection
               onChange={this.handleChange}
-              renderLabel={item => item.name}
+              renderLabel={(item) => item.name}
               value={this.state.display_format || ''}
             />
           </Form.Field>
@@ -752,8 +748,8 @@ class TuiEditor extends React.PureComponent {
         },
         blur: () => {
           this.props.onBlur();
-        }
-      }
+        },
+      },
     });
   }
   render() {
@@ -772,7 +768,7 @@ class PreviewBlogitem extends React.PureComponent {
         <h3>PREVIEW</h3>
         <div
           dangerouslySetInnerHTML={{
-            __html: data.html
+            __html: data.html,
           }}
         />
       </div>
@@ -791,8 +787,8 @@ class Thumbnails extends React.PureComponent {
     try {
       const response = await fetch(`/api/v0/plog/${oid}/images`, {
         headers: {
-          Authorization: `Bearer ${this.props.accessToken}`
-        }
+          Authorization: `Bearer ${this.props.accessToken}`,
+        },
       });
       if (this.dismounted) {
         return;
@@ -817,7 +813,7 @@ class Thumbnails extends React.PureComponent {
     this.dismounted = true;
   }
 
-  setCopied = key => {
+  setCopied = (key) => {
     this.setState({ copied: key }, () => {
       if (this.timeout) {
         window.clearTimeout(this.timeout);
@@ -840,7 +836,7 @@ class Thumbnails extends React.PureComponent {
       }
       return (
         <Button
-          onClick={event => {
+          onClick={(event) => {
             this.setState({ show: true });
           }}
         >
@@ -853,16 +849,16 @@ class Thumbnails extends React.PureComponent {
     return (
       <div>
         <Button
-          onClick={event => {
+          onClick={(event) => {
             this.setState({ show: false });
           }}
         >
           Hide thumbnails
         </Button>
-        {images.map(image => {
+        {images.map((image) => {
           return (
             <Card.Group key={image.full_url}>
-              {keys.map(key => {
+              {keys.map((key) => {
                 const thumb = image[key];
 
                 const imageTagHtml = `
@@ -935,7 +931,7 @@ class Thumbnails extends React.PureComponent {
 class BlogitemHits extends React.PureComponent {
   state = {
     hits: null,
-    serverError: null
+    serverError: null,
   };
   componentDidMount() {
     // Delay a bit because it's not critical
@@ -949,14 +945,14 @@ class BlogitemHits extends React.PureComponent {
     try {
       const response = await fetch(`/api/v0/plog/${blogitem.oid}/hits`, {
         headers: {
-          Authorization: `Bearer ${this.props.accessToken}`
-        }
+          Authorization: `Bearer ${this.props.accessToken}`,
+        },
       });
       if (response.ok) {
         const json = await response.json();
         this.setState({
           serverError: null,
-          hits: json.hits
+          hits: json.hits,
         });
       } else {
         this.setState({ serverError: response });
@@ -975,7 +971,7 @@ class BlogitemHits extends React.PureComponent {
         <Divider />
         <h3>Hits</h3>
         <Statistic.Group widths="four">
-          {hits.map(hit => {
+          {hits.map((hit) => {
             return (
               <Statistic key={hit.key}>
                 <Statistic.Value>{hit.value.toLocaleString()}</Statistic.Value>
