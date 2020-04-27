@@ -29,6 +29,11 @@ def api_cards(request):
     if since:
         qs = qs.filter(created__lt=since)
 
+    search = request.GET.get("search")
+    if search:
+        qs = qs.filter(text__search=search)
+        context["search"] = {"string": search, "count": qs.count()}
+
     now = timezone.now()
     for card in qs.order_by("-created")[:batch_size]:
         human_time = timesince(card.created).replace("\xa0", " ")

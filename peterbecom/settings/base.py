@@ -181,6 +181,7 @@ INSTALLED_APPS = (
     "django.contrib.sessions",
     "django.contrib.sites",
     "django.contrib.staticfiles",
+    "django.contrib.postgres",
     "semanticuiform",
     "sorl.thumbnail",
     "peterbecom.base",

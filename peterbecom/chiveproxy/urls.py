@@ -1,4 +1,4 @@
-from django.urls import path, re_path
+from django.urls import path
 
 from . import views
 
@@ -7,5 +7,5 @@ app_name = "chiveproxy"
 
 urlpatterns = [
     path("api/cards/", views.api_cards, name="api_cards"),
-    re_path(r"api/cards/(?P<pk>\d+)/", views.api_card, name="api_card"),
+    path("api/cards/<int:pk>/", views.api_card, name="api_card"),
 ]
