@@ -6,7 +6,7 @@ from django.db import migrations, models
 def set_all_texts(apps, schema_editor):
     Card = apps.get_model("chiveproxy", "Card")
     for card in Card.objects.filter(text=""):
-        card.text = card.data.get("text") or ""
+        card.text = (card.data.get("text") or "")[:200]
         card.save()
 
 
