@@ -14,7 +14,7 @@
     "html-minifier": "4.0.0",
     "puppeteer": "2.1.1",
     "uglify-js": "^3.9.2",
-    "ws": "7.2.5"
+    "ws": "7.3.0"
   },
   "devDependencies": {
     "@babel/preset-env": "7.9.6"
