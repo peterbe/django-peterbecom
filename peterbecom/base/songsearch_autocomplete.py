@@ -167,7 +167,7 @@ def _post_process_template(template, impatient, js_block, css_block, dry_run=Fal
                 "Only footer is in the HTML but not the header"
             )
         content = content.replace(
-            "</body>", "{}\n{}\n{}\n</body>".format(js_header, js_block, js_footer)
+            "</head>", "{}\n{}\n{}\n</head>".format(js_header, js_block, js_footer)
         )
 
     # Inject the CSS code
@@ -185,17 +185,6 @@ def _post_process_template(template, impatient, js_block, css_block, dry_run=Fal
         content = content.replace(
             "</head>", "{}\n{}\n{}\n</head>".format(css_header, css_block, css_footer)
         )
-
-    # # Paranoia, because it has happened in the past
-    # js_files = re.findall(
-    #     r"/songsearch-autocomplete/js/main.[a-f0-9]{8}.chunk.js", content
-    # )
-    # if len(js_files) != 1:
-    #     os.remove(template)
-    #     raise SongsearchAutocompleteError(
-    #         "Incorrect number of js paths! Should have been just one, not: "
-    #         "{}".format(js_files)
-    #     )
 
     # When it's done it should only be exactly 1 of these bits of strings
     # in the HTML (actually, it's inside the <style> tag)

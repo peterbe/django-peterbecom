@@ -49,6 +49,22 @@ var _rollbarConfig = {
 // End Rollbar Snippet
 </script>
   {% endif %}
+
+  {% block basejs %}
+  {%- if '/plog/blogitem-040601-1' in request.path  %}
+  {% javascript 'lyrics' %}
+  {% else %}
+  {% javascript 'base' %}
+  {% javascript 'prefetcher' %}
+  {% endif -%}
+
+  {% endblock %}
+
+  {% block extrajs %}{% endblock %}
+  {% if '/plog/blogitem-040601-1' not in request.path %}
+  {% javascript 'autocompeter' %}
+  {% endif %}
+
 </head>
 <body>
   <div class="ui main container">
@@ -138,22 +154,6 @@ var _rollbarConfig = {
       </p>
     </div>
   </div>
-  {% endif %}
-
-
-  {% block basejs %}
-  {%- if '/plog/blogitem-040601-1' in request.path  %}
-  {% javascript 'lyrics' %}
-  {% else %}
-  {% javascript 'base' %}
-  {% javascript 'prefetcher' %}
-  {% endif -%}
-
-  {% endblock %}
-
-  {% block extrajs %}{% endblock %}
-  {% if '/plog/blogitem-040601-1' not in request.path %}
-  {% javascript 'autocompeter' %}
   {% endif %}
 
 </body>
