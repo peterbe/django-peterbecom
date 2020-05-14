@@ -35,11 +35,17 @@
     {% endif %}
   {% endif %}
   {%- if '/plog/blogitem-040601-1' in request.path  -%}
-  {#
-    preload - works in iOS Safari, but for assets like scripts and styles
-    prefetch -
-  #}
-  <link rel="prefetch" href="https://songsear.ch/">
+    {#
+      preload - works in iOS Safari, but for assets like scripts and styles
+      prefetch -
+    #}
+    {#
+      Commented out because this is causing an unnecessary load for the initial
+      load and its performance. Especially in terms of the impression Googlebot
+      gets. If you use the auto-complete you *will* preload assets from songsear.ch
+      anyway, but it's long after initial load which is good.
+    #}
+    {# <link rel="prefetch" href="https://songsear.ch/"> #}
   {%- endif -%}
 {% endblock %}
 
