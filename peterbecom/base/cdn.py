@@ -65,10 +65,14 @@ def purge_cdn_urls(urls, api=None):
                 absolute_url = settings.NGINX_BYPASS_BASEURL + url
             try:
                 r = requests.get(absolute_url, headers={"secret-header": "true"})
-                r.raise_for_status()
-                x_cache_headers.append(
-                    {"url": absolute_url, "x-cache": r.headers.get("x-cache")}
-                )
+                if r.status_code == 404:
+                    # Rogue URL, but don't raise an error or it'll get stuck
+                    pass
+                else:
+                    r.raise_for_status()
+                    x_cache_headers.append(
+                        {"url": absolute_url, "x-cache": r.headers.get("x-cache")}
+                    )
                 urls_succeeded.append(url)
             except Exception:
                 urls_failed.append(url)

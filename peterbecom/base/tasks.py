@@ -194,12 +194,18 @@ def run_purge_cdn_urls():
     # on whether the periodic task sometimes fires repeatedly in a short
     # amount of time.
     if queue:
+        queue_count = CDNPurgeURL.count()
         print(
-            "{} queued CDN URLs for purging: {} ({})".format(
-                len(queue), queue, timezone.now()
+            "{} (of {}) queued CDN URLs for purging: {} ({})".format(
+                len(queue), queue_count, queue, timezone.now()
             )
         )
-        results = purge_cdn_urls(queue)
+        try:
+            results = purge_cdn_urls(queue)
+        except Exception as r:
+            # XXX Why doesn't this bubble up to stdout?!
+            print("EXCEPTION:", r)
+            raise
         if results:
             for url in results["all_urls"]:
                 post_process_after_cdn_purge(url)

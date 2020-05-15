@@ -161,6 +161,11 @@ class CDNPurgeURL(models.Model):
         return urls
 
     @classmethod
+    def count(cls):
+        qs = cls.objects.filter(cancelled__isnull=True, processed__isnull=True)
+        return qs.count()
+
+    @classmethod
     def succeeded(cls, urls):
         if isinstance(urls, str):
             urls = [urls]
