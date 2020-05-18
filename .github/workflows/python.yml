@@ -59,7 +59,8 @@ jobs:
           pip install -r requirements.txt
       - name: Run Tests
         run: |
-          ./scripts/ci-tests.sh
+          ./scripts/ci-test.sh
       - name: Run Lints
         run: |
+          pip install -r dev-requirements.txt
           ./scripts/ci-lint.sh
