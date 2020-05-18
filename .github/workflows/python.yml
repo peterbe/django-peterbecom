@@ -60,6 +60,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
 
+      - name: Install node
+        uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+      - name: Display Node version
+        run: node --version
+
       - uses: borales/actions-yarn@v2.0.0
         with:
           cmd: install # will run `yarn install` command
