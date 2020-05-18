@@ -1,5 +1,5 @@
 #!/bin/bash
-# pwd is the git repo.
+
 set -e
 
 echo "Making settings/local.py"
@@ -9,8 +9,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'peterbecom',
-        'USER': 'travis',
-        'PASSWORD': '',
+        'USER': 'user',
+        'PASSWORD': 'secret',
         'HOST': 'localhost',
         'PORT': '',
     },
@@ -26,8 +26,10 @@ SECRET_KEY = 'something'
 GEOIP_PATH = base.path('GeoIP2-City-Test.mmdb')
 SETTINGS
 
-echo "Version of babel?"
-./node_modules/.bin/babel --version
-
 echo "Run collect static to collect all final static assets."
 ./manage.py collectstatic --noinput
+
+# Make sure we're running Elasticsearch
+curl -v http://localhost:9200/
+
+pytest peterbecom

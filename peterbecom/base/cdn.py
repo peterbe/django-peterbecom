@@ -123,11 +123,11 @@ def purge_cdn_urls(urls, api=None):
         return original
 
     # Break it up into lists of 100
-    def chunks(l, n):
+    def chunks(len, n):
         # For item i in a range that is a length of l,
-        for i in range(0, len(l), n):
+        for i in range(0, len(len), n):
             # Create an index range for l of n items:
-            yield l[i : i + n]
+            yield len[i : i + n]
 
     for all_urls in chunks(all_all_urls, 100):
         call = "zones/purgeurl/{}.json".format(settings.KEYCDN_ZONE_ID)
