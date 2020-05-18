@@ -41,7 +41,7 @@ jobs:
         with:
           # Version of PostgreSQL to use
           postgresql version: '11'
-          postgresql db: songsearch
+          postgresql db: peterbecom
           postgresql user: user
           postgresql password: secret
 
