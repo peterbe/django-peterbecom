@@ -65,10 +65,15 @@ jobs:
         with:
           node-version: '12.x'
 
-      - uses: borales/actions-yarn@v2.0.0
+      - name: Display Yarn version (A)
+        run: yarn --version
+
+      - name: GitHub Action for Yarn
+        uses: Borales/actions-yarn@v2.1.0
         with:
-          cmd: install # will run `yarn install` command
-      - name: Display Yarn version
+          cmd: install --frozen-lockfile # will run `yarn install` command
+
+      - name: Display Yarn version (B)
         run: yarn --version
 
       - name: Set up Python 3.8
