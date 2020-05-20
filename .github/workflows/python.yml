@@ -60,22 +60,23 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
 
-      - name: Install node
-        uses: actions/setup-node@v1
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2-beta
         with:
-          node-version: '12.x'
+          node-version: '12'
 
-      - uses: borales/actions-yarn@v2.0.0
-        with:
-          cmd: install # will run `yarn install` command
+      - name: Display Node version
+        run: node --version
       - name: Display Yarn version
         run: yarn --version
+
+      - name: Install yarn packages
+        run: yarn --frozen-lockfile
 
       - name: Set up Python 3.8
         uses: actions/setup-python@v2
         with:
           python-version: '3.8'
-
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
 
