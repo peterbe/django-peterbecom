@@ -1,4 +1,4 @@
-from django.conf import settings
+from django.conf import settings as dj_settings
 from elasticsearch_dsl import (
     Boolean,
     Date,
@@ -6,12 +6,13 @@ from elasticsearch_dsl import (
     Float,
     Integer,
     Keyword,
+    SearchAsYouType,
     Text,
     analyzer,
     token_filter,
 )
 
-synonyms_root = settings.BASE_DIR / "peterbecom/es-synonyms"
+synonyms_root = dj_settings.BASE_DIR / "peterbecom/es-synonyms"
 # Use str() here because Python 3.5's open() builtin can't take a PosixPath instance.
 american_british_syns_fn = str(synonyms_root / "be-ae.synonyms")
 all_synonyms = [
@@ -41,21 +42,18 @@ with open(american_british_syns_fn) as f:
             continue
         all_synonyms.append(line.strip())
 
+SYNONYM_FILE = dj_settings.ELASTICSEARCH_CONFIG_PATH / "peterbecom.synonyms"
+with open(SYNONYM_FILE, "w") as f:
+    for synonym in all_synonyms:
+        f.write(f"{synonym}\n")
 
 synonym_tokenfilter = token_filter(
-    "synonym_tokenfilter", "synonym", synonyms=all_synonyms
+    "synonym_tokenfilter",
+    "synonym",
+    # synonyms=all_synonyms
+    synonyms_path=str(SYNONYM_FILE.resolve()),
 )
 
-
-edge_ngram_analyzer = analyzer(
-    "edge_ngram_analyzer",
-    type="custom",
-    tokenizer="standard",
-    filter=[
-        "lowercase",
-        token_filter("edge_ngram_filter", type="edgeNGram", min_gram=1, max_gram=20),
-    ],
-)
 
 text_analyzer = analyzer(
     "text_analyzer",
@@ -63,14 +61,19 @@ text_analyzer = analyzer(
     filter=["standard", "lowercase", "stop", synonym_tokenfilter, "snowball"],
     char_filter=["html_strip"],
 )
+text_analyzer = analyzer(
+    "text_analyzer",
+    tokenizer="standard",
+    filter=["lowercase", "stop", synonym_tokenfilter, "snowball"],
+    char_filter=["html_strip"],
+)
 
 
 class BlogItemDoc(Document):
     id = Keyword(required=True)
     oid = Keyword(required=True)
-    title_autocomplete = Text(
-        required=True, analyzer=edge_ngram_analyzer, search_analyzer="standard"
-    )
+    # https://github.com/elastic/elasticsearch-dsl-py/blob/master/examples/search_as_you_type.py
+    title_autocomplete = SearchAsYouType(max_shingle_size=3)
     title = Text(required=True, analyzer=text_analyzer)
     text = Text(analyzer=text_analyzer)
     pub_date = Date()
@@ -79,8 +82,8 @@ class BlogItemDoc(Document):
     popularity = Float()
 
     class Index:
-        name = settings.ES_BLOG_ITEM_INDEX
-        settings = settings.ES_BLOG_ITEM_INDEX_SETTINGS
+        name = dj_settings.ES_BLOG_ITEM_INDEX
+        settings = dj_settings.ES_BLOG_ITEM_INDEX_SETTINGS
 
 
 class BlogCommentDoc(Document):
@@ -93,5 +96,5 @@ class BlogCommentDoc(Document):
     popularity = Float()
 
     class Index:
-        name = settings.ES_BLOG_COMMENT_INDEX
-        settings = settings.ES_BLOG_COMMENT_INDEX_SETTINGS
+        name = dj_settings.ES_BLOG_COMMENT_INDEX
+        settings = dj_settings.ES_BLOG_COMMENT_INDEX_SETTINGS

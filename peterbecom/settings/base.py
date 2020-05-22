@@ -489,3 +489,7 @@ DEFAULT_BOOST_MODE = "sum"
 DB_MAINTENANCE_MODE = False
 
 SEND_PULSE_MESSAGES = True
+
+ELASTICSEARCH_CONFIG_PATH = Path(
+    config("ELASTICSEARCH_CONFIG_PATH", default="/etc/elasticsearch")
+)

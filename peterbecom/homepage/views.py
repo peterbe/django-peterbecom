@@ -12,12 +12,12 @@ from django.db.models import Count, Max
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.cache import patch_cache_control
+from django.utils.cache import add_never_cache_headers, patch_cache_control
 from django.utils.html import strip_tags
 from django.views import static
 from django.views.decorators.cache import cache_control
-from django.utils.cache import add_never_cache_headers
 from elasticsearch_dsl import Q, query
+from elasticsearch_dsl.query import MultiMatch
 from huey.contrib.djhuey import task
 from lxml import etree
 
@@ -28,9 +28,8 @@ from peterbecom.plog.models import BlogComment, BlogItem
 from peterbecom.plog.search import BlogCommentDoc, BlogItemDoc
 from peterbecom.plog.utils import utc_now, view_function_timer
 
-from .utils import STOPWORDS, make_categories_q, parse_ocs_to_categories, split_search
 from .forms import DebugSearchForm
-
+from .utils import STOPWORDS, make_categories_q, parse_ocs_to_categories, split_search
 
 logger = logging.getLogger("homepage")
 
@@ -321,6 +320,7 @@ def search(request, original_q=None):
     t0 = time.time()
     response = search_query.execute()
     t1 = time.time()
+    print("TOOK", response.took)
     search_times.append(("blogitems", t1 - t0))
 
     for hit in response:
@@ -360,7 +360,7 @@ def search(request, original_q=None):
                 document["url"]
             )
 
-    context["count_documents"] = response.hits.total
+    context["count_documents"] = response.hits.total.value
 
     # Now append the search results based on blog comments
     search_query = BlogCommentDoc.search()
@@ -377,9 +377,10 @@ def search(request, original_q=None):
     t0 = time.time()
     response = search_query.execute()
     t1 = time.time()
+    print("TOOK", response.took)
     search_times.append(("blogcomments", t1 - t0))
 
-    context["count_documents"] += response.hits.total
+    context["count_documents"] += response.hits.total.value
 
     if not original_q and not context["count_documents"] and " " in q:
         # recurse
@@ -498,11 +499,33 @@ def autocompete(request):
                 terms.append(q.replace(suggestion.text, option.text))
 
     search_query.update_from_dict({"query": {"range": {"pub_date": {"lt": "now"}}}})
-    query = Q("match_phrase", title_autocomplete=terms[0])
+
+    # query = Q("match_phrase", title_autocomplete=terms[0])
+    query = MultiMatch(
+        query=terms[0],
+        type="bool_prefix",
+        fields=[
+            "title_autocomplete",
+            "title_autocomplete._2gram",
+            "title_autocomplete._3gram",
+        ],
+    )
     for term in terms[1:]:
-        query |= Q("match_phrase", title_autocomplete=term)
+        # query |= Q("match_phrase", title_autocomplete=term)
+        query |= MultiMatch(
+            query=term,
+            type="bool_prefix",
+            fields=[
+                "title_autocomplete",
+                "title_autocomplete._2gram",
+                "title_autocomplete._3gram",
+            ],
+        )
 
     search_query = search_query.query(query)
+    from pprint import pprint
+
+    pprint(search_query.to_dict())
 
     # search_query = search_query.sort("-pub_date", "_score")
     search_query = _add_function_score(search_query, query)
