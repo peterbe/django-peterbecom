@@ -39,7 +39,7 @@ class AuthenticationMiddleware:
                     return http.JsonResponse(
                         {"error": "invalid header value"}, status=403
                     )
-                cache_key = "bearer-to-user-info:{}".format(access_token[:12])
+                cache_key = f"bearer-to-user-info:{access_token[:12]}"
                 user = cache.get(cache_key)
                 was_in_cache = user is not None
                 if not was_in_cache:
