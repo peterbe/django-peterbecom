@@ -222,19 +222,17 @@ class BlogItem(models.Model):
         es = connections.get_connection()
         report_every = 100
         count = 0
-        # doc_type_name = _get_doc_type_name(BlogItem)
         t0 = time.time()
         for success, doc in streaming_bulk(
             es,
             (m.to_search(all_categories=categories).to_dict(True) for m in iterator),
             index=settings.ES_BLOG_ITEM_INDEX,
-            # doc_type=doc_type_name,
         ):
             if not success:
                 print("NOT SUCCESS!", doc)
             count += 1
             if verbose and not count % report_every:
-                print(count)
+                print(f"{count:,}")
         t1 = time.time()
         return count, t1 - t0
 
@@ -409,21 +407,19 @@ class BlogComment(models.Model):
         iterator = cls.objects.all().select_related("blogitem")
 
         es = connections.get_connection()
-        report_every = 100
+        report_every = 1000
         count = 0
-        # doc_type_name = _get_doc_type_name(BlogComment)
         t0 = time.time()
         for success, doc in streaming_bulk(
             es,
             (m.to_search().to_dict(True) for m in iterator),
             index=settings.ES_BLOG_COMMENT_INDEX,
-            # doc_type=doc_type_name,
         ):
             if not success:
                 print("NOT SUCCESS!", doc)
             count += 1
             if verbose and not count % report_every:
-                print(count)
+                print(f"{count:,}")
         t1 = time.time()
         return count, t1 - t0
 
