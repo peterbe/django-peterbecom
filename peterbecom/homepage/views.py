@@ -497,10 +497,10 @@ def autocompete(request):
         for suggestion in suggestions:
             for option in suggestion.options:
                 terms.append(q.replace(suggestion.text, option.text))
+    # print("TERMS:", terms)
 
     search_query.update_from_dict({"query": {"range": {"pub_date": {"lt": "now"}}}})
 
-    # query = Q("match_phrase", title_autocomplete=terms[0])
     query = MultiMatch(
         query=terms[0],
         type="bool_prefix",
@@ -510,22 +510,24 @@ def autocompete(request):
             "title_autocomplete._3gram",
         ],
     )
+
     for term in terms[1:]:
-        # query |= Q("match_phrase", title_autocomplete=term)
         query |= MultiMatch(
             query=term,
             type="bool_prefix",
             fields=[
                 "title_autocomplete",
                 "title_autocomplete._2gram",
-                "title_autocomplete._3gram",
+                # Commented out because sometimes the `terms[:1]` are a little bit
+                # too wild.
+                # What might be a better idea is to make 2 ES queries. One with
+                # `term[0]` and if that yields less than $batch_size, we make
+                # another query with the `terms[1:]` and append the results.
+                # "title_autocomplete._3gram",
             ],
         )
 
     search_query = search_query.query(query)
-    from pprint import pprint
-
-    pprint(search_query.to_dict())
 
     # search_query = search_query.sort("-pub_date", "_score")
     search_query = _add_function_score(search_query, query)
