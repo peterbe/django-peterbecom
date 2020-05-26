@@ -60,7 +60,7 @@ def _post_x_cache(session, token, url, location):
     doc = PyQuery(results["result"])
     data = {}
     for i, td in enumerate(doc("td").items()):
-        if i == 6:
+        if i == 5:
             try:
                 data["ttfb"] = float(
                     list(td("span.badge-success").items())[0]
@@ -69,10 +69,12 @@ def _post_x_cache(session, token, url, location):
                     .strip()
                 )
             except IndexError:
-                if "ms" in td.text():
-                    data["ttfb"] = float(td.text().replace("ms", "").strip())
-                else:
-                    data["ttfb"] = 1000 * float(td.text().replace("s", "").strip())
+                td_text = td.text()
+                if td_text:
+                    if "ms" in td_text:
+                        data["ttfb"] = float(td_text.replace("ms", "").strip())
+                    else:
+                        data["ttfb"] = 1000 * float(td_text.replace("s", "").strip())
 
     doc = PyQuery(results["headers"])
     key = None
