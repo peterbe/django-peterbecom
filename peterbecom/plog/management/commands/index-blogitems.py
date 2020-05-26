@@ -29,6 +29,6 @@ class Command(BaseCommand):
             blog_comment_index.create()
 
         count, took = BlogItem.index_all_blogitems(verbose=True)
-        self.out("DONE Indexing {} blog items in {} seconds".format(count, took))
+        self.out(f"DONE Indexing {count:,} blog items in {took:.1f} seconds")
         count, took = BlogComment.index_all_blogcomments(verbose=True)
-        self.out("DONE Indexing {} blog comments in {} seconds".format(count, took))
+        self.out(f"DONE Indexing {count:,} blog comments in {took:.1f} seconds")
