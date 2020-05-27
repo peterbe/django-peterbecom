@@ -8,7 +8,7 @@
   "author": "Peter Bengtsson",
   "license": "MPL-2.0",
   "dependencies": {
-    "@babel/cli": "7.8.4",
+    "@babel/cli": "7.10.0",
     "@babel/core": "7.9.6",
     "csso-cli": "3.0.0",
     "html-minifier": "4.0.0",
