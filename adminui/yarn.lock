@@ -1728,10 +1728,10 @@
   resolved "https://registry.yarnpkg.com/@fullcalendar/core/-/core-4.4.0.tgz#79dbc0cca836ce628a07e739a456da11ff141373"
   integrity sha512-PC4mmXHJHAlXmUEmZVnePyA8yYCOBdxBNq8yjJqedEtT1X0x36yTFz/Y0Ux6bniICZDqYtk0xoxe6jaxi++e0g==
 
-"@fullcalendar/daygrid@4.4.0", "@fullcalendar/daygrid@~4.4.0":
-  version "4.4.0"
-  resolved "https://registry.yarnpkg.com/@fullcalendar/daygrid/-/daygrid-4.4.0.tgz#25fcae7226b62688b4e086a611582e72253b5229"
-  integrity sha512-pDfvL0XZxKHTZ4VFOmwaYe3LmuABEIZsEopeqQ8y5O6BDen9KCbJqgHeCI8FpASSBd6bNlUx7il7EHdSoHhgIw==
+"@fullcalendar/daygrid@4.4.1", "@fullcalendar/daygrid@~4.4.0":
+  version "4.4.1"
+  resolved "https://registry.yarnpkg.com/@fullcalendar/daygrid/-/daygrid-4.4.1.tgz#9cb4395cca3dee2303a90fcdd98042f3d8b6390d"
+  integrity sha512-UWOg3Dl5dHqYwQElEgTQ97GMg7IZ7e7fZYhMisvGGa7Yi/d/8NRCYl2F+FR1QnSyht/RwAPTCvEunGHizQMv3w==
 
 "@fullcalendar/react@4.4.0":
   version "4.4.0"
