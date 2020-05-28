@@ -1723,10 +1723,10 @@
   resolved "https://registry.yarnpkg.com/@csstools/normalize.css/-/normalize.css-10.1.0.tgz#f0950bba18819512d42f7197e56c518aa491cf18"
   integrity sha512-ij4wRiunFfaJxjB0BdrYHIH8FxBJpOwNPhhAcunlmPdXudL1WQV1qoP9un6JsEBAgQH+7UXyyjh0g7jTxXK6tg==
 
-"@fullcalendar/core@4.4.0", "@fullcalendar/core@~4.4.0":
-  version "4.4.0"
-  resolved "https://registry.yarnpkg.com/@fullcalendar/core/-/core-4.4.0.tgz#79dbc0cca836ce628a07e739a456da11ff141373"
-  integrity sha512-PC4mmXHJHAlXmUEmZVnePyA8yYCOBdxBNq8yjJqedEtT1X0x36yTFz/Y0Ux6bniICZDqYtk0xoxe6jaxi++e0g==
+"@fullcalendar/core@4.4.1", "@fullcalendar/core@~4.4.0":
+  version "4.4.1"
+  resolved "https://registry.yarnpkg.com/@fullcalendar/core/-/core-4.4.1.tgz#36e08c06a84712aab13514c3f40d883b2452a6c9"
+  integrity sha512-MfDGrBHEEP3oJO8vgU3iL4RvDqGtK9DhaqCiR5tGEEvahY+4rfBtkJ/XN6JuiO09/QGgrfRGNlAeKC3FZwGoNg==
 
 "@fullcalendar/daygrid@4.4.0", "@fullcalendar/daygrid@~4.4.0":
   version "4.4.0"
