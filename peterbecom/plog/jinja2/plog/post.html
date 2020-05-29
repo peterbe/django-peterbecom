@@ -282,9 +282,10 @@
 
 
 {% if '/plog/blogitem-040601-1' not in request.path %}
+
   <h2 class="ui dividing header">Related posts</h2>
 
-  <dl>
+  <dl class="related-posts">
     {% if previous_post %}
     <dt>Previous:</dt>
     <dd><a href="{{ previous_post.get_absolute_url() }}">{{ previous_post.title }}</a>
@@ -300,21 +301,25 @@
     {% endif %}
   </dl>
 
-  {% if related_by_keyword %}
-  <dl>
-    <dt>Related by Keyword:</dt>
-    {% for each in related_by_keyword %}
+  {% if related_by_categories.exists() %}
+  <dl class="related-posts">
+    <dt>Related by category:</dt>
+    {% for each in related_by_categories %}
     <dd><a href="{{ each.get_absolute_url() }}">{{ each.title }}</a>
     <small>{{ each.pub_date.strftime('%d %B %Y') }}</small>
+      {% for category in get_category_overlap(post, each) %}
+        <a href="{{ url('only_category', category.name.replace(' ','+')) }}"
+           title="Filter by the '{{ category.name }}' category"><small>{{category.name}}</small></a>{% if not loop.last %}, {% endif %}
+      {% endfor %}
     </dd>
     {% endfor %}
   </dl>
   {% endif %}
 
-  {% if related_by_text %}
-  <dl>
-    <dt>Related by Text:</dt>
-    {% for each in related_by_text %}
+  {% if related_by_keyword.exists() %}
+  <dl class="related-posts">
+    <dt>Related by keyword:</dt>
+    {% for each in related_by_keyword %}
     <dd><a href="{{ each.get_absolute_url() }}">{{ each.title }}</a>
     <small>{{ each.pub_date.strftime('%d %B %Y') }}</small>
     </dd>

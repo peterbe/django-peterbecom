@@ -73,3 +73,9 @@ def get_photos(post, size):
 @library.global_function
 def min_(*args):
     return min(*args)
+
+
+@library.global_function
+def get_category_overlap(blogitem_base, blogitem):
+    intersection = blogitem.categories.filter(id__in=blogitem_base.categories.all())
+    return intersection.order_by("name")

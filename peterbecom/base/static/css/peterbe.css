@@ -231,3 +231,7 @@ span.not-approved {
   text-align: center;
   margin: 30px;
 }
+
+.related-posts dt {
+  font-weight: bold;
+}

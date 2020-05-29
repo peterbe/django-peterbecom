@@ -227,7 +227,20 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
     context["count_comments"] = count_comments
     context["all_comments"] = all_comments
     if "/plog/blogitem-040601-1" not in request.path:
-        context["related_by_keyword"] = get_related_posts_by_keyword(post, limit=5)
+        exclude_related = []
+        if context["previous_post"]:
+            exclude_related.append(context["previous_post"].pk)
+        if context["next_post"]:
+            exclude_related.append(context["next_post"].pk)
+        context["related_by_categories"] = get_related_posts_by_categories(
+            post, limit=5, exclude_ids=exclude_related
+        )
+        exclude_related.extend(
+            [x for x in context["related_by_categories"].values_list("id", flat=True)]
+        )
+        context["related_by_keyword"] = get_related_posts_by_keyword(
+            post, limit=5, exclude_ids=exclude_related
+        )
         context["show_buttons"] = not screenshot_mode
     context["show_carbon_ad"] = not screenshot_mode
     # context["show_carbon_ad"] = 0
@@ -290,7 +303,7 @@ def all_blog_post_comments(request, oid):
     return render(request, "plog/_all_comments.html", data)
 
 
-def get_related_posts_by_keyword(post, limit=5):
+def get_related_posts_by_keyword(post, limit=5, exclude_ids=None):
     if not post.proper_keywords:
         return BlogItem.objects.none()
     return (
@@ -300,7 +313,24 @@ def get_related_posts_by_keyword(post, limit=5):
             archived__isnull=True,
         )
         .exclude(id=post.id)
-        .order_by("-pub_date")[:limit]
+        .exclude(id__in=exclude_ids or [])
+        .order_by("-popularity")[:limit]
+    )
+
+
+def get_related_posts_by_categories(post, limit=5, exclude_ids=None):
+    if not post.categories.all().exists():
+        return BlogItem.objects.none()
+    return (
+        BlogItem.objects.filter(
+            categories__in=post.categories.all(),
+            pub_date__lt=timezone.now(),
+            archived__isnull=True,
+        )
+        .distinct()
+        .exclude(id=post.id)
+        .exclude(id__in=exclude_ids or [])
+        .order_by("-popularity")[:limit]
     )
 
 
