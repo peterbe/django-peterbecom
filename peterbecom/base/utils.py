@@ -1,11 +1,22 @@
 import json
 import traceback
+from pathlib import Path
 
 import requests
 from django.conf import settings
+from django.core.serializers.json import DjangoJSONEncoder
 from django_redis import get_redis_connection
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
+
+
+class PathJSONEncoder(DjangoJSONEncoder):
+    """Like Django's DjangoJSONEncoder but support of Path objects."""
+
+    def default(self, obj):
+        if isinstance(obj, Path):
+            return str(obj)
+        return super().default(obj)
 
 
 def get_base_url(request):
@@ -63,8 +74,11 @@ def send_pulse_message(msg, raise_errors=False):
     try:
         client = get_redis_connection("default")
         if not isinstance(msg, str):
-            msg = json.dumps(msg)
-        # print("PUBLISHING PULSE MESSAGE:", msg)
+            try:
+                msg = json.dumps(msg, cls=PathJSONEncoder)
+            except TypeError:
+                print(f"Unable to JSON dump msg: {msg!r}")
+                raise
         client.publish("pulse", msg)
     except Exception:
         print("EXCEPTION SENDING PUBLISHING PULSE MESSAGE!")

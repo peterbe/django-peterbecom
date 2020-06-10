@@ -1702,8 +1702,8 @@ def cdn_probe(request):
     fscache_path = path_to_fs_path(urlparse(absolute_url).path)
     fscache_path_dir = os.path.dirname(fscache_path)
     context["fscache"] = {
-        "fspath": fscache_path,
-        "exists": os.path.isfile(fscache_path),
+        "fspath": str(fscache_path),
+        "exists": fscache_path.exists(),
     }
     if context["fscache"]["exists"]:
         context["fscache"]["files"] = [
@@ -1726,8 +1726,8 @@ def cdn_probe(request):
             other_pages.append(
                 {
                     "url": base_url + url,
-                    "fspath": fspath,
-                    "fspath_exists": os.path.isfile(fspath),
+                    "fspath": str(fspath),
+                    "fspath_exists": fspath.exists(),
                 }
             )
 
@@ -1770,7 +1770,7 @@ def cdn_purge(request):
         # Need to find FSCache files by URL
         for url in urls:
             deleted = invalidate_by_url(url)
-            context["deleted"].extend(deleted)
+            context["deleted"].extend([str(x) for x in deleted])
 
     purged = purge_cdn_urls(urls)
     if purged is None:

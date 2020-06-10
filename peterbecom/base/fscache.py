@@ -2,6 +2,7 @@ import os
 import random
 import re
 import time
+from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
 import backoff
@@ -20,40 +21,26 @@ class EmptyFSCacheFile(Exception):
 
 
 def path_to_fs_path(path):
-    fs_path = settings.FSCACHE_ROOT
-    for directory in path.split("/"):
-        if directory:
-            fs_path = os.path.join(fs_path, directory)
-    return fs_path + "/index.html"
+    return settings.FSCACHE_ROOT / path[1:] / "index.html"
 
 
-def create_parents(fs_path):
-    directory = os.path.dirname(fs_path)
-    here = settings.FSCACHE_ROOT
-    for part in directory.replace(settings.FSCACHE_ROOT, "").split("/"):
-        here = os.path.join(here, part)
-        if not os.path.isdir(here):
-            try:
-                os.mkdir(here)
-                os.chmod(here, 0o755)
-            except FileExistsError:
-                # Race conditions
-                pass
+def create_parents(fs_path: Path):
+    fs_path.parent.mkdir(mode=0o755, parents=True, exist_ok=True)
 
 
-def too_old(fs_path, seconds):
-    age = time.time() - os.stat(fs_path).st_mtime
+def too_old(fs_path: Path, seconds):
+    age = time.time() - fs_path.stat().st_mtime
     return age > seconds
 
 
-def _invalidate(fs_path):
-    assert "//" not in fs_path, fs_path
+def _invalidate(fs_path: Path):
+    assert isinstance(fs_path, Path), type(fs_path)
     deleted = []
-    if os.path.isfile(fs_path):
+    if fs_path.exists():
         attempts = 0
         while attempts < 3:
             try:
-                os.remove(fs_path)
+                fs_path.unlink()
                 deleted.append(fs_path)
                 break
             except FileNotFoundError:
@@ -62,12 +49,12 @@ def _invalidate(fs_path):
 
     endings = (".metadata", ".cache_control", ".gz", ".br", ".original")
     for ending in endings:
-        fs_path_w = fs_path + ending
-        if os.path.isfile(fs_path_w):
+        fs_path_w = Path(str(fs_path) + ending)
+        if fs_path_w.exists():
             attempts = 0
             while attempts < 3:
                 try:
-                    os.remove(fs_path_w)
+                    fs_path_w.unlink()
                     deleted.append(fs_path_w)
                     break
                 except FileNotFoundError:
@@ -82,7 +69,8 @@ def invalidate_by_url(url, revisit=False):
         url = urlparse(url).path
     if not url.endswith("/"):
         url += "/"
-    fs_path = settings.FSCACHE_ROOT + url + "index.html"
+
+    fs_path = settings.FSCACHE_ROOT / url[1:] / "index.html"
     deleted = _invalidate(fs_path)
     if revisit:
         revisit_url(fs_path)
@@ -152,48 +140,60 @@ def revisit_url(path, verbose=False):
 def invalidate_too_old(verbose=False, dry_run=False, revisit=False):
     found = []
     deleted = []
-    for root, dirs, files in os.walk(settings.FSCACHE_ROOT):
-        for file_ in files:
-            if file_.endswith(".metadata"):
+
+    def visit(root):
+        count_files_or_folders = 0
+        for file in root.iterdir():
+            count_files_or_folders += 1
+
+            if file.is_dir():
+                visit(file)
                 continue
-            path = os.path.join(root, file_)
-            if (
-                "index.html" in file_
-                and os.path.isfile(path)
-                and not os.stat(path).st_size
-            ):
-                raise EmptyFSCacheFile(path)
-            if os.path.isfile(path + ".metadata"):
-                found.append(os.stat(path).st_size)
+
+            if file.name.endswith(".metadata"):
+                continue
+
+            if "index.html" in file.name and file.exists() and not file.stat().st_size:
+                raise EmptyFSCacheFile(file)
+
+            if Path(str(file) + ".metadata").exists():
+                found.append(file.stat().st_size)
                 seconds = None
-                if os.path.isfile(path + ".cache_control"):
-                    with open(path + ".cache_control") as seconds_f:
+
+                # If it ends with .metadata it has to be the index.html
+                assert file.name == "index.html", file
+
+                cc_file = Path(str(file) + ".cache_control")
+                if cc_file.exists():
+                    with open(cc_file) as seconds_f:
                         seconds = int(seconds_f.read())
-                if seconds is None or too_old(path, seconds):
+
+                if seconds is None or too_old(file, seconds):
                     if verbose:
-                        print("INVALIDATE", path)
+                        print("INVALIDATE", file)
                     if not dry_run:
-                        found.append(os.stat(path).st_size)
-                        these_deleted = _invalidate(path)
+                        found.append(file.stat().st_size)
+                        these_deleted = _invalidate(file)
                         deleted.extend(these_deleted)
                         if verbose:
                             print("\tDELETED", these_deleted)
-                        delete_empty_directory(path)
+                        delete_empty_directory(file)
                         if revisit:
-                            revisit_url(path, verbose=verbose)
-                # elif verbose:
-                #     print('NOT TOO OLD', path)
-        if not files and not os.listdir(root):
+                            revisit_url(file, verbose=verbose)
+
+        if not count_files_or_folders:
             if verbose:
                 print("NO FILES IN", root)
             if not dry_run:
-                os.rmdir(root)
+                root.unlink()
+
+    visit(settings.FSCACHE_ROOT)
 
     if verbose:
-        print("Found {:,} possible files".format(len(found)))
+        print(f"Found {len(found):,} possible files")
         mb = sum(found) / 1024.0 / 1024.0
-        print("Totalling", "%.1f MB" % mb)
-        print("Deleted {:,} files".format(len(deleted)))
+        print(f"Totalling {mb:.1f} MB")
+        print(f"Deleted {len(deleted):,} files")
 
 
 def cache_request(request, response):
@@ -261,120 +261,122 @@ def purge_outdated_cdn_urls(verbose=False, dry_run=False, revisit=False, max_fil
     with their CDN equivalent to see if the CDN version is too different.
     """
     paths = []
-    for root, dirs, files in os.walk(settings.FSCACHE_ROOT):
-        for file_ in files:
-            if file_.endswith(".metadata"):
+
+    def visit(root):
+        for file in root.iterdir():
+            if file.is_dir():
+                visit(file)
                 continue
-            path = os.path.join(root, file_)
-            for attempt in range(3):
-                if (
-                    "index.html" in file_
-                    and os.path.isfile(path)
-                    and not os.stat(path).st_size
-                ):
-                    # If this happens, give it "one more chance" by sleeping
-                    # a little and only raise the error if it file still isn't
-                    # there after some sleeping.
-                    time.sleep(1)
-                    continue
-                break
-            else:
-                raise EmptyFSCacheFile(path)
-            if os.path.isfile(path + ".metadata") and "/awspa" not in path:
-                paths.append((os.stat(path).st_mtime, path))
+            if file.name.endswith(".metadata"):
+                continue
+            if "index.html" in file.name:
+                assert file.stat().st_size, file
+                if Path(str(file) + ".metadata").exists() and "/awspa" not in str(file):
+                    paths.append((file.stat().st_mtime, file))
+
+    visit(settings.FSCACHE_ROOT)
 
     # Oldest first
     paths.sort()
 
-    for mtime, path in paths[:max_files]:
-        uri = path.replace(settings.FSCACHE_ROOT, "")
+    for mtime, file in paths[:max_files]:
+        uri = str(file.relative_to(settings.FSCACHE_ROOT))
+        if not uri.startswith("/"):
+            uri = f"/{uri}"
         uri = re.sub(r"/index\.html$", "", uri)
         if uri == "":
             uri = "/"
-
         if verbose:
             age_seconds = time.time() - mtime
             if age_seconds > 10000:
-                human_age = "{} hours".format(int(age_seconds / 60 / 60))
+                human_age = f"{int(age_seconds / 60 / 60)} hours"
             elif age_seconds > 60:
-                human_age = "{} minutes".format(int(age_seconds / 60))
+                human_age = f"{int(age_seconds / 60)} minutes"
             else:
-                human_age = "{:.1f} seconds".format(age_seconds)
-            print("{} last touched {} ago".format(uri, human_age))
+                human_age = f"{age_seconds:.1f} seconds"
+            print(f"{uri} last touched {human_age} ago")
 
         # Update the files modification time so it gets last in the sort order
         # next time.
-        os.utime(path, (os.stat(path).st_atime, time.time()))
+        os.utime(file, (file.stat().st_atime, time.time()))
 
         cdn_url = get_cdn_base_url() + uri
         response = _download_cdn_url(cdn_url)
         if response.status_code == 404:
-            # If it can't be viewed on the CDN, it has no business existing as a
-            # fscached filed.
-            # os.remove(path)
-            if verbose:
-                print("Deleted {!r} because it 404'ed on {}".format(path, cdn_url))
+            # # If it can't be viewed on the CDN, it has no business existing as a
+            # # fscached filed.
+            # # os.remove(path)
+            # if verbose:
+            #     print(f"Deleted {file!r} because it 404'ed on {cdn_url}")
             continue
         if response.status_code != 200:
             if verbose:
-                print("{} on {} :(".format(response.status_code, cdn_url))
+                print(f"{response.status_code} on {cdn_url} :(")
             continue
 
         if response.headers.get("x-cache") != "HIT":
             if verbose:
                 print(
-                    "Wasn't x-cache HIT anyway ({!r}) {}".format(
-                        response.headers.get("x-cache"), cdn_url
-                    )
+                    f"Wasn't x-cache HIT anyway ({response.headers.get('x-cache')!r}) "
+                    f"{cdn_url}"
                 )
             continue
 
-        with open(path) as f:
+        with open(file) as f:
             local_html = f.read()
         remote_html = response.text
 
         if local_html != remote_html and not dry_run:
-            CDNPurgeURL.add(cdn_url)
+            CDNPurgeURL.add(urlparse(cdn_url).path)
 
 
 def find_missing_compressions(verbose=False, revisit=False, max_files=500):
-    deleted = revisits = 0
-    for root, dirs, files in os.walk(settings.FSCACHE_ROOT):
-        for file_ in files:
-            if file_.endswith(".metadata"):
-                continue
-            path = os.path.join(root, file_)
-            if (
-                "index.html" in file_
-                and os.path.isfile(path)
-                and not os.stat(path).st_size
-            ):
-                print("HAD TO DELETE {} BECAUSE FILE 0 BYTES".format(path))
-                os.remove(path)
-                deleted += 1
-                continue
-            if os.path.isfile(path + ".metadata"):
-                # If it ends with .metadata it has to be the index.html
-                assert os.path.basename(path) == "index.html", os.path.basename(path)
+    deleted = []
+    revisits = []
 
-                if not os.path.isfile(path + ".br") and "awspa/" not in path:
+    def visit(root):
+        for file in root.iterdir():
+            if file.is_dir():
+                visit(file)
+                continue
+
+            if file.name.endswith(".metadata"):
+                continue
+
+            if "index.html" in file.name and file.exists() and not file.stat().st_size:
+                print(f"HAD TO DELETE {file} BECAUSE FILE 0 BYTES")
+                file.unlink()
+                deleted.append(file)
+                continue
+
+            if Path(str(file) + ".metadata").exists():
+                # If it ends with .metadata it has to be the index.html
+                assert file.name == "index.html", file
+
+                br_file = Path(str(file) + ".br")
+                gz_file = Path(str(file) + ".gz")
+                if not br_file.exists() and "awspa/" not in str(file):
                     if verbose:
-                        print("{} didn't exist!".format(path + ".br"))
-                    os.remove(path)
-                    deleted += 1
-                    print("HAD TO DELETE {} BECAUSE .br FILE DOESNT EXIST".format(path))
-                elif not os.path.isfile(path + ".gz") and "awspa/" not in path:
+                        print(f"{br_file} didn't exist!")
+                    file.unlink()
+                    deleted.append(file)
+                    print(f"HAD TO DELETE {file} BECAUSE .br FILE DOESNT EXIST")
+                elif not gz_file.exists() and "awspa/" not in str(file):
                     if verbose:
-                        print("{} didn't exist!".format(path + ".gz"))
-                    os.remove(path)
-                    deleted += 1
-                    print("HAD TO DELETE {} BECAUSE .gz FILE DOESNT EXIST".format(path))
+                        print(f"{gz_file} didn't exist!")
+                    file.unlink()
+                    deleted.append(file)
+                    print(f"HAD TO DELETE {file} BECAUSE .gz FILE DOESNT EXIST")
                 else:
                     continue
 
                 if revisit:
-                    revisit_url(path, verbose=verbose)
-                    revisits += 1
+                    revisit_url(file, verbose=verbose)
+                    revisits.append(file)
+
+    visit(settings.FSCACHE_ROOT)
 
     if verbose:
-        print("Deleted {:,} files and revisited {:,} paths".format(deleted, revisit))
+        print(
+            f"Deleted {len(deleted):,} files and " f"revisited {len(revisits):,} paths"
+        )

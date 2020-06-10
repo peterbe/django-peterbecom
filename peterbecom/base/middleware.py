@@ -1,8 +1,8 @@
 import datetime
 import hashlib
-import os
 import re
 import time
+from pathlib import Path
 from urllib.parse import urlparse
 
 from django import http
@@ -16,8 +16,8 @@ from peterbecom.base.tasks import post_process_cached_html
 max_age_re = re.compile(r"max-age=(\d+)")
 
 
-def _is_too_new(fs_path, timeout=5):
-    return os.path.isfile(fs_path) and os.stat(fs_path).st_mtime > time.time() - timeout
+def _is_too_new(fs_path: Path, timeout=5):
+    return fs_path.exists() and fs_path.stat().st_mtime > time.time() - timeout
 
 
 class FSCacheMiddleware:
@@ -27,16 +27,13 @@ class FSCacheMiddleware:
     def __call__(self, request):
 
         fs_path = fscache.path_to_fs_path(request.path)
-        if (
-            settings.DEBUG
-            and os.path.isfile(fs_path)
-            and "nofscache" not in request.GET
-        ):
+        if settings.DEBUG and fs_path.exists() and "nofscache" not in request.GET:
             # If you don't have Nginx available, do what Nginx does but
             # in Django.
             cache_seconds = None
-            if os.path.isfile(fs_path + ".cache_control"):
-                with open(fs_path + ".cache_control") as f:
+            cc_path = Path(str(fs_path) + ".cache_control")
+            if cc_path.exists():
+                with open(cc_path) as f:
                     cache_seconds = int(f.read())
             if not fscache.too_old(fs_path, seconds=cache_seconds):
                 print("Reusing FS cached file:", fs_path)
@@ -55,23 +52,17 @@ class FSCacheMiddleware:
             try:
                 seconds = int(max_age_re.findall(response.get("Cache-Control"))[0])
             except TypeError:
-                # exit early fi the cache-control isn't set
+                # exit early if the cache-control isn't set
                 return response
             if seconds > 60:
-                metadata_text = "FSCache {}::{}::{}".format(
-                    int(time.time()), seconds, datetime.datetime.utcnow()
-                )
+                metadata_text = f"FSCache {int(time.time())}::{seconds}::{datetime.datetime.utcnow()}"
                 # 'fs_path' is the path to the file, but its parent folder(s)
                 # might need to be created.
                 fscache.create_parents(fs_path)
-                assert os.path.isdir(os.path.dirname(fs_path)), os.path.dirname(fs_path)
+                assert fs_path.parent.is_dir(), fs_path.parent
                 raw_content = response.content.decode("utf-8")
                 if not raw_content:
-                    print(
-                        "WARNING! Response content on {!r} was empty!".format(
-                            request.path
-                        )
-                    )
+                    print(f"WARNING! Response content on {request.path!r} was empty!")
                     # Bail on these weird ones
                     return response
                 with open(fs_path, "w") as f:
@@ -79,35 +70,35 @@ class FSCacheMiddleware:
                     if "text/html" in response["Content-Type"]:
                         f.write("\n<!-- {} -->\n".format(metadata_text))
 
-                assert os.path.isfile(fs_path), fs_path
-                if not os.stat(fs_path).st_size:
+                # assert os.path.isfile(fs_path), fs_path
+                assert fs_path.exists(), fs_path
+                if not fs_path.stat().st_size:
                     # Weird! The file does not appear have been written yet!
                     print(
-                        "WARNING! fscache file {} on {!r} was empty!".format(
-                            fs_path, request.path
-                        )
+                        f"WARNING! fscache file {fs_path} on {request.path!r} was empty!"
                     )
-                    os.remove(fs_path)
+                    fs_path.unlink()
                     return response
-                # assert os.stat(fs_path).st_size
 
-                # This is a bit temporary
-                # with open("/tmp/fscached2.log", "a") as f:
-                #     f.write("{}\t{}\n".format(time.time(), fs_path))
+                fs_path_gz = Path(str(fs_path) + ".gz")
+                if fs_path_gz.exists():
+                    print(f"Also, removed {fs_path_gz}")
+                    fs_path_gz.unlink()
 
-                if os.path.isfile(fs_path + ".gz"):
-                    print("Also, removed", fs_path + ".gz")  # TEMPORARY
-                    os.remove(fs_path + ".gz")
+                fs_path_br = Path(str(fs_path) + ".br")
+                if fs_path_br.exists():
+                    print(f"Also, removed {fs_path_br}")
+                    fs_path_br.unlink()
 
-                if os.path.isfile(fs_path + ".br"):
-                    print("Also, removed", fs_path + ".br")  # TEMPORARY
-                    os.remove(fs_path + ".br")
-
-                with open(fs_path + ".metadata", "w") as f:
+                fs_path_metadata = Path(str(fs_path) + ".metadata")
+                with open(fs_path_metadata, "w") as f:
                     f.write(metadata_text)
                     f.write("\n")
-                with open(fs_path + ".cache_control", "w") as f:
+
+                fs_path_cc = Path(str(fs_path) + ".cache_control")
+                with open(fs_path_cc, "w") as f:
                     f.write(str(seconds))
+
                 if "text/html" in response["Content-Type"]:
                     original_url = absolute_url = request.build_absolute_uri()
                     forwarded_host = request.headers.get("X-Forwarded-Host")
@@ -139,7 +130,8 @@ class FSCacheMiddleware:
                             )
                         )
 
-                    assert os.path.exists(fs_path), fs_path
+                    # assert os.path.exists(fs_path), fs_path
+                    assert fs_path.exists(), fs_path
                     cache_key = "post_process_cached_html:{}:{}".format(
                         hashlib.md5(force_bytes(fs_path)).hexdigest(),
                         hashlib.md5(force_bytes(absolute_url)).hexdigest(),

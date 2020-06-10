@@ -8,7 +8,7 @@ from peterbecom.base import fscache
 
 
 def test_path_to_fs_path(tmpfscacheroot):
-    assert fscache.path_to_fs_path("/foo/bar") == tmpfscacheroot + "/foo/bar/index.html"
+    assert fscache.path_to_fs_path("/foo/bar") == tmpfscacheroot / "foo/bar/index.html"
 
 
 def test_create_parents(tmpfscacheroot):

@@ -3,11 +3,11 @@ import functools
 import gzip
 import os
 import re
-import shutil
 import sys
 import time
 import traceback
 from urllib.parse import urlparse
+from pathlib import Path
 from io import StringIO
 
 from django.conf import settings
@@ -58,32 +58,27 @@ def measure_post_process(func):
 @task()
 @measure_post_process
 def post_process_cached_html(
-    filepath, url, postprocessing, _start_time=None, original_url=None
+    filepath: Path, url, postprocessing, _start_time=None, original_url=None
 ):
     if _start_time:
         task_delay = time.time() - _start_time
-        # print("TASK_DELAY:post_process_cached_html:", task_delay)
-        # with open("/tmp/taskdelay.log", "a") as f:
-        #     f.write("post_process_cached_html:{}\n".format(task_delay))
-        postprocessing.notes.append("Taskdelay {:.2f}s".format(task_delay))
+        postprocessing.notes.append(f"Taskdelay {task_delay:.2f}s")
     # Sepearated from true work-horse below. This is so that the task will
     # *always* fire immediately.
     return _post_process_cached_html(filepath, url, postprocessing, original_url)
 
 
-@lock_decorator(key_maker=lambda *args, **kwargs: args[0])
-def _post_process_cached_html(filepath, url, postprocessing, original_url):
+@lock_decorator(key_maker=lambda *args, **kwargs: str(args[0]))
+def _post_process_cached_html(filepath: Path, url, postprocessing, original_url):
+    assert isinstance(filepath, Path), type(filepath)
     if "\n" in url:
-        raise ValueError("URL can't have a linebreak in it ({!r})".format(url))
+        raise ValueError(f"URL can't have a linebreak in it ({url!r})")
     if url.startswith("http://testserver"):
         # do nothing. testing.
         return
-    if not os.path.exists(filepath):
-        postprocessing.notes.append("{} no longer exists".format(filepath))
+    if not filepath.exists():
+        postprocessing.notes.append(f"{filepath} no longer exists")
         return
-        # raise ValueError(
-        #     "{!r} does not exist and can't be post-processed".format(filepath)
-        # )
 
     attempts = 0
     with open(filepath) as f:
@@ -94,7 +89,7 @@ def _post_process_cached_html(filepath, url, postprocessing, original_url):
         # if fired concurrently, at the same time'ish, by two threads, only one
         # of them will run at a time. In serial. The second thread will still
         # get to run. This check is to see if it's no point running now.
-        msg = "HTML ({}) already post processed".format(filepath)
+        msg = f"HTML ({filepath}) already post processed"
         postprocessing.notes.append(msg)
         return
 
@@ -126,34 +121,32 @@ def _post_process_cached_html(filepath, url, postprocessing, original_url):
                     )
                 )
         except ReadTimeout as exception:
-            postprocessing.notes.append(
-                "Timeout on mincss_html() ({})".format(exception)
-            )
+            postprocessing.notes.append(f"Timeout on mincss_html() ({exception})")
             optimized_html = None
             # created = False
 
         attempts += 1
         if optimized_html is None:
             postprocessing.notes.append(
-                "WARNING! mincss_html returned None for {} ({})".format(filepath, url)
+                f"WARNING! mincss_html returned None for {filepath} ({url})"
             )
             if attempts < 3:
                 print("Will try again!")
                 time.sleep(1)
                 continue
-            postprocessing.notes.append("Gave up after {} attempts".format(attempts))
+            postprocessing.notes.append(f"Gave up after {attempts} attempts")
             return
 
         try:
-            shutil.move(filepath, filepath + ".original")
+            filepath.rename(Path(str(filepath) + ".original"))
         except FileNotFoundError:
             postprocessing.notes.append(
-                "Can't move to .original {} no longer exists".format(filepath)
+                f"Can't move to .original {filepath} no longer exists"
             )
             return
         with open(filepath, "w") as f:
             f.write(optimized_html)
-        print("mincss optimized {}".format(filepath))
+        print(f"mincss optimized {filepath}")
         break
 
     try:
@@ -170,12 +163,12 @@ def _post_process_cached_html(filepath, url, postprocessing, original_url):
         t1 = time.perf_counter()
         if not minified_html:
             postprocessing.notes.append("Calling minify_html() failed")
-        postprocessing.notes.append("Took {:.1f}s to minify HTML".format(t1 - t0))
+        postprocessing.notes.append(f"Took {t1 - t0:.1f}s to minify HTML")
 
         t0 = time.perf_counter()
         _zopfli_html(minified_html and minified_html or optimized_html, filepath, url)
         t1 = time.perf_counter()
-        postprocessing.notes.append("Took {:.1f}s to Zopfli HTML".format(t1 - t0))
+        postprocessing.notes.append(f"Took {t1 - t0:.1f}s to Zopfli HTML")
 
         t0 = time.perf_counter()
         _brotli_html(minified_html and minified_html or optimized_html, filepath, url)
@@ -230,7 +223,7 @@ def post_process_after_cdn_purge(url):
         print("\n".join(out))
 
 
-def _minify_html(filepath, url):
+def _minify_html(filepath: Path, url):
     for _ in range(3):
         try:
             with open(filepath) as f:
@@ -241,9 +234,9 @@ def _minify_html(filepath, url):
             time.sleep(1)
     minified_html = minify_html(html)
     if not minified_html:
-        print("Failed to minify_html({!r}, {!r}).".format(filepath, url))
+        print(f"Failed to minify_html({filepath!r}, {url!r}).")
         with open("/tmp/minifying-trouble.log", "a") as f:
-            f.write("{}\t{}\t{}\n".format(timezone.now(), filepath, url))
+            f.write(f"{timezone.now()}\t{filepath}\t{url}\n")
         if settings.DEBUG:
             raise Exception("Minifying HTML failed")
         return
@@ -266,15 +259,16 @@ def _minify_html(filepath, url):
     )
     with open(filepath, "w") as f:
         f.write(minified_html)
-    print("HTML optimized {}".format(filepath))
+    print(f"HTML optimized {filepath}")
     return minified_html
 
 
-def _zopfli_html(html, filepath, url):
+def _zopfli_html(html, filepath: Path, url):
+    assert isinstance(filepath, Path)
     for _ in range(5):
         try:
-            original_ts = os.stat(filepath).st_mtime
-            original_size = os.stat(filepath).st_size
+            original_ts = filepath.stat().st_mtime
+            original_size = filepath.stat().st_size
         except FileNotFoundError:
             # Try again in a second.
             time.sleep(1)
@@ -284,18 +278,18 @@ def _zopfli_html(html, filepath, url):
         t1 = time.time()
         if new_filepath:
             try:
-                new_size = os.stat(new_filepath).st_size
+                new_size = new_filepath.stat().st_size
             except FileNotFoundError:
                 # Race conditions probably
-                print("WARNING! {} is now gone".format(filepath))
+                print(f"WARNING! {filepath} is now gone")
                 continue
             if not new_size:
-                print("WARNING! {} became 0 bytes after zopfli".format(filepath))
+                print(f"WARNING! {filepath} became 0 bytes after zopfli")
                 os.remove(new_filepath)
                 continue
 
             if new_size > original_size:
-                print("WARNING! {} became larger after zopfli".format(filepath))
+                print(f"WARNING! {filepath} became larger after zopfli")
                 # XXX delete it?
 
             print(
@@ -306,20 +300,20 @@ def _zopfli_html(html, filepath, url):
                     t1 - t0,
                 )
             )
-            if original_ts != os.stat(filepath).st_mtime:
+            if original_ts != filepath.stat().st_mtime:
                 print(
-                    "WARNING! The file {} changed during the "
-                    "zopfli process.".format(filepath)
+                    f"WARNING! The file {filepath} changed during the zopfli process."
                 )
                 continue
             break
 
 
-def _brotli_html(html, filepath, url):
+def _brotli_html(html, filepath: Path, url):
+    assert isinstance(filepath, Path)
     for _ in range(5):
         try:
-            original_ts = os.stat(filepath).st_mtime
-            original_size = os.stat(filepath).st_size
+            original_ts = filepath.stat().st_mtime
+            original_size = filepath.stat().st_size
         except FileNotFoundError:
             # Try again in a second.
             time.sleep(1)
@@ -329,17 +323,17 @@ def _brotli_html(html, filepath, url):
         t1 = time.time()
         if new_filepath:
             try:
-                new_size = os.stat(new_filepath).st_size
+                new_size = new_filepath.stat().st_size
             except FileNotFoundError:
                 # Race conditions probably
-                print("WARNING! {} is now gone".format(filepath))
+                print(f"WARNING! {filepath} is now gone")
                 continue
             if not new_size:
-                print("WARNING! {} became 0 bytes after brotli".format(filepath))
+                print(f"WARNING! {filepath} became 0 bytes after brotli")
                 os.remove(new_filepath)
                 continue
             if new_size > original_size:
-                print("WARNING! {} became larger after brotli".format(filepath))
+                print(f"WARNING! {filepath} became larger after brotli")
                 # XXX delete it?
 
             print(
@@ -350,11 +344,8 @@ def _brotli_html(html, filepath, url):
                     t1 - t0,
                 )
             )
-            if original_ts != os.stat(filepath).st_mtime:
-                print(
-                    "WARNING! The file {} changed during the "
-                    "brotli process.".format(filepath)
-                )
+            if original_ts != filepath.stat().st_mtime:
+                print("WARNING! The file {filepath} changed during the brotli process.")
                 continue
             break
 
