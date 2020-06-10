@@ -336,9 +336,7 @@ AUTH_SIGNOUT_URL = "https://www.peterbe.com/?logged=out"
 
 
 # A path to where Nginx will look for files first
-FSCACHE_ROOT = path("peterbecom-static-content/_FSCACHE")
-assert not FSCACHE_ROOT.endswith("/")
-
+FSCACHE_ROOT = Path("peterbecom-static-content/_FSCACHE")
 
 CSSO_CLI_BINARY = path("node_modules/.bin/csso")
 

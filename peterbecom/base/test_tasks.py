@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 import pytest
 
@@ -7,6 +7,7 @@ from peterbecom.base import tasks
 
 @pytest.mark.django_db
 def test_post_process_cached_html_happy_path(tmpfscacheroot, requestsmock, settings):
+    assert isinstance(tmpfscacheroot, Path), type(tmpfscacheroot)
     requestsmock.post(
         settings.MINIMALCSS_SERVER_URL + "/minimize",
         json={
@@ -18,7 +19,7 @@ def test_post_process_cached_html_happy_path(tmpfscacheroot, requestsmock, setti
             }
         },
     )
-    fn = os.path.join(tmpfscacheroot, "index.html")
+    fn = tmpfscacheroot / "index.html"
     html = """
         <!doctype html>
         <html>
@@ -38,9 +39,9 @@ def test_post_process_cached_html_happy_path(tmpfscacheroot, requestsmock, setti
 
     tasks.post_process_cached_html(fn, "http://www.peterbe.example.com/page")
 
-    assert os.path.isfile(fn + ".original")
-    assert os.path.isfile(fn + ".br")
-    assert os.path.isfile(fn + ".gz")
+    assert Path(str(fn) + ".original").exists()
+    assert Path(str(fn) + ".br").exists()
+    assert Path(str(fn) + ".gz").exists()
     with open(fn) as f:
         optimized_html = f.read()
 

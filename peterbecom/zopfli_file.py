@@ -1,8 +1,11 @@
+from pathlib import Path
+
 from zopfli import gzip as zopfli
 
 
-def zopfli_file(filepath, i=15):
-    destination = filepath + ".gz"
+def zopfli_file(filepath: Path, i=15):
+    assert isinstance(filepath, Path), type(filepath)
+    destination = Path(str(filepath) + ".gz")
     with open(filepath) as source, open(destination, "wb") as dest:
         dest.write(zopfli.compress(source.read(), numiterations=i))
 

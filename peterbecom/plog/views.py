@@ -127,6 +127,9 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
                 return redirect(reverse("add_post"))
             raise http.Http404(oid)
 
+    if post.archived:
+        return http.HttpResponseNotFound("blog post archived")
+
     # If you try to view a blog post that is beyond 10 days in the
     # the future it should raise a 404 error.
     future = timezone.now() + datetime.timedelta(days=10)
@@ -368,7 +371,7 @@ def preview_json(request):
 @require_POST
 @transaction.atomic
 def submit_json(request, oid):
-    post = get_object_or_404(BlogItem, oid=oid)
+    post = get_object_or_404(BlogItem, oid=oid, archived__isnull=True)
     if post.disallow_comments:
         return http.HttpResponseBadRequest("No comments please")
     comment = request.POST.get("comment", "").strip()
@@ -488,7 +491,7 @@ def plog_index(request):
         approved_comments_count[count["blogitem_id"]] = count["count"]
 
     for item in (
-        BlogItem.objects.filter(pub_date__lt=now)
+        BlogItem.objects.filter(pub_date__lt=now, archived__isnull=True)
         .values("pub_date", "oid", "title", "pk")
         .order_by("-pub_date")
     ):

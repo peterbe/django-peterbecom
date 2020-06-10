@@ -1,3 +1,4 @@
+from pathlib import Path
 import tempfile
 
 import mock
@@ -15,8 +16,8 @@ def clear_cache():
 @pytest.fixture
 def tmpfscacheroot(settings):
     with tempfile.TemporaryDirectory() as tmpdir:
-        settings.FSCACHE_ROOT = tmpdir
-        yield tmpdir
+        settings.FSCACHE_ROOT = Path(tmpdir)
+        yield settings.FSCACHE_ROOT
 
 
 @pytest.fixture
