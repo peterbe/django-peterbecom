@@ -154,7 +154,9 @@ def invalidate_too_old(verbose=False, dry_run=False, revisit=False):
                 continue
 
             if "index.html" in file.name and file.exists() and not file.stat().st_size:
-                raise EmptyFSCacheFile(file)
+                # raise EmptyFSCacheFile(file)
+                print(f"Warning! {file} is empty!")
+                continue
 
             if Path(str(file) + ".metadata").exists():
                 found.append(file.stat().st_size)
@@ -185,7 +187,7 @@ def invalidate_too_old(verbose=False, dry_run=False, revisit=False):
             if verbose:
                 print("NO FILES IN", root)
             if not dry_run:
-                root.unlink()
+                root.rmdir()
 
     visit(settings.FSCACHE_ROOT)
 
