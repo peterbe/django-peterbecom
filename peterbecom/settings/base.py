@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import os
 
 from decouple import config
@@ -214,24 +212,8 @@ LOGGING = {
         "require_debug_false": {"()": "django.utils.log.RequireDebugFalse"},
         "require_debug_true": {"()": "django.utils.log.RequireDebugTrue"},
     },
-    "handlers": {
-        # "mail_admins": {
-        #     "level": "ERROR",
-        #     "filters": ["require_debug_false"],
-        #     "class": "django.utils.log.AdminEmailHandler",
-        # },
-        "console": {
-            "level": "INFO",
-            "filters": ["require_debug_true"],
-            "class": "logging.StreamHandler",
-        }
-    },
+    "handlers": {"console": {"level": "INFO", "class": "logging.StreamHandler"}},
     "loggers": {
-        # "django.request": {
-        #     "handlers": ["mail_admins"],
-        #     "level": "ERROR",
-        #     "propagate": True,
-        # },
         "django.security.csrf": {
             "handlers": ["console"],
             "level": "INFO",

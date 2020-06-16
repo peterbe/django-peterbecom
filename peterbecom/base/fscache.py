@@ -124,14 +124,13 @@ def delete_empty_directory(filepath):
         os.rmdir(dirpath)
 
 
-def revisit_url(path, verbose=False):
-    path = path.replace("/index.html", "")
-    path = path.replace(settings.FSCACHE_ROOT, "")
+def revisit_url(path: Path, verbose=False):
+    pathname = str(path.relative_to(settings.FSCACHE_ROOT))
     site = Site.objects.get_current()
     secure = getattr(settings, "FSCACHE_SECURE_SITE", True)
     base_url = secure and "https://" or "http://"
     base_url += site.domain
-    url = urljoin(base_url, path)
+    url = urljoin(base_url, pathname)
     response = requests.get(url)
     if verbose:
         print("REVISITED", url, response.status_code)
@@ -332,7 +331,7 @@ def purge_outdated_cdn_urls(verbose=False, dry_run=False, revisit=False, max_fil
             CDNPurgeURL.add(urlparse(cdn_url).path)
 
 
-def find_missing_compressions(verbose=False, revisit=False, max_files=500):
+def find_missing_compressions(verbose=False, revisit=False):
     deleted = []
     revisits = []
 
@@ -379,6 +378,53 @@ def find_missing_compressions(verbose=False, revisit=False, max_files=500):
     visit(settings.FSCACHE_ROOT)
 
     if verbose:
+        print(f"Deleted {len(deleted):,} files and revisited {len(revisits):,} paths")
+
+
+def clean_disfunctional_folders(verbose=False, revisit=False):
+    deleted = []
+    revisits = []
+
+    def visit(root):
+        index_html_file = None
+        metadata_files = []
+        for file in root.iterdir():
+            if file.is_dir():
+                visit(file)
+                continue
+
+            if file.name in (
+                "index.html.metadata",
+                "index.html.original",
+                "index.html.cache_control",
+            ):
+                metadata_files.append(file)
+                continue
+
+            if file.name == "index.html":
+                index_html_file = file
+                continue
+
+        # If this happens you have a folder that contains files like
+        #  * index.html.metadata
+        #  * index.html.cache_control
+        #  * index.html.original
+        # But no file like:
+        #  * index.html
+        # That's not good!
+        if not index_html_file and metadata_files:
+
+            # Delete all the metadata files and possibly trigger a revisit
+            deleted.extend(metadata_files)
+            [x.unlink() for x in metadata_files]
+            if revisit:
+                revisit_url(root, verbose=verbose)
+                revisits.append(root)
+
+    visit(settings.FSCACHE_ROOT)
+
+    if verbose:
         print(
-            f"Deleted {len(deleted):,} files and " f"revisited {len(revisits):,} paths"
+            f"Deleted {len(deleted):,} disfunctional files "
+            f"and revisited {len(revisits):,} paths"
         )

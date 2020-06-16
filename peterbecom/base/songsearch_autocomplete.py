@@ -3,6 +3,7 @@ import os
 import re
 import time
 from glob import glob
+from pathlib import Path
 
 from django.conf import settings
 
@@ -71,16 +72,14 @@ def _are_dir_trees_equal(dir1, dir2):
     return True
 
 
-def patient_isfile_check(fp, sleep=5, max_attempts=5, impatient=False):
+def patient_isfile_check(fp: Path, sleep=5, max_attempts=5, impatient=False):
     attempts = 0
     while True:
-        if not os.path.isfile(fp):
+        if not fp.exists():
             if attempts > max_attempts:
-                raise SongsearchAutocompleteError(
-                    "The file {} does not exist".format(fp)
-                )
+                raise SongsearchAutocompleteError(f"The file {fp} does not exist")
             attempts += 1
-            print("{} did not exist. Sleeping and trying again later...".format(fp))
+            print(f"{fp} did not exist. Sleeping and trying again later...")
             time.sleep(sleep)
             continue
         break
@@ -88,7 +87,6 @@ def patient_isfile_check(fp, sleep=5, max_attempts=5, impatient=False):
 
 def insert(dry_run=False, impatient=False, page=1, legacy=False):
     """Primary function."""
-
     # There are two folders that we can draw from, the old React based (legacy)
     # or the new Preact one.
 
@@ -130,13 +128,15 @@ def insert(dry_run=False, impatient=False, page=1, legacy=False):
     _post_process_template(template, impatient, js_block, css_block, dry_run=dry_run)
 
 
-def _post_process_template(template, impatient, js_block, css_block, dry_run=False):
+def _post_process_template(
+    template: Path, impatient, js_block, css_block, dry_run=False
+):
     if not template.is_file():
-        print("WARNING! {} does not exist".format(template))
+        print(f"WARNING! {template} does not exist")
         return
     assert template.is_file(), template
-    # more convenient this way. Also, mostly due to Python 3.5 and legacy
-    template = str(template)
+    # # more convenient this way. Also, mostly due to Python 3.5 and legacy
+    # template = str(template)
     if not impatient:
         patient_isfile_check(template)
 
@@ -152,7 +152,7 @@ def _post_process_template(template, impatient, js_block, css_block, dry_run=Fal
             print("WARNING! The HTML file hasn't been CSS minified yet.")
             return
     except ValueError:
-        raise CSSMinifiedCheckError("Template with problem: {}".format(template))
+        raise CSSMinifiedCheckError(f"Template with problem: {template}")
 
     # Inject the JS code
     js_header = "<!-- songsearch-autocomplete -->"
@@ -167,7 +167,7 @@ def _post_process_template(template, impatient, js_block, css_block, dry_run=Fal
                 "Only footer is in the HTML but not the header"
             )
         content = content.replace(
-            "</head>", "{}\n{}\n{}\n</head>".format(js_header, js_block, js_footer)
+            "</head>", f"{js_header}\n{js_block}\n{js_footer}\n</head>"
         )
 
     # Inject the CSS code
@@ -183,7 +183,7 @@ def _post_process_template(template, impatient, js_block, css_block, dry_run=Fal
                 "Only footer is in the HTML but not the header"
             )
         content = content.replace(
-            "</head>", "{}\n{}\n{}\n</head>".format(css_header, css_block, css_footer)
+            "</head>", f"{css_header}\n{css_block}\n{css_footer}\n</head>"
         )
 
     # When it's done it should only be exactly 1 of these bits of strings
@@ -197,95 +197,71 @@ def _post_process_template(template, impatient, js_block, css_block, dry_run=Fal
             )
         )
 
+    gz_template = Path(str(template) + ".gz")
+    br_template = Path(str(template) + ".br")
+
     if original_content != content:
         if dry_run:
             print("DRY RUN! ...BUT WILL WRITE NEW CONTENT TO FILE")
         else:
             with open(template, "w") as f:
                 f.write(content)
-            if os.path.isfile(template + ".gz"):
-                os.remove(template + ".gz")
+
+            if gz_template.exists():
+                gz_template.unlink()
             _zopfli(template)
-            if os.path.isfile(template + ".br"):
-                os.remove(template + ".gz")
+
+            if br_template.exists():
+                br_template.unlink()
             _brotli(template)
-        print("Updated {} with new content.".format(template))
+        print(f"Updated {template} with new content.")
     else:
         print("Nothing changed in the content. No write.")
-        if not os.path.isfile(template + ".gz"):
+        if not gz_template.exists():
             print("Going to zopfli a new index.html")
             _zopfli(template)
-        if not os.path.isfile(template + ".br"):
+        if not br_template.exists():
             print("Going to brotli a new index.html")
             _brotli(template)
 
-    # XXX Commented out because now the index.html's mtime gets automatically
-    # updated sometimes.
-    # # The zopfli file should always be younger than the not-zopflied file.
-    # age_html = os.stat(template).st_mtime
-    # if os.path.isfile(template + ".gz"):
-    #     age_gz = os.stat(template + ".gz").st_mtime
-    #     if age_html > age_gz:
-    #         os.remove(template + ".gz")
-    #         raise SongsearchAutocompleteError(
-    #             "The index.html.gz file was older than the index.html file"
-    #         )
-    # if os.path.isfile(template + ".br"):
-    #     age_br = os.stat(template + ".br").st_mtime
-    #     if age_html > age_br:
-    #         os.remove(template + ".br")
-    #         raise SongsearchAutocompleteError(
-    #             "The index.html.br file was older than the index.html file"
-    #         )
 
-
-def _zopfli(filepath):
+def _zopfli(filepath: Path):
     while True:
-        original_ts = os.stat(filepath).st_mtime
-        original_size = os.stat(filepath).st_size
+        original_ts = filepath.stat().st_mtime
+        original_size = filepath.stat().st_size
         t0 = time.time()
         # XXX What happens if you run two threads
         # 1. thread1 starts `zopfli_file(path)`
         # 2. thread2 deletes `path` whilst thread1 is running
-        new_filepath = zopfli_file(filepath)
+        new_filepath: Path = zopfli_file(filepath)
         t1 = time.time()
         if new_filepath:
             print(
-                "Generated {} ({} bytes, originally {} bytes) Took {:.2f}s".format(
-                    new_filepath,
-                    format(os.stat(new_filepath).st_size, ","),
-                    format(original_size, ","),
-                    t1 - t0,
-                )
+                f"Generated {new_filepath} ({new_filepath.stat().st_size:,} bytes, "
+                f"originally {original_size:,} bytes) Took {t1 - t0:.2f}s"
             )
-            if original_ts != os.stat(filepath).st_mtime:
+            if original_ts != filepath.stat().st_mtime:
                 print(
-                    "WARNING! The file {} changed during the "
-                    "zopfli process.".format(filepath)
+                    f"WARNING! The file {filepath} changed during the zopfli process."
                 )
                 continue
             break
 
 
-def _brotli(filepath):
+def _brotli(filepath: Path):
     while True:
-        original_ts = os.stat(filepath).st_mtime
+        original_ts = filepath.stat().st_mtime
         t0 = time.time()
-        new_filepath = brotli_file(filepath)
+        new_filepath: Path = brotli_file(filepath)
         t1 = time.time()
         if new_filepath:
             print(
-                "Generated {} ({} bytes, originally {} bytes) Took {:.2f}s".format(
-                    new_filepath,
-                    format(os.stat(new_filepath).st_size, ","),
-                    format(os.stat(filepath).st_size, ","),
-                    t1 - t0,
-                )
+                f"Generated {new_filepath} ({new_filepath.stat().st_size:,} bytes, "
+                f"originally {filepath.stat().st_size:,} bytes) Took {t1 - t0:.2f}s"
             )
-            if original_ts != os.stat(filepath).st_mtime:
+            if original_ts != filepath.stat().st_mtime:
                 print(
-                    "WARNING! The file {} changed during the "
-                    "brotli process.".format(filepath)
+                    f"WARNING! The file {filepath} changed during the brotli process."
                 )
                 continue
             break

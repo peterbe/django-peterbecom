@@ -6,6 +6,7 @@ from peterbecom.base.fscache import (
     find_missing_compressions,
     invalidate_too_old,
     purge_outdated_cdn_urls,
+    clean_disfunctional_folders,
 )
 from peterbecom.base.cdn import keycdn_zone_check
 
@@ -46,9 +47,11 @@ class Command(BaseCommand):
         )
 
         find_missing_compressions(
-            verbose=options["verbosity"] > 1,
-            max_files=int(options["max_files"]),
-            revisit=options["revisit"],
+            verbose=options["verbosity"] > 1, revisit=options["revisit"],
+        )
+
+        clean_disfunctional_folders(
+            verbose=options["verbosity"] > 1, revisit=options["revisit"],
         )
 
         if not options["skip_cdn_purge"]:
