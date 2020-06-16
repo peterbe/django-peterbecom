@@ -78,7 +78,7 @@ def get_card(url):
     if html is None:
         print("Sucking", url)
         html = puppeteer.suck(url)
-        assert html.strip().endswith("</html>"), html[-100:]
+        assert html.strip().endswith("</html>"), (url, html[-100:])
         print("SUCKED", url)
         if html:
             cache.set(puppeteer_cache_key, html, 60)
