@@ -10,6 +10,6 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "minimalcss-server": "0.6.0"
+    "minimalcss-server": "0.7.0"
   }
 }
