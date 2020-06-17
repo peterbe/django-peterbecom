@@ -55,7 +55,11 @@ def _post_x_cache(session, token, url, location):
     print(url, "FORM", location, "TOOK", t1 - t0)
     r.raise_for_status()
     results = r.json()
-    if not results["headers"]:
+    try:
+        if not results["headers"]:
+            raise EmptyHeaders(results)
+    except KeyError:
+        print(results)
         raise EmptyHeaders(results)
     doc = PyQuery(results["result"])
     data = {}
