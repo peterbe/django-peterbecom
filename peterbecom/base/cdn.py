@@ -1,5 +1,6 @@
 import inspect
 from urllib.parse import urlparse
+from itertools import islice
 
 import keycdn
 import requests
@@ -122,13 +123,12 @@ def purge_cdn_urls(urls, api=None):
             original.add(original_url)
         return original
 
-    # Break it up into lists of 100
-    def chunks(len, n):
-        # For item i in a range that is a length of l,
-        for i in range(0, len(len), n):
-            # Create an index range for l of n items:
-            yield len[i : i + n]
+    def chunks(it, size):
+        iterator = iter(it)
+        while chunk := list(islice(iterator, size)):
+            yield chunk
 
+    # Break it up into lists of 100
     for all_urls in chunks(all_all_urls, 100):
         call = "zones/purgeurl/{}.json".format(settings.KEYCDN_ZONE_ID)
         params = {"urls": all_urls}
