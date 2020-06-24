@@ -1735,18 +1735,13 @@
   resolved "https://registry.yarnpkg.com/@fullcalendar/core/-/core-4.4.2.tgz#864abe98cce4497a163c01a8fc30389f15d3d4e1"
   integrity sha512-vq7KQGuAJ1ieFG5tUqwxwUwmXYtblFOTjHaLAVHo6iEPB52mS7DS45VJfkhaQmX4+5/+BHRpg82G1qkuAINwtg==
 
-"@fullcalendar/daygrid@5.0.1":
+"@fullcalendar/daygrid@5.0.1", "@fullcalendar/daygrid@~5.0.0":
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/@fullcalendar/daygrid/-/daygrid-5.0.1.tgz#dfa39737f9d9f7b9c247020a17e099e4a9c17a26"
   integrity sha512-9KhEkwgTZqRDQb1S5S/MELKqovm0c7QU2r9655W47mizoutf+ssWaS3lvsqlKjypYZuWsGDuFKv5GcmUbhVg7g==
   dependencies:
     "@fullcalendar/common" "~5.0.0"
     tslib "^2.0.0"
-
-"@fullcalendar/daygrid@~4.4.0":
-  version "4.4.2"
-  resolved "https://registry.yarnpkg.com/@fullcalendar/daygrid/-/daygrid-4.4.2.tgz#568bfb3c7cc97f83b57cf3aef0fa3ed1bf6eda16"
-  integrity sha512-axjfMhxEXHShV3r2TZjf+2niJ1C6LdAxkHKmg7mVq4jXtUQHOldU5XsjV0v2lUAt1urJBFi2zajfK8798ukL3Q==
 
 "@fullcalendar/react@4.4.2":
   version "4.4.2"
@@ -1756,12 +1751,14 @@
     "@fullcalendar/core" "~4.4.0"
     fast-deep-equal "^2.0.1"
 
-"@fullcalendar/timegrid@4.4.2":
-  version "4.4.2"
-  resolved "https://registry.yarnpkg.com/@fullcalendar/timegrid/-/timegrid-4.4.2.tgz#9d5b26204cd2b0928e7498c54f758a6d07b15191"
-  integrity sha512-M5an7qii8OUmI4ogY47k5pn2j/qUbLp6sa6Vo0gO182HR5pb9YtrEZnoQhnScok+I0BkDkLFzMQoiAMTjBm2PQ==
+"@fullcalendar/timegrid@5.0.1":
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/@fullcalendar/timegrid/-/timegrid-5.0.1.tgz#0299b4549e779eafc7811a2608843c06fb4b562c"
+  integrity sha512-WhGlSSlPsJ2FHxk2FjLgDDcTKA5Rv1okcKAYOKt5S5qoQ78sq0AxFRoRlb25EWNomCIznILODh4AZRaeXR4LCg==
   dependencies:
-    "@fullcalendar/daygrid" "~4.4.0"
+    "@fullcalendar/common" "~5.0.0"
+    "@fullcalendar/daygrid" "~5.0.0"
+    tslib "^2.0.0"
 
 "@hapi/address@2.x.x":
   version "2.0.0"
