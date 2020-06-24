@@ -160,7 +160,7 @@ class CommentCountsIntervalForm(forms.Form):
 
     def __init__(self, data, **kwargs):
         initial = kwargs.get("initial", {})
-        data = MultiValueDict({**initial, **data})
+        data = MultiValueDict({**{k: [v] for k, v in initial.items()}, **data})
         super().__init__(data, **kwargs)
 
     def clean_days(self):
