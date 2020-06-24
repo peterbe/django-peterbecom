@@ -22,6 +22,9 @@ export default function CommentCounts({ accessToken }) {
         throw new Error(`${response.status} on ${url}`);
       }
       return await response.json();
+    },
+    {
+      revalidateOnFocus: process.env.NODE_ENV === 'development',
     }
   );
 

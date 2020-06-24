@@ -21,17 +21,7 @@ import { addHours } from 'date-fns/esm';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { toast } from 'react-semantic-toasts';
 
-import 'codemirror/lib/codemirror.css'; // codemirror
-import 'tui-editor/dist/tui-editor.css'; // editor ui
-import 'tui-editor/dist/tui-editor-contents.css'; // editor content
-import 'highlight.js/styles/github.css'; // code block highlight
-
-import './Editor-overrides.css';
-
-import Editor from 'tui-editor';
-
-import 'tui-editor/dist/tui-editor-extTable.js';
-import 'tui-editor/dist/tui-editor-extScrollSync.js';
+import './EditBlogitem.css';
 
 import { ShowServerError, BlogitemBreadcrumb } from './Common';
 import { BASE_URL } from './Config';
@@ -386,7 +376,6 @@ class EditForm extends React.PureComponent {
     showUnimportantFields: false,
     saving: false,
     categories: null,
-    useTuiEditor: window.sessionStorage.getItem('useTuiEditor') ? true : false,
     summaryTouched: false,
   };
 
@@ -547,17 +536,6 @@ class EditForm extends React.PureComponent {
         </Form.Field>
         <Form.Field>
           {!hideLabels ? <label>Text</label> : null}
-          {this.state.useTuiEditor ? (
-            <TuiEditor
-              onBlur={() => {
-                this.onTextBlur();
-              }}
-              onChange={(text) => {
-                this.setState({ text });
-              }}
-              initial={this.state.text || ''}
-            />
-          ) : null}
           <TextArea
             name="text"
             className="monospaced"
@@ -570,24 +548,8 @@ class EditForm extends React.PureComponent {
             onChange={this.handleChange}
             style={{
               overscrollBehaviorY: 'contain',
-              display: this.state.useTuiEditor ? 'none' : null,
             }}
           />
-          <Button
-            size="mini"
-            onClick={(event) => {
-              event.preventDefault();
-              this.setState({ useTuiEditor: !this.state.useTuiEditor }, () => {
-                if (this.state.useTuiEditor) {
-                  window.sessionStorage.setItem('useTuiEditor', 'true');
-                } else {
-                  window.sessionStorage.removeItem('useTuiEditor');
-                }
-              });
-            }}
-          >
-            Toggle Editor
-          </Button>
         </Form.Field>
         <Form.Field>
           {!hideLabels ? <label>Summary</label> : null}
@@ -729,31 +691,6 @@ class EditForm extends React.PureComponent {
         </Button>
       </Form>
     );
-  }
-}
-
-class TuiEditor extends React.PureComponent {
-  componentDidMount() {
-    this.editor = new Editor({
-      el: document.querySelector('#editText'),
-      initialEditType: 'markdown',
-      previewStyle: 'vertical',
-      height: '800px',
-      usageStatistics: false,
-      initialValue: this.props.initial,
-      exts: ['scrollSync', 'table'],
-      events: {
-        change: () => {
-          this.props.onChange(this.editor.getMarkdown());
-        },
-        blur: () => {
-          this.props.onBlur();
-        },
-      },
-    });
-  }
-  render() {
-    return <div id="editText" />;
   }
 }
 
