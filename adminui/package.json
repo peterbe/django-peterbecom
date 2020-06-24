@@ -12,6 +12,7 @@
     "react-dom": "16.13.1",
     "react-google-maps": "9.4.5",
     "react-icons": "3.10.0",
+    "react-roughviz": "0.1.9",
     "react-router-dom": "5.2.0",
     "react-scripts": "3.4.1",
     "react-semantic-toasts": "0.6.5",

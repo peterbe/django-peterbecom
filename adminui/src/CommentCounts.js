@@ -1,7 +1,7 @@
 import React from 'react';
 import { Select, Container, Header, Table } from 'semantic-ui-react';
 import useSWR from 'swr';
-
+import { Bar } from 'react-roughviz';
 import { ShowServerError, useLocalStorage } from './Common';
 
 export default function CommentCounts({ accessToken }) {
@@ -56,25 +56,38 @@ const intervalDaysOptions = [
 ];
 
 function ShowDays({ dates }) {
+  const data = {
+    labels: dates.map((date) => date.date),
+    values: dates.map((date) => date.count),
+  };
   return (
-    <Table celled>
-      <Table.Header>
-        <Table.Row>
-          <Table.HeaderCell>Date</Table.HeaderCell>
-          <Table.HeaderCell>Count</Table.HeaderCell>
-        </Table.Row>
-      </Table.Header>
+    <div>
+      <Bar
+        data={data}
+        labels="flavor"
+        values="price"
+        width={1100}
+        height={300}
+      />
+      <Table celled>
+        <Table.Header>
+          <Table.Row>
+            <Table.HeaderCell>Date</Table.HeaderCell>
+            <Table.HeaderCell>Count</Table.HeaderCell>
+          </Table.Row>
+        </Table.Header>
 
-      <Table.Body>
-        {dates.map((day) => {
-          return (
-            <Table.Row key={day.date}>
-              <Table.Cell>{day.date}</Table.Cell>
-              <Table.Cell>{day.count}</Table.Cell>
-            </Table.Row>
-          );
-        })}
-      </Table.Body>
-    </Table>
+        <Table.Body>
+          {dates.map((day) => {
+            return (
+              <Table.Row key={day.date}>
+                <Table.Cell>{day.date}</Table.Cell>
+                <Table.Cell>{day.count}</Table.Cell>
+              </Table.Row>
+            );
+          })}
+        </Table.Body>
+      </Table>
+    </div>
   );
 }
