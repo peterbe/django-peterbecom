@@ -1,87 +1,77 @@
 import React from 'react';
-import { Container, Header } from 'semantic-ui-react';
-import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import timeGridPlugin from '@fullcalendar/timegrid';
+import { Select, Container, Header, Table } from 'semantic-ui-react';
+import useSWR from 'swr';
 
-import '@fullcalendar/core/main.min.css';
-import '@fullcalendar/daygrid/main.min.css';
-import '@fullcalendar/timegrid/main.min.css';
+import { ShowServerError, useLocalStorage } from './Common';
 
-import { ShowServerError } from './Common';
+export default function CommentCounts({ accessToken }) {
+  const [intervalDays, setIntervalDays] = useLocalStorage(
+    'comment-counts-interval-days',
+    28
+  );
 
-class CommentCounts extends React.Component {
-  state = {
-    loading: false,
-    comments: null,
-    serverError: null
-  };
-  componentDidMount() {
-    document.title = 'Comment Counts';
-  }
-
-  componentWillUnmount() {
-    this.dismounted = true;
-  }
-
-  getEvents = (fetchInfo, successCallback, failureCallback) => {
-    if (!this.props.accessToken) {
-      throw new Error('No accessToken');
-    }
-    this.setState({ loading: true }, async () => {
-      let url = '/api/v0/plog/comments/counts/';
-      const searchParams = new URLSearchParams();
-      Object.entries(fetchInfo).forEach(([key, value]) => {
-        if (Array.isArray(value) && value.length) {
-          value.forEach(v => searchParams.append(key, v));
-        } else if (value && value.toISOString) {
-          searchParams.set(key, value.toISOString());
-        } else if (value) {
-          searchParams.set(key, value);
-        }
+  const { data, error } = useSWR(
+    `/api/v0/plog/comments/counts/?days=${intervalDays}`,
+    async (url) => {
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
       });
-      url += `?${searchParams.toString()}`;
-      let response;
-      try {
-        response = await fetch(url, {
-          headers: {
-            Authorization: `Bearer ${this.props.accessToken}`
-          }
-        });
-        if (response.ok) {
-          const result = await response.json();
-          successCallback(result.events);
-        } else {
-          const err = new Error(response.statusText);
-          failureCallback(err);
-        }
-      } catch (ex) {
-        failureCallback(ex);
+      if (!response.ok) {
+        throw new Error(`${response.status} on ${url}`);
       }
-      this.setState({ loading: false });
-    });
-  };
+      return await response.json();
+    }
+  );
 
-  render() {
-    const { serverError, loading } = this.state;
-    return (
-      <Container textAlign="center">
-        <Header as="h1">Comment Counts</Header>
-        <ShowServerError error={serverError} />
-        <FullCalendar
-          defaultView="dayGridMonth"
-          plugins={[dayGridPlugin, timeGridPlugin]}
-          events={this.getEvents}
-          header={{
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+  return (
+    <Container textAlign="center">
+      <Header as="h1">Comment Counts</Header>
+      <ShowServerError error={error} />
+      {!data && !error && <p>Loading...</p>}
+      {data && !error && <ShowDays dates={data.dates} />}
+      {data && (
+        <Select
+          placeholder="Interval"
+          value={intervalDays}
+          options={intervalDaysOptions}
+          onChange={(event, data) => {
+            setIntervalDays(data.value);
           }}
         />
-        <small>{loading ? 'loading...' : ''}</small>
-      </Container>
-    );
-  }
+      )}
+    </Container>
+  );
 }
 
-export default CommentCounts;
+const intervalDaysOptions = [
+  { key: 7, value: 7, text: '1 week (7 days)' },
+  { key: 28, value: 28, text: '1 month (28 days)' },
+  { key: 90, value: 90, text: '3 month (90 days)' },
+  { key: 365, value: 365, text: '1 year (365 days)' },
+];
+
+function ShowDays({ dates }) {
+  return (
+    <Table celled>
+      <Table.Header>
+        <Table.Row>
+          <Table.HeaderCell>Date</Table.HeaderCell>
+          <Table.HeaderCell>Count</Table.HeaderCell>
+        </Table.Row>
+      </Table.Header>
+
+      <Table.Body>
+        {dates.map((day) => {
+          return (
+            <Table.Row key={day.date}>
+              <Table.Cell>{day.date}</Table.Cell>
+              <Table.Cell>{day.count}</Table.Cell>
+            </Table.Row>
+          );
+        })}
+      </Table.Body>
+    </Table>
+  );
+}

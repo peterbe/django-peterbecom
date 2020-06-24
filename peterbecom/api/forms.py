@@ -6,14 +6,15 @@ from django.db.models import Count
 from django.forms.fields import ChoiceField, DateTimeField
 from django.forms.widgets import Textarea
 from django.utils import timezone
+from django.utils.datastructures import MultiValueDict
 from django.utils.dateparse import parse_datetime
 
 from peterbecom.awspa.models import AWSProduct
 from peterbecom.plog.models import (
+    BlogComment,
     BlogFile,
     BlogItem,
     Category,
-    BlogComment,
     SpamCommentPattern,
 )
 
@@ -152,6 +153,29 @@ class SpamCommentPatternForm(forms.ModelForm):
 class CommentCountsForm(forms.Form):
     start = ISODateTimeField()
     end = ISODateTimeField()
+
+
+class CommentCountsIntervalForm(forms.Form):
+    days = forms.CharField(required=False)
+
+    def __init__(self, data, **kwargs):
+        initial = kwargs.get("initial", {})
+        data = MultiValueDict({**initial, **data})
+        super().__init__(data, **kwargs)
+
+    def clean_days(self):
+        value = int(self.cleaned_data["days"])
+        if value < 1 or value > 365:
+            raise forms.ValidationError("Not in [1, 365]")
+        return value
+
+    def clean(self):
+        cleaned_data = super().clean()
+        cleaned_data["end"] = timezone.now()
+        cleaned_data["start"] = cleaned_data["end"] - datetime.timedelta(
+            days=cleaned_data["days"]
+        )
+        return cleaned_data
 
 
 class AWSPAFilterForm(forms.ModelForm):
