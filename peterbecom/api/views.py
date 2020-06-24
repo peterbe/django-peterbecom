@@ -62,7 +62,7 @@ from .forms import (
     BlogCommentBatchForm,
     BlogFileUpload,
     BlogitemRealtimeHitsForm,
-    CommentCountsForm,
+    CommentCountsIntervalForm,
     EditBlogCommentForm,
     EditBlogForm,
     PreviewBlogForm,
@@ -1394,8 +1394,8 @@ def geocomments(request):
 
 @api_superuser_required
 def comment_counts(request):
-    form = CommentCountsForm(data=request.GET)
-    events = []
+    form = CommentCountsIntervalForm(data=request.GET, initial={"days": 28})
+
     if not form.is_valid():
         return _response(form.errors.get_json_data(), status=400)
     start = form.cleaned_data["start"]
@@ -1410,36 +1410,11 @@ def comment_counts(request):
         .values("day", "count")
         .order_by("day")
     )
-    previous = None
-
+    dates = []
     for aggregate in aggregates:
-        if previous is None:
-            previous = aggregate["count"]
-            continue
-        increase = aggregate["count"] - previous
-        previous = aggregate["count"]
-        increase_sign = ""
-        if increase > 0:
-            increase_sign = "+"
-        elif increase == 0:
-            increase_sign = "±"
-        title = "{} comment{} ({}{})".format(
-            aggregate["count"],
-            "" if aggregate["count"] == 1 else "s",
-            increase_sign,
-            increase,
-        )
-        events.append(
-            {
-                "start": aggregate["day"],
-                "end": aggregate["day"] + datetime.timedelta(days=1),
-                "allDay": True,
-                "title": title,
-                "id": aggregate["day"].isoformat(),
-            }
-        )
+        dates.append({"date": aggregate["day"].date(), "count": aggregate["count"]})
 
-    return _response({"events": events})
+    return _response({"dates": dates})
 
 
 @api_superuser_required
