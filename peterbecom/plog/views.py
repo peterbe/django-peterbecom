@@ -3,7 +3,6 @@ import logging
 import random
 import re
 from collections import defaultdict
-from ipaddress import IPv4Address
 from urllib.parse import urlparse
 
 from django import http
@@ -23,7 +22,7 @@ from huey.contrib.djhuey import task
 from peterbecom.awspa.models import AWSProduct
 from peterbecom.awspa.search import RateLimitedError
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
-from peterbecom.base.utils import get_base_url
+from peterbecom.base.utils import get_base_url, fake_ip_address
 
 from . import utils
 from .forms import CalendarDataForm
@@ -37,12 +36,6 @@ from .tasks import send_new_comment_email
 from .utils import get_blogcomment_slice, json_view, render_comment_text
 
 logger = logging.getLogger("plog.views")
-
-
-def fake_ip_address(seed):
-    random.seed(seed)
-    # https://codereview.stackexchange.com/a/200348
-    return str(IPv4Address(random.getrandbits(32)))
 
 
 class AWSPAError(Exception):
