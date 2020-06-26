@@ -76,31 +76,50 @@ class XCacheAnalyze extends React.PureComponent {
 export default XCacheAnalyze;
 
 function XCacheResults({ results }) {
-  const names = {
-    defr: 'Frankfurt',
-    uklo: 'London',
-    usmi: 'Miami',
-    usse: 'Seattle',
-    ussf: 'San Francisco',
-    frpa: 'Paris',
-    nlam: 'Amsterdam',
-    ausy: 'Sydney',
-    usda: 'Dallas',
-    usny: 'New York',
-    cato: 'Toronto',
-    jptk: 'Tokyo',
-    inba: 'Bangalore',
-    sgsg: 'Singapore',
-  };
+  function locationToName(loc) {
+    const parsed = new URL(loc);
+    const region = parsed.host.split('.');
+
+    const map = {
+      'us-east-2': ['Ohio (US)', 'us'],
+      'us-east-1': ['N. Virginia (US)', 'us'],
+      'us-west-1': ['N. California (US)', 'us'],
+      'us-west-2': ['Oregon (US)', 'us'],
+      'af-south-1': ['Cape Town (Africa)', 'za'],
+      'ap-east-1': ['Hong Kong (Asia)', 'hk'],
+      'ap-south-1': ['Mumbai (Asia)', 'in'],
+      'ap-northeast-3': ['Osaka (Asia)', 'jp'],
+      'ap-northeast-2': ['Seoul (Asia)', 'kr'],
+      'ap-southeast-1': ['Singapore (Asia)', 'sg'],
+      'ap-southeast-2': ['Sydney (Australia)', 'au'],
+      'ap-northeast-1': ['Tokyo (Asia)', 'jp'],
+      'ca-central-1': ['Canada', 'ca'],
+      'cn-north-1': ['Beijing (Asia)', 'cn'],
+      'cn-northwest-1': ['Ningxia (Asia)', 'cn'],
+      'eu-central-1': ['Frankfurt (Europe)', 'de'],
+      'eu-west-1': ['Ireland (Europe)', 'ie'],
+      'eu-west-2': ['London (Europe)', 'gb'],
+      'eu-south-1': ['Milan (Europe)', 'it'],
+      'eu-west-3': ['Paris (Europe)', 'fr'],
+      'eu-north-1': ['Stockholm (Europe)', 'se'],
+      'me-south-1': ['Bahrain (Middle East)', 'bh'],
+      'sa-east-1': ['São Paulo (South America)', 'br'],
+    };
+    return map[region[2]];
+  }
+
   return (
     <Table basic="very" celled collapsing>
       <Table.Body>
         {Object.entries(results).map(([location, data]) => {
+          const locationName = locationToName(location);
           return (
             <Table.Row key={location}>
               <Table.Cell>
-                <Flag name={location.slice(0, 2)} title={location} />
-                <b>{names[location] ? names[location] : location}</b>
+                {locationName && (
+                  <Flag name={locationName[1]} title={locationName[0]} />
+                )}
+                <b>{locationName ? locationName[0] : 'Unknown'}</b>
               </Table.Cell>
               <Table.Cell>
                 {data.error && (

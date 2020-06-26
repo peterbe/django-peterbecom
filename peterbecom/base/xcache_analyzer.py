@@ -1,94 +1,50 @@
-import re
-import time
 import concurrent.futures
+from urllib.parse import urlencode
 
 import requests
 from requests.exceptions import ReadTimeout
-from pyquery import PyQuery
 
-
-URL = "https://tools.keycdn.com/queries/perf-query.php"
-GET_URL = "https://tools.keycdn.com/performance"
+from django.conf import settings
 
 
 def get_x_cache(url):
+    endpoints = settings.HTTP_RELAY_ENDPOINTS
+    assert endpoints
     session = requests.Session()
-    r = session.get(GET_URL, timeout=3)
-    r.raise_for_status()
-    token = re.findall(r"token=([a-f0-9]+)", r.text)[0]
-    assert token, "no token found"
-
-    locations = re.findall(r'var location = "(\w+)";', r.text)
-    assert locations, "no locations found"
 
     results = {}
     futures = {}
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        for location in locations:
+        for endpoint in endpoints:
             futures[
-                executor.submit(_post_x_cache, session, token, url, location)
-            ] = location
+                executor.submit(check_endpoint, session, endpoint, url, 5)
+            ] = endpoint
         for future in concurrent.futures.as_completed(futures):
-            location = futures[future]
+            endpoint = futures[future]
             try:
-                results[location] = future.result()
+                result = future.result()
+            except ReadTimeout as exception:
+                results[endpoint] = {"took": None, "error": str(exception)}
+                continue
 
-            except (ReadTimeout, EmptyHeaders) as exception:
-                results[location] = {"took": None, "error": str(exception)}
+            results[endpoint] = {
+                "took": result["meta"]["took"],
+                "error": None,
+                "status": result["response"]["status_code"],
+                "x-cache": iget(result["response"]["headers"], "x-cache"),
+            }
 
     return results
 
 
-class EmptyHeaders(Exception):
-    pass
+def iget(map, key, default=None):
+    for k in map:
+        if k.lower() == key.lower():
+            return map[k]
+    return default
 
 
-def _post_x_cache(session, token, url, location):
-    t0 = time.time()
-    r = session.post(
-        URL,
-        data={"location": location, "url": url, "token": token},
-        timeout=10,
-        headers={"Referer": "https://tools.keycdn.com/performance"},
-    )
-    t1 = time.time()
-    print(url, "FORM", location, "TOOK", t1 - t0)
+def check_endpoint(session, endpoint, url, timeout):
+    r = session.get(endpoint + "?" + urlencode({"url": url, "timeout": timeout}))
     r.raise_for_status()
-    results = r.json()
-    try:
-        if not results["headers"]:
-            raise EmptyHeaders(results)
-    except KeyError:
-        print(results)
-        raise EmptyHeaders(results)
-    doc = PyQuery(results["result"])
-    data = {}
-    for i, td in enumerate(doc("td").items()):
-        if i == 5:
-            try:
-                data["ttfb"] = float(
-                    list(td("span.badge-success").items())[0]
-                    .text()
-                    .replace("ms", "")
-                    .strip()
-                )
-            except IndexError:
-                td_text = td.text()
-                if td_text:
-                    if "ms" in td_text:
-                        data["ttfb"] = float(td_text.replace("ms", "").strip())
-                    else:
-                        data["ttfb"] = 1000 * float(td_text.replace("s", "").strip())
-
-    doc = PyQuery(results["headers"])
-    key = None
-    for dt_dd in doc("dt,dd").items():
-        if key is None:
-            key = dt_dd.text().strip()
-        else:
-            value = dt_dd.text().strip()
-            if key == "x-cache":
-                data[key] = value
-            key = None
-
-    return data
+    return r.json()
