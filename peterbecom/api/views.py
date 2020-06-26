@@ -2000,6 +2000,10 @@ def whereami(request):
     ip_address = request.META.get("REMOTE_ADDR")
     if not ip_address:
         return _response({"error": "No remote IP address"}, status=412)
+    context = {}
     if ip_address == "127.0.0.1" and request.get_host().endswith("peterbecom.local"):
         ip_address = fake_ip_address(str(time.time()))
-    return _response({"geo": ip_to_city(ip_address)})
+        context["faked_ip_address"] = True
+    context["ip_address"] = ip_address
+    context["geo"] = ip_to_city(ip_address)
+    return _response(context)
