@@ -1997,7 +1997,9 @@ def xcache_analyze(request):
 
 @never_cache
 def whereami(request):
-    ip_address = request.META.get("REMOTE_ADDR")
+    ip_address = request.headers.get("x-forwarded-for") or request.META.get(
+        "REMOTE_ADDR"
+    )
     if not ip_address:
         return _response({"error": "No remote IP address"}, status=412)
     context = {}
