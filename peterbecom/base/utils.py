@@ -1,6 +1,8 @@
 import json
 import traceback
+import random
 from pathlib import Path
+from ipaddress import IPv4Address
 
 import requests
 from django.conf import settings
@@ -83,3 +85,9 @@ def send_pulse_message(msg, raise_errors=False):
     except Exception:
         print("EXCEPTION SENDING PUBLISHING PULSE MESSAGE!")
         traceback.print_exc()
+
+
+def fake_ip_address(seed):
+    random.seed(seed)
+    # https://codereview.stackexchange.com/a/200348
+    return str(IPv4Address(random.getrandbits(32)))

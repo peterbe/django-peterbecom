@@ -5,13 +5,12 @@ import re
 import statistics
 import time
 import traceback
-from io import StringIO
 from collections import defaultdict
 from functools import lru_cache, wraps
+from io import StringIO
 from urllib.parse import urlparse
 
 import requests
-from requests.exceptions import ConnectionError
 from django import http
 from django.conf import settings
 from django.core.cache import cache
@@ -25,13 +24,12 @@ from django.utils import timezone
 from django.utils.timesince import timesince as django_timesince
 from django.views.decorators.cache import cache_control, never_cache
 from django.views.decorators.http import require_POST
+from requests.exceptions import ConnectionError
 
 from peterbecom.awspa.models import AWSProduct
-from peterbecom.awspa.search import (
-    NothingFoundError,
-    lookup as awspa_lookup,
-    search as awspa_search,
-)
+from peterbecom.awspa.search import NothingFoundError
+from peterbecom.awspa.search import lookup as awspa_lookup
+from peterbecom.awspa.search import search as awspa_search
 from peterbecom.awspa.templatetags.jinja_helpers import awspa_product
 from peterbecom.base.cdn import (
     get_cdn_base_url,
@@ -40,8 +38,10 @@ from peterbecom.base.cdn import (
     purge_cdn_urls,
 )
 from peterbecom.base.fscache import invalidate_by_url, path_to_fs_path
+from peterbecom.base.geo import ip_to_city
 from peterbecom.base.models import CDNPurgeURL, PostProcessing, SearchResult
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
+from peterbecom.base.utils import fake_ip_address
 from peterbecom.base.xcache_analyzer import get_x_cache
 from peterbecom.plog.models import (
     BlogComment,
@@ -57,8 +57,8 @@ from peterbecom.plog.utils import rate_blog_comment, valid_email  # move this so
 
 from .forms import (
     AWSPAFilterForm,
-    AWSPASearchForm,
     AWSPASaveForm,
+    AWSPASearchForm,
     BlogCommentBatchForm,
     BlogFileUpload,
     BlogitemRealtimeHitsForm,
@@ -1993,3 +1993,13 @@ def xcache_analyze(request):
         return http.HttpResponseServerError("ConnectionError")
 
     return _response({"xcache": results})
+
+
+@never_cache
+def whereami(request):
+    ip_address = request.META.get("REMOTE_ADDR")
+    if not ip_address:
+        return _response({"error": "No remote IP address"}, status=412)
+    if ip_address == "127.0.0.1" and request.get_host().endswith("peterbecom.local"):
+        ip_address = fake_ip_address(str(time.time()))
+    return _response({"geo": ip_to_city(ip_address)})
