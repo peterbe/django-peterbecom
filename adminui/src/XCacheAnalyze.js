@@ -77,6 +77,12 @@ export default XCacheAnalyze;
 
 function XCacheResults({ results }) {
   function locationToName(loc) {
+    let isBrotli = false;
+    if (loc.endsWith(':brotli')) {
+      isBrotli = true;
+      loc = loc.replace(':brotli', '');
+    }
+
     const parsed = new URL(loc);
     const region = parsed.host.split('.');
 
@@ -105,34 +111,53 @@ function XCacheResults({ results }) {
       'me-south-1': ['Bahrain (Middle East)', 'bh'],
       'sa-east-1': ['São Paulo (South America)', 'br'],
     };
-    return map[region[2]];
+    if (!map[region[2]]) {
+      return {
+        name: 'Unknown',
+        flag: null,
+        isBrotli,
+      };
+    }
+    return {
+      name: map[region[2]][0],
+      flag: map[region[2]][1],
+      isBrotli,
+    };
   }
 
   return (
-    <Table basic="very" celled collapsing>
+    <Table basic="very" celled collapsing singleLine>
       <Table.Body>
         {Object.entries(results).map(([location, data]) => {
-          const locationName = locationToName(location);
+          const locationDetails = locationToName(location);
           return (
             <Table.Row key={location}>
               <Table.Cell>
-                {locationName && (
-                  <Flag name={locationName[1]} title={locationName[0]} />
+                {locationDetails && locationDetails.flag && (
+                  <Flag
+                    name={locationDetails.flag}
+                    title={locationDetails.name}
+                  />
                 )}
-                <b>{locationName ? locationName[0] : 'Unknown'}</b>
+                <b>{locationDetails.name}</b>{' '}
+                {locationDetails.isBrotli && <i>Brotli</i>}
               </Table.Cell>
-              <Table.Cell>
+              <Table.Cell
+                positive={!data.error && data.x_cache.includes('HIT')}
+                negative={!!data.error}
+                warning={!data.error && !data.x_cache.includes('HIT')}
+              >
                 {data.error && (
                   <Label as="span" color="red">
                     Error
                   </Label>
                 )}
-                {data['x-cache'] && !data.error && (
+                {data.x_cache && !data.error && (
                   <Label
                     as="span"
-                    color={data['x-cache'].includes('HIT') ? 'green' : 'grey'}
+                    color={data.x_cache.includes('HIT') ? 'green' : 'grey'}
                   >
-                    {data['x-cache']}
+                    {data.x_cache}
                   </Label>
                 )}
               </Table.Cell>
