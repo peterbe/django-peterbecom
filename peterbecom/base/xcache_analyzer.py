@@ -11,6 +11,9 @@ def get_x_cache(url):
     assert endpoints
     session = requests.Session()
 
+    # It must be a full URL
+    assert "://" in url and url.startswith("http"), url
+
     results = {}
     futures = {}
     with concurrent.futures.ThreadPoolExecutor() as executor:
