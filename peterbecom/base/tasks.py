@@ -201,8 +201,8 @@ def run_purge_cdn_urls():
             traceback.print_exc()
             raise
         if results:
-            for url in results["all_urls"]:
-                post_process_after_cdn_purge(url)
+            for result in results["result"]:
+                post_process_after_cdn_purge(result["url"])
     else:
         print("No queued CDN URLs for purgning ({})".format(timezone.now()))
 
@@ -212,7 +212,7 @@ def post_process_after_cdn_purge(url):
     if url.endswith("/plog/blogitem-040601-1"):  # only the first page!
         # To make it slighly more possible to test from locally
         url = url.replace("http://peterbecom.local", "https://www.peterbe.com")
-        print("Going to get_x_cache({!r}) soon...".format(url))
+        print(f"Going to get_x_cache({url!r}) soon...")
         time.sleep(5)
         x_cache_result = get_x_cache(url)
         out = []
