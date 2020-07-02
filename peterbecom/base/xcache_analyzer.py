@@ -31,6 +31,7 @@ def get_x_cache(url):
 
             results[endpoint] = {
                 "took": result["meta"]["took"],
+                "elapsed": result["meta"]["elapsed"],
                 "error": None,
                 "status": result["response"]["status_code"],
                 "x_cache": iget(result["response"]["headers"], "x-cache"),

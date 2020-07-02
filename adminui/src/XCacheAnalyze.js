@@ -1,88 +1,75 @@
-import React from 'react';
-import { Button, Flag, Header, Label, List, Table } from 'semantic-ui-react';
+import React, { useCallback, useState, useEffect } from 'react';
+import { Button, Flag, Header, Label, Table } from 'semantic-ui-react';
 
 import { ShowServerError } from './Common';
 
-class XCacheAnalyze extends React.PureComponent {
-  state = {
-    loading: false,
-    results: null,
-    serverError: null,
-  };
+function XCacheAnalyze({
+  accessToken,
+  url,
+  minimalButton = false,
+  finished = null,
+  start = false,
+}) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [results, setResults] = useState(null);
 
-  componentDidUpdate(prevProps, prevState) {
-    if (prevState.loading && !this.state.loading) {
-      if (this.props.finished) {
-        this.props.finished(this.state.serverError);
-      }
-    }
-    if (!prevProps.start && this.props.start && !this.state.loading) {
-      this.start();
-    }
-  }
-
-  start = () => {
-    this.setState({ loading: true, serverError: null }, async () => {
-      const formData = new FormData();
-      formData.append('url', this.props.url);
-
-      let response;
-      try {
-        response = await fetch('/api/v0/xcache/analyze', {
-          method: 'POST',
-          body: formData,
-          headers: {
-            Authorization: `Bearer ${this.props.accessToken}`,
-          },
-        });
-      } catch (ex) {
-        return this.setState({ loading: false, serverError: ex });
-      }
-      if (!response.ok) {
-        return this.setState({ loading: false, serverError: response });
-      }
-      const results = await response.json();
-      this.setState({
-        loading: false,
-        results,
-        serverError: null,
+  const startFetch = useCallback(async () => {
+    let response;
+    const formData = new FormData();
+    formData.append('url', url);
+    setLoading(true);
+    try {
+      response = await fetch('/api/v0/xcache/analyze', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
       });
-    });
-  };
-
-  render() {
-    const { loading, results, serverError } = this.state;
-    const { minimalButton = false } = this.props;
-    if (minimalButton && !(results || serverError)) {
-      return (
-        <Button loading={loading} onClick={this.start} size="mini">
-          {results || serverError ? 'Analyze again' : 'X-Cache Analyze'}
-        </Button>
-      );
+      if (!response.ok) {
+        throw new Error(`${response.status} on ${response.url}`);
+      }
+      setResults(await response.json());
+    } catch (exc) {
+      setError(exc);
+    } finally {
+      setLoading(false);
+      if (finished) {
+        finished(error);
+      }
     }
+  }, [accessToken, error, finished, url]);
+
+  useEffect(() => {
+    if (start && !(loading || error || results)) {
+      startFetch();
+    }
+  }, [start, loading, error, results, startFetch]);
+
+  if (minimalButton && !(results || error)) {
     return (
-      <div style={{ marginTop: 20 }}>
-        {results && <Header as="h2">X-Cache Analysis</Header>}
-        {results && <XCacheResults results={results.xcache} />}
-        <ShowServerError error={serverError} />
-        <Button loading={loading} onClick={this.start} primary>
-          {results || serverError ? 'Analyze again' : 'X-Cache Analyze'}
-        </Button>
-      </div>
+      <Button loading={loading} onClick={startFetch} size="mini">
+        {results || error ? 'Analyze again' : 'X-Cache Analyze'}
+      </Button>
     );
   }
+  return (
+    <div style={{ marginTop: 10 }}>
+      {results && <Header as="h3">X-Cache Analysis</Header>}
+      {results && <XCacheResults results={results.xcache} />}
+      <ShowServerError error={error} />
+      <Button loading={loading} onClick={startFetch} primary>
+        {results || error ? 'Analyze again' : 'X-Cache Analyze'}
+      </Button>
+    </div>
+  );
 }
 
 export default XCacheAnalyze;
 
 function XCacheResults({ results }) {
   function locationToName(loc) {
-    let isBrotli = false;
-    if (loc.endsWith(':brotli')) {
-      isBrotli = true;
-      loc = loc.replace(':brotli', '');
-    }
-
     const parsed = new URL(loc);
     const region = parsed.host.split('.');
 
@@ -115,20 +102,41 @@ function XCacheResults({ results }) {
       return {
         name: 'Unknown',
         flag: null,
-        isBrotli,
       };
     }
     return {
       name: map[region[2]][0],
       flag: map[region[2]][1],
-      isBrotli,
     };
+  }
+
+  // Rearrange the 'results' so it's a list of tuples instead.
+  const bundles = {};
+  // Now the `:brotli` ones comes last
+  const locationKeys = Object.keys(results).sort();
+  for (const location of locationKeys) {
+    const data = results[location];
+    const locationPure = location.replace(':brotli', '');
+    if (!(locationPure in bundles)) {
+      bundles[locationPure] = [];
+    }
+    bundles[locationPure].push({
+      brotli: location.includes(':brotli'),
+      data,
+    });
   }
 
   return (
     <Table basic="very" celled collapsing singleLine>
+      <Table.Header>
+        <Table.Row>
+          <Table.HeaderCell>Location</Table.HeaderCell>
+          <Table.HeaderCell>Gzip</Table.HeaderCell>
+          <Table.HeaderCell>Brotli</Table.HeaderCell>
+        </Table.Row>
+      </Table.Header>
       <Table.Body>
-        {Object.entries(results).map(([location, data]) => {
+        {Object.entries(bundles).map(([location, datum]) => {
           const locationDetails = locationToName(location);
           return (
             <Table.Row key={location}>
@@ -139,37 +147,47 @@ function XCacheResults({ results }) {
                     title={locationDetails.name}
                   />
                 )}
-                <b>{locationDetails.name}</b>{' '}
-                {locationDetails.isBrotli && <i>Brotli</i>}
+                <b>{locationDetails.name}</b>
               </Table.Cell>
-              <Table.Cell
-                positive={!data.error && data.x_cache.includes('HIT')}
-                negative={!!data.error}
-                warning={!data.error && !data.x_cache.includes('HIT')}
-              >
-                {data.error && (
-                  <Label as="span" color="red">
-                    Error
-                  </Label>
-                )}
-                {data.x_cache && !data.error && (
-                  <Label
-                    as="span"
-                    color={data.x_cache.includes('HIT') ? 'green' : 'grey'}
+              {datum.map(({ data }, i) => {
+                return (
+                  <Table.Cell
+                    key={`${location}:${i}`}
+                    positive={!data.error && data.x_cache.includes('HIT')}
+                    negative={!!data.error}
+                    warning={!data.error && !data.x_cache.includes('HIT')}
                   >
-                    {data.x_cache}
-                  </Label>
-                )}
-              </Table.Cell>
-              <Table.Cell>
-                {data.ttfb && (
-                  <List.Description>{data.ttfb.toFixed(1)}ms</List.Description>
-                )}
-              </Table.Cell>
+                    {data.error && (
+                      <Label as="span" color="red">
+                        Error
+                      </Label>
+                    )}
+                    {data.x_cache && !data.error && (
+                      <Label
+                        as="span"
+                        color={data.x_cache.includes('HIT') ? 'green' : 'grey'}
+                      >
+                        {data.x_cache}
+                      </Label>
+                    )}{' '}
+                    {!data.error && data.elapsed && (
+                      <ShowSeconds seconds={data.elapsed} />
+                    )}
+                  </Table.Cell>
+                );
+              })}
             </Table.Row>
           );
         })}
       </Table.Body>
     </Table>
   );
+}
+
+function ShowSeconds({ seconds }) {
+  if (seconds > 1) {
+    return <b>{seconds.toFixed(1)}s</b>;
+  } else {
+    return <span>{(1000 * seconds).toFixed(1)}ms</span>;
+  }
 }
