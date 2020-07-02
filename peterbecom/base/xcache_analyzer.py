@@ -27,7 +27,6 @@ def get_x_cache(url):
                 result = future.result()
             except ReadTimeout as exception:
                 results[endpoint] = {"took": None, "error": str(exception)}
-                continue
 
             results[endpoint] = {
                 "took": result["meta"]["took"],
@@ -57,5 +56,8 @@ def check_endpoint(session, endpoint, url, use_brotli, timeout):
     if use_brotli:
         json_data["headers"] = {"Accept-Encoding": "br"}
     r = session.post(endpoint, json=json_data)
+    if r.status_code == 400:
+        print(r.text)
+        raise ValueError(f"Bad parameters posted to {endpoint}: {r.json()}")
     r.raise_for_status()
     return r.json()
