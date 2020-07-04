@@ -6,9 +6,9 @@ import re
 import sys
 import time
 import traceback
-from urllib.parse import urlparse
-from pathlib import Path
 from io import StringIO
+from pathlib import Path
+from urllib.parse import urlparse
 
 from django.conf import settings
 from django.utils import timezone
@@ -182,36 +182,44 @@ def _post_process_cached_html(filepath: Path, url, postprocessing, original_url)
 
 @periodic_task(crontab(minute="*"))
 def run_purge_cdn_urls():
-    queue = CDNPurgeURL.get()
-    # The `timezone.now()` in the printed output message is to keep an eye
-    # on whether the periodic task sometimes fires repeatedly in a short
-    # amount of time.
-    if queue:
-        queue_count = CDNPurgeURL.count()
-        print(
-            "{} (of {}) queued CDN URLs for purging: {} ({})".format(
-                len(queue), queue_count, queue, timezone.now()
+    for i in range(3):
+        queue = CDNPurgeURL.get()
+        # The `timezone.now()` in the printed output message is to keep an eye
+        # on whether the periodic task sometimes fires repeatedly in a short
+        # amount of time.
+        if queue:
+            queue_count = CDNPurgeURL.count()
+            print(
+                "{} (of {}) queued CDN URLs for purging: {} ({})".format(
+                    len(queue), queue_count, queue, timezone.now()
+                )
             )
-        )
-        try:
-            results = purge_cdn_urls(queue)
-        except Exception as r:
-            # XXX Why doesn't this bubble up to stdout?!
-            print("EXCEPTION in purge_cdn_urls:", r)
-            traceback.print_exc()
-            raise
-        if results:
-            for result in results["result"]:
-                post_process_after_cdn_purge(result["url"])
-    else:
-        print("No queued CDN URLs for purgning ({})".format(timezone.now()))
+            try:
+                results = purge_cdn_urls(queue)
+            except Exception as r:
+                # XXX Why doesn't this bubble up to stdout?!
+                print("EXCEPTION in purge_cdn_urls:", r)
+                traceback.print_exc()
+                raise
+            if results:
+                for url in results["all_urls"]:
+                    post_process_after_cdn_purge(url)
+        else:
+            print("No queued CDN URLs for purgning ({})".format(timezone.now()))
+
+        time.sleep(10)
 
 
 @task()
 def post_process_after_cdn_purge(url):
+    if "://" not in url:
+        if url.startswith("/"):
+            url = f"peterbecom.local{url}"
+        url = f"https://{url}"
     if url.endswith("/plog/blogitem-040601-1"):  # only the first page!
         # To make it slighly more possible to test from locally
         url = url.replace("http://peterbecom.local", "https://www.peterbe.com")
+        url = url.replace("https://peterbecom.local", "https://www.peterbe.com")
         print(f"Going to get_x_cache({url!r}) soon...")
         time.sleep(5)
         x_cache_result = get_x_cache(url)
