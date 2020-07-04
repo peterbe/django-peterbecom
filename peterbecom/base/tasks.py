@@ -220,6 +220,7 @@ def post_process_after_cdn_purge(url):
         # To make it slighly more possible to test from locally
         url = url.replace("http://peterbecom.local", "https://www.peterbe.com")
         url = url.replace("https://peterbecom.local", "https://www.peterbe.com")
+        url = url.replace("www-2916.kxcdn.com", "www.peterbe.com")
         print(f"Going to get_x_cache({url!r}) soon...")
         time.sleep(5)
         x_cache_result = get_x_cache(url)
