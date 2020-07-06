@@ -252,7 +252,15 @@ def _brotli(filepath: Path):
     while True:
         original_ts = filepath.stat().st_mtime
         t0 = time.time()
-        new_filepath: Path = brotli_file(filepath)
+        attempts = 5
+        while attempts:
+            new_filepath: Path = brotli_file(filepath)
+            if new_filepath.exists():
+                break
+            print(f"WARNING! {new_filepath} doesn't exist. Sleeping...")
+            time.sleep(1)
+            attempts -= 1
+
         t1 = time.time()
         if new_filepath:
             print(

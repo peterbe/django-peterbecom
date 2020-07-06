@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Checkbox,
   Container,
@@ -8,182 +8,83 @@ import {
   Loader,
   Message,
   Statistic,
-  Table
+  Table,
 } from 'semantic-ui-react';
-import { throttle } from 'throttle-debounce';
+import useSWR from 'swr';
 
 import {
   DisplayDate,
   equalArrays,
   filterToQueryString,
-  ShowServerError
+  ShowServerError,
 } from './Common';
 
-// Note! It only works "shallowly"
-function differentObjects(o1, o2) {
-  if (o1 === null || o2 === null) {
-    return o1 !== o2;
-  }
-  for (const key of Object.keys(o1)) {
-    if (o1[key] !== o2[key]) {
-      return true;
+export default function PostProcessings({ accessToken }) {
+  const [filters, setFilters] = useState(null);
+  const baseFetchUrl = '/api/v0/postprocessings/';
+  const [fetchUrl, setFetchUrl] = useState(baseFetchUrl);
+
+  useEffect(() => {
+    if (filters) {
+      setFetchUrl(baseFetchUrl + `?${filterToQueryString(filters)}`);
     }
-  }
-  return false;
-}
+  }, [filters]);
 
-class PostProcessings extends React.Component {
-  state = {
-    filters: null,
-    loading: false,
-    ongoing: null,
-    records: null,
-    serverError: null,
-    statistics: null
-  };
-
-  componentDidMount() {
-    document.title = 'Post Processing';
-    this.fetchPostProcessings();
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    // This might mean one was null, the other an object.
-    // But any two objects are always different too. If both are objects
-    // we need to compare individual key/value pairs.
-    if (
-      differentObjects(
-        prevProps.latestPostProcessing,
-        this.props.latestPostProcessing
-      ) ||
-      differentObjects(this.state.filters, prevState.filters)
-    ) {
-      this.throttled_fetchPostProcessings();
-    }
-  }
-
-  componentWillUnmount() {
-    this.dismounted = true;
-  }
-
-  fetchPostProcessings = async () => {
-    if (!this.props.accessToken) {
-      throw new Error('No accessToken');
-    }
-    let response;
-    let url = '/api/v0/postprocessings/';
-    if (this.state.filters) {
-      url += `?${filterToQueryString(this.state.filters)}`;
-    }
-    try {
-      response = await fetch(url, {
+  const { data, error: serverError } = useSWR(
+    fetchUrl,
+    async (url) => {
+      const response = await fetch(url, {
         headers: {
-          Authorization: `Bearer ${this.props.accessToken}`
-        }
+          Authorization: `Bearer ${accessToken}`,
+        },
       });
-    } catch (ex) {
-      if (!this.dismounted) this.setState({ serverError: ex });
-      return;
+      if (!response.ok) {
+        throw new Error(`${response.status} on ${response.url}`);
+      } else {
+        return await response.json();
+      }
+    },
+    {
+      refreshInterval: 5000,
     }
+  );
 
-    if (this.dismounted) {
-      return;
-    }
-    if (response.ok) {
-      const data = await response.json();
-      this.setState({
-        records: data.records,
-        serverError: null,
-        statistics: data.statistics
-      });
-    } else {
-      this.setState({ serverError: response });
-    }
-  };
+  const loading = !data && !serverError;
 
-  throttled_fetchPostProcessings = throttle(2000, this.fetchPostProcessings);
-
-  render() {
-    const { filters, loading, records, serverError, statistics } = this.state;
-
-    return (
-      <Container textAlign="center">
-        <Header as="h1">Post Processings</Header>
-        <ShowServerError error={this.state.serverError} />
-        {!serverError && loading && (
-          <Container>
-            <Loader
-              active
-              content="Loading..."
-              inline="centered"
-              size="massive"
-              style={{ margin: '200px 0' }}
-            />
-          </Container>
-        )}
-        {statistics && <Statistics statistics={statistics} />}
-
-        <Divider />
-        {records && (
-          <Records
-            filters={filters}
-            records={records}
-            updateFilters={filters => {
-              this.setState({ filters }, this.startLoop);
-            }}
+  return (
+    <Container textAlign="center">
+      <Header as="h1">Post Processings</Header>
+      <ShowServerError error={serverError} />
+      {!serverError && loading && (
+        <Container>
+          <Loader
+            active
+            content="Loading..."
+            inline="centered"
+            size="massive"
+            style={{ margin: '200px 0' }}
           />
-        )}
+        </Container>
+      )}
+      {data && data.statistics && <Statistics statistics={data.statistics} />}
 
-        <Divider />
-        {(statistics || records) && (
-          <div>
-            <Checkbox
-              defaultChecked={!!this.state.loopSeconds}
-              onChange={event => {
-                if (!this.state.loopSeconds) {
-                  this.setState({ loopSeconds: 10 }, () => {
-                    this.startLoop();
-                  });
-                } else {
-                  this.setState({ loopSeconds: null });
-                }
-              }}
-              toggle
-            />
-            {this.state.loopSeconds && (
-              <div>
-                Every{' '}
-                <Input
-                  onChange={event => {
-                    const loopSeconds = parseInt(event.target.value);
-                    if (loopSeconds > 0) {
-                      this.setState({ loopSeconds }, () => {
-                        window.localStorage.setItem(
-                          'postprocess-loopseconds',
-                          this.state.loopSeconds
-                        );
-                      });
-                    }
-                  }}
-                  size="small"
-                  type="number"
-                  value={this.state.loopSeconds}
-                />{' '}
-                seconds.
-              </div>
-            )}
-          </div>
-        )}
-      </Container>
-    );
-  }
+      <Divider />
+      {data && data.records && (
+        <Records
+          filters={filters}
+          records={data.records}
+          updateFilters={(filters) => {
+            setFilters(filters);
+          }}
+        />
+      )}
+    </Container>
+  );
 }
-
-export default PostProcessings;
 
 class Statistics extends React.PureComponent {
   state = {
-    differentKeys: []
+    differentKeys: [],
   };
   componentDidUpdate(prevProps, prevState) {
     if (equalArrays(prevState.differentKeys, this.state.differentKeys)) {
@@ -211,12 +112,12 @@ class Statistics extends React.PureComponent {
 
     return (
       <div>
-        {statistics.groups.map(group => {
+        {statistics.groups.map((group) => {
           return (
             <div key={group.key}>
               <Header as="h3">{group.label}</Header>
               <Statistic.Group widths="four">
-                {group.items.map(item => {
+                {group.items.map((item) => {
                   const different = this.state.differentKeys.includes(
                     group.key + item.key
                   );
@@ -252,14 +153,14 @@ class Records extends React.PureComponent {
   state = {
     differentIds: [],
     search: (this.props.filters && this.props.filters.q) || '',
-    exceptionsOnly: false
+    exceptionsOnly: false,
   };
 
   componentDidUpdate(prevProps, prevState) {
     if (equalArrays(prevState.differentIds, this.state.differentIds)) {
-      const before = prevProps.records.map(r => r.id);
-      const now = this.props.records.map(r => r.id);
-      const differentIds = now.filter(id => !before.includes(id));
+      const before = prevProps.records.map((r) => r.id);
+      const now = this.props.records.map((r) => r.id);
+      const differentIds = now.filter((id) => !before.includes(id));
       if (!equalArrays(differentIds, this.state.differentIds)) {
         this.setState({ differentIds });
       }
@@ -271,7 +172,7 @@ class Records extends React.PureComponent {
     const { differentIds } = this.state;
     return (
       <form
-        onSubmit={event => {
+        onSubmit={(event) => {
           event.preventDefault();
           updateFilters({ q: this.state.search });
         }}
@@ -286,7 +187,7 @@ class Records extends React.PureComponent {
           </Table.Header>
 
           <Table.Body>
-            {records.map(record => {
+            {records.map((record) => {
               return (
                 <Table.Row
                   key={record.id}
@@ -371,7 +272,7 @@ class Records extends React.PureComponent {
               this.setState({ exceptionsOnly: data.checked }, () => {
                 updateFilters({
                   q: this.state.search,
-                  exceptions: this.state.exceptionsOnly
+                  exceptions: this.state.exceptionsOnly,
                 });
               });
             }}
