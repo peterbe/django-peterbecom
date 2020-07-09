@@ -31,13 +31,18 @@ def get_x_cache(url):
             except ReadTimeout as exception:
                 results[endpoint] = {"took": None, "error": str(exception)}
 
-            results[endpoint] = {
-                "took": result["meta"]["took"],
-                "elapsed": result["meta"]["elapsed"],
-                "error": None,
-                "status": result["response"]["status_code"],
-                "x_cache": iget(result["response"]["headers"], "x-cache"),
-            }
+            if result["error"]:
+                results[endpoint] = {
+                    "error": result["error"],
+                }
+            else:
+                results[endpoint] = {
+                    "took": result["meta"]["took"],
+                    "elapsed": result["response"]["elapsed"],
+                    "error": None,
+                    "status": result["response"]["status_code"],
+                    "x_cache": iget(result["response"]["headers"], "x-cache"),
+                }
 
     # Dicts are sorted, but not when they trickle in from a thread pool.
     sorted_results = {}
