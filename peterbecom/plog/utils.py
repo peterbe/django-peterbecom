@@ -369,7 +369,7 @@ def rate_blog_comment(comment):
                 result["good"]["shortreply"] = "special and reply and short"
 
     def find_links(attrs, new=False):
-        href = attrs[(None, u"href")]
+        href = attrs[(None, "href")]
         p = urlparse(href)
         if p.netloc not in OK_DOMAINS:
             links.append(href)
@@ -385,6 +385,15 @@ def rate_blog_comment(comment):
 
     if profanity.contains_profanity(comment.comment):
         result["bad"]["profanity"] = "contains profanities"
+
+    for keyword in ("spell cast", "whatsapp", "+1("):
+        if keyword in comment.comment.lower():
+            if result["bad"].get("spam_keywords"):
+                result["bad"][
+                    "spam_keywords"
+                ] = f"{keyword!r}, ${result['bad']['spam_keywords']}"
+            else:
+                result["bad"]["spam_keywords"] = f"{keyword!r}"
 
     GOOD_STRINGS = settings.PLOG_GOOD_STRINGS
     BAD_STRINGS = settings.PLOG_BAD_STRINGS
