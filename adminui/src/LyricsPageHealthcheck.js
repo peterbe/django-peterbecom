@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
   Button,
   Container,
@@ -9,6 +9,7 @@ import {
   Segment,
   Select,
 } from 'semantic-ui-react';
+import useSWR from 'swr';
 import { ShowServerError, useLocalStorage } from './Common';
 import XCacheAnalyze from './XCacheAnalyze';
 
@@ -18,136 +19,50 @@ const xcacheAnalyzeLoopOptions = [...Array(5 + 1).keys()]
     return { key: n, value: n, text: `${n} time${n === 1 ? '' : 's'}` };
   });
 
-function defaultLoopSeconds(default_ = 40) {
-  try {
-    return parseInt(
-      window.localStorage.getItem('lyrics-page-healthcheck-loopseconds') ||
-        default_,
-      10
-    );
-  } catch (ex) {
-    return default_;
-  }
-}
+const LOOP_SECONDS = 30;
 
-class LyricsPageHealthcheck extends React.Component {
-  state = {
-    health: null,
-    loading: false,
-    fetched: null,
-    serverError: null,
-    loopSeconds: defaultLoopSeconds(),
-  };
-  componentDidMount() {
-    document.title = 'Lyrics Page Healthcheck';
-    this.startLoop();
-  }
-  componentWillUnmount() {
-    this.dismounted = true;
-    if (this._loop) window.clearTimeout(this._loop);
-  }
-
-  startLoop = () => {
-    this.loadHealth();
-    if (this._loop) {
-      window.clearTimeout(this._loop);
-    }
-    if (this.state.loopSeconds) {
-      this._loop = window.setTimeout(() => {
-        this.startLoop();
-      }, this.state.loopSeconds * 1000);
-    }
-  };
-
-  loadHealth = (url = null) => {
-    this.setState({ loading: true }, async () => {
-      let response;
-      let URL = '/api/v0/lyrics-page-healthcheck';
-      if (url) {
-        URL += `?url=${encodeURI(url)}`;
-      }
-      try {
-        response = await fetch(URL);
-      } catch (ex) {
-        return this.setState({
-          loading: false,
-          serverError: ex,
-          fetched: new Date(),
-        });
-      }
-
-      if (this.dismounted) {
-        return;
-      }
-      if (response.ok) {
-        const result = await response.json();
-        if (url) {
-          if (result.health.length !== 1) {
-            throw new Error('Not implemented');
-          }
-          // Update just one from the existing array.
-          const health = this.state.health.map((h) => {
-            if (h.url === url) {
-              return result.health[0];
-            } else {
-              return h;
-            }
-          });
-          this.setState({
-            health,
-            loading: false,
-            serverError: null,
-            fetched: new Date(),
-          });
-        } else {
-          this.setState({
-            health: result.health,
-            loading: false,
-            serverError: null,
-            fetched: new Date(),
-          });
-        }
+function LyricsPageHealthcheck({ accessToken }) {
+  const [nextFetch, setNextFetch] = useState(null);
+  const { data, error } = useSWR(
+    '/api/v0/lyrics-page-healthcheck',
+    async (url) => {
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`${response.status} on ${response.url}`);
       } else {
-        this.setState({
-          loading: false,
-          serverError: response,
-          fetched: new Date(),
-        });
+        return await response.json();
       }
-    });
-  };
-
-  checkURL = (url) => {
-    this.loadHealth(url);
-  };
-
-  render() {
-    const { health, fetched, loopSeconds, loading, serverError } = this.state;
-    let nextFetch = null;
-    if (fetched) {
-      nextFetch = new Date(fetched.getTime() + loopSeconds * 1000);
+    },
+    {
+      refreshInterval: LOOP_SECONDS * 1000,
+      revalidateOnFocus: false,
     }
+  );
 
-    return (
-      <Container>
-        <Header as="h1">Lyrics Page Healthcheck</Header>
-        <ShowServerError error={serverError} />
-        <Segment basic>
-          <Dimmer active={loading} inverted>
-            <Loader inverted>Loading</Loader>
-          </Dimmer>
-          {health && (
-            <ShowHealth
-              health={health}
-              checkURL={this.checkURL}
-              accessToken={this.props.accessToken}
-            />
-          )}
-          {nextFetch && <ShowLoopCountdown nextFetch={nextFetch} />}
-        </Segment>
-      </Container>
-    );
-  }
+  useEffect(() => {
+    setNextFetch(new Date(new Date().getTime() + LOOP_SECONDS * 1000));
+  }, [data, error]);
+
+  const loading = !data && !error;
+
+  const health = data ? data.health : null;
+  return (
+    <Container>
+      <Header as="h1">Lyrics Page Healthcheck</Header>
+      <ShowServerError error={error} />
+      <Segment basic>
+        <Dimmer active={loading} inverted>
+          <Loader inverted>Loading</Loader>
+        </Dimmer>
+        {health && <ShowHealth health={health} accessToken={accessToken} />}
+        {nextFetch && <ShowLoopCountdown nextFetch={nextFetch} />}
+      </Segment>
+    </Container>
+  );
 }
 
 export default LyricsPageHealthcheck;
@@ -175,7 +90,7 @@ function ShowLoopCountdown({ nextFetch }) {
   }
 }
 
-function ShowHealth({ health, checkURL, accessToken }) {
+function ShowHealth({ health, accessToken }) {
   const [xcacheAnalyzeAll, setXCacheAnalyzeAll] = React.useState(null);
   const [loopsDone, setLoopsDone] = React.useState(0);
   const [
@@ -241,6 +156,12 @@ function ShowHealth({ health, checkURL, accessToken }) {
     }
     return false;
   }
+
+  // console.log({ xcacheAnalyzeAll });
+
+  // function onWebSocketMessage(msg) {
+  //   console.log('WS MESSAGE:', msg);
+  // }
 
   return (
     <div>
@@ -309,14 +230,6 @@ function ShowHealth({ health, checkURL, accessToken }) {
               >
                 <small>(CDN probe)</small>
               </a>{' '}
-              <Button
-                size="mini"
-                onClick={(event) => {
-                  checkURL(page.url);
-                }}
-              >
-                Check again
-              </Button>{' '}
               <Icon name={name} color={color} size="large" />{' '}
               <small>took {`${(1000 * page.took).toFixed(1)}ms`}</small>
               {page.errors && page.errors.length ? (

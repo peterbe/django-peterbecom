@@ -13,7 +13,7 @@ import {
   OIDC_AUDIENCE,
   OIDC_CALLBACK_URL,
   OIDC_CLIENT_ID,
-  OIDC_DOMAIN
+  OIDC_DOMAIN,
 } from './Config';
 import Pulse from './Pulse';
 import Blogitems from './Blogitems';
@@ -41,79 +41,21 @@ const AWSPAItems = React.lazy(() => import('./AWSPAItems'));
 const AWSPAItem = React.lazy(() => import('./AWSPAItem'));
 const AWSPASearch = React.lazy(() => import('./AWSPASearch'));
 
-// /**
-//  * THis is a horrible hack but gotta start somewhere.
-//  * Ideally it should be stacking up messages just a regular toast/growler
-//  * works.
-//  */
-// let busy = false;
-// function toastDocumentTitle(config) {
-//   if (document.hidden) {
-
-//   }
-//   const { text, time } = config;
-//   if (busy) {
-//     setTimeout(() => {
-//       toastDocumentTitle(config);
-//     }, 1000);
-//     return;
-//   }
-//   let current = document.title;
-//   document.title = text;
-//   let interval;
-//   busy = true;
-//   setTimeout(() => {
-//     interval = setInterval(() => {
-//       document.title = document.title.slice(1);
-//       if (!document.title) {
-//         document.title = current;
-//         clearInterval(interval);
-//         busy = false;
-//       }
-//     }, 50);
-//   }, 2000);
-
-//   setTimeout(() => {
-//     if (interval) clearInterval(interval);
-//     document.title = current;
-//     busy = false;
-//   }, time);
-// }
-
-// document.addEventListener(
-//   'visibilitychange',
-//   event => {
-//     document.title = `hidden? = ${document.hidden}`;
-//   },
-//   false
-// );
-
-// Not a 'const' because we're going to cheekily increase every time it
-// gets mutated later.
-// let CDN_PURGE_URLS_LOOP_SECONDS = 10;
-
 class App extends React.Component {
   state = {
     accessToken: null,
     userInfo: null,
     purgeUrlsCount: null,
-    latestPostProcessing: null
+    latestPostProcessing: null,
   };
   componentDidMount() {
     document.title = 'Peterbe.com Admin';
     this.authenticate();
-
-    // // Delay this loop a little so that it starts after other more important
-    // // XHR fetches.
-    // setTimeout(() => {
-    //   !this.dismounted && this.startCDNPurgeURLsLoop();
-    // }, 10000);
     this.fetchPurgeURLsCount();
   }
 
   componentWillUnmount() {
     this.dismounted = true;
-    // if (this._cdnPurgeURLsLoop) window.clearTimeout(this._cdnPurgeURLsLoop);
   }
 
   // Sign in either by localStorage or by window.location.hash
@@ -124,7 +66,7 @@ class App extends React.Component {
       domain: OIDC_DOMAIN,
       redirectUri: OIDC_CALLBACK_URL,
       responseType: 'token id_token',
-      scope: 'openid profile email'
+      scope: 'openid profile email',
     });
 
     this.webAuth.parseHash(
@@ -165,12 +107,12 @@ class App extends React.Component {
     );
   }
 
-  _postProcessAuthResult = authResult => {
+  _postProcessAuthResult = (authResult) => {
     if (authResult) {
       // Now you have the user's information
       const update = {
         userInfo: authResult.idTokenPayload,
-        accessToken: authResult.accessToken
+        accessToken: authResult.accessToken,
       };
       const expiresAt = authResult.expiresIn * 1000 + new Date().getTime();
       let redirectTo = null;
@@ -238,7 +180,7 @@ class App extends React.Component {
       returnUrl = document.location.pathname;
     }
     this.webAuth.authorize({
-      appState: { returnUrl }
+      appState: { returnUrl },
     });
   };
 
@@ -248,18 +190,19 @@ class App extends React.Component {
     const rootUrl = `${window.location.protocol}//${window.location.host}/`;
     this.webAuth.logout({
       clientID: OIDC_CLIENT_ID,
-      returnTo: rootUrl
+      returnTo: rootUrl,
     });
   };
 
-  onWebSocketMessage = msg => {
+  onWebSocketMessage = (msg) => {
     // console.log('WS MESSAGE:', msg);
     if (msg.cdn_purge_urls !== undefined) {
       if (!this.dismounted)
         this.setState({ purgeUrlsCount: msg.cdn_purge_urls });
     } else if (msg.post_processed) {
-      if (!this.dismounted)
+      if (!this.dismounted) {
         this.setState({ latestPostProcessing: msg.post_processed });
+      }
     } else {
       let description = JSON.stringify(msg);
       if (typeof msg === 'object') {
@@ -273,7 +216,7 @@ class App extends React.Component {
           type: 'info',
           title: 'Pulse message',
           description,
-          time: 7000
+          time: 7000,
           // size: null // https://github.com/academia-de-codigo/react-semantic-toasts/issues/40
         });
         // toastDocumentTitle({
@@ -392,7 +335,7 @@ class App extends React.Component {
                 {this.state.userInfo ? (
                   <Menu.Item
                     name="logout"
-                    onClick={event => {
+                    onClick={(event) => {
                       event.preventDefault();
                       this.logOut();
                     }}
@@ -400,7 +343,7 @@ class App extends React.Component {
                 ) : (
                   <Menu.Item
                     name="login"
-                    onClick={event => {
+                    onClick={(event) => {
                       event.preventDefault();
                       this.authorize();
                     }}
@@ -416,7 +359,7 @@ class App extends React.Component {
                 <Route
                   path="/"
                   exact
-                  render={props => (
+                  render={(props) => (
                     <Dashboard
                       {...props}
                       authorize={this.authorize}
@@ -561,7 +504,7 @@ function DropdownLink({ children, ...props }) {
       <Link
         {...props}
         style={{ color: 'black' }}
-        onClick={event => {
+        onClick={(event) => {
           event.target.blur();
         }}
       >
@@ -599,7 +542,7 @@ class SecureRoute extends React.Component {
     return (
       <Route
         path={path}
-        render={props => {
+        render={(props) => {
           return (
             <Component {...this.props} {...props} accessToken={accessToken} />
           );

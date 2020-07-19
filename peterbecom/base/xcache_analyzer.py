@@ -63,7 +63,6 @@ def check_endpoint(session, endpoint, url, use_brotli, timeout):
     json_data = {"url": url, "timeout": timeout, "nobody": True}
     if use_brotli:
         json_data["headers"] = {"Accept-Encoding": "br"}
-    print("POSTING TO", endpoint, "THIS:", json_data)
     r = session.post(endpoint, json=json_data)
     if r.status_code == 400:
         print(r.text)
