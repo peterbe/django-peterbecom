@@ -195,7 +195,6 @@ class App extends React.Component {
   };
 
   onWebSocketMessage = (msg) => {
-    // console.log('WS MESSAGE:', msg);
     if (msg.cdn_purge_urls !== undefined) {
       if (!this.dismounted)
         this.setState({ purgeUrlsCount: msg.cdn_purge_urls });
@@ -203,6 +202,8 @@ class App extends React.Component {
       if (!this.dismounted) {
         this.setState({ latestPostProcessing: msg.post_processed });
       }
+    } else if (msg.xcache_todo) {
+      // pass
     } else {
       let description = JSON.stringify(msg);
       if (typeof msg === 'object') {

@@ -10,6 +10,7 @@ import {
   Select,
 } from 'semantic-ui-react';
 import useSWR from 'swr';
+import { useWSS } from './WSSContext';
 import { ShowServerError, useLocalStorage } from './Common';
 import XCacheAnalyze from './XCacheAnalyze';
 
@@ -157,7 +158,24 @@ function ShowHealth({ health, accessToken }) {
     return false;
   }
 
-  // console.log({ xcacheAnalyzeAll });
+  const { register } = useWSS();
+  useEffect(() => {
+    register((data) => {
+      // console.log('NEW MESSAGE in ShowHealth?!', data);
+      if (data.xcache_todo) {
+        // console.log('GOT TO SET THE MAP', data.xcache_todo);
+        const newMap = new Map(Object.entries(data.xcache_todo));
+        if (newMap.size) {
+          setXCacheAnalyzeAll(newMap);
+        } else {
+          setXCacheAnalyzeAll(null);
+        }
+      }
+    });
+  }, [register]);
+
+  console.log({ xcacheAnalyzeAll });
+  // console.log(JSON.stringify(xcacheAnalyzeAll));
 
   // function onWebSocketMessage(msg) {
   //   console.log('WS MESSAGE:', msg);
