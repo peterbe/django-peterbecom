@@ -150,8 +150,8 @@ elasticsearch==7.8.0 \
 elasticsearch-dsl==7.2.1 \
     --hash=sha256:593c01822a03e3e84b87753c78edb833f4b2bfafcd52089841bd8f99b7e74ccd \
     --hash=sha256:1e345535164cb684de4b825e1d0daf81b75554b30d3905446584a9e4af0cc3e7
-ftfy==5.7 \
-    --hash=sha256:67f9c8b33a4b742376a3eda11b0e3bd5c0cbe719d95ea0bfd3736a7bdd1c24c8
+ftfy==5.8 \
+    --hash=sha256:51c7767f8c4b47d291fcef30b9625fb5341c06a31e6a3b627039c706c42f3720
 MarkupSafe==1.1.1 \
     --hash=sha256:00bc623926325b26bb9605ae9eae8a215691f33cae5df11ca5424f06f2d1f473 \
     --hash=sha256:09027a7803a62ca78792ad89403b1b7a73a01c8cb65909cd876f7fcebd79b161 \
