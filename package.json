@@ -9,7 +9,7 @@
   "license": "MPL-2.0",
   "dependencies": {
     "@babel/cli": "7.10.5",
-    "@babel/core": "7.10.5",
+    "@babel/core": "7.11.0",
     "csso-cli": "3.0.0",
     "html-minifier": "4.0.0",
     "puppeteer": "3.3.0",
