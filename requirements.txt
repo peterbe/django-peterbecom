@@ -1,8 +1,8 @@
 -c constraints.txt
 
-Django==2.2.13 \
-    --hash=sha256:e8fe3c2b2212dce6126becab7a693157f1a441a07b62ec994c046c76af5bb66d \
-    --hash=sha256:84f370f6acedbe1f3c41e1a02de44ac206efda3355e427139ecb785b5f596d80
+Django==3.0.9 \
+    --hash=sha256:96fbe04e8ba0df289171e7f6970e0ff8b472bf4f909ed9e0e5beccbac7e1dbbe \
+    --hash=sha256:c22b4cd8e388f8219dc121f091e53a8701f9f5bca9aa132b5254263cab516215
 Jinja2==2.11.2 \
     --hash=sha256:89aab215427ef59c34ad58735269eb58b1a5808103067f7bb9d5836c651b3bb0 \
     --hash=sha256:f0a4641d3cf955324a89c04f3d94663aa4d638abe8f733ecd3582848e1c37035
