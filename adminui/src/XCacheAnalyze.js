@@ -1,18 +1,37 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { Button, Flag, Header, Label, Table } from 'semantic-ui-react';
 
+import { useWSS } from './WSSContext';
 import { ShowServerError } from './Common';
 
 function XCacheAnalyze({
   accessToken,
   url,
   minimalButton = false,
-  finished = null,
-  start = false,
+  // finished = null,
+  // start = false,
 }) {
+  const [start, setStart] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [results, setResults] = useState(null);
+
+  const { register } = useWSS();
+  useEffect(() => {
+    register((data) => {
+      if (data.xcache.url === url) {
+        if (data.xcache.results) {
+          setResults({ xcache: data.xcache.results });
+          setLoading(false);
+        } else if (data.xcache.error) {
+          setError(data.xcache.error);
+          setLoading(false);
+        } else {
+          setLoading(true);
+        }
+      }
+    }, 'xcache');
+  }, [url, register]);
 
   const startFetch = useCallback(async () => {
     let response;
@@ -35,17 +54,22 @@ function XCacheAnalyze({
       setError(exc);
     } finally {
       setLoading(false);
-      if (finished) {
-        finished(error);
-      }
+      // if (finished) {
+      //   finished(error);
+      // }
     }
-  }, [accessToken, error, finished, url]);
+  }, [accessToken, error, url]);
 
   useEffect(() => {
     if (start && !(loading || error || results)) {
       startFetch();
     }
   }, [start, loading, error, results, startFetch]);
+  // useEffect(() => {
+  //   if (!(loading || error || results)) {
+  //     startFetch();
+  //   }
+  // }, [loading, error, results, startFetch]);
 
   if (minimalButton && !(results || error)) {
     return (

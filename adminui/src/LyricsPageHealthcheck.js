@@ -118,68 +118,58 @@ function ShowHealth({ health, accessToken }) {
   }
 
   function stopAllXCacheAnalyze() {
-    setXCacheAnalyzeAll(null);
-    setXCacheAnalysisDone(0);
-    setLoopsDone(0);
+    // setXCacheAnalyzeAll(null);
+    // setXCacheAnalysisDone(0);
+    // setLoopsDone(0);
   }
 
-  function nextAllXCacheAnalyze(url) {
-    if (xcacheAnalyzeAll === null) {
-      // It has been stopped!
-      return;
-    }
-    const todo = new Map();
-    let first = true;
-    for (let u of xcacheAnalyzeAll.keys()) {
-      if (u !== url) {
-        todo.set(u, first);
-        first = false;
-      }
-    }
-    if (!todo.size) {
-      // Start over!
-      if (loopsDone + 1 < maxXCacheAnalyzeAllLoops) {
-        health.forEach((page, i) => {
-          todo.set(page.url, i === 0);
-        });
-      } else {
-        setXCacheAnalyzeAll(null);
-        return;
-      }
-      setLoopsDone(loopsDone + 1);
-    }
-    setXCacheAnalyzeAll(todo);
-  }
+  // function nextAllXCacheAnalyze(url) {
+  //   if (xcacheAnalyzeAll === null) {
+  //     // It has been stopped!
+  //     return;
+  //   }
+  //   const todo = new Map();
+  //   let first = true;
+  //   for (let u of xcacheAnalyzeAll.keys()) {
+  //     if (u !== url) {
+  //       todo.set(u, first);
+  //       first = false;
+  //     }
+  //   }
+  //   if (!todo.size) {
+  //     // Start over!
+  //     if (loopsDone + 1 < maxXCacheAnalyzeAllLoops) {
+  //       health.forEach((page, i) => {
+  //         todo.set(page.url, i === 0);
+  //       });
+  //     } else {
+  //       setXCacheAnalyzeAll(null);
+  //       return;
+  //     }
+  //     setLoopsDone(loopsDone + 1);
+  //   }
+  //   setXCacheAnalyzeAll(todo);
+  // }
 
-  function isAutoStart(url) {
-    if (xcacheAnalyzeAll) {
-      return xcacheAnalyzeAll.get(url) || false;
-    }
-    return false;
-  }
+  // function isAutoStart(url) {
+  //   if (xcacheAnalyzeAll) {
+  //     return xcacheAnalyzeAll.get(url) || false;
+  //   }
+  //   return false;
+  // }
 
   const { register } = useWSS();
   useEffect(() => {
     register((data) => {
-      // console.log('NEW MESSAGE in ShowHealth?!', data);
-      if (data.xcache_todo) {
-        // console.log('GOT TO SET THE MAP', data.xcache_todo);
-        const newMap = new Map(Object.entries(data.xcache_todo));
-        if (newMap.size) {
-          setXCacheAnalyzeAll(newMap);
-        } else {
-          setXCacheAnalyzeAll(null);
-        }
+      const newMap = new Map(Object.entries(data.xcache_todo));
+
+      if (newMap.size) {
+        setXCacheAnalyzeAll(newMap);
+      } else {
+        setXCacheAnalyzeAll(null);
       }
-    });
+    }, 'xcache_todo');
   }, [register]);
-
-  console.log({ xcacheAnalyzeAll });
-  // console.log(JSON.stringify(xcacheAnalyzeAll));
-
-  // function onWebSocketMessage(msg) {
-  //   console.log('WS MESSAGE:', msg);
-  // }
 
   return (
     <div>
@@ -256,13 +246,13 @@ function ShowHealth({ health, accessToken }) {
               <XCacheAnalyze
                 accessToken={accessToken}
                 url={page.url}
-                start={isAutoStart(page.url)}
-                finished={(error) => {
-                  if (!error) {
-                    nextAllXCacheAnalyze(page.url);
-                    setXCacheAnalysisDone(xcacheAnalysisDone + 1);
-                  }
-                }}
+                // start={isAutoStart(page.url)}
+                // finished={(error) => {
+                //   if (!error) {
+                //     nextAllXCacheAnalyze(page.url);
+                //     setXCacheAnalysisDone(xcacheAnalysisDone + 1);
+                //   }
+                // }}
                 minimalButton={true}
               />
             </Segment>

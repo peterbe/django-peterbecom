@@ -15,26 +15,26 @@ class Callbacks {
     this.register = this.register.bind(this);
   }
   send(msg) {
-    this.functions.forEach((f) => f(msg));
+    this.functions.forEach(({ func, filter }) => {
+      if (!filter || msg[filter]) {
+        func(msg);
+      }
+    });
   }
-  register(f) {
-    this.functions.push(f);
+  register(func, filter) {
+    if (filter && filter instanceof String) {
+      filter = [filter];
+    }
+    this.functions.push({ func, filter });
   }
 }
 
-// const cbs = new Callbacks();
-
 export function WSSProvider({ children }) {
-  //   const [wss, setWss] = useState(null);
   const [connected, setConnected] = useState(null);
   const [websocketErrored, setWebsocketErrored] = useState(false);
 
-  // const [callbacks, setCallbacks] = useState([]);
-  // const callbacks = useRef();
   const cbs = new Callbacks();
   const callbacks = useRef(cbs);
-  // const callbacks = useRef(new Callbacks().bind(this));
-  // const callbacks = useRef(cbs);
 
   let wssRef = useRef();
   useEffect(() => {
@@ -43,10 +43,7 @@ export function WSSProvider({ children }) {
     const wsUrl = process.env.REACT_APP_WS_URL || 'wss://admin.peterbe.com/ws';
 
     console.log(`Setting up WebSocket connection to ${wsUrl}`);
-    // callbacks.current = new Callbacks();
     wssRef.current = new Sockette(wsUrl, {
-      // setWss(
-      //   new Sockette(wsUrl, {
       timeout: 5e3,
       maxAttempts: 25,
       onopen: (e) => {
@@ -64,9 +61,7 @@ export function WSSProvider({ children }) {
           console.warn('WebSocket message data is not JSON');
           data = e.data;
         }
-        // console.log('GOT TO DO SOMETHING WITH', data);
         callbacks.current.send(data);
-        //   onMessage(data);
       },
       onreconnect: (e) => {
         console.log('Reconnecting WebSocket');
@@ -88,15 +83,12 @@ export function WSSProvider({ children }) {
     };
   }, []);
 
-  // console.log('CURRENT:', callbacks.current);
   var returnThese = {
-    // register: callbacks.current ? callbacks.current.register : null,
     register: callbacks.current.register,
     wss: wssRef.current,
     connected,
     errored: websocketErrored,
   };
-  // console.log('RETURNING', returnThese);
   return (
     <WSSContext.Provider value={returnThese}>{children}</WSSContext.Provider>
   );

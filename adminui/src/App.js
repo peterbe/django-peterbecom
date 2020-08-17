@@ -204,6 +204,8 @@ class App extends React.Component {
       }
     } else if (msg.xcache_todo) {
       // pass
+    } else if (msg.xcache) {
+      // pass
     } else {
       let description = JSON.stringify(msg);
       if (typeof msg === 'object') {
