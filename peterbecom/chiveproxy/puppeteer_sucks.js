@@ -10,13 +10,13 @@ if (process.argv.length < 3) {
 }
 const url = process.argv[2];
 
-(async url => {
+(async (url) => {
   const browser = await puppeteer.launch({
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu'],
     defaultViewport: {
       width: 1920,
-      height: 2080
-    }
+      height: 2080,
+    },
   });
   const page = await browser.newPage();
   page.setDefaultTimeout(60 * 1000);
@@ -24,7 +24,7 @@ const url = process.argv[2];
   try {
     response = await page.goto(url, {
       timeout: 50 * 1000,
-      waitUntil: 'networkidle2'
+      waitUntil: 'networkidle2',
     });
   } catch (error) {
     console.warn(`Failed to goto ${url}`, error);
