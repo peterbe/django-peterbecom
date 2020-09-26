@@ -19,7 +19,7 @@
     "semantic-ui-css": "2.4.1",
     "semantic-ui-react": "0.88.2",
     "sockette": "2.0.6",
-    "swr": "0.3.4",
+    "swr": "0.3.5",
     "throttle-debounce": "2.3.0"
   },
   "resolutions": {
