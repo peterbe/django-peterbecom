@@ -799,7 +799,7 @@ class Thumbnails extends React.PureComponent {
                 const thumb = image[key];
 
                 const imageTagHtml = `
-                <img src="${thumb.url}" alt="${thumb.alt}" width="${thumb.width}" height="${thumb.height}">
+                <img src="${thumb.url}" alt="${thumb.alt}" width="${thumb.width}" height="${thumb.height}" loading="lazy">
                 `.trim();
                 const aTagHtml = `
                 <a href="${image.full_url}">${imageTagHtml.replace(
