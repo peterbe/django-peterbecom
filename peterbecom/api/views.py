@@ -1,16 +1,18 @@
 import datetime
+import io
 import json
 import os
+import random
 import re
 import statistics
 import time
-import random
 import traceback
 from collections import defaultdict
 from functools import lru_cache, wraps
 from io import StringIO
 from urllib.parse import urlparse
 
+import py_avataaars
 import requests
 from django import http
 from django.conf import settings
@@ -2013,49 +2015,39 @@ def whereami(request):
 
 
 @cache_control(max_age=60, public=True)
-def avatar_svg(request):
-    initial = request.GET.get("initial", "?")
+def avatar_image(request, format="png"):
     seed = request.GET.get("seed") or str(random.random())
 
-    COLORS = [
-        ["#DF7FD7", "#DF7FD7", "#591854"],
-        ["#E3CAC8", "#DF8A82", "#5E3A37"],
-        ["#E6845E", "#E05118", "#61230B"],
-        ["#E0B050", "#E6CB97", "#614C23"],
-        ["#9878AD", "#492661", "#C59BE0"],
-        ["#787BAD", "#141961", "#9B9FE0"],
-        ["#78A2AD", "#104F61", "#9BD1E0"],
-        ["#78AD8A", "#0A6129", "#9BE0B3"],
-    ]
+    if seed != "random":
+        random.seed(seed)
 
-    INITIALS_SVG_TEMPLATE = """
-    <svg xmlns="http://www.w3.org/2000/svg" pointer-events="none" width="200" height="200">
-    <defs>
-        <linearGradient id="grad">
-        <stop offset="0%" stop-color="{color1}" />
-        <stop offset="100%" stop-color="{color2}" />
-        </linearGradient>
-    </defs>
-    <rect width="200" height="200" rx="0" ry="0" fill="url(#grad)"></rect>
-    <text text-anchor="middle" y="50%" x="50%" dy="0.35em"
-            pointer-events="auto" fill="{text_color}" font-family="sans-serif"
-            style="font-weight: 400; font-size: 80px">{text}</text>
-    </svg>
-    """.strip()
+    bytes = io.BytesIO()
 
-    random.seed(seed)
-    random_color = random.choice(COLORS)
-    from xml.sax.saxutils import escape as xml_escape
+    def r(enum_):
+        return random.choice(list(enum_))
 
-    svg_avatar = INITIALS_SVG_TEMPLATE.format(
-        **{
-            "color1": random_color[0],
-            "color2": random_color[1],
-            "text_color": random_color[2],
-            "text": xml_escape(initial),
-        }
-    ).replace("\n", "")
+    avatar = py_avataaars.PyAvataaar(
+        style=py_avataaars.AvatarStyle.CIRCLE,
+        skin_color=r(py_avataaars.SkinColor),
+        hair_color=r(py_avataaars.HairColor),
+        facial_hair_type=r(py_avataaars.FacialHairType),
+        facial_hair_color=r(py_avataaars.FacialHairColor),
+        top_type=r(py_avataaars.TopType),
+        hat_color=r(py_avataaars.ClotheColor),
+        mouth_type=r(py_avataaars.MouthType),
+        eye_type=r(py_avataaars.EyesType),
+        eyebrow_type=r(py_avataaars.EyebrowType),
+        nose_type=r(py_avataaars.NoseType),
+        accessories_type=r(py_avataaars.AccessoriesType),
+        clothe_type=r(py_avataaars.ClotheType),
+        clothe_color=r(py_avataaars.ClotheColor),
+        clothe_graphic_type=r(py_avataaars.ClotheGraphicType),
+    )
+    if format == "svg":
+        avatar.render_svg_file(bytes)
+    else:
+        avatar.render_png_file(bytes)
 
-    response = http.HttpResponse(svg_avatar)
-    response["content-type"] = "image/svg+xml"
+    response = http.HttpResponse(bytes.getvalue())
+    response["content-type"] = "image/svg+xml" if format == "svg" else "image/png"
     return response
