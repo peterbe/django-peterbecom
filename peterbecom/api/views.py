@@ -2015,8 +2015,9 @@ def whereami(request):
 
 
 @cache_control(max_age=60, public=True)
-def avatar_image(request, format="png"):
-    seed = request.GET.get("seed") or str(random.random())
+def avatar_image(request, seed=None, format="png"):
+    if not seed:
+        seed = request.GET.get("seed") or str(random.random())
 
     if seed != "random":
         random.seed(seed)
