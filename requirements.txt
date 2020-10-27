@@ -457,3 +457,6 @@ profanity==1.1 \
 amightygirl.paapi5-python-sdk==1.0.0 \
     --hash=sha256:03703b228f8f93f1d3473e98054ebde7a4ca3184dd7f3645b4b95f4cdf9229d1 \
     --hash=sha256:9d1f03bca56911e1dc779e81202260988cfea3f48bc71d5fb5688e2ee79c709b
+py-avataaars==1.0.2 \
+    --hash=sha256:35e530387709090e8d436b8e8cabe3ae77e45dbb759c1dd58fd1bb95cd601b9a \
+    --hash=sha256:4cd32cf0a769a7ee9dcd021f10d4e8e061a5119624f3aebd0b9822a350e56772

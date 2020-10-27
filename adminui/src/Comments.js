@@ -565,9 +565,7 @@ class CommentTree extends React.PureComponent {
 
   gravatarSrc = (comment) => {
     let default_ = new URL(
-      `/api/v0/avatar.svg?initial=${(comment.name || comment.oid).charAt(
-        0
-      )}&seed=${comment.oid}&size=35`,
+      `/api/v0/avatar.png?seed=${comment.oid}&size=35`,
       'https://admin.peterbe.com'
     ).toString();
     if (comment.email) {
