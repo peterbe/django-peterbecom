@@ -4,6 +4,7 @@ import os
 import re
 import statistics
 import time
+import random
 import traceback
 from collections import defaultdict
 from functools import lru_cache, wraps
@@ -2009,3 +2010,52 @@ def whereami(request):
     context["ip_address"] = ip_address
     context["geo"] = ip_to_city(ip_address)
     return _response(context)
+
+
+@cache_control(max_age=60, public=True)
+def avatar_svg(request):
+    initial = request.GET.get("initial", "?")
+    seed = request.GET.get("seed") or str(random.random())
+
+    COLORS = [
+        ["#DF7FD7", "#DF7FD7", "#591854"],
+        ["#E3CAC8", "#DF8A82", "#5E3A37"],
+        ["#E6845E", "#E05118", "#61230B"],
+        ["#E0B050", "#E6CB97", "#614C23"],
+        ["#9878AD", "#492661", "#C59BE0"],
+        ["#787BAD", "#141961", "#9B9FE0"],
+        ["#78A2AD", "#104F61", "#9BD1E0"],
+        ["#78AD8A", "#0A6129", "#9BE0B3"],
+    ]
+
+    INITIALS_SVG_TEMPLATE = """
+    <svg xmlns="http://www.w3.org/2000/svg" pointer-events="none" width="200" height="200">
+    <defs>
+        <linearGradient id="grad">
+        <stop offset="0%" stop-color="{color1}" />
+        <stop offset="100%" stop-color="{color2}" />
+        </linearGradient>
+    </defs>
+    <rect width="200" height="200" rx="0" ry="0" fill="url(#grad)"></rect>
+    <text text-anchor="middle" y="50%" x="50%" dy="0.35em"
+            pointer-events="auto" fill="{text_color}" font-family="sans-serif"
+            style="font-weight: 400; font-size: 80px">{text}</text>
+    </svg>
+    """.strip()
+
+    random.seed(seed)
+    random_color = random.choice(COLORS)
+    from xml.sax.saxutils import escape as xml_escape
+
+    svg_avatar = INITIALS_SVG_TEMPLATE.format(
+        **{
+            "color1": random_color[0],
+            "color2": random_color[1],
+            "text_color": random_color[2],
+            "text": xml_escape(initial),
+        }
+    ).replace("\n", "")
+
+    response = http.HttpResponse(svg_avatar)
+    response["content-type"] = "image/svg+xml"
+    return response
