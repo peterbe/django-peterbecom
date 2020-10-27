@@ -564,18 +564,12 @@ class CommentTree extends React.PureComponent {
   };
 
   gravatarSrc = (comment) => {
-    // let default_ = `https://api.adorable.io/avatars/35/${md5(
-    //   comment.name || comment.oid
-    // )}.png`;
-
     let default_ = new URL(
       `/api/v0/avatar.svg?initial=${(comment.name || comment.oid).charAt(
         0
       )}&seed=${comment.oid}&size=35`,
-      // window.location.href
       'https://admin.peterbe.com'
     ).toString();
-    console.log(default_);
     if (comment.email) {
       return `https://www.gravatar.com/avatar/${md5(
         comment.email
