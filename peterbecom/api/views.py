@@ -2014,18 +2014,18 @@ def whereami(request):
 
 @cache_control(max_age=60, public=True)
 def avatar_svg(request):
-    initial = request.GET.get('initial', '?')
-    seed = request.GET.get('seed') or str(random.random())
+    initial = request.GET.get("initial", "?")
+    seed = request.GET.get("seed") or str(random.random())
 
     COLORS = [
-        ['#DF7FD7', '#DF7FD7', '#591854'],
-        ['#E3CAC8', '#DF8A82', '#5E3A37'],
-        ['#E6845E', '#E05118', '#61230B'],
-        ['#E0B050', '#E6CB97', '#614C23'],
-        ['#9878AD', '#492661', '#C59BE0'],
-        ['#787BAD', '#141961', '#9B9FE0'],
-        ['#78A2AD', '#104F61', '#9BD1E0'],
-        ['#78AD8A', '#0A6129', '#9BE0B3'],
+        ["#DF7FD7", "#DF7FD7", "#591854"],
+        ["#E3CAC8", "#DF8A82", "#5E3A37"],
+        ["#E6845E", "#E05118", "#61230B"],
+        ["#E0B050", "#E6CB97", "#614C23"],
+        ["#9878AD", "#492661", "#C59BE0"],
+        ["#787BAD", "#141961", "#9B9FE0"],
+        ["#78A2AD", "#104F61", "#9BD1E0"],
+        ["#78AD8A", "#0A6129", "#9BE0B3"],
     ]
 
     INITIALS_SVG_TEMPLATE = """
@@ -2046,13 +2046,16 @@ def avatar_svg(request):
     random.seed(seed)
     random_color = random.choice(COLORS)
     from xml.sax.saxutils import escape as xml_escape
-    svg_avatar = INITIALS_SVG_TEMPLATE.format(**{
-        'color1': random_color[0],
-        'color2': random_color[1],
-        'text_color': random_color[2],
-        'text': xml_escape(initial),
-    }).replace('\n', '')
+
+    svg_avatar = INITIALS_SVG_TEMPLATE.format(
+        **{
+            "color1": random_color[0],
+            "color2": random_color[1],
+            "text_color": random_color[2],
+            "text": xml_escape(initial),
+        }
+    ).replace("\n", "")
 
     response = http.HttpResponse(svg_avatar)
-    response['content-type'] = 'image/svg+xml'
+    response["content-type"] = "image/svg+xml"
     return response
