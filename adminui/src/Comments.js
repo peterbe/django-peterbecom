@@ -14,7 +14,7 @@ import {
   Input,
   Message,
   TextArea,
-  Form
+  Form,
 } from 'semantic-ui-react';
 import { parseISO, formatDistance } from 'date-fns/esm';
 import { DisplayDate, ShowServerError } from './Common';
@@ -51,7 +51,7 @@ class Comments extends React.Component {
     approved: {},
     deleted: {},
     deleting: {},
-    approving: {}
+    approving: {},
   };
 
   componentDidMount() {
@@ -68,7 +68,7 @@ class Comments extends React.Component {
         {
           unapprovedOnly: getDefault(this.props, 'unapproved', '') === 'only',
           autoapprovedOnly:
-            getDefault(this.props, 'autoapproved', '') === 'only'
+            getDefault(this.props, 'autoapproved', '') === 'only',
         },
         () => {
           this.fetchComments();
@@ -97,8 +97,8 @@ class Comments extends React.Component {
       try {
         response = await fetch(url, {
           headers: {
-            Authorization: `Bearer ${accessToken}`
-          }
+            Authorization: `Bearer ${accessToken}`,
+          },
         });
       } catch (ex) {
         return this.setState({ loading: false, serverError: ex });
@@ -113,7 +113,7 @@ class Comments extends React.Component {
           countries: data.countries,
           auto_approve_good_comments_records:
             data.auto_approve_good_comments_records,
-          loading: false
+          loading: false,
         });
       } else {
         this.setState({ serverError: response, loading: false });
@@ -121,15 +121,15 @@ class Comments extends React.Component {
     });
   };
 
-  deleteComments = async oids => {
+  deleteComments = async (oids) => {
     const deleting = {};
-    oids.forEach(oid => {
+    oids.forEach((oid) => {
       deleting[oid] = true;
     });
     this.setState({ loading: true, deleting }, async () => {
       await this._deleteOrApproveComments('delete', { oids });
       const deleted = Object.assign({}, this.state.deleted);
-      oids.forEach(oid => {
+      oids.forEach((oid) => {
         deleted[oid] = true;
       });
       this.setState({ deleting: {}, deleted }, () => {
@@ -138,15 +138,15 @@ class Comments extends React.Component {
     });
   };
 
-  approveComments = async oids => {
+  approveComments = async (oids) => {
     const approving = {};
-    oids.forEach(oid => {
+    oids.forEach((oid) => {
       approving[oid] = true;
     });
     this.setState({ loading: true, approving }, async () => {
       await this._deleteOrApproveComments('approve', { oids });
       const approved = Object.assign({}, this.state.approved);
-      oids.forEach(oid => {
+      oids.forEach((oid) => {
         approved[oid] = true;
       });
       this.setState({ approving: {}, approved }, () => {
@@ -155,10 +155,10 @@ class Comments extends React.Component {
     });
   };
 
-  _resetChecked = oids => {
+  _resetChecked = (oids) => {
     const checkedForApproval = this.state.checkedForApproval;
     const checkedForDelete = this.state.checkedForDelete;
-    oids.forEach(oid => {
+    oids.forEach((oid) => {
       delete checkedForApproval[oid];
       delete checkedForDelete[oid];
     });
@@ -180,14 +180,14 @@ class Comments extends React.Component {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`
+          Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
       });
       if (response.ok) {
         this.setState({
           loading: false,
-          serverError: null
+          serverError: null,
         });
       } else {
         this.setState({ serverError: response, loading: false });
@@ -215,14 +215,14 @@ class Comments extends React.Component {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`
+          Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
       });
       if (response.ok) {
         const data = await response.json();
         function mutateCommentTexts(comments) {
-          comments.forEach(c => {
+          comments.forEach((c) => {
             if (c.oid === comment.oid) {
               c.comment = data.comment;
               c.name = data.name;
@@ -242,7 +242,7 @@ class Comments extends React.Component {
           comments,
           editing,
           loading: false,
-          serverError: null
+          serverError: null,
         });
       } else {
         this.setState({ serverError: response, loading: false });
@@ -261,7 +261,7 @@ class Comments extends React.Component {
       auto_approve_good_comments_records,
       serverError,
       unapprovedOnly,
-      autoapprovedOnly
+      autoapprovedOnly,
     } = this.state;
     return (
       <Container>
@@ -281,7 +281,7 @@ class Comments extends React.Component {
             search={this.state.search}
             unapprovedOnly={unapprovedOnly}
             autoapprovedOnly={autoapprovedOnly}
-            update={updates => {
+            update={(updates) => {
               this.setState(updates, () => {
                 let newURL = new URL(
                   this.props.location.pathname,
@@ -323,10 +323,10 @@ class Comments extends React.Component {
               approved={this.state.approved}
               deleted={this.state.deleted}
               editComment={this.editComment}
-              approveComment={oid => {
+              approveComment={(oid) => {
                 this.approveComments([oid]);
               }}
-              deleteComment={oid => {
+              deleteComment={(oid) => {
                 this.deleteComments([oid]);
               }}
               checkedForApproval={this.state.checkedForApproval}
@@ -347,12 +347,12 @@ class Comments extends React.Component {
                 checkedForDelete[oid] = toggle;
                 this.setState({ checkedForDelete });
               }}
-              setEditing={oid => {
+              setEditing={(oid) => {
                 const editing = Object.assign({}, this.state.editing);
                 editing[oid] = !editing[oid];
                 this.setState({ editing });
               }}
-              updateFilterSearch={search => {
+              updateFilterSearch={(search) => {
                 // const ref = this.refs.q.inputRef;
                 // let {search}=this.state
                 // if (search.includes(newSearch)) {
@@ -387,7 +387,7 @@ class Comments extends React.Component {
           <Button
             fluid
             type="text"
-            onClick={event => {
+            onClick={(event) => {
               this.fetchComments(true);
               window.scrollTo(0, 0);
             }}
@@ -404,13 +404,13 @@ export default Comments;
 
 class FilterForm extends React.Component {
   state = {
-    search: this.props.search || ''
+    search: this.props.search || '',
   };
 
   componentDidUpdate(prevProps) {
     if (prevProps.search !== this.props.search) {
       this.setState({
-        search: this.props.search
+        search: this.props.search,
       });
     }
   }
@@ -418,7 +418,7 @@ class FilterForm extends React.Component {
   render() {
     return (
       <form
-        onSubmit={event => {
+        onSubmit={(event) => {
           event.preventDefault();
           const { search } = this.state;
           this.props.update({ search });
@@ -458,8 +458,8 @@ class FilterForm extends React.Component {
             {
               key: 'autoapproved',
               value: 'autoapproved',
-              text: 'Autoapproved only'
-            }
+              text: 'Autoapproved only',
+            },
           ]}
         />
       </form>
@@ -473,7 +473,7 @@ class Checked extends React.Component {
       checkedForApproval,
       checkedForDelete,
       approveComments,
-      deleteComments
+      deleteComments,
     } = this.props;
     const oidsForApproval = Object.entries(checkedForApproval)
       .filter(([_, value]) => value)
@@ -490,7 +490,7 @@ class Checked extends React.Component {
             <Button
               positive
               type="text"
-              onClick={event => {
+              onClick={(event) => {
                 approveComments(oidsForApproval);
               }}
             >
@@ -502,7 +502,7 @@ class Checked extends React.Component {
             <Button
               negative
               type="text"
-              onClick={event => {
+              onClick={(event) => {
                 deleteComments(oidsForDelete);
               }}
             >
@@ -526,7 +526,7 @@ class CommentsTree extends React.PureComponent {
           {count.toLocaleString()} Comments
         </Header>
 
-        {comments.map(comment => {
+        {comments.map((comment) => {
           const differentBlogitem = lastBlogitem !== comment.blogitem.id;
           lastBlogitem = comment.blogitem.id;
           return (
@@ -535,7 +535,7 @@ class CommentsTree extends React.PureComponent {
               comment={comment}
               root={true}
               showBlogitem={differentBlogitem}
-              addToSearch={term => {
+              addToSearch={(term) => {
                 updateFilterSearch(term);
               }}
               {...this.props}
@@ -550,9 +550,9 @@ class CommentsTree extends React.PureComponent {
 class CommentTree extends React.PureComponent {
   static defaultProps = {
     root: false,
-    showBlogitem: false
+    showBlogitem: false,
   };
-  hotness = seconds => {
+  hotness = (seconds) => {
     if (seconds < 60) {
       return '🔥🔥🔥';
     } else if (seconds < 60 * 60) {
@@ -563,9 +563,19 @@ class CommentTree extends React.PureComponent {
     return '';
   };
 
-  gravatarSrc = comment => {
-    let default_ = `https://api.adorable.io/avatars/35/${comment.name ||
-      comment.oid}.png`;
+  gravatarSrc = (comment) => {
+    // let default_ = `https://api.adorable.io/avatars/35/${md5(
+    //   comment.name || comment.oid
+    // )}.png`;
+
+    let default_ = new URL(
+      `/api/v0/avatar.svg?initial=${(comment.name || comment.oid).charAt(
+        0
+      )}&seed=${comment.oid}&size=35`,
+      // window.location.href
+      'https://admin.peterbe.com'
+    ).toString();
+    console.log(default_);
     if (comment.email) {
       return `https://www.gravatar.com/avatar/${md5(
         comment.email
@@ -574,7 +584,7 @@ class CommentTree extends React.PureComponent {
     return default_;
   };
 
-  bumpedIndicator = comment => {
+  bumpedIndicator = (comment) => {
     if (!comment._bumped) return null;
     const diff = formatDistance(
       parseISO(comment.add_date),
@@ -602,7 +612,7 @@ class CommentTree extends React.PureComponent {
       deleted,
       approved,
       deleting,
-      approving
+      approving,
     } = this.props;
 
     const showAvatars = !window.matchMedia('(max-width: 600px)').matches;
@@ -632,7 +642,7 @@ class CommentTree extends React.PureComponent {
               style={{ display: 'inline', cursor: 'pointer' }}
               size="mini"
               name="search"
-              onClick={event => {
+              onClick={(event) => {
                 event.preventDefault();
                 addToSearch(`blogitem:${comment.blogitem.oid}`);
               }}
@@ -708,7 +718,7 @@ class CommentTree extends React.PureComponent {
             <Comment.Action>
               <Button
                 type="checkbox"
-                onClick={event => {
+                onClick={(event) => {
                   setEditing(comment.oid);
                 }}
                 size="mini"
@@ -744,7 +754,7 @@ class CommentTree extends React.PureComponent {
                     }
                     positive
                     loading={!!approving[comment.oid]}
-                    onClick={event => {
+                    onClick={(event) => {
                       event.preventDefault();
                       approveComment(comment.oid);
                     }}
@@ -759,7 +769,7 @@ class CommentTree extends React.PureComponent {
                     }
                     negative
                     loading={!!deleting[comment.oid]}
-                    onClick={event => {
+                    onClick={(event) => {
                       event.preventDefault();
                       deleteComment(comment.oid);
                     }}
@@ -784,7 +794,7 @@ class CommentTree extends React.PureComponent {
 
         {comment.replies.length ? (
           <Comment.Group>
-            {comment.replies.map(reply => (
+            {comment.replies.map((reply) => (
               <CommentTree
                 comment={reply}
                 key={reply.id}
@@ -824,17 +834,17 @@ class EditComment extends React.PureComponent {
   state = {
     text: this.props.comment.comment,
     name: this.props.comment.name || '',
-    email: this.props.comment.email || ''
+    email: this.props.comment.email || '',
   };
   render() {
     return (
       <Form
-        onSubmit={event => {
+        onSubmit={(event) => {
           event.preventDefault();
           this.props.editComment(this.props.comment, {
             text: this.state.text,
             name: this.state.name,
-            email: this.state.email
+            email: this.state.email,
           });
         }}
       >
@@ -911,7 +921,7 @@ function ShowAutoApproveGoodComments({ records }) {
         Countries of Commenters Previous auto approve good comments
       </Header>
       <ul>
-        {records.records.map(record => {
+        {records.records.map((record) => {
           return (
             <li key={record[0]}>
               {record[0]}: <b>{record[1]}</b> approved comments
