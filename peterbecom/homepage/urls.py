@@ -22,6 +22,13 @@ urlpatterns = [
     url("^sitemap.xml$", views.sitemap, name="sitemap"),
     url("^humans.txt$", views.humans_txt, name="humans_txt"),
     url(r"^slowstatic/(?P<path>.*)", views.slow_static, name="slow_static"),
+    url(r"avatar\.html", views.avatar_image_test_page, name="avatar_image_test_page"),
+    url(
+        r"avatar\.(?P<seed>\w+)\.png",
+        views.avatar_image,
+        name="avatar_image",
+    ),
+    url(r"avatar\.png", views.avatar_image, name="avatar_image"),
     url(r"^__huey__", views.huey_test, name="huey_test"),
     url(r"^__dynamic__", views.dynamic_page, name="dynamic_page"),
     url(r"^(.*)", views.blog_post_by_alias, name="blog_post_by_alias"),

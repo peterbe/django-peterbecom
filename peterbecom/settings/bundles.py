@@ -111,6 +111,12 @@ PIPELINE_JS = {
         "extra_context": {"defer": True},
         "template_name": "custom_pipeline/js.html",
     },
+    "avatar-image": {
+        "source_filenames": ("js/avatar-image.js",),
+        "output_filename": "js/avatar-image.min.js",
+        "extra_context": {"defer": True},
+        "template_name": "custom_pipeline/js.html",
+    },
     "plog:post": {
         "source_filenames": ("js/blogitem-ping.js", "js/blogitem-awspa.js"),
         "output_filename": "js/blogitem-post.min.js",
