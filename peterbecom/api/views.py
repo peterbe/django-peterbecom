@@ -1,8 +1,6 @@
 import datetime
-import io
 import json
 import os
-import random
 import re
 import statistics
 import time
@@ -12,7 +10,6 @@ from functools import lru_cache, wraps
 from io import StringIO
 from urllib.parse import urlparse
 
-import py_avataaars
 import requests
 from django import http
 from django.conf import settings
@@ -2012,43 +2009,3 @@ def whereami(request):
     context["ip_address"] = ip_address
     context["geo"] = ip_to_city(ip_address)
     return _response(context)
-
-
-@cache_control(max_age=60, public=True)
-def avatar_image(request, seed=None, format="png"):
-    if not seed:
-        seed = request.GET.get("seed") or str(random.random())
-
-    if seed != "random":
-        random.seed(seed)
-
-    bytes = io.BytesIO()
-
-    def r(enum_):
-        return random.choice(list(enum_))
-
-    avatar = py_avataaars.PyAvataaar(
-        style=py_avataaars.AvatarStyle.CIRCLE,
-        skin_color=r(py_avataaars.SkinColor),
-        hair_color=r(py_avataaars.HairColor),
-        facial_hair_type=r(py_avataaars.FacialHairType),
-        facial_hair_color=r(py_avataaars.FacialHairColor),
-        top_type=r(py_avataaars.TopType),
-        hat_color=r(py_avataaars.ClotheColor),
-        mouth_type=r(py_avataaars.MouthType),
-        eye_type=r(py_avataaars.EyesType),
-        eyebrow_type=r(py_avataaars.EyebrowType),
-        nose_type=r(py_avataaars.NoseType),
-        accessories_type=r(py_avataaars.AccessoriesType),
-        clothe_type=r(py_avataaars.ClotheType),
-        clothe_color=r(py_avataaars.ClotheColor),
-        clothe_graphic_type=r(py_avataaars.ClotheGraphicType),
-    )
-    if format == "svg":
-        avatar.render_svg_file(bytes)
-    else:
-        avatar.render_png_file(bytes)
-
-    response = http.HttpResponse(bytes.getvalue())
-    response["content-type"] = "image/svg+xml" if format == "svg" else "image/png"
-    return response

@@ -76,11 +76,5 @@ urlpatterns = [
     ),
     url(r"xcache/analyze", views.xcache_analyze, name="xcache_analyze"),
     url(r"whereami", views.whereami, name="whereami"),
-    url(
-        r"avatar\.(?P<seed>\w+)\.(?P<format>svg|png)",
-        views.avatar_image,
-        name="avatar_image",
-    ),
-    url(r"avatar\.(?P<format>svg|png)", views.avatar_image, name="avatar_image"),
     url(r"", views.catch_all, name="catch_all"),
 ]
