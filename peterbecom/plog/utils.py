@@ -172,7 +172,7 @@ def stx_to_html(text, codesyntax):
 
 
 def _get_lexer(codesyntax):
-    if codesyntax in ("cpp", "javascript"):
+    if codesyntax in ("cpp", "javascript", "js"):
         return lexers.JavascriptLexer()
     elif codesyntax == "python":
         return lexers.PythonLexer()
@@ -180,6 +180,8 @@ def _get_lexer(codesyntax):
         return lexers.JsonLexer()
     elif codesyntax == "xml" or codesyntax == "html":
         return lexers.HtmlLexer()
+    elif codesyntax == "django" or codesyntax == "jinja":
+        return lexers.DjangoLexer()
     elif codesyntax == "yml" or codesyntax == "yaml":
         return lexers.YamlLexer()
     elif codesyntax == "css":
@@ -209,7 +211,7 @@ def _get_lexer(codesyntax):
 
 
 _codesyntax_regex = re.compile(
-    "```(python|cpp|javascript|json|xml|html|yml|yaml|lisp|emacslisp|css|sql|sh|bash|go|diff|jsx|rust|dockerfile|docker)"  # noqa
+    "```(python|cpp|javascript|json|xml|html|yml|django|jinja|yaml|lisp|emacslisp|css|sql|sh|bash|go|diff|jsx|rust|dockerfile|docker|js)"  # noqa
 )
 _markdown_pre_regex = re.compile(r"(```(.*?)```)", re.M | re.DOTALL)
 
