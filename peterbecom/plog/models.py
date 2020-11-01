@@ -587,6 +587,9 @@ def invalidate_fscache(sender, instance, **kwargs):
 @receiver(models.signals.post_save, sender=BlogItem)
 @receiver(models.signals.post_save, sender=BlogComment)
 def update_es(sender, instance, **kwargs):
+    if sender is BlogComment:
+        if not instance.approved:
+            return
     doc = instance.to_search()
     es_retry(doc.save)
 
