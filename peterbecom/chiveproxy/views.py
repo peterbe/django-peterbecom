@@ -44,6 +44,10 @@ def api_cards(request):
         if "img" not in card.data:
             continue
 
+        if not card.data["pictures"]:
+            print(f"WARNING! {card!r} does not have any pictures")
+            continue
+
         context["cards"].append(
             dict(
                 # card.data,
@@ -66,7 +70,33 @@ def api_cards(request):
 
 @periodic_task(crontab(hour="*", minute="1"))
 def update_cards_periodically():
-    update_cards(limit=10)
+    print("CARDS: Updating cards periodically")
+    update_cards(limit=15)
+
+
+@periodic_task(crontab(hour="*", minute="2"))
+def update_cards_without_pictures_periodically():
+    print("CARDS: Updating cards without pictures")
+    qs = Card.objects
+    for card in qs.order_by("-created")[:100]:
+        if card.data["pictures"]:
+            continue
+        retry_cache_key = "retried:{}".format(card.pk)
+        print("CARDS:", retry_cache_key, repr(card), "HAS NO PICTURES")
+        if not cache.get(retry_cache_key):
+            print(f"Retrying card {card!r}...")
+            try:
+                card.data = get_card(card.url)
+                print(f"CARDS: Fixed {card!r}: {len(card.data['pictures'])} pictures")
+                card.save()
+            except Exception as e:
+                print(f"CARDS: Error on get_card({card.url!r}):", e)
+            finally:
+                cache.set(
+                    retry_cache_key,
+                    str(timezone.now()),
+                    settings.DEBUG and 60 or 60 * 60,
+                )
 
 
 def update_cards(limit=None):
@@ -86,12 +116,7 @@ def api_card(request, pk):
         if request.GET["url"] != card.url:
             return http.HttpResponseBadRequest("wrong URL")
     if not card.data["pictures"]:
-        # Try again! ...if you haven't already
-        retry_cache_key = "retried:{}".format(pk)
-        if not cache.get(retry_cache_key):
-            card.data = get_card(card.url)
-            card.save()
-            cache.set(retry_cache_key, str(timezone.now()), settings.DEBUG and 6 or 60)
+        return http.Http404("Card has no pictures")
     return http.JsonResponse(
         {
             "id": card.id,

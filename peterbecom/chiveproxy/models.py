@@ -15,6 +15,9 @@ class Card(models.Model):
     def get_text(self, default=""):
         return self.data.get("text") or default
 
+    def __str__(self):
+        return self.url
+
 
 @receiver(pre_save, sender=Card)
 def set_text(sender, instance, **kwargs):

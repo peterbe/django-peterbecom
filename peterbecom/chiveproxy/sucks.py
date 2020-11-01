@@ -85,6 +85,7 @@ def get_card(url):
             cache.set(puppeteer_cache_key, html, 60)
     else:
         print("No need sucking", url, "(cached)")
+
     doc = pyquery.PyQuery(html)
 
     for h1 in doc("h1#post-title").items():
@@ -107,6 +108,7 @@ def get_card(url):
     for figure in doc("figure.gallery-item").items():
         caption = []
         gifsrc = None
+        mp4src = None
         src = None
         for p in figure("figcaption.gallery-caption p").items():
             caption.append(p.text())
@@ -119,10 +121,20 @@ def get_card(url):
                 src = img.attr("src")
                 break
         if not src:
+            for video in figure("video.video-gif").items():
+                for source in video("source").items():
+                    if source.attr("type") == "video/mp4":
+                        mp4src = source.attr("src")
+                    break
+                if mp4src:
+                    src = video.attr("poster")
+                break
+
+        if not src:
             # Happens sometimes when it's just a bunch of Twitter quotes.
             # if settings.DEBUG:
             #     raise Exception("No src on {}".format(url))
-            print("NO PICTURES figuree", figure)
+            print(f"NO PICTURES (in {url}) figuree", figure)
             continue
 
         src = src.replace("http://", "https://")
@@ -131,6 +143,13 @@ def get_card(url):
             gifsrc = gifsrc.replace("http://", "https://")
             # assert gifsrc.startswith("https://")
 
-        pictures.append({"img": src, "gifsrc": gifsrc, "caption": "\n".join(caption)})
+        pictures.append(
+            {
+                "img": src,
+                "gifsrc": gifsrc,
+                "mp4src": mp4src,
+                "caption": "\n".join(caption),
+            }
+        )
 
     return {"text": text, "pictures": pictures, "date": date}
