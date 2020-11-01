@@ -846,6 +846,14 @@ def avatar_image(request, seed=None):
     response = http.HttpResponse(bytes.getvalue())
     response["content-type"] = "image/png"
     if seed == "random":
+        ip_address = request.headers.get("x-forwarded-for") or request.META.get(
+            "REMOTE_ADDR"
+        )
+        referer = request.headers.get("Referer")
+        user_agent = request.headers.get("User-Agent")
+        print(
+            f"RANDOM AVATAR: IP: {ip_address}\tREFERER: {referer}\tAGENT: {user_agent}"
+        )
         add_never_cache_headers(response)
     else:
         patch_cache_control(response, max_age=60, public=True)
