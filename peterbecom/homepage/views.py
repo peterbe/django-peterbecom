@@ -851,8 +851,8 @@ REDIS_RANDOM_AVATARS_LIST_KEY = "random_avatars_list"
 def keep_random_avatars_redis_list_filled():
     key = REDIS_RANDOM_AVATARS_LIST_KEY
     print(f"# random avatars in Redis: {redis_client.llen(key)} ({timezone.now()})")
-    while redis_client.llen(key) < 100:
-        random_avatars = [get_random_avatar() for _ in range(50)]
+    while redis_client.llen(key) < 1000:
+        random_avatars = [get_random_avatar() for _ in range(100)]
         redis_client.lpush(key, *random_avatars)
         print(
             f"# random avatars in Redis (after): "
