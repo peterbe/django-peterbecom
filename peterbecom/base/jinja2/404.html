@@ -17,16 +17,19 @@ p { margin: 30px 0; }
 {% block content %}
 <h1>Page not found</h1>
 
-<p>Unfortunately, a lot of this content on this website has been moved around recently.<br>
+<p>
 Perhaps the page you are looking for exists but is now called something else.
 </p>
 
-<form action="/search" class="form-search">
-<label>Perhaps try to search for it:</label><br>
-<input type="text" name="q" class="input-xlarge search-query" placeholder=""
-  value="{{ request_path.replace('/', ' ').replace('-',' ').strip() }}">
-<button type="submit" class="btn">Search</button>
 
+<form action="/search" class="ui form search">
+  <div class="field">
+    <label>Perhaps try to search for it</label>
+    <div class="ui fluid action input">
+      <input type="search" name="q" placeholder="Search..." value="{{ request_path.replace('/', ' ').replace('-',' ').strip() }}">
+      <button type="submit" class="ui button primary">Search</button>
+    </div>
+  </div>
 </form>
 
 {% endblock %}

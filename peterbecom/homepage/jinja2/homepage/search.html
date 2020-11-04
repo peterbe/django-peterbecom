@@ -52,10 +52,12 @@
 {% endif %}
 
 {% if not q %}
-  <form class="ui search">
-    <div class="ui fluid huge icon  input">
-      <input type="text" name="q" placeholder="Search..." value="">
-      <i class="search icon"></i>
+  <form class="ui form search">
+    <div class="field">
+      <div class="ui fluid action input">
+        <input type="search" name="q" placeholder="Search..." value="">
+        <button type="submit" class="ui button primary">Search</button>
+      </div>
     </div>
   </form>
 {% endif %}
