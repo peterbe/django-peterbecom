@@ -18,9 +18,11 @@ from django.utils.cache import add_never_cache_headers, patch_cache_control
 from django.utils.html import strip_tags
 from django.views import static
 from django.views.decorators.cache import cache_control
+from django_redis import get_redis_connection
 from elasticsearch_dsl import Q, query
 from elasticsearch_dsl.query import MultiMatch
-from huey.contrib.djhuey import task
+from huey import crontab
+from huey.contrib.djhuey import periodic_task, task
 from lxml import etree
 
 from peterbecom.base.decorators import variable_cache_control
@@ -35,6 +37,7 @@ from .utils import STOPWORDS, make_categories_q, parse_ocs_to_categories, split_
 
 logger = logging.getLogger("homepage")
 
+redis_client = get_redis_connection("default")
 
 ONE_HOUR = 60 * 60
 ONE_DAY = ONE_HOUR * 24
@@ -818,6 +821,46 @@ def avatar_image(request, seed=None):
     if seed != "random":
         random.seed(seed)
 
+    random_avatar = redis_client.rpop(REDIS_RANDOM_AVATARS_LIST_KEY)
+    print(f"RANDOM AVATAR: {random_avatar and 'Redis HIT' or 'Redis Miss'}")
+    if not random_avatar:
+        random_avatar = get_random_avatar()
+
+    response = http.HttpResponse(random_avatar)
+    response["content-type"] = "image/png"
+    if seed == "random":
+        ip_address = request.headers.get("x-forwarded-for") or request.META.get(
+            "REMOTE_ADDR"
+        )
+        referer = request.headers.get("Referer")
+        user_agent = request.headers.get("User-Agent")
+        print(
+            f"RANDOM AVATAR: IP: {ip_address}\tREFERER: {referer}\tAGENT: {user_agent}"
+        )
+        add_never_cache_headers(response)
+    else:
+        patch_cache_control(response, max_age=60, public=True)
+
+    return response
+
+
+REDIS_RANDOM_AVATARS_LIST_KEY = "random_avatars_list"
+
+
+@periodic_task(crontab(minute="*/2"))
+def keep_random_avatars_redis_list_filled():
+    key = REDIS_RANDOM_AVATARS_LIST_KEY
+    print(f"# random avatars in Redis: {redis_client.llen(key)} ({timezone.now()})")
+    while redis_client.llen(key) < 100:
+        random_avatars = [get_random_avatar() for _ in range(50)]
+        redis_client.lpush(key, *random_avatars)
+        print(
+            f"# random avatars in Redis (after): "
+            f"{redis_client.llen(key)} ({timezone.now()})"
+        )
+
+
+def get_random_avatar():
     bytes = io.BytesIO()
 
     def r(enum_):
@@ -843,19 +886,4 @@ def avatar_image(request, seed=None):
     )
     avatar.render_png_file(bytes)
 
-    response = http.HttpResponse(bytes.getvalue())
-    response["content-type"] = "image/png"
-    if seed == "random":
-        ip_address = request.headers.get("x-forwarded-for") or request.META.get(
-            "REMOTE_ADDR"
-        )
-        referer = request.headers.get("Referer")
-        user_agent = request.headers.get("User-Agent")
-        print(
-            f"RANDOM AVATAR: IP: {ip_address}\tREFERER: {referer}\tAGENT: {user_agent}"
-        )
-        add_never_cache_headers(response)
-    else:
-        patch_cache_control(response, max_age=60, public=True)
-
-    return response
+    return bytes.getvalue()
