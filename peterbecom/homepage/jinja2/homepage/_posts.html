@@ -1,3 +1,11 @@
+{% macro show_carbon_ad_macro() -%}
+<script async src="https://cdn.carbonads.com/carbon.js?serve=CKYI52Q7&amp;placement=peterbecom" id="_carbonads_js"></script>
+{%- endmacro %}
+
+{% if show_carbon_ad %}
+  {{ show_carbon_ad_macro() }}
+{% endif %}
+
 {% for post in blogitems %}
 <div class="post">
   <h2>

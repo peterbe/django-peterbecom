@@ -147,6 +147,8 @@ def home(request, oc=None, page=1):
         approved_comments_count[count["blogitem_id"]] = count["count"]
     context["approved_comments_count"] = approved_comments_count
 
+    context["show_carbon_ad"] = True
+
     return render(request, "homepage/home.html", context)
 
 
