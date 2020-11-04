@@ -1,5 +1,4 @@
 import datetime
-import functools
 import io
 import logging
 import os
@@ -815,40 +814,6 @@ def avatar_image_test_page(request):
     return render(request, "homepage/avatar-image.html", context)
 
 
-def view_function_timer(prefix="", name="View Function", writeto=print):
-    def decorator(func):
-        @functools.wraps(func)
-        def inner(*args, **kwargs):
-            try:
-                t0 = time.time()
-                return func(*args, **kwargs)
-            finally:
-                t1 = time.time()
-                seconds = t1 - t0
-                if seconds > 1:
-                    time_str = "{:.2f}s".format(seconds)
-                else:
-                    time_str = "{:.1f}ms".format(seconds * 1000)
-                writeto(
-                    name,
-                    "({})".format(
-                        prefix(*args, **kwargs) if callable(prefix) else prefix
-                    )
-                    if prefix
-                    else "",
-                    func.__name__,
-                    args[1:],
-                    "Took",
-                    time_str,
-                    args[0].build_absolute_uri(),
-                )
-
-        return inner
-
-    return decorator
-
-
-@view_function_timer(name="avatar_image", prefix=lambda *args, **kw: args[0])
 def avatar_image(request, seed=None):
     if not seed:
         seed = request.GET.get("seed") or "random"
@@ -885,13 +850,13 @@ REDIS_RANDOM_AVATARS_LIST_KEY = "random_avatars_list"
 @periodic_task(crontab(minute="*/2"))
 def keep_random_avatars_redis_list_filled():
     key = REDIS_RANDOM_AVATARS_LIST_KEY
-    print("# random avatars in Redis:", redis_client.llen(key), timezone.now())
+    print(f"# random avatars in Redis: {redis_client.llen(key)} ({timezone.now()})")
     while redis_client.llen(key) < 100:
         random_avatars = [get_random_avatar() for _ in range(50)]
         redis_client.lpush(key, *random_avatars)
         print(
-            "# random avatars in Redis (after):",
-            redis_client.llen(key),
+            "# random avatars in Redis (after): "
+            f"{redis_client.llen(key)} ({timezone.now()})"
         )
 
 
