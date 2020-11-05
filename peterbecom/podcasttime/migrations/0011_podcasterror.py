@@ -2,7 +2,8 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
-import jsonfield.fields
+
+# import jsonfield.fields
 
 
 class Migration(migrations.Migration):
@@ -22,7 +23,7 @@ class Migration(migrations.Migration):
                         primary_key=True,
                     ),
                 ),
-                ("error", jsonfield.fields.JSONField()),
+                ("error", models.JSONField()),
                 ("created", models.DateTimeField(auto_now_add=True)),
                 (
                     "podcast",

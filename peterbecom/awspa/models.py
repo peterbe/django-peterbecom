@@ -1,6 +1,6 @@
 from django.db import models
 from django.db.models.signals import pre_save
-from django.contrib.postgres.fields import ArrayField, JSONField
+from django.contrib.postgres.fields import ArrayField
 from django.dispatch import receiver
 
 from .search import lookup, NothingFoundError
@@ -17,7 +17,7 @@ class AWSProduct(models.Model):
     searchindex = models.CharField(max_length=100)
     # XXX Eventually, this should become unique
     asin = models.CharField(max_length=100, db_index=True)
-    payload = JSONField()
+    payload = models.JSONField()
     disabled = models.BooleanField(default=False)
     title = models.CharField(max_length=300)
     add_date = models.DateTimeField(auto_now_add=True)

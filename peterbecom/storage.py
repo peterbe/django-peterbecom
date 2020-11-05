@@ -5,7 +5,7 @@ import brotli
 from django.conf import settings
 from django.contrib.staticfiles.utils import matches_patterns
 from django.core.files.base import File
-from pipeline.storage import PipelineCachedStorage
+from pipeline.storage import PipelineManifestStorage
 from zopfli import gzip as zopfli
 
 
@@ -99,7 +99,9 @@ class ZopfliAndBrotliMixin(object):
                     )
 
 
-class ZopfliAndBrotliPipelineCachedStorage(ZopfliAndBrotliMixin, PipelineCachedStorage):
-    """Same as pipeline.storage.PipelineCachedStorage but runs zopfli and brotli
+class ZopfliAndBrotliPipelineCachedStorage(
+    ZopfliAndBrotliMixin, PipelineManifestStorage
+):
+    """Same as pipeline.storage.PipelineManifestStorage but runs zopfli and brotli
     on the files.
     """

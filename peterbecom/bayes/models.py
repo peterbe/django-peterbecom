@@ -3,14 +3,13 @@ import json
 from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
-from django.contrib.postgres.fields import JSONField
 
 from peterbecom.plog.models import BlogComment
 
 
 class BayesData(models.Model):
     pickle_data = models.BinaryField()
-    options = JSONField()
+    options = models.JSONField()
     # Could be things like 'spam' or 'language'
     topic = models.CharField(max_length=100, default="comments")
     size = models.IntegerField()

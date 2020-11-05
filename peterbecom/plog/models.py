@@ -10,7 +10,7 @@ from collections import defaultdict
 
 import bleach
 from django.conf import settings
-from django.contrib.postgres.fields import ArrayField, JSONField
+from django.contrib.postgres.fields import ArrayField
 from django.core.cache import cache
 from django.db import models, transaction
 from django.db.models import Count
@@ -333,7 +333,7 @@ class BlogComment(models.Model):
     email = models.CharField(max_length=100, blank=True)
     user_agent = models.CharField(max_length=300, blank=True, null=True)
     ip_address = models.GenericIPAddressField(blank=True, null=True)
-    geo_lookup = JSONField(null=True)
+    geo_lookup = models.JSONField(null=True)
 
     # def __repr__(self):
     #     return "<%s: %s %r (%sapproved)>" % (
