@@ -603,12 +603,6 @@ def blog_post_awspa(request, oid, page=None):
     instances = []
     seen = set()
     for awsproduct in awsproducts:
-        # Disable any that don't have a MediumImage any more.
-        if isinstance(awsproduct.payload, list):
-            # Something must have gone wrong
-            awsproduct.delete()
-            continue
-
         if awsproduct.asin not in seen:
             instances.append(awsproduct)
             seen.add(awsproduct.asin)

@@ -186,7 +186,7 @@ class AWSPAFilterForm(forms.ModelForm):
 
     class Meta:
         model = AWSProduct
-        fields = ("title", "keyword", "searchindex")
+        fields = ("title", "searchindex", "keywords")
 
     def __init__(self, *args, **kwargs):
         super(AWSPAFilterForm, self).__init__(*args, **kwargs)

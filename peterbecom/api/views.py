@@ -520,21 +520,24 @@ def awspa_items(request):
     elif form.cleaned_data["hasoffers"] is False:  # ! None
         qs = qs.exclude(payload__has_key="offers")
 
-    if form.cleaned_data["keyword"]:
-        qs = qs.filter(keywords__overlap=[form.cleaned_data["keyword"]])
+    if form.cleaned_data["keywords"]:
+        qs = qs.filter(keywords__overlap=form.cleaned_data["keyword"])
     if form.cleaned_data["searchindex"]:
         qs = qs.filter(searchindex=form.cleaned_data["searchindex"])
 
     order_by = form.cleaned_data["order_by"] or "-add_date"
 
-    all_keywords = []
-    for x in (
-        AWSProduct.objects.all()
-        .order_by("keyword")
-        .values("keyword")
-        .annotate(count=Count("keyword"))
-    ):
-        all_keywords.append({"value": x["keyword"], "count": x["count"]})
+    # all_keywords = []
+    all_keywords_counts = defaultdict(int)
+    for keywords in AWSProduct.objects.all().values_list("keywords", flat=True):
+        for keyword in keywords:
+            all_keywords_counts[keyword] += 1
+    all_keywords = [
+        {"value": value, "count": count}
+        for (count, value) in sorted(
+            [(v, k) for k, v in all_keywords_counts.items()], reverse=True
+        )
+    ]
     all_searchindexes = []
     for x in (
         AWSProduct.objects.all()
