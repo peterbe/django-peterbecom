@@ -1,17 +1,17 @@
 import datetime
-import json
 import difflib
+import json
 import time
 
+from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from peterbecom.base.basecommand import BaseCommand
 from peterbecom.awspa.models import AWSProduct
 from peterbecom.awspa.search import (
-    lookup,
-    RateLimitedError,
-    NothingFoundError,
     ApiException,
+    NothingFoundError,
+    RateLimitedError,
+    lookup,
 )
 
 
@@ -53,7 +53,7 @@ class Command(BaseCommand):
         parser.add_argument("--sleep", default=7.1)
         parser.add_argument("--without-offers", default=False, action="store_true")
 
-    def _handle(self, **options):
+    def handle(self, **options):
         limit = int(options["limit"])
         sleep = float(options["sleep"])
         old = timezone.now() - datetime.timedelta(hours=12)
@@ -62,13 +62,13 @@ class Command(BaseCommand):
         if options["without_offers"]:
             qs = qs.exclude(payload__has_key="offers")
 
-        self.notice(qs.count(), "products that can be updated")
+        print(qs.count(), "products that can be updated")
         for i, awsproduct in enumerate(qs.order_by("modify_date")[:limit]):
             print(i + 1, repr(awsproduct))
             try:
                 payload = lookup(awsproduct.asin)
             except RateLimitedError as exception:
-                self.out("RateLimitedError", exception)
+                self.notice("RateLimitedError", exception)
                 break
             except NothingFoundError:
                 self.notice(
@@ -81,7 +81,6 @@ class Command(BaseCommand):
                 self.error("Some other ApiException from awps", str(exception))
                 break
 
-            # dumb_diff(awsproduct.payload, payload)
             try:
                 diff(awsproduct.payload, payload)
             except (AttributeError, KeyError) as e:
@@ -92,3 +91,12 @@ class Command(BaseCommand):
             awsproduct.save()
 
             time.sleep(sleep)
+
+    def out(self, *args):
+        self.stdout.write(self.style.SUCCESS(" ".join([str(x) for x in args])))
+
+    def notice(self, *args):
+        self.stdout.write(self.style.NOTICE(" ".join([str(x) for x in args])))
+
+    def error(self, *args):
+        self.stdout.write(self.style.ERROR(" ".join([str(x) for x in args])))
