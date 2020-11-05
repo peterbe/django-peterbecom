@@ -412,7 +412,6 @@ def plog_awspa(request, oid):
             awsproduct = get_object_or_404(AWSProduct, id=id)
             payload = awspa_lookup(awsproduct.asin)
             awsproduct.payload = payload
-            awsproduct.paapiv5 = True
             awsproduct.save()
         else:
             id = request.POST["id"]
@@ -493,7 +492,6 @@ def load_more_awsproducts(keyword, searchindex):
                 keyword=keyword,
                 searchindex=searchindex,
                 disabled=True,
-                paapiv5=True,
             )
             new.append(awsproduct)
 
@@ -641,7 +639,6 @@ def awspa_items_search(request):
                 title=find["item_info"]["title"]["display_value"],
                 payload=find,
                 disabled=False,
-                paapiv5=True,
                 keywords=[keyword],
                 searchindex=searchindex,
                 add_date=timezone.now(),
@@ -714,7 +711,6 @@ def awspa_item(request, id):
                 nothing_found = True
             else:
                 product.payload = payload
-                product.paapiv5 = True
                 product.save()
 
         elif request.POST.get("disable"):

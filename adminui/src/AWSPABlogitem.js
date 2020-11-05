@@ -7,7 +7,7 @@ import {
   Loader,
   Message,
   Segment,
-  Select
+  Select,
 } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
 import { BlogitemBreadcrumb, DisplayDate, ShowServerError } from './Common';
@@ -17,7 +17,7 @@ class AWSPABlogitem extends React.Component {
     loading: true,
     products: null,
     serverError: null,
-    updated: null
+    updated: null,
   };
 
   componentDidMount() {
@@ -34,8 +34,8 @@ class AWSPABlogitem extends React.Component {
     try {
       response = await fetch(`/api/v0/plog/${oid}/awspa`, {
         headers: {
-          Authorization: `Bearer ${this.props.accessToken}`
-        }
+          Authorization: `Bearer ${this.props.accessToken}`,
+        },
       });
     } catch (ex) {
       return this.setState({ loading: false, serverError: ex });
@@ -49,7 +49,7 @@ class AWSPABlogitem extends React.Component {
     }
   };
 
-  toggleDisable = async id => {
+  toggleDisable = async (id) => {
     if (!this.props.accessToken) {
       throw new Error('No accessToken');
     }
@@ -62,8 +62,8 @@ class AWSPABlogitem extends React.Component {
         method: 'POST',
         body: formData,
         headers: {
-          Authorization: `Bearer ${this.props.accessToken}`
-        }
+          Authorization: `Bearer ${this.props.accessToken}`,
+        },
       });
     } catch (ex) {
       return this.setState({ loading: false, serverError: ex });
@@ -77,7 +77,7 @@ class AWSPABlogitem extends React.Component {
     }
   };
 
-  refreshProduct = async id => {
+  refreshProduct = async (id) => {
     if (!this.props.accessToken) {
       throw new Error('No accessToken');
     }
@@ -91,8 +91,8 @@ class AWSPABlogitem extends React.Component {
         method: 'POST',
         body: formData,
         headers: {
-          Authorization: `Bearer ${this.props.accessToken}`
-        }
+          Authorization: `Bearer ${this.props.accessToken}`,
+        },
       });
     } catch (ex) {
       return this.setState({ loading: false, serverError: ex });
@@ -106,7 +106,7 @@ class AWSPABlogitem extends React.Component {
     }
   };
 
-  deleteProduct = async id => {
+  deleteProduct = async (id) => {
     if (window.confirm('Are you sure?')) {
       if (!this.props.accessToken) {
         throw new Error('No accessToken');
@@ -117,8 +117,8 @@ class AWSPABlogitem extends React.Component {
         response = await fetch(`/api/v0/plog/${oid}/awspa?id=${id}`, {
           method: 'DELETE',
           headers: {
-            Authorization: `Bearer ${this.props.accessToken}`
-          }
+            Authorization: `Bearer ${this.props.accessToken}`,
+          },
         });
       } catch (ex) {
         return this.setState({ loading: false, serverError: ex });
@@ -147,8 +147,8 @@ class AWSPABlogitem extends React.Component {
         method: 'POST',
         body: formData,
         headers: {
-          Authorization: `Bearer ${this.props.accessToken}`
-        }
+          Authorization: `Bearer ${this.props.accessToken}`,
+        },
       });
     } catch (ex) {
       return this.setState({ loading: false, serverError: ex });
@@ -213,7 +213,7 @@ function ShowKeywordProduct({
   searchMore,
   toggleDisable,
   refreshProduct,
-  oid
+  oid,
 }) {
   const [searchindex, setSearchindex] = React.useState('Books');
   const [searching, setSearching] = React.useState(false);
@@ -224,16 +224,16 @@ function ShowKeywordProduct({
 
   const searchIndexOptions = [
     { key: 'Books', text: 'Books', value: 'Books' },
-    { key: 'All', text: 'All', value: 'All' }
+    { key: 'All', text: 'All', value: 'All' },
   ];
-  const newProducts = products.filter(p => p._new);
+  const newProducts = products.filter((p) => p._new);
   return (
     <Segment>
       {newProducts.length ? (
         <Message positive>
           <Message.Header>({newProducts.length}) New products</Message.Header>
           <ol>
-            {newProducts.map(p => (
+            {newProducts.map((p) => (
               <li key={p.id}>
                 <b>{p.title}</b>
               </li>
@@ -249,7 +249,7 @@ function ShowKeywordProduct({
         />{' '}
         <Button
           loading={searching}
-          onClick={event => {
+          onClick={(event) => {
             setSearching(true);
             searchMore(keyword, searchindex);
           }}
@@ -260,7 +260,7 @@ function ShowKeywordProduct({
       </div>
       <h2>{keyword}</h2>
       <div className="ui divided items">
-        {products.map(product => {
+        {products.map((product) => {
           const style = {};
           if (product.disabled) {
             style.opacity = 0.35;
@@ -285,38 +285,28 @@ function ShowKeywordProduct({
                 </Label>
               )}{' '}
               <Button
-                onClick={event => toggleDisable(product.id)}
+                onClick={(event) => toggleDisable(product.id)}
                 type="button"
               >
                 {product.disabled ? 'Enable' : 'Disable'}
               </Button>{' '}
               <Button
-                onClick={event => deleteProduct(product.id)}
+                onClick={(event) => deleteProduct(product.id)}
                 type="button"
               >
                 Delete
               </Button>
               <Button
-                onClick={event => refreshProduct(product.id)}
+                onClick={(event) => refreshProduct(product.id)}
                 type="button"
               >
                 Refresh
               </Button>
               <b>Added:</b> <DisplayDate date={product.add_date} />{' '}
               <b>Modified:</b> <DisplayDate date={product.modify_date} />{' '}
-              <b>PAAPIv5:</b>{' '}
-              {product.paapiv5 ? (
-                <span aria-label="check" role="img">
-                  ✅
-                </span>
-              ) : (
-                <span aria-label="no" role="img">
-                  ❌
-                </span>
-              )}{' '}
               <b>ASIN:</b>{' '}
               <Link to={`/awspa/${product.id}?oid=${oid}`}>{product.asin}</Link>
-            </div>
+            </div>,
           ];
         })}
       </div>

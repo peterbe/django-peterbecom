@@ -16,12 +16,8 @@ from django.core.files.temp import NamedTemporaryFile
 from django.dispatch import receiver
 from django.core.cache import cache
 
-# from django.contrib.postgres.fields import JSONField as PGJSONField
-# from django.contrib.postgres.fields import JSONField
-
 from slugify import slugify
 
-# from jsonfield import JSONField
 from sorl.thumbnail import ImageField
 
 # from elasticsearch.exceptions import (

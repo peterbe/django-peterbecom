@@ -52,7 +52,6 @@ class Command(BaseCommand):
         parser.add_argument("--limit", default=10)
         parser.add_argument("--sleep", default=7.1)
         parser.add_argument("--without-offers", default=False, action="store_true")
-        parser.add_argument("--not-converted", default=False, action="store_true")
 
     def _handle(self, **options):
         limit = int(options["limit"])
@@ -62,29 +61,10 @@ class Command(BaseCommand):
 
         if options["without_offers"]:
             qs = qs.exclude(payload__has_key="offers")
-        if options["not_converted"]:
-            qs = qs.filter(paapiv5=False)
 
         self.notice(qs.count(), "products that can be updated")
         for i, awsproduct in enumerate(qs.order_by("modify_date")[:limit]):
             print(i + 1, repr(awsproduct))
-            # if not awsproduct.paapiv5:
-            #     self.out("Converting", repr(awsproduct), "to paapiv5")
-            #     try:
-            #         awsproduct.convert_to_paapiv5(raise_if_nothing_found=True)
-            #     except RateLimitedError as exception:
-            #         self.out("RateLimitedError", exception)
-            #         break
-            #     except NothingFoundError:
-            #         self.notice(
-            #             "NothingFoundError on {!r}. So, disabling".format(awsproduct)
-            #         )
-            #         awsproduct.disabled = True
-            #         awsproduct.save()
-
-            #     time.sleep(sleep)
-            #     continue
-
             try:
                 payload = lookup(awsproduct.asin)
             except RateLimitedError as exception:
@@ -109,7 +89,6 @@ class Command(BaseCommand):
                 dumb_diff(awsproduct.payload, payload)
 
             awsproduct.payload = payload
-            awsproduct.paapiv5 = True
             awsproduct.save()
 
             time.sleep(sleep)

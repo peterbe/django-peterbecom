@@ -3,8 +3,6 @@ from django.db.models.signals import pre_save
 from django.contrib.postgres.fields import ArrayField
 from django.dispatch import receiver
 
-from .search import lookup, NothingFoundError
-
 
 class AWSProduct(models.Model):
     # Consider adding something like this:
@@ -23,8 +21,6 @@ class AWSProduct(models.Model):
     add_date = models.DateTimeField(auto_now_add=True)
     modify_date = models.DateTimeField(auto_now=True)
     # XXX Write a migration to get rid of this
-    paapiv5 = models.BooleanField(default=True)
-    # XXX Write a migration to get rid of this
     keyword = models.CharField(max_length=200, db_index=True)
 
     def __repr__(self):
@@ -34,24 +30,6 @@ class AWSProduct(models.Model):
             self.title[:50],
             "..." if len(self.title) > 50 else "",
         )
-
-    def convert_to_paapiv5(self, raise_if_nothing_found=False):
-        assert not self.paapiv5
-
-        try:
-            payload, errors = lookup(self.asin)
-            if errors:
-                raise NotImplementedError(errors)
-        except NothingFoundError:
-            if raise_if_nothing_found:
-                raise
-            self.disabled = True
-            self.save()
-        else:
-            assert payload
-            self.payload = payload
-            self.paapiv5 = True
-            self.save()
 
 
 @receiver(pre_save, sender=AWSProduct)

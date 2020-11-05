@@ -849,7 +849,7 @@ def avatar_image(request, seed=None):
 REDIS_RANDOM_AVATARS_LIST_KEY = "random_avatars_list"
 
 
-@periodic_task(crontab(minute="*/2"))
+@periodic_task(crontab(minute="*/3"))
 def keep_random_avatars_redis_list_filled():
     key = REDIS_RANDOM_AVATARS_LIST_KEY
     print(f"# random avatars in Redis: {redis_client.llen(key)} ({timezone.now()})")
