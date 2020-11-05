@@ -7,7 +7,6 @@ def awspa_product(awsproduct, show_action_button=False, hide_image=False):
 
     item = awsproduct.payload
 
-    assert awsproduct.paapiv5
     if not item.get("offers"):
         print("SKIPPING BECAUSE NO offers")
         print(repr(awsproduct))
@@ -47,7 +46,6 @@ def awspa_product(awsproduct, show_action_button=False, hide_image=False):
             "item": item,
             "title": awsproduct.title,
             "asin": awsproduct.asin,
-            "keyword": awsproduct.keyword,
             "searchindex": awsproduct.searchindex,
             "show_action_button": show_action_button,
             "hide_image": hide_image,

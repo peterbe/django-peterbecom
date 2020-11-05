@@ -15,10 +15,9 @@ from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 from django.dispatch import receiver
 from django.core.cache import cache
-from django.contrib.postgres.fields import JSONField as PGJSONField
 
 from slugify import slugify
-from jsonfield import JSONField
+
 from sorl.thumbnail import ImageField
 
 # from elasticsearch.exceptions import (
@@ -61,7 +60,7 @@ class Podcast(models.Model):
     url = models.URLField(max_length=400)
     image_url = models.URLField(max_length=400, null=True, blank=True)
     image = ImageField(upload_to=_upload_to_podcast, null=True)
-    itunes_lookup = JSONField(null=True)
+    itunes_lookup = models.JSONField(null=True)
     slug = models.SlugField(max_length=200, null=True)
     times_picked = models.IntegerField(default=0)
     last_fetch = models.DateTimeField(null=True)
@@ -253,7 +252,7 @@ def delete_from_es(sender, instance, **kwargs):
 
 class PodcastError(models.Model):
     podcast = models.ForeignKey(Podcast, on_delete=models.CASCADE)
-    error = JSONField()
+    error = models.JSONField()
     created = models.DateTimeField(auto_now_add=True)
 
     @classmethod
@@ -279,7 +278,7 @@ class Episode(models.Model):
 
     title = models.TextField(null=True)
     summary = models.TextField(null=True)
-    metadata = PGJSONField(null=True)
+    metadata = models.JSONField(null=True)
 
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)

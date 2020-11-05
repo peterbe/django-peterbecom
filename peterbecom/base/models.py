@@ -3,13 +3,12 @@ import traceback
 from io import StringIO
 
 from django.conf import settings
-from django.contrib.postgres.fields import ArrayField, JSONField
+from django.contrib.postgres.fields import ArrayField
 from django.db import models, transaction
 from django.db.models import F
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
-from jsonfield import JSONField as LegacyJSONField
 
 from peterbecom.base.utils import send_pulse_message
 
@@ -20,7 +19,8 @@ class CommandRun(models.Model):
     duration = models.DurationField()
     notes = models.TextField(null=True)
     exception = models.TextField(null=True)
-    options = LegacyJSONField(default={}, null=True)
+    # options = LegacyJSONField(default={}, null=True)
+    options = models.JSONField(default=dict, null=True)
     created = models.DateTimeField(auto_now_add=True)
 
     def __repr__(self):
@@ -95,11 +95,11 @@ class SearchResult(models.Model):
     original_q = models.CharField(max_length=400, null=True)
     documents_found = models.PositiveIntegerField()
     search_time = models.DurationField()
-    search_times = JSONField(default=dict)
+    search_times = models.JSONField(default=dict)
     search_terms = ArrayField(
         ArrayField(models.CharField(max_length=400), size=2, default=list), default=list
     )
-    keywords = JSONField(default=dict)
+    keywords = models.JSONField(default=dict)
     created = models.DateTimeField(auto_now_add=True)
 
 

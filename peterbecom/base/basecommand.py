@@ -85,7 +85,6 @@ class BaseCommand(DjangoBaseCommand):
             out = StringIO()
             traceback.print_exception(etype, evalue, tb, file=out)
             exception = out.getvalue()
-            raise
         finally:
             t1 = time.time()
             try:

@@ -20,7 +20,6 @@ from django.views.decorators.http import require_http_methods, require_POST
 from huey.contrib.djhuey import task
 
 from peterbecom.awspa.models import AWSProduct
-from peterbecom.awspa.search import RateLimitedError
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
 from peterbecom.base.utils import get_base_url, fake_ip_address
 
@@ -79,14 +78,20 @@ def blog_post_ping(request, oid, page=None):
             if current_url == http_referer:
                 http_referer = None
         increment_blogitem_hit(
-            oid, remote_addr=remote_addr, http_referer=http_referer, page=page,
+            oid,
+            remote_addr=remote_addr,
+            http_referer=http_referer,
+            page=page,
         )
     return http.JsonResponse({"ok": True})
 
 
 @task()
 def increment_blogitem_hit(
-    oid, remote_addr=None, http_referer=None, page=None,
+    oid,
+    remote_addr=None,
+    http_referer=None,
+    page=None,
 ):
     if http_referer and len(http_referer) > 450:
         http_referer = http_referer[: 450 - 3] + "..."
@@ -161,7 +166,8 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
             context["previous_post"] = None
         try:
             context["next_post"] = post.get_next_by_pub_date(
-                pub_date__lt=timezone.now(), archived__isnull=True,
+                pub_date__lt=timezone.now(),
+                archived__isnull=True,
             )
         except BlogItem.DoesNotExist:
             context["next_post"] = None
@@ -596,31 +602,7 @@ def blog_post_awspa(request, oid, page=None):
 
     instances = []
     seen = set()
-    ratelimited = False
     for awsproduct in awsproducts:
-        if (
-            not awsproduct.paapiv5
-            and "peterbecom.local" in request.get_host()
-            and not ratelimited
-        ):
-            print("CONVERTING", awsproduct.asin)
-            try:
-                awsproduct.convert_to_paapiv5()
-            except RateLimitedError:
-                print("Rate limited!")
-                ratelimited = True
-                continue
-            awsproduct.refresh_from_db()
-
-        # Disable any that don't have a MediumImage any more.
-        if isinstance(awsproduct.payload, list):
-            # Something must have gone wrong
-            awsproduct.delete()
-            continue
-        if not awsproduct.payload.get("MediumImage") and not awsproduct.paapiv5:
-            awsproduct.disabled = True
-            awsproduct.save()
-
         if awsproduct.asin not in seen:
             instances.append(awsproduct)
             seen.add(awsproduct.asin)
