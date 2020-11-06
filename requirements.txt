@@ -436,9 +436,9 @@ huey==2.3.0 \
 pytest==6.1.2 \
     --hash=sha256:4288fed0d9153d9646bfcdf0c0428197dba1ecb27a33bb6e031d002fa88653fe \
     --hash=sha256:c0a7e94a8cdbc5422a51ccdad8e6f1024795939cc89159a0ae7f0b316ad3823e
-pytest-django==3.10.0 \
-    --hash=sha256:c33e3d3da14d8409b125d825d4e74da17bb252191bf6fc3da6856e27a8b73ea4 \
-    --hash=sha256:4de6dbd077ed8606616958f77655fed0d5e3ee45159475671c7fa67596c6dba6
+pytest-django==4.1.0 \
+    --hash=sha256:10e384e6b8912ded92db64c58be8139d9ae23fb8361e5fc139d8e4f8fc601bc2 \
+    --hash=sha256:26f02c16d36fd4c8672390deebe3413678d89f30720c16efb8b2a6bf63b9041f
 requests-mock==1.8.0 \
     --hash=sha256:11215c6f4df72702aa357f205cf1e537cffd7392b3e787b58239bde5fb3db53b \
     --hash=sha256:e68f46844e4cee9d447150343c9ae875f99fa8037c6dcf5f15bf1fe9ab43d226
