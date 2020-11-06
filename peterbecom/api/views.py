@@ -208,7 +208,7 @@ def blogitem(request, oid):
             "open_graph_image": item.open_graph_image,
             "_absolute_url": "/plog/{}".format(item.oid),
             "awsproducts_count": AWSProduct.objects.exclude(disabled=True)
-            .filter(keyword__in=item.get_all_keywords())
+            .filter(keywords__overlap=item.get_all_keywords())
             .count(),
             "archived": item.archived,
         }
@@ -395,62 +395,6 @@ def _post_thumbnails(blogitem):
             }
         images.append(image)
     return images
-
-
-@api_superuser_required
-def plog_awspa(request, oid):
-    raise NotImplementedError("deprecated")
-    blogitem = get_object_or_404(BlogItem, oid=oid)
-
-    if request.method == "POST":
-        if request.POST.get("keyword"):
-            keyword = request.POST["keyword"]
-            searchindex = request.POST["searchindex"]
-            load_more_awsproducts(keyword, searchindex)
-        elif request.POST.get("refresh"):
-            id = request.POST["id"]
-            awsproduct = get_object_or_404(AWSProduct, id=id)
-            payload = awspa_lookup(awsproduct.asin)
-            awsproduct.payload = payload
-            awsproduct.save()
-        else:
-            id = request.POST["id"]
-            awsproduct = get_object_or_404(AWSProduct, id=id)
-            awsproduct.disabled = not awsproduct.disabled
-            awsproduct.save()
-    elif request.method == "DELETE":
-        id = request.GET["id"]
-        awsproduct = get_object_or_404(AWSProduct, id=id)
-        awsproduct.delete()
-
-    context = {"products": {}}
-    all_keywords = blogitem.get_all_keywords()
-    context["products"] = defaultdict(list)
-    for keyword in all_keywords:
-        qs = AWSProduct.objects.filter(keyword__iexact=keyword)
-        recently = timezone.now() - datetime.timedelta(seconds=60)
-        for product in qs.order_by("disabled", "-modify_date"):
-            html = html_error = None
-            try:
-                html = awspa_product(product)
-            except Exception as exception:
-                html_error = str(repr(exception))
-            context["products"][keyword].append(
-                {
-                    "html": html,
-                    "html_error": html_error,
-                    "id": product.id,
-                    "searchindex": product.searchindex,
-                    "asin": product.asin,
-                    "disabled": product.disabled,
-                    "title": product.title,
-                    "add_date": product.add_date,
-                    "modify_date": product.modify_date,
-                    "_new": product.add_date > recently,
-                }
-            )
-
-    return _response(context)
 
 
 class AWSPAError(Exception):

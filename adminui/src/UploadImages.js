@@ -5,9 +5,8 @@ import {
   Image,
   Input,
   Loader,
-  Card
+  Card,
 } from 'semantic-ui-react';
-// import { Link } from 'react-router-dom';
 
 import { formatFileSize, BlogitemBreadcrumb, ShowServerError } from './Common';
 
@@ -16,14 +15,14 @@ class UploadImages extends React.Component {
     images: null,
     loading: false,
     serverError: null,
-    previewUrls: []
+    previewUrls: [],
   };
 
   componentDidMount() {
     document.title = 'Upload Images';
   }
 
-  fileChange = async event => {
+  fileChange = async (event) => {
     const files = Array.from(event.target.files);
 
     files.forEach(async (file, i) => {
@@ -31,14 +30,14 @@ class UploadImages extends React.Component {
       reader.onloadend = () => {
         // console.log(file);
         // console.log(reader);
-        this.setState(state => {
+        this.setState((state) => {
           const previewUrls = [...state.previewUrls].concat({
             name: file.name,
             file,
             url: reader.result,
             uploaded: false,
             uploading: false,
-            errored: false
+            errored: false,
           });
           return { previewUrls };
         });
@@ -60,13 +59,13 @@ class UploadImages extends React.Component {
         method: 'POST',
         body: formData,
         headers: {
-          Authorization: `Bearer ${this.props.accessToken}`
-        }
+          Authorization: `Bearer ${this.props.accessToken}`,
+        },
       });
       if (response.ok) {
         const result = await response.json();
-        this.setState(state => {
-          const previewUrls = state.previewUrls.map(each => {
+        this.setState((state) => {
+          const previewUrls = state.previewUrls.map((each) => {
             if (each.name === preview.file.name) {
               each.uploaded = result.id;
             }
@@ -76,8 +75,8 @@ class UploadImages extends React.Component {
         });
       } else {
         this.setState({ serverError: response });
-        this.setState(state => {
-          const previewUrls = state.previewUrls.map(each => {
+        this.setState((state) => {
+          const previewUrls = state.previewUrls.map((each) => {
             if (each.name === preview.file.name) {
               each.errored = true;
             }
@@ -91,20 +90,20 @@ class UploadImages extends React.Component {
     }
   };
 
-  undoUpload = async preview => {
+  undoUpload = async (preview) => {
     const { oid } = this.props.match.params;
     try {
       let url = `/api/v0/plog/${oid}/images?id=${preview.uploaded}`;
       const response = await fetch(url, {
         method: 'DELETE',
         headers: {
-          Authorization: `Bearer ${this.props.accessToken}`
-        }
+          Authorization: `Bearer ${this.props.accessToken}`,
+        },
       });
       if (response.ok) {
         // const result = await response.json();
-        this.setState(state => {
-          const previewUrls = state.previewUrls.filter(each => {
+        this.setState((state) => {
+          const previewUrls = state.previewUrls.filter((each) => {
             return each.name !== preview.file.name;
           });
           return { previewUrls };
@@ -117,9 +116,9 @@ class UploadImages extends React.Component {
     }
   };
 
-  cancelUpload = preview => {
-    this.setState(state => {
-      const previewUrls = state.previewUrls.filter(each => {
+  cancelUpload = (preview) => {
+    this.setState((state) => {
+      const previewUrls = state.previewUrls.filter((each) => {
         return each.name !== preview.file.name;
       });
       return { previewUrls };
@@ -152,7 +151,7 @@ class UploadImages extends React.Component {
 
           <input type="file" multiple onChange={this.fileChange} />
 
-          {this.state.previewUrls.map(each => {
+          {this.state.previewUrls.map((each) => {
             return (
               <PreviewCard
                 preview={each}
@@ -189,7 +188,7 @@ class PreviewCard extends React.Component {
               value={this.state.title}
               placeholder="Title..."
               fluid
-              onChange={event => {
+              onChange={(event) => {
                 this.setState({ title: event.target.value });
               }}
             />
@@ -197,7 +196,7 @@ class PreviewCard extends React.Component {
           <Card.Content extra>
             {preview.uploaded ? (
               <Button
-                onClick={event => {
+                onClick={(event) => {
                   event.preventDefault();
                   this.props.undoUpload(preview);
                 }}
@@ -208,7 +207,7 @@ class PreviewCard extends React.Component {
               <>
                 <Button
                   primary={true}
-                  onClick={event => {
+                  onClick={(event) => {
                     event.preventDefault();
                     this.props.fileUpload(preview, this.state.title);
                   }}
@@ -216,7 +215,7 @@ class PreviewCard extends React.Component {
                   Upload
                 </Button>
                 <Button
-                  onClick={event => {
+                  onClick={(event) => {
                     event.preventDefault();
                     this.props.canelUpload(preview);
                   }}
