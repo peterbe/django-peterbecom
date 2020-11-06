@@ -46,7 +46,6 @@ urlpatterns = [
     url(
         r"^plog/(.*)/open-graph-image$", views.open_graph_image, name="open_graph_image"
     ),
-    url(r"^plog/(.*)/awspa$", views.plog_awspa, name="plog_awspa"),
     url(r"^plog/(.*)$", views.blogitem, name="blogitem"),
     url(r"^categories/?$", views.categories, name="categories"),
     url(r"^postprocessings/", views.postprocessings, name="postprocessings"),

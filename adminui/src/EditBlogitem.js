@@ -26,7 +26,7 @@ import './EditBlogitem.css';
 import { ShowServerError, BlogitemBreadcrumb } from './Common';
 import { BASE_URL } from './Config';
 
-export class EditBlogitem extends React.Component {
+class EditBlogitem extends React.Component {
   state = {
     blogitem: null,
     allCategories: null,
@@ -62,20 +62,23 @@ export class EditBlogitem extends React.Component {
           Authorization: `Bearer ${this.props.accessToken}`,
         },
       });
-      if (this.dismounted) return;
-      if (response.ok) {
-        const json = await response.json();
-        this.setState({ allCategories: json.categories }, () => {
-          localStorage.setItem(
-            cacheKey,
-            JSON.stringify(this.state.allCategories)
-          );
-        });
-      } else {
-        this.setState({ serverError: response });
+      if (!this.dismounted) {
+        if (response.ok) {
+          const json = await response.json();
+          this.setState({ allCategories: json.categories }, () => {
+            localStorage.setItem(
+              cacheKey,
+              JSON.stringify(this.state.allCategories)
+            );
+          });
+        } else {
+          this.setState({ serverError: response });
+        }
       }
     } catch (ex) {
-      this.setState({ serverError: ex });
+      if (!this.dismounted) {
+        this.setState({ serverError: ex });
+      }
     }
   };
 
@@ -88,6 +91,7 @@ export class EditBlogitem extends React.Component {
         },
       });
     } catch (ex) {
+      if (this.dismounted) return;
       return this.setState({ serverError: ex, loading: false });
     }
     if (this.dismounted) return;
@@ -260,7 +264,7 @@ export class EditBlogitem extends React.Component {
   }
 }
 
-export class AddBlogitem extends EditBlogitem {
+class AddBlogitem extends EditBlogitem {
   state = {
     skeleton: {
       oid: '',
@@ -727,22 +731,23 @@ class Thumbnails extends React.PureComponent {
           Authorization: `Bearer ${this.props.accessToken}`,
         },
       });
-      if (this.dismounted) {
-        return;
+      if (!this.dismounted) {
+        this.setState({ loading: false });
+        if (response.ok) {
+          const json = await response.json();
+          this.setState({ images: json.images });
+        } else {
+          this.setState({ serverError: response }, () => {
+            window.scrollTo(0, 0);
+          });
+        }
       }
-      this.setState({ loading: false });
-      if (response.ok) {
-        const json = await response.json();
-        this.setState({ images: json.images });
-      } else {
-        this.setState({ serverError: response }, () => {
+    } catch (ex) {
+      if (!this.dismounted) {
+        this.setState({ serverError: ex }, () => {
           window.scrollTo(0, 0);
         });
       }
-    } catch (ex) {
-      this.setState({ serverError: ex }, () => {
-        window.scrollTo(0, 0);
-      });
     }
   }
 
@@ -773,7 +778,7 @@ class Thumbnails extends React.PureComponent {
       }
       return (
         <Button
-          onClick={(event) => {
+          onClick={() => {
             this.setState({ show: true });
           }}
         >
@@ -786,7 +791,7 @@ class Thumbnails extends React.PureComponent {
     return (
       <div>
         <Button
-          onClick={(event) => {
+          onClick={() => {
             this.setState({ show: false });
           }}
         >
@@ -885,17 +890,21 @@ class BlogitemHits extends React.PureComponent {
           Authorization: `Bearer ${this.props.accessToken}`,
         },
       });
-      if (response.ok) {
-        const json = await response.json();
-        this.setState({
-          serverError: null,
-          hits: json.hits,
-        });
-      } else {
-        this.setState({ serverError: response });
+      if (!this.dismounted) {
+        if (response.ok) {
+          const json = await response.json();
+          this.setState({
+            serverError: null,
+            hits: json.hits,
+          });
+        } else {
+          this.setState({ serverError: response });
+        }
       }
     } catch (ex) {
-      this.setState({ serverError: ex });
+      if (!this.dismounted) {
+        this.setState({ serverError: ex });
+      }
     }
   };
   render() {
@@ -921,3 +930,16 @@ class BlogitemHits extends React.PureComponent {
     );
   }
 }
+
+class AddOrEditBlogitem extends React.Component {
+  render() {
+    const { addOrEdit } = this.props;
+    if (addOrEdit === 'add') {
+      return <AddBlogitem {...this.props} />;
+    } else {
+      return <EditBlogitem {...this.props} />;
+    }
+  }
+}
+
+export default AddOrEditBlogitem;

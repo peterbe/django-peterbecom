@@ -27,6 +27,7 @@ def all_keywords(request):
     keywords_count = {}
     keywords_disabled = {}
     for awsproduct in awsproducts:
+        raise NotImplementedError("use .keywords instead")
         if awsproduct.keyword not in keywords:
             keywords[awsproduct.keyword] = []
             keywords_count[awsproduct.keyword] = 0

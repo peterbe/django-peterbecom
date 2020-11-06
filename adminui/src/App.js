@@ -16,15 +16,15 @@ import {
   OIDC_DOMAIN,
 } from './Config';
 import Pulse from './Pulse';
-import Blogitems from './Blogitems';
 import Comments from './Comments';
 import Dashboard from './Dashboard';
-import { AddBlogitem, EditBlogitem } from './EditBlogitem';
-// TODO: lazy load these too.
-import OpenGraphImageBlogitem from './OpenGraphImageBlogitem';
-import AWSPABlogitem from './AWSPABlogitem';
-import UploadImages from './UploadImages';
 
+const Blogitems = React.lazy(() => import('./Blogitems'));
+const AddOrEditBlogitem = React.lazy(() => import('./EditBlogitem'));
+const OpenGraphImageBlogitem = React.lazy(() =>
+  import('./OpenGraphImageBlogitem')
+);
+const UploadImages = React.lazy(() => import('./UploadImages'));
 const PostProcessings = React.lazy(() => import('./PostProcessings'));
 const SearchResults = React.lazy(() => import('./SearchResults'));
 const BlogitemHits = React.lazy(() => import('./BlogitemHits'));
@@ -40,6 +40,19 @@ const CommentAutoApproveds = React.lazy(() => import('./CommentAutoApproveds'));
 const AWSPAItems = React.lazy(() => import('./AWSPAItems'));
 const AWSPAItem = React.lazy(() => import('./AWSPAItem'));
 const AWSPASearch = React.lazy(() => import('./AWSPASearch'));
+
+// These exist so I can have just 1 *default* export from the 'EditBlogItem.js'
+class AddBlogitem extends React.Component {
+  render() {
+    return <AddOrEditBlogitem addOrEdit="add" {...this.props} />;
+  }
+}
+
+class EditBlogitem extends React.Component {
+  render() {
+    return <AddOrEditBlogitem addOrEdit="edit" {...this.props} />;
+  }
+}
 
 class App extends React.Component {
   state = {
@@ -424,11 +437,6 @@ class App extends React.Component {
                 <SecureRoute
                   path="/plog/:oid/open-graph-image"
                   component={OpenGraphImageBlogitem}
-                  accessToken={this.state.accessToken}
-                />
-                <SecureRoute
-                  path="/plog/:oid/awspa"
-                  component={AWSPABlogitem}
                   accessToken={this.state.accessToken}
                 />
                 <SecureRoute
