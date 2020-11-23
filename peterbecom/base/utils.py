@@ -29,7 +29,17 @@ def get_base_url(request):
     print(
         f'request.headers.get("X-Forwarded-Host"): {request.headers.get("X-Forwarded-Host")!r}'
     )
+    print(
+        f'request.headers.get("X-Forwarded-For"): {request.headers.get("X-Forwarded-For")!r}'
+    )
     print(f"request.get_host(): {request.get_host()!r}")
+    print(
+        [
+            (x, request.headers[x])
+            for x in request.headers
+            if "host" in x.lower() or "forward" in x.lower()
+        ]
+    )
     x_forwarded_host = request.headers.get("X-Forwarded-Host")
     if x_forwarded_host and x_forwarded_host in settings.ALLOWED_HOSTS:
         base_url.append(x_forwarded_host)
