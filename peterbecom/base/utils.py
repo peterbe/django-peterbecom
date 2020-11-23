@@ -26,6 +26,10 @@ def get_base_url(request):
     if request.is_secure():
         base_url.append("s")
     base_url.append("://")
+    print(
+        f'request.headers.get("X-Forwarded-Host"): {request.headers.get("X-Forwarded-Host")!r}'
+    )
+    print(f"request.get_host(): {request.get_host()!r}")
     x_forwarded_host = request.headers.get("X-Forwarded-Host")
     if x_forwarded_host and x_forwarded_host in settings.ALLOWED_HOSTS:
         base_url.append(x_forwarded_host)
