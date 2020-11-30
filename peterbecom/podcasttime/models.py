@@ -15,8 +15,7 @@ from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 from django.dispatch import receiver
 from django.core.cache import cache
-
-from slugify import slugify
+from django.utils.text import slugify
 
 from sorl.thumbnail import ImageField
 
