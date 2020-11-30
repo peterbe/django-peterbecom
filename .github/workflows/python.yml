@@ -75,8 +75,10 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.8'
-      - name: Display Python version
-        run: python -c "import sys; print(sys.version)"
+      - name: Display Python and pip version
+        run: |
+          python -c "import sys; print(sys.version)"
+          pip --version
 
       - name: Cache pip
         uses: actions/cache@v2
@@ -89,7 +91,9 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip wheel
-          pip install -r requirements.txt
+          # pip install -r requirements.txt
+          # Have to do this because of a bug in the new pip resolver (grr!!)
+          pip install -r constraints.txt -r requirements.txt
       - name: Run Tests
         run: |
           ./scripts/ci-test.sh
