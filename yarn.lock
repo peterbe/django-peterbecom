@@ -2317,10 +2317,10 @@ to-regex@^3.0.1, to-regex@^3.0.2:
     regex-not "^1.0.2"
     safe-regex "^1.1.0"
 
-uglify-js@^3.12.0, uglify-js@^3.5.1:
-  version "3.12.0"
-  resolved "https://registry.yarnpkg.com/uglify-js/-/uglify-js-3.12.0.tgz#b943f129275c41d435eb54b643bbffee71dccf57"
-  integrity sha512-8lBMSkFZuAK7gGF8LswsXmir8eX8d2AAMOnxSDWjKBx/fBR6MypQjs78m6ML9zQVp1/hD4TBdfeMZMC7nW1TAA==
+uglify-js@^3.12.1, uglify-js@^3.5.1:
+  version "3.12.1"
+  resolved "https://registry.yarnpkg.com/uglify-js/-/uglify-js-3.12.1.tgz#78307f539f7b9ca5557babb186ea78ad30cc0375"
+  integrity sha512-o8lHP20KjIiQe5b/67Rh68xEGRrc2SRsCuuoYclXXoC74AfSRGblU1HKzJWH3HxPZ+Ort85fWHpSX7KwBUC9CQ==
 
 unbzip2-stream@^1.3.3:
   version "1.4.3"
