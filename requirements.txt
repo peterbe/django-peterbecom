@@ -15,9 +15,9 @@ python-memcached==1.59 \
 Markdown==3.3.3 \
     --hash=sha256:5d9f2b5ca24bc4c7a390d22323ca4bad200368612b5aaa7796babf971d2b2f18 \
     --hash=sha256:c109c15b7dc20a9ac454c9e6025927d44460b85bd039da028d85e2b6d0bcc328
-sorl-thumbnail==12.6.3 \
-    --hash=sha256:66771521f3c0ed771e1ce8e1aaf1639ebff18f7f5a40cfd3083da8f0fe6c7c99 \
-    --hash=sha256:7162639057dff222a651bacbdb6bd6f558fc32946531d541fc71e10c0167ebdf
+sorl-thumbnail==12.7.0 \
+    --hash=sha256:c56cd651feab3bdc415d5301600198e2e70c08234dad48b8f6cfa4746cc102c7 \
+    --hash=sha256:fbe6dfd66a1aceb7e0203895ff5622775e50266f8d8cfd841fe1500bd3e19018
 Pillow==8.0.1 \
     --hash=sha256:006de60d7580d81f4a1a7e9f0173dc90a932e3905cc4d47ea909bc946302311a \
     --hash=sha256:0a2e8d03787ec7ad71dc18aec9367c946ef8ef50e1e78c71f743bc3a770f9fae \
