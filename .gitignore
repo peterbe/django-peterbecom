@@ -40,3 +40,4 @@ peterbecom/static/
 songsearch-autocomplete-preact/build/
 exported-blogcomments.json
 peterbecom/base/management/commands/x-cache-some.log
+adminui/.eslintcache
