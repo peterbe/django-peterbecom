@@ -133,6 +133,7 @@ def api_card(request, pk):
     )
 
 
+@cache_control(max_age=settings.DEBUG and 10 or 60 * 60 * 6, public=True)
 def home(request):
     data = api_cards(request).data
     cards = data["cards"]
@@ -154,6 +155,7 @@ def home(request):
     return render(request, "chiveproxy/home.html", context)
 
 
+@cache_control(max_age=settings.DEBUG and 10 or 60 * 60 * 6, public=True)
 def card(request, pk):
     card = get_object_or_404(Card, pk=pk)
     context = {"card": card, "pictures": card.data["pictures"]}
