@@ -11,6 +11,7 @@
     "@babel/cli": "7.12.8",
     "@babel/core": "7.12.9",
     "csso-cli": "3.0.0",
+    "halfmoon": "1.1.1",
     "html-minifier": "4.0.0",
     "puppeteer": "3.3.0",
     "uglify-js": "^3.12.5",

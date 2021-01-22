@@ -39,6 +39,8 @@ class ZopfliAndBrotliMixin(object):
             for name, hashed_name, processed in super_class.post_process(
                 paths.copy(), dry_run, **options
             ):
+                # XXX should we continue here if it's a something from node_modules?
+                # print((name, hashed_name, processed))
                 if hashed_name != name:
                     paths[hashed_name] = (self, hashed_name)
                     processed_hash_names.append(hashed_name)

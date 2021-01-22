@@ -87,6 +87,8 @@ STATIC_URL = "/static/"
 #     # Don't forget to use absolute paths, not relative paths.
 #     path('static'),
 # )
+# Don't do the whole `node_modules` or it'll copy all of them!
+STATICFILES_DIRS = [BASE_DIR / "node_modules/halfmoon"]
 
 # STATICFILES_STORAGE = "pipeline.storage.PipelineCachedStorage"
 # STATICFILES_STORAGE = "peterbecom.storage.ZopfliPipelineCachedStorage"

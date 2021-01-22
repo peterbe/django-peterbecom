@@ -2,7 +2,7 @@ from django import http
 from django.conf import settings
 from django.core.cache import cache
 from django.db.models import Min
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.utils.timesince import timesince
 from django.views.decorators.cache import cache_control
@@ -13,6 +13,12 @@ from .models import Card
 from .sucks import get_card, get_cards
 
 
+class JsonResponse(http.JsonResponse):
+    def __init__(self, data, *args, **kwargs):
+        self.data = data
+        super().__init__(data, *args, **kwargs)
+
+
 class ScrapingError(Exception):
     """Something went wrong."""
 
@@ -21,7 +27,7 @@ class ScrapingError(Exception):
 def api_cards(request):
     context = {"cards": []}
     qs = Card.objects
-    batch_size = 35
+    batch_size = 40
 
     since = request.GET.get("since")
     if since == "null":
@@ -65,18 +71,18 @@ def api_cards(request):
     context["_oldest_card"] = Card.objects.all().aggregate(oldest=Min("created"))[
         "oldest"
     ]
-    return http.JsonResponse(context)
+    return JsonResponse(context)
 
 
 @periodic_task(crontab(hour="*", minute="1"))
 def update_cards_periodically():
-    print("CARDS: Updating cards periodically")
+    print(f"CARDS: Updating cards periodically ({timezone.now()})")
     update_cards(limit=15)
 
 
-@periodic_task(crontab(hour="*", minute="2"))
+@periodic_task(crontab(hour="*", minute="10"))
 def update_cards_without_pictures_periodically():
-    print("CARDS: Updating cards without pictures")
+    print(f"CARDS: Updating cards without pictures ({timezone.now()})")
     qs = Card.objects
     for card in qs.order_by("-created")[:100]:
         if card.data["pictures"]:
@@ -117,7 +123,7 @@ def api_card(request, pk):
             return http.HttpResponseBadRequest("wrong URL")
     if not card.data["pictures"]:
         return http.Http404("Card has no pictures")
-    return http.JsonResponse(
+    return JsonResponse(
         {
             "id": card.id,
             "text": card.data["text"],
@@ -125,3 +131,30 @@ def api_card(request, pk):
             "pictures": card.data["pictures"],
         }
     )
+
+
+def home(request):
+    data = api_cards(request).data
+    cards = data["cards"]
+    search = data.get("search")
+
+    # This is what DjangoJSONEncoder does.
+    o = data["_oldest_card"]
+    r = o.isoformat()
+    if o.microsecond:
+        r = r[:23] + r[26:]
+    if r.endswith("+00:00"):
+        r = r[:-6] + "Z"
+
+    context = {
+        "cards": cards,
+        "search": search,
+        "oldest_card": r,
+    }
+    return render(request, "chiveproxy/home.html", context)
+
+
+def card(request, pk):
+    card = get_object_or_404(Card, pk=pk)
+    context = {"card": card, "pictures": card.data["pictures"]}
+    return render(request, "chiveproxy/card.html", context)
