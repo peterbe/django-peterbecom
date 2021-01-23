@@ -678,7 +678,7 @@ def blog_post_by_alias(request, alias):
         url = "https://songsear.ch/" + alias
         return http.HttpResponsePermanentRedirect(url)
 
-    lower_endings = (".asp", ".aspx", ".xml", ".php", ".jpg/view")
+    lower_endings = (".asp", ".aspx", ".xml", ".php", ".jpg/view", ".rar")
     if any(alias.lower().endswith(x) for x in lower_endings):
         return http.HttpResponse("Not found", status=404)
     if alias == "...":
