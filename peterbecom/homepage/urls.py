@@ -31,5 +31,5 @@ urlpatterns = [
     url(r"avatar\.png", views.avatar_image, name="avatar_image"),
     url(r"^__huey__", views.huey_test, name="huey_test"),
     url(r"^__dynamic__", views.dynamic_page, name="dynamic_page"),
-    url(r"^(.*)", views.blog_post_by_alias, name="blog_post_by_alias"),
+    url(r"^(.*)", views.catchall, name="catchall"),
 ]

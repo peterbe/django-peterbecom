@@ -664,41 +664,34 @@ def sitemap(request):
     return http.HttpResponse(xml_output, content_type="text/xml")
 
 
-def blog_post_by_alias(request, alias):
-    if alias.startswith("static/"):
+def catchall(request, path):
+    if path.startswith("static/"):
         # This only really happens when there's no Nginx at play.
         # For example, when the mincss post process thing runs, it's
         # forced to download the 'localhost:8000/static/main.©e9fc100fa.css'
         # file.
         return static.serve(
-            request, alias.replace("static/", ""), document_root=settings.STATIC_ROOT
+            request, path.replace("static/", ""), document_root=settings.STATIC_ROOT
         )
-    if alias.startswith("q/") and alias.count("/") == 1:
+    if path.startswith("q/") and path.count("/") == 1:
         # E.g. www.peterbe.com/q/have%20to%20learn
-        url = "https://songsear.ch/" + alias
+        url = "https://songsear.ch/" + path
         return http.HttpResponsePermanentRedirect(url)
 
     lower_endings = (".asp", ".aspx", ".xml", ".php", ".jpg/view", ".rar")
-    if any(alias.lower().endswith(x) for x in lower_endings):
+    if any(path.lower().endswith(x) for x in lower_endings):
         return http.HttpResponse("Not found", status=404)
-    if alias == "...":
+    if path == "...":
         return redirect("/")
-    if alias.startswith("podcasttime/podcasts/"):
+    if path.startswith("podcasttime/podcasts/"):
         return redirect(
-            "https://podcasttime.io/{}".format(alias.replace("podcasttime/", ""))
+            "https://podcasttime.io/{}".format(path.replace("podcasttime/", ""))
         )
-    if alias.startswith("cdn-2916.kxcdn.com/"):
-        return redirect("https://" + alias)
-    try:
-        blogitem = BlogItem.objects.get(alias__iexact=alias)
-        url = reverse("blog_post", args=[blogitem.oid])
-        return http.HttpResponsePermanentRedirect(url)
-    except BlogItem.DoesNotExist:
-        print("UNDEALTH WITH ALIAS:", repr(alias))
-        # Use http.HttpResponse(..., status=404) if you don't want to wake up
-        # Rollbar. Or configure Rollbar to not trigger on Http404 exceptions.
-        # return http.HttpResponse(alias, status=404)
-        raise http.Http404(alias)
+    if path.startswith("cdn-2916.kxcdn.com/"):
+        return redirect("https://" + path)
+
+    print(f"CATCHALL NOTHING: {path!r}")
+    raise http.Http404(path)
 
 
 @cache_control(public=True, max_age=ONE_MONTH)
