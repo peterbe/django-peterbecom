@@ -25,7 +25,8 @@ def path_to_fs_path(path):
 
 
 def create_parents(fs_path: Path):
-    fs_path.parent.mkdir(mode=0o755, parents=True, exist_ok=True)
+    # fs_path.parent.mkdir(mode=0o755, parents=True, exist_ok=True)
+    fs_path.parent.mkdir(parents=True, exist_ok=True)
 
 
 def too_old(fs_path: Path, seconds):
