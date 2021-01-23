@@ -1,4 +1,5 @@
 from django import http
+from django.urls import path
 from django.conf.urls import include, url
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
@@ -23,6 +24,7 @@ urlpatterns += [
     url(r"^plog/", include("peterbecom.plog.urls")),
     url(r"^plog$", lambda x: http.HttpResponseRedirect("/plog/")),
     url(r"^minimalcss/", include("peterbecom.minimalcss.urls")),
-    url(r"^chiveproxy/", include("peterbecom.chiveproxy.urls")),
+    path("chiveproxy", lambda x: http.HttpResponseRedirect("/chiveproxy/")),
+    path("chiveproxy/", include("peterbecom.chiveproxy.urls")),
     url(r"", include("peterbecom.homepage.urls")),
 ]
