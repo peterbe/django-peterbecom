@@ -62,8 +62,11 @@ endblock %} {% block navbar %}
       alt="{% if picture['caption'] %}{{ picture['caption'] }}{% endif %}"
     />
     {% endif %} {% if picture['caption'] %}
-    <div class="content">
-      <p class="text-muted">{{ picture['caption'] }}</p>
+    <div class="content m-15">
+      <p class="text-muted">
+        {% if picture.get('caption_html') %} {{ picture['caption_html'] | safe }} {%
+        else %} {{ picture['caption'] }} {% endif %}
+      </p>
     </div>
     {% endif %}
   </div>

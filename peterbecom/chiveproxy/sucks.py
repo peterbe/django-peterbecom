@@ -107,11 +107,13 @@ def get_card(url):
     # for figure in doc("div.gallery figure.gallery-item").items():
     for figure in doc("figure.gallery-item").items():
         caption = []
+        caption_html = []
         gifsrc = None
         mp4src = None
         src = None
         for p in figure("figcaption.gallery-caption p").items():
             caption.append(p.text())
+            caption_html.append(p.html())
         for img in figure("img.attachment-gallery-item-full").items():
             src = img.attr("src")
             gifsrc = img.attr("data-gifsrc")
@@ -149,6 +151,9 @@ def get_card(url):
                 "gifsrc": gifsrc,
                 "mp4src": mp4src,
                 "caption": "\n".join(caption),
+                "caption_html": "<br>".join(
+                    [x.strip() for x in caption_html if x.strip()]
+                ),
             }
         )
 
