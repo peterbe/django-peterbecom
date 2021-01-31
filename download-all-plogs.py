@@ -2,10 +2,10 @@
 
 import datetime
 import json
-import os
 import random
 import time
 from collections import defaultdict
+from pathlib import Path
 
 import requests
 from pyquery import PyQuery
@@ -93,13 +93,13 @@ def download(urls, base_url, max=100, sleeptime=1, state_file=None):
             fasts += 1
         remember(url, r.status_code, t1 - t0, slow)
 
-    if fasts or slow:
-        print("{:.1f}%".format(100 * fasts / (fasts + slows)), "are fast")
+    if fasts or slows:
+        print(f"{100 * fasts / (fasts + slows):.1f}% are fast")
 
     if x_caches:
         total = sum(x_caches.values())
         for key, value in x_caches.items():
-            print("X-Cache: {!r} {:.1f}%".format(key, 100 * value / total))
+            print(f"X-Cache: {key!r} {100 * value / total:.1f}%")
 
 
 if __name__ == "__main__":
@@ -128,19 +128,26 @@ if __name__ == "__main__":
     state_file = None
     if args.remember:
         # What we did we do last time (in the last 24h)?
-        state_file = os.path.join(
-            "/tmp",
-            os.path.splitext(os.path.basename(__file__))[0]
-            + ".{}.json".format(datetime.datetime.now().strftime("%Y%m%d")),
-        )
+        now = datetime.datetime.utcnow()
+        state_file_name_prefix = Path(__file__).stem
+        state_file_name = f"{state_file_name_prefix}.{now.strftime('%Y%m%d')}.json"
+        state_file = Path("/tmp") / state_file_name
+
+        # Delete all old remembering files stuck in the /tmp
+        for other_state_file in Path("/tmp").glob(f"{state_file_name_prefix}.*"):
+            if other_state_file != state_file:
+                print(f"Deleting old state file {other_state_file}")
+                other_state_file.unlink()
+
         try:
             with open(state_file) as f:
                 for each in json.load(f):
                     exclude.add(each["url"])
-            print("Loaded {:,} URLs to exlude from {}".format(len(exclude), state_file))
+            print(f"Loaded {len(exclude):,} URLs to exlude from {state_file}")
         except FileNotFoundError:
             with open(state_file, "w") as f:
                 json.dump([], f)
+
     urls = get_urls(args.base_url, exclude=exclude)
     # urls = [x for x in urls if "040601" in x]
     if not args.linear:
