@@ -99,8 +99,8 @@
             title="Change thanks to popularity"
             {% if document.score_boosted %}style="color: {% if document['score_boosted'] > 0 %}green{% elif document['score_boosted'] < 0 %}red{% endif %}"{% endif %}
             >{{ document.score_boosted }}</b>
+          </small>
         {% endif %}
-        </small>
       &nbsp;
       <small style="float: right">{{ document.date.strftime('%d %b %Y') }}</small>
     </h3>

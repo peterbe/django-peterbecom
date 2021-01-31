@@ -154,6 +154,7 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
 
     # attach a field called `_absolute_url` which depends on the request
     base_url = get_base_url(request)
+    print(f"POST_BASE_URL: {base_url!r}")
     post._absolute_url = base_url + reverse("blog_post", args=(post.oid,))
 
     context = {"post": post, "screenshot_mode": screenshot_mode}
@@ -349,9 +350,9 @@ def prepare_json(request):
 @ensure_csrf_cookie
 @require_POST
 def preview_json(request):
-    comment = request.POST.get("comment", u"").strip()
-    name = request.POST.get("name", u"").strip()
-    email = request.POST.get("email", u"").strip()
+    comment = request.POST.get("comment", "").strip()
+    name = request.POST.get("name", "").strip()
+    email = request.POST.get("email", "").strip()
     if not comment:
         return http.JsonResponse({})
 
