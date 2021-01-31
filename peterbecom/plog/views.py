@@ -154,7 +154,11 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
 
     # attach a field called `_absolute_url` which depends on the request
     base_url = get_base_url(request)
-    print(f"POST_BASE_URL: {base_url!r}")
+    print(
+        f"POST_BASE_URL: {base_url!r}, "
+        f'X-Forwarded-Host={request.headers.get("X-Forwarded-Host")!r}, '
+        f"get_host()={request.get_host()!r}"
+    )
     post._absolute_url = base_url + reverse("blog_post", args=(post.oid,))
 
     context = {"post": post, "screenshot_mode": screenshot_mode}
