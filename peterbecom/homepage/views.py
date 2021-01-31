@@ -33,6 +33,7 @@ from peterbecom.plog.search import BlogCommentDoc, BlogItemDoc
 from peterbecom.plog.utils import utc_now, view_function_timer
 
 from .forms import DebugSearchForm
+from .models import CatchallURL
 from .utils import STOPWORDS, make_categories_q, parse_ocs_to_categories, split_search
 
 logger = logging.getLogger("homepage")
@@ -694,7 +695,9 @@ def catchall(request, path):
     if path.startswith("cdn-2916.kxcdn.com/"):
         return redirect("https://" + path)
 
+    CatchallURL.upsert(path)
     print(f"CATCHALL NOTHING: {path!r}")
+
     raise http.Http404(path)
 
 

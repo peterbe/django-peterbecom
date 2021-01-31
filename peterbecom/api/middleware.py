@@ -6,7 +6,6 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.contrib.auth.signals import user_logged_in
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
 
 
 class OIDCEndpointRequestError(Exception):
@@ -78,10 +77,10 @@ class AuthenticationMiddleware:
             return response.json()
         elif response.status_code == 401:
             # The OIDC provider did not like the access token.
-            raise PermissionDenied("Unauthorized access token")
+            return http.HttpResponseForbidden("Unauthorized access token")
         elif response.status_code >= 500:
             raise requests.exceptions.RequestException(
-                "{} on {}".format(response.status_code, url)
+                f"{response.status_code} on {url}"
             )
 
         # This could happen if, for some reason, we're not configured to be
