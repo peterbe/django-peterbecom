@@ -43,6 +43,9 @@ class AuthenticationMiddleware:
                 was_in_cache = user is not None
                 if not was_in_cache:
                     user_info = self.fetch_oidc_user_profile(access_token)
+                    if isinstance(user_info, http.HttpResponse):
+                        cache.delete(cache_key)
+                        return user_info
                     if user_info:
                         user_model = get_user_model()
                         try:
