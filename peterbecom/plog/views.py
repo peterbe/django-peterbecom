@@ -154,11 +154,15 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
 
     # attach a field called `_absolute_url` which depends on the request
     base_url = get_base_url(request)
-    print(
-        f"POST_BASE_URL: {base_url!r}, "
-        f'X-Forwarded-Host={request.headers.get("X-Forwarded-Host")!r}, '
-        f"get_host()={request.get_host()!r}"
-    )
+
+    # There was a time when my nginx was misconfigured an a bunch of URLs
+    # accidentally got the wrong base URL. So there are lots of these indexed
+    # by bots such as `https://api.minimalcss.app/plog/foo-bar`.
+    # It can't technically happen any more but the existing links needs to be
+    # fixed.
+    if base_url == "https://api.minimalcss.app":
+        return redirect(f"https://www.peterbe.com{request.path}", permanent=True)
+
     post._absolute_url = base_url + reverse("blog_post", args=(post.oid,))
 
     context = {"post": post, "screenshot_mode": screenshot_mode}
