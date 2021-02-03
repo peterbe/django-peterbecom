@@ -695,7 +695,7 @@ def catchall(request, path):
     if path.startswith("cdn-2916.kxcdn.com/"):
         return redirect("https://" + path)
 
-    CatchallURL.upsert(path)
+    CatchallURL.upsert(path, last_referer=request.headers.get("Referer"))
     print(f"CATCHALL NOTHING: {path!r}\tReferer={request.headers.get('Referer')!r}")
 
     raise http.Http404(path)
