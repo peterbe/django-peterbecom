@@ -473,3 +473,11 @@ DB_MAINTENANCE_MODE = False
 SEND_PULSE_MESSAGES = True
 
 SYNONYM_FILE_NAME = config("SYNONYM_FILE_NAME", default="peterbecom.synonyms")
+
+# Every 404 is captured and counted in an upsert query. Each time,
+# the 'last_seen' date is updated.
+# Some records that we haven't seen for a long long time are not worth
+# worry about. And it just fills up the database unnecessarily.
+# This defines, how many days ago something in CatchallURLs is considered
+# too old and can be deleted.
+MIN_RARELY_SEEN_CATCHALL_DAYS = 30

@@ -52,18 +52,3 @@ def _get_comment_reply_body(blogitem, blogcomment, parent):
         "comment_url": comment_url,
     }
     return template.render(context).strip()
-
-
-# def get_comment_page(blogcomment):
-#     root_comment = blogcomment
-#     while root_comment.parent_id:
-#         root_comment = root_comment.parent
-
-#     qs = BlogComment.objects.filter(blogitem=blogcomment.blogitem, parent__isnull=True)
-#     ids = list(qs.order_by("-add_date").values_list("id", flat=True))
-#     per_page = settings.MAX_RECENT_COMMENTS
-#     for i in range(settings.MAX_BLOGCOMMENT_PAGES):
-#         sub_list = ids[i * per_page : (i + 1) * per_page]
-#         if root_comment.id in sub_list:
-#             return i + 1
-#     return 1
