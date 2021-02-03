@@ -696,7 +696,7 @@ def catchall(request, path):
         return redirect("https://" + path)
 
     CatchallURL.upsert(path)
-    print(f"CATCHALL NOTHING: {path!r}")
+    print(f"CATCHALL NOTHING: {path!r}\tReferer={request.headers.get('Referer')!r}")
 
     raise http.Http404(path)
 
