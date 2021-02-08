@@ -683,7 +683,7 @@ def catchall(request, path):
         url = f"/plog/{OLD_ALIASES[path]}"
         return http.HttpResponsePermanentRedirect(url)
 
-    lower_endings = (".asp", ".aspx", ".xml", ".php", ".jpg/view", ".rar")
+    lower_endings = (".asp", ".aspx", ".xml", ".php", ".jpg/view", ".rar", ".env")
     if any(path.lower().endswith(x) for x in lower_endings):
         return http.HttpResponse("Not found", status=404)
     if path == "...":
