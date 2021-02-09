@@ -1032,22 +1032,31 @@ def get_random_avatar():
     def r(enum_):
         return random.choice(list(enum_))
 
+    # import inspect
+    # print(dir(py_avataaars))
+    # for export in dir(py_avataaars):
+    #     thing = getattr(py_avataaars, export)
+    #     if inspect.isclass(thing) and issubclass(thing, py_avataaars.AvatarEnum):
+    #         print("YES", repr(thing))
+    #     # else:
+    #     #     print("NO", repr(thing))
+
     avatar = py_avataaars.PyAvataaar(
         style=py_avataaars.AvatarStyle.CIRCLE,
         # style=py_avataaars.AvatarStyle.TRANSPARENT,
         skin_color=r(py_avataaars.SkinColor),
         hair_color=r(py_avataaars.HairColor),
         facial_hair_type=r(py_avataaars.FacialHairType),
-        facial_hair_color=r(py_avataaars.FacialHairColor),
+        facial_hair_color=r(py_avataaars.HairColor),
         top_type=r(py_avataaars.TopType),
-        hat_color=r(py_avataaars.ClotheColor),
+        hat_color=r(py_avataaars.Color),
         mouth_type=r(py_avataaars.MouthType),
         eye_type=r(py_avataaars.EyesType),
         eyebrow_type=r(py_avataaars.EyebrowType),
         nose_type=r(py_avataaars.NoseType),
         accessories_type=r(py_avataaars.AccessoriesType),
         clothe_type=r(py_avataaars.ClotheType),
-        clothe_color=r(py_avataaars.ClotheColor),
+        clothe_color=r(py_avataaars.Color),
         clothe_graphic_type=r(py_avataaars.ClotheGraphicType),
     )
     avatar.render_png_file(bytes)
