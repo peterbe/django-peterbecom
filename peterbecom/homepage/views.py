@@ -1017,8 +1017,21 @@ REDIS_RANDOM_AVATARS_LIST_KEY = "random_avatars_list"
 def keep_random_avatars_redis_list_filled():
     key = REDIS_RANDOM_AVATARS_LIST_KEY
     print(f"# random avatars in Redis: {redis_client.llen(key)} ({timezone.now()})")
+
+    # Because of how Huey works, make sure you import this here
+    # within the function. Weird but necessary.
+    import xml.etree.ElementTree as ET
+
     while redis_client.llen(key) < 1000:
-        random_avatars = [get_random_avatar() for _ in range(100)]
+        # random_avatars = [get_random_avatar() for _ in range(100)]
+        random_avatars = []
+        for _ in range(100):
+            try:
+                random_avatars.append(get_random_avatar())
+            except ET.ParseError:
+                # Happens because of https://github.com/kebu/py-avataaars/issues/7
+                continue
+
         redis_client.lpush(key, *random_avatars)
         print(
             f"# random avatars in Redis (after): "
@@ -1032,18 +1045,8 @@ def get_random_avatar():
     def r(enum_):
         return random.choice(list(enum_))
 
-    # import inspect
-    # print(dir(py_avataaars))
-    # for export in dir(py_avataaars):
-    #     thing = getattr(py_avataaars, export)
-    #     if inspect.isclass(thing) and issubclass(thing, py_avataaars.AvatarEnum):
-    #         print("YES", repr(thing))
-    #     # else:
-    #     #     print("NO", repr(thing))
-
     avatar = py_avataaars.PyAvataaar(
         style=py_avataaars.AvatarStyle.CIRCLE,
-        # style=py_avataaars.AvatarStyle.TRANSPARENT,
         skin_color=r(py_avataaars.SkinColor),
         hair_color=r(py_avataaars.HairColor),
         facial_hair_type=r(py_avataaars.FacialHairType),
