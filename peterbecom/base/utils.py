@@ -91,3 +91,17 @@ def fake_ip_address(seed):
     random.seed(seed)
     # https://codereview.stackexchange.com/a/200348
     return str(IPv4Address(random.getrandbits(32)))
+
+
+def do_healthcheck():
+    from django.core.cache import cache
+    from peterbecom.plog.models import BlogItem
+
+    cache.set("foo", "bar", 1)
+    assert cache.get("foo") == "bar", "cache not working"
+    assert BlogItem.objects.all().count(), "Unable to count BlogItem objects"
+
+    import random
+
+    if random.random() > 0.4:
+        raise ValueError("fooo bar!")

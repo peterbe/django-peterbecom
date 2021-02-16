@@ -3,6 +3,7 @@ import functools
 import gzip
 import os
 import re
+import json
 import sys
 import time
 import traceback
@@ -20,6 +21,7 @@ from peterbecom.base import songsearch_autocomplete
 from peterbecom.base.cdn import purge_cdn_urls
 from peterbecom.base.decorators import lock_decorator
 from peterbecom.base.models import CDNPurgeURL, PostProcessing
+from peterbecom.base.utils import do_healthcheck
 from peterbecom.base.xcache_analyzer import get_x_cache
 from peterbecom.brotli_file import brotli_file
 from peterbecom.mincss_response import has_been_css_minified, mincss_html
@@ -365,7 +367,7 @@ def purge_old_cdnpurgeurls():
     old = timezone.now() - datetime.timedelta(days=90)
     ancient = CDNPurgeURL.objects.filter(created__lt=old)
     deleted = ancient.delete()
-    print("{:,} ANCIENT CDNPurgeURLs deleted".format(deleted[0]))
+    print(f"{deleted[0]:,} ANCIENT CDNPurgeURLs deleted")
 
 
 @periodic_task(crontab(hour="*", minute="2"))
@@ -375,11 +377,31 @@ def purge_old_postprocessings():
     count = ancient.count()
     if count:
         ancient.delete()
-        print("{:,} ANCIENT PostProcessings deleted".format(count))
+        print(f"{count:,} ANCIENT PostProcessings deleted")
 
     old = timezone.now() - datetime.timedelta(hours=1)
     stuck = PostProcessing.objects.filter(
         duration__isnull=True, exception__isnull=True, created__lt=old
     )
     deleted = stuck.delete()
-    print("{} STUCK PostProcessings".format(deleted[0]))
+    print(f"{deleted[0]:,} STUCK PostProcessings")
+
+
+@periodic_task(crontab(minute="*"))
+def health_check_to_disk():
+    health_file = Path("/tmp/huey_health.json")
+    try:
+        do_healthcheck()
+        with open(health_file, "w") as f:
+            json.dump({"ok": True, "error": None}, f)
+    except Exception:
+        with open(health_file, "w") as f:
+            etype, evalue, tb = sys.exc_info()
+            json.dump(
+                {
+                    "ok": False,
+                    "error": {"type": etype, "value": evalue, "traceback": tb},
+                },
+                f,
+            )
+        raise

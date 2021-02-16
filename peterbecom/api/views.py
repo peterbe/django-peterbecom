@@ -41,7 +41,7 @@ from peterbecom.base.fscache import invalidate_by_url, path_to_fs_path
 from peterbecom.base.geo import ip_to_city
 from peterbecom.base.models import CDNPurgeURL, PostProcessing, SearchResult
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
-from peterbecom.base.utils import fake_ip_address
+from peterbecom.base.utils import fake_ip_address, do_healthcheck
 from peterbecom.base.xcache_analyzer import get_x_cache
 from peterbecom.plog.models import (
     BlogComment,
@@ -1952,3 +1952,9 @@ def whereami(request):
     context["ip_address"] = ip_address
     context["geo"] = ip_to_city(ip_address)
     return _response(context)
+
+
+@never_cache
+def healthcheck(request):
+    do_healthcheck()
+    return http.HttpResponse("OK\n")
