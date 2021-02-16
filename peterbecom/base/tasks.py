@@ -1,9 +1,10 @@
 import datetime
 import functools
 import gzip
+import io
+import json
 import os
 import re
-import json
 import sys
 import time
 import traceback
@@ -397,10 +398,16 @@ def health_check_to_disk():
     except Exception:
         with open(health_file, "w") as f:
             etype, evalue, tb = sys.exc_info()
+            file = io.StringIO()
+            traceback.print_tb(tb, file=file)
             json.dump(
                 {
                     "ok": False,
-                    "error": {"type": etype, "value": evalue, "traceback": tb},
+                    "error": {
+                        "type": etype.__name__,
+                        "value": str(evalue),
+                        "traceback": file.getvalue(),
+                    },
                 },
                 f,
             )
