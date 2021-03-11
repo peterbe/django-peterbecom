@@ -13,7 +13,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.cache import add_never_cache_headers
+from django.utils.cache import add_never_cache_headers, patch_cache_control
 from django.views.decorators.cache import cache_control
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods, require_POST
@@ -21,7 +21,7 @@ from huey.contrib.djhuey import task
 
 from peterbecom.awspa.models import AWSProduct
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
-from peterbecom.base.utils import get_base_url, fake_ip_address
+from peterbecom.base.utils import fake_ip_address, get_base_url
 
 from . import utils
 from .forms import CalendarDataForm
@@ -49,7 +49,6 @@ ONE_YEAR = ONE_WEEK * 52
 THIS_YEAR = timezone.now().year
 
 
-@cache_control(public=True, max_age=settings.DEBUG and ONE_HOUR or ONE_WEEK)
 def blog_post(request, oid, page=None):
     if request.path.endswith("/ping"):
         # Sometimes this can happen when the URL parsing by Django
@@ -294,6 +293,22 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
     # If it hasn't been published yet, don't cache-control it.
     if context["not_published_yet"]:
         add_never_cache_headers(response)
+    else:
+        if settings.DEBUG:
+            max_age = ONE_HOUR
+        else:
+            age_days = (timezone.now() - post.pub_date).days
+            if age_days < 10:
+                # Fresh and new, don't cache too long in case it needs to be edited
+                max_age = ONE_DAY
+            elif age_days < 100:
+                max_age = ONE_WEEK
+            else:
+                # Default is a looong max-age because old blog posts are
+                # likely to be veeery old.
+                max_age = ONE_MONTH
+        patch_cache_control(response, public=True, max_age=max_age)
+
     return response
 
 
@@ -476,7 +491,7 @@ def submit_json(request, oid):
     return http.JsonResponse(data)
 
 
-@cache_control(public=True, max_age=60 * 60 * 24)
+@cache_control(public=True, max_age=60 * 60 * 24 * 2)
 def plog_index(request):
     groups = defaultdict(list)
     now = timezone.now()
