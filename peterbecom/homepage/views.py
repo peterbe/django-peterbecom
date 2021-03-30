@@ -683,6 +683,9 @@ def catchall(request, path):
         url = f"/plog/{OLD_ALIASES[path]}"
         return http.HttpResponsePermanentRedirect(url)
 
+    if path.endswith("/index.html") and re.findall(r"^p\d+\/index\.html", path):
+        return http.HttpResponseRedirect(f'/{path.replace("/index.html", "")}')
+
     lower_endings = (".asp", ".aspx", ".xml", ".php", ".jpg/view", ".rar", ".env")
     if any(path.lower().endswith(x) for x in lower_endings):
         return http.HttpResponse("Not found", status=404)
