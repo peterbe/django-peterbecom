@@ -17,7 +17,7 @@ from django.utils import timezone
 from django.utils.cache import add_never_cache_headers, patch_cache_control
 from django.utils.html import strip_tags
 from django.views import static
-from django.views.decorators.cache import cache_control
+from django.views.decorators.cache import cache_control, never_cache
 from django_redis import get_redis_connection
 from elasticsearch_dsl import Q, query
 from elasticsearch_dsl.query import MultiMatch
@@ -1068,3 +1068,9 @@ def get_random_avatar():
     avatar.render_png_file(bytes)
 
     return bytes.getvalue()
+
+
+@never_cache
+def preview_500(request):
+    print("HI there4")
+    return render(request, "500.html")
