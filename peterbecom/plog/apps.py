@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class PodcasttimeConfig(AppConfig):
+class PlogConfig(AppConfig):
     default_auto_field = "django.db.models.AutoField"
-    name = "peterbecom.podcasttime"
+    name = "peterbecom.plog"
