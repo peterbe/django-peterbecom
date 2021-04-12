@@ -5,6 +5,7 @@ from django.apps import AppConfig
 
 
 class BaseConfig(AppConfig):
+    default_auto_field = "django.db.models.AutoField"
     name = "peterbecom.base"
 
     def ready(self):

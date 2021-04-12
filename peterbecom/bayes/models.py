@@ -8,6 +8,7 @@ from peterbecom.plog.models import BlogComment
 
 
 class BayesData(models.Model):
+    id = models.AutoField(primary_key=True)
     pickle_data = models.BinaryField()
     options = models.JSONField()
     # Could be things like 'spam' or 'language'
@@ -31,6 +32,7 @@ def update_pickle_data_size(sender, instance, **kwargs):
 
 
 class BlogCommentTraining(models.Model):
+    id = models.AutoField(primary_key=True)
     comment = models.OneToOneField(BlogComment, on_delete=models.CASCADE)
     bayes_data = models.ForeignKey(BayesData, on_delete=models.CASCADE)
     tag = models.CharField(max_length=100)
