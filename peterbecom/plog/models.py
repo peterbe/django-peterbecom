@@ -17,7 +17,7 @@ from django.db.models import Count
 from django.db.models.signals import post_save, pre_delete, pre_save
 from django.dispatch import receiver
 from django.urls import reverse
-from elasticsearch.helpers import streaming_bulk
+from elasticsearch.helpers import parallel_bulk
 from elasticsearch_dsl.connections import connections
 from sorl.thumbnail import ImageField
 
@@ -223,7 +223,7 @@ class BlogItem(models.Model):
         report_every = 100
         count = 0
         t0 = time.time()
-        for success, doc in streaming_bulk(
+        for success, doc in parallel_bulk(
             es,
             (m.to_search(all_categories=categories).to_dict(True) for m in iterator),
             index=settings.ES_BLOG_ITEM_INDEX,
@@ -410,7 +410,7 @@ class BlogComment(models.Model):
         report_every = 1000
         count = 0
         t0 = time.time()
-        for success, doc in streaming_bulk(
+        for success, doc in parallel_bulk(
             es,
             (m.to_search().to_dict(True) for m in iterator),
             index=settings.ES_BLOG_COMMENT_INDEX,

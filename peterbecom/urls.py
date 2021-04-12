@@ -7,8 +7,6 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 urlpatterns = staticfiles_urlpatterns()
 
 urlpatterns += [
-    url(r"^nodomains$", lambda x: http.HttpResponseRedirect("/nodomains/")),
-    url(r"^nodomains/", include("peterbecom.nodomains.urls", namespace="nodomains")),
     url(r"^ajaxornot/", include("peterbecom.ajaxornot.urls", namespace="ajaxornot")),
     url(r"^cdnthis$", lambda x: http.HttpResponseRedirect("/cdnthis/")),
     url(r"^cdnthis/", include("peterbecom.cdnthis.urls", namespace="cdnthis")),

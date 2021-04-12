@@ -31,5 +31,6 @@ urlpatterns = [
     url(r"avatar\.png", views.avatar_image, name="avatar_image"),
     url(r"^__huey__", views.huey_test, name="huey_test"),
     url(r"^__dynamic__", views.dynamic_page, name="dynamic_page"),
+    url(r"^__500__", views.preview_500, name="preview_500"),
     url(r"^(.*)", views.catchall, name="catchall"),
 ]
