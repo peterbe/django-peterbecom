@@ -38,12 +38,16 @@ def minimize(request):
     if not url:
         return http.HttpResponseBadRequest("No url")
     parsed = urlparse(url)
-
     if not (parsed.scheme and parsed.netloc):
-        return http.HttpResponseBadRequest("url={!r} parsed={}".format(url, parsed))
+        return http.HttpResponseBadRequest(f"url={url!r} parsed={parsed}")
+
+    prettier = options.get("prettier")
 
     t0 = time.time()
-    r = requests.post(settings.MINIMALCSS_SERVER_URL + "/minimize", json={"url": url})
+    r = requests.post(
+        settings.MINIMALCSS_SERVER_URL + "/minimize",
+        json={"url": url, "prettier": prettier},
+    )
     if r.status_code != 200:
         try:
             error = r.json()["error"]
@@ -60,11 +64,11 @@ def minimize(request):
 
         response = http.JsonResponse(error)
     else:
-        result = r.json()["result"]
+        result = r.json()
         t1 = time.time()
 
         Minimization.objects.create(url=url, time_took=t1 - t0, result=result)
-        response = http.JsonResponse({"result": result})
+        response = http.JsonResponse(result)
 
     response["Access-Control-Allow-Origin"] = "*"
     return response
