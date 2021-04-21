@@ -649,10 +649,10 @@ mimic-response@^3.1.0:
   resolved "https://registry.yarnpkg.com/mimic-response/-/mimic-response-3.1.0.tgz#2d1d59af9c1b129815accc2c46a022a5ce1fa3c9"
   integrity sha512-z0yWI+4FDrrweS8Zmt4Ej5HdJmky15+L2e6Wgn3+iK5fWzb6T3fhNFq2+MeTRb064c6Wr4N/wv0DzQTjNzHNGQ==
 
-minimalcss-server@0.9.0:
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/minimalcss-server/-/minimalcss-server-0.9.0.tgz#324c9e2345c32fa5d86dbb6c4c57c668d9982081"
-  integrity sha512-grDvRkOcSwB1KuvaEQltCRCIoCJXgQnV5A3TrSgZ8kv7DIxEBixzRlnuWCqBLttjNaDzhkExP5qFe+LHZLpvNw==
+minimalcss-server@0.10.0:
+  version "0.10.0"
+  resolved "https://registry.yarnpkg.com/minimalcss-server/-/minimalcss-server-0.10.0.tgz#3ee9fb8fb9bb24da18cc1ae013fab1f712007749"
+  integrity sha512-HBLSRG0WQFSqLp1AFEl+U4WLBQw1cBCM9ldHyl0isdrfxXjLv7xPMfMZNvjYOl8ssCupiVI0rib/Kmo3Stb6Og==
   dependencies:
     "@moebius/http-graceful-shutdown" "1.1.0"
     express "4.17.1"
@@ -661,6 +661,7 @@ minimalcss-server@0.9.0:
     lru-cache "6.0.0"
     minimalcss "0.11.2"
     performance-now "2.1.0"
+    prettier "2.2.1"
     response-time "2.3.2"
 
 minimalcss@0.11.2:
@@ -786,6 +787,11 @@ performance-now@2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/performance-now/-/performance-now-2.1.0.tgz#6309f4e0e5fa913ec1c69307ae364b4b377c9e7b"
   integrity sha1-Ywn04OX6kT7BxpMHrjZLSzd8nns=
+
+prettier@2.2.1:
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.2.1.tgz#795a1a78dd52f073da0cd42b21f9c91381923ff5"
+  integrity sha512-PqyhM2yCjg/oKkFPtTGUojv7gnZAoG80ttl45O6x2Ug/rMJw4wcc9k6aaf2hibP7BGVCCM33gZoGjyvt9mm16Q==
 
 process-nextick-args@~2.0.0:
   version "2.0.0"
