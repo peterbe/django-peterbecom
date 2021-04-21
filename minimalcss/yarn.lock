@@ -437,10 +437,10 @@ fs.realpath@^1.0.0:
   resolved "https://registry.yarnpkg.com/fs.realpath/-/fs.realpath-1.0.0.tgz#1504ad2523158caa40db4a2787cb01411994ea4f"
   integrity sha1-FQStJSMVjKpA20onh8sBQRmU6k8=
 
-generic-pool@3.7.1:
-  version "3.7.1"
-  resolved "https://registry.yarnpkg.com/generic-pool/-/generic-pool-3.7.1.tgz#36fe5bb83e7e0e032e5d32cd05dc00f5ff119aa8"
-  integrity sha512-ug6DAZoNgWm6q5KhPFA+hzXfBLFQu5sTXxPpv44DmE0A2g+CiHoq9LTVdkXpZMkYVMoGw83F6W+WT0h0MFMK/w==
+generic-pool@3.7.8:
+  version "3.7.8"
+  resolved "https://registry.yarnpkg.com/generic-pool/-/generic-pool-3.7.8.tgz#202087bf5ec5e0b3bae39842a0ef98bcd4c1e450"
+  integrity sha512-Pz93INFSbhjEROVbM91rurD05G+Kx8833rG+lVU57mznEBpzkc1f5/g+d511a1Yf8dbAEsm7DDA3QLytMFbiGA==
 
 get-stream@^5.1.0:
   version "5.2.0"
@@ -461,10 +461,10 @@ glob@^7.1.3:
     once "^1.3.0"
     path-is-absolute "^1.0.0"
 
-got@11.8.0:
-  version "11.8.0"
-  resolved "https://registry.yarnpkg.com/got/-/got-11.8.0.tgz#be0920c3586b07fd94add3b5b27cb28f49e6545f"
-  integrity sha512-k9noyoIIY9EejuhaBNLyZ31D5328LeqnyPNXJQb2XlJZcKakLqN5m6O/ikhq/0lw56kUYS54fVm+D1x57YC9oQ==
+got@11.8.2:
+  version "11.8.2"
+  resolved "https://registry.yarnpkg.com/got/-/got-11.8.2.tgz#7abb3959ea28c31f3576f1576c1effce23f33599"
+  integrity sha512-D0QywKgIe30ODs+fm8wMZiAcZjypcCodPNuMz5H9Mny7RJ+IjJ10BdmGW7OM7fHXP+O7r6ZwapQ/YQmMSvB0UQ==
   dependencies:
     "@sindresorhus/is" "^4.0.0"
     "@szmarczak/http-timer" "^4.0.5"
@@ -649,15 +649,15 @@ mimic-response@^3.1.0:
   resolved "https://registry.yarnpkg.com/mimic-response/-/mimic-response-3.1.0.tgz#2d1d59af9c1b129815accc2c46a022a5ce1fa3c9"
   integrity sha512-z0yWI+4FDrrweS8Zmt4Ej5HdJmky15+L2e6Wgn3+iK5fWzb6T3fhNFq2+MeTRb064c6Wr4N/wv0DzQTjNzHNGQ==
 
-minimalcss-server@0.8.0:
-  version "0.8.0"
-  resolved "https://registry.yarnpkg.com/minimalcss-server/-/minimalcss-server-0.8.0.tgz#71dc66c4374b100d7f4a7a37b4776778775e8ed1"
-  integrity sha512-xBjrtuxfyez0gTBA0ks7lhDsEKgPRF8sYQ7QBEjSspXXxsIvSexjs9ov9DKreERw+SSzTqyq5MLv0Qpsyf5blw==
+minimalcss-server@0.9.0:
+  version "0.9.0"
+  resolved "https://registry.yarnpkg.com/minimalcss-server/-/minimalcss-server-0.9.0.tgz#324c9e2345c32fa5d86dbb6c4c57c668d9982081"
+  integrity sha512-grDvRkOcSwB1KuvaEQltCRCIoCJXgQnV5A3TrSgZ8kv7DIxEBixzRlnuWCqBLttjNaDzhkExP5qFe+LHZLpvNw==
   dependencies:
     "@moebius/http-graceful-shutdown" "1.1.0"
     express "4.17.1"
-    generic-pool "3.7.1"
-    got "11.8.0"
+    generic-pool "3.7.8"
+    got "11.8.2"
     lru-cache "6.0.0"
     minimalcss "0.11.2"
     performance-now "2.1.0"
