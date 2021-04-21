@@ -649,10 +649,10 @@ mimic-response@^3.1.0:
   resolved "https://registry.yarnpkg.com/mimic-response/-/mimic-response-3.1.0.tgz#2d1d59af9c1b129815accc2c46a022a5ce1fa3c9"
   integrity sha512-z0yWI+4FDrrweS8Zmt4Ej5HdJmky15+L2e6Wgn3+iK5fWzb6T3fhNFq2+MeTRb064c6Wr4N/wv0DzQTjNzHNGQ==
 
-minimalcss-server@0.10.0:
-  version "0.10.0"
-  resolved "https://registry.yarnpkg.com/minimalcss-server/-/minimalcss-server-0.10.0.tgz#3ee9fb8fb9bb24da18cc1ae013fab1f712007749"
-  integrity sha512-HBLSRG0WQFSqLp1AFEl+U4WLBQw1cBCM9ldHyl0isdrfxXjLv7xPMfMZNvjYOl8ssCupiVI0rib/Kmo3Stb6Og==
+minimalcss-server@0.10.1:
+  version "0.10.1"
+  resolved "https://registry.yarnpkg.com/minimalcss-server/-/minimalcss-server-0.10.1.tgz#c3d872abc7cd95dca0d71d422815c051a24784f0"
+  integrity sha512-tGumEirHRnkyj8lJyMwP5/fNaI3w8cVqGWGxXcB9doIZAAHC/5RNHHVLQYV0aK/pdu9Z/B/nEZxbIWES1SjY/A==
   dependencies:
     "@moebius/http-graceful-shutdown" "1.1.0"
     express "4.17.1"
