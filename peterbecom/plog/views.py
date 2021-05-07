@@ -57,11 +57,9 @@ def blog_post(request, oid, page=None):
         # http://localhost:8000/plog/dont-forget-your-sets-in-python%0A/ping
         return blog_post_ping(request)
 
+    # legacy stuff
     if request.GET.get("comments") == "all":
         return redirect(request.path, permanent=False)
-        # if "/all-comments" in request.path:
-        #     return http.HttpResponseBadRequest("invalid URL")
-        # return redirect(request.path + "/all-comments", permanent=True)
 
     return _render_blog_post(request, oid, page=page)
 
