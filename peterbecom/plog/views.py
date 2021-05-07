@@ -56,11 +56,12 @@ def blog_post(request, oid, page=None):
         # E.g.
         # http://localhost:8000/plog/dont-forget-your-sets-in-python%0A/ping
         return blog_post_ping(request)
-    # legacy fix
+
     if request.GET.get("comments") == "all":
-        if "/all-comments" in request.path:
-            return http.HttpResponseBadRequest("invalid URL")
-        return redirect(request.path + "/all-comments", permanent=True)
+        return redirect(request.path, permanent=False)
+        # if "/all-comments" in request.path:
+        #     return http.HttpResponseBadRequest("invalid URL")
+        # return redirect(request.path + "/all-comments", permanent=True)
 
     return _render_blog_post(request, oid, page=page)
 
@@ -312,21 +313,9 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
     return response
 
 
-@cache_control(public=True, max_age=7 * 24 * 60 * 60)
+# legacy stuff
 def all_blog_post_comments(request, oid):
-
-    if request.path == "/plog/blogitem-040601-1/all-comments":
-        raise http.Http404("No longer supported")
-
-    post = get_object_or_404(BlogItem, oid=oid)
-    comments = BlogComment.objects.filter(blogitem=post).order_by("add_date")
-    comments = comments.filter(approved=True)
-
-    all_comments = defaultdict(list)
-    for comment in comments:
-        all_comments[comment.parent_id].append(comment)
-    data = {"post": post, "all_comments": all_comments}
-    return render(request, "plog/_all_comments.html", data)
+    return redirect(f"/plog/{oid}", permanent=True)
 
 
 def get_related_posts_by_keyword(post, limit=5, exclude_ids=None):
