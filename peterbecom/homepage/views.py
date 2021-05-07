@@ -328,7 +328,7 @@ def search(request, original_q=None):
     t0 = time.time()
     response = search_query.execute()
     t1 = time.time()
-    print("TOOK", response.took)
+    # print("TOOK", response.took)
     search_times.append(("blogitems", t1 - t0))
 
     for hit in response:
@@ -385,7 +385,7 @@ def search(request, original_q=None):
     t0 = time.time()
     response = search_query.execute()
     t1 = time.time()
-    print("TOOK", response.took)
+    # print("TOOK", response.took)
     search_times.append(("blogcomments", t1 - t0))
 
     context["count_documents"] += response.hits.total.value
@@ -443,18 +443,26 @@ def search(request, original_q=None):
     context["search_time"] = sum(x[1] for x in search_times)
     if not context["q"]:
         page_title = "Search"
-    elif context["count_documents"] == 1:
-        page_title = "1 thing found"
-    elif context["count_documents"] == 0:
-        page_title = "Nothing found"
     else:
-        page_title = "%s things found" % context["count_documents"]
+        page_title = f"Searching for {context['q']}"
+
+    if context["q"]:
+        if context["count_documents"] == 1:
+            sub_title = "1 thing found"
+        elif context["count_documents"] == 0:
+            sub_title = "Nothing found"
+        else:
+            sub_title = f"{context['count_documents']:,} things found"
+    else:
+        sub_title = ""
+
     if context["count_documents_shown"] < context["count_documents"]:
         if context["count_documents_shown"] == 1:
-            page_title += " (1 shown)"
+            sub_title += " (1 shown)"
         else:
-            page_title += " ({} shown)".format(context["count_documents_shown"])
+            sub_title += " ({} shown)".format(context["count_documents_shown"])
     context["page_title"] = page_title
+    context["sub_title"] = sub_title
     context["original_q"] = original_q
     if original_q:
         context["non_stopwords_q"] = [

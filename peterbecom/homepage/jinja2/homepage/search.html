@@ -4,7 +4,11 @@
 {% stylesheet 'homepage:search' %}
 {% endblock %}
 
-{% block title_prefix %}Search: {{ page_title }}{% endblock %}
+{% block title_prefix %}{{ page_title }}{% endblock %}
+
+{% block page_header_extra %}
+{% if sub_title %}<h2 class="ui header">{{ sub_title }}</h2>{% endif %}
+{% endblock %}
 
 {% block content %}
 
