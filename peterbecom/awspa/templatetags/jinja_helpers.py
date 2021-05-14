@@ -15,7 +15,7 @@ def awspa_product(awsproduct, show_action_button=False, hide_image=False):
     try:
         item["title"] = item["item_info"]["title"]["display_value"]
         item["display_price"] = item["offers"]["listings"][0]["price"]["display_amount"]
-        item["medium_image"] = item["images"]["primary"]["medium"]["url"]
+        item["medium_image"] = item["images"]["primary"]["medium"]
         by_line_info = item["item_info"].get("by_line_info") or {}
 
         item["authors"] = [x["name"] for x in by_line_info.get("contributors") or []]

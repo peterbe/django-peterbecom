@@ -620,8 +620,6 @@ def blog_post_awspa(request, oid, page=None):
 
     if not instances:
         print("No matching AWSProducts!", keywords, "OID:", oid)
-        with open("/tmp/no-matching-awsproducts.log", "a") as f:
-            f.write("{}\n".format(oid))
 
     random.shuffle(instances)
     context = {"awsproducts": instances[:3]}

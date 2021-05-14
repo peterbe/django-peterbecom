@@ -5,7 +5,8 @@
         data-src="{{ item.image_medium }}"
         alt="{{ item.title }}"/>
   {% else %}
-  <img src="{{ item.medium_image }}" alt="{{ item.title }}"/>
+  <img src="{{ item.medium_image.url }}" width="{{ item.medium_image.width }}"
+  height="{{ item.medium_image.height }}" alt="{{ item.title }}"/>
   {% endif %}
 </a>
 <div class="content">
