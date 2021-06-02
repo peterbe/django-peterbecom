@@ -119,8 +119,6 @@ def _render_blog_post(request, oid, page=None, screenshot_mode=False):
         try:
             post = BlogItem.objects.get(oid__iexact=oid)
         except BlogItem.DoesNotExist:
-            if oid == "add":
-                return redirect(reverse("add_post"))
             raise http.Http404(oid)
 
     if post.archived:
