@@ -1,4 +1,0 @@
-flake8==3.9.2
-ipython==7.24.1
-honcho==1.0.1
-pip-tools==6.1.0
