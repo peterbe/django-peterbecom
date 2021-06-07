@@ -145,9 +145,9 @@ optisorl==0.2.1 \
 pytz==2021.1 \
     --hash=sha256:eb10ce3e7736052ed3623d49975ce333bcd712c7bb19a58b9e2089d4057d0798 \
     --hash=sha256:83a4a90894bf38e243cf052c8b58f381bfe9a7a483f6a9cab140bc7f702ac4da
-django-jinja==2.7.0 \
-    --hash=sha256:ce4640e4bc329d9e938c3a7673dafc66dfcc921e4667cfd1002f0089e2599103 \
-    --hash=sha256:d56ecddaa6d3caf508509aae5a979ebd8a3427477c34fcbcac14bf8389a21a12
+django-jinja==2.8.0 \
+    --hash=sha256:0d8e9d795ff698b97ef6c48f425042d57461a030d396dfb3b33080b7376f1fc9 \
+    --hash=sha256:bba30a7ea4394bccfaa9bc8620996c25ede446ab06104b51b3a16fe81232cbf2
 elasticsearch==7.13.1 \
     --hash=sha256:a09ae1de8869efa6ef2d9a0a9b9f6d9260b0c2506e83dd32bc1119a23fff49a5 \
     --hash=sha256:d6bcca0b2e5665d08e6fe6fadc2d4d321affd76ce483603078fc9d3ccd2bc0f9
