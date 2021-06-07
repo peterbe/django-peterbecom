@@ -97,5 +97,4 @@ jobs:
           ./scripts/ci-test.sh
       - name: Run Lints
         run: |
-          pip install -r dev-requirements.txt --progress-bar off
           ./scripts/ci-lint.sh
