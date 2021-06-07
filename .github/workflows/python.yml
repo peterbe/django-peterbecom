@@ -90,14 +90,12 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          python -m pip install --upgrade pip wheel
-          # pip install -r requirements.txt
-          # Have to do this because of a bug in the new pip resolver (grr!!)
-          pip install -r constraints.txt -r requirements.txt
+          python -m pip install --upgrade pip wheel --progress-bar off
+          pip install -r requirements.txt --progress-bar off
       - name: Run Tests
         run: |
           ./scripts/ci-test.sh
       - name: Run Lints
         run: |
-          pip install -r dev-requirements.txt
+          pip install -r dev-requirements.txt --progress-bar off
           ./scripts/ci-lint.sh
