@@ -13,17 +13,17 @@ const url = process.argv[2];
 (async (url) => {
   const browser = await puppeteer.launch({
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu'],
-    defaultViewport: {
-      width: 1920,
-      height: 2080,
-    },
+    // defaultViewport: {
+    //   width: 1920,
+    //   height: 2080,
+    // },
   });
   const page = await browser.newPage();
-  page.setDefaultTimeout(60 * 1000);
+  page.setDefaultTimeout(10 * 1000);
   let response;
   try {
     response = await page.goto(url, {
-      timeout: 50 * 1000,
+      timeout: 20 * 1000,
       waitUntil: 'networkidle2',
     });
   } catch (error) {

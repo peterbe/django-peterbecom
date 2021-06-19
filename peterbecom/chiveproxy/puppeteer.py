@@ -50,9 +50,12 @@ def suck(url, attempts=3):
     while True:
         attempt += 1
         try:
+            # print("COMMAND:", command)
             output, _ = subprocess_execute(command, timeout_seconds=60)
+            # print("WORKED!", output[:100])
             break
         except subprocess.TimeoutExpired:
+            # print("ATTEMPTS", [attempt, attempts])
             if attempt >= attempts:
                 raise
 
