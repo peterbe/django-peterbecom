@@ -80,7 +80,7 @@ def get_card(url):
         html = puppeteer.suck(url)
         assert html, url
         assert html.strip().endswith("</html>"), (url, html)
-        print("SUCKED", url)
+        print("Sucked", url)
         if html:
             cache.set(puppeteer_cache_key, html, 60)
     else:
