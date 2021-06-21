@@ -226,9 +226,9 @@ elasticsearch==7.13.1 \
     # via
     #   -r requirements.in
     #   elasticsearch-dsl
-feedparser==6.0.4 \
-    --hash=sha256:459eea28488105ac92f6ef2c952539ed06b2460a833740062d5456d358a558d2 \
-    --hash=sha256:dcb019f1c892e106e6f981a11a6f97704601d52112f13975bda0adbe11cb6220
+feedparser==6.0.6 \
+    --hash=sha256:1c35e9ef43d8f95959cf8cfa337b68a2cb0888cab7cd982868d23850bb1e08ae \
+    --hash=sha256:78f62a5b872fdef451502bb96e64a8fd4180535eb749954f1ad528604809cdeb
     # via -r requirements.in
 flake8==3.9.2 \
     --hash=sha256:07528381786f2a6237b061f6e96610a4167b226cb926e2aa2b6b1d78057c576b \
