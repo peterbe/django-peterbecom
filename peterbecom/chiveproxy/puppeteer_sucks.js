@@ -23,8 +23,8 @@ const url = process.argv[2];
   let response;
   try {
     response = await page.goto(url, {
-      timeout: 20 * 1000,
-      waitUntil: 'networkidle2',
+      timeout: 100 * 1000,
+      waitUntil: 'load',
     });
   } catch (error) {
     console.warn(`Failed to goto ${url}`, error);
