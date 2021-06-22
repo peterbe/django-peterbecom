@@ -190,9 +190,11 @@
   </p>
 {% endif %}
 
+{#
 {% if '/plog/blogitem-040601-1' not in request.path %}
 <div id="awspa" style="margin-top:30px;display:none"></div>
 {% endif %}
+#}
 
 {% macro pagination() -%}
   {% if paginate_uri_next or paginate_uri_previous -%}

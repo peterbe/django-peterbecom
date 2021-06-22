@@ -54,6 +54,9 @@ class Command(BaseCommand):
         parser.add_argument("--without-offers", default=False, action="store_true")
 
     def handle(self, **options):
+        self.notice("This is currently on ice")
+        return
+
         limit = int(options["limit"])
         sleep = float(options["sleep"])
         old = timezone.now() - datetime.timedelta(hours=12)
