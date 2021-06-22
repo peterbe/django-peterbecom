@@ -1,4 +1,4 @@
-(function() {
+(function () {
   var container = $('#awspa');
 
   // http://youmightnotneedjquery.com/#fade_in
@@ -7,7 +7,7 @@
     el.style.display = ''; // peterbe added
 
     var last = +new Date();
-    var tick = function() {
+    var tick = function () {
       el.style.opacity = +el.style.opacity + (new Date() - last) / 400;
       last = +new Date();
 
@@ -20,16 +20,17 @@
   }
 
   function loadAwspa(url) {
+    if (!container.length) return;
     fetch(url)
-      .then(function(r) {
+      .then(function (r) {
         if (r.ok) {
-          r.text().then(function(response) {
+          r.text().then(function (response) {
             container.html(response);
             var imagesToLoad = 0;
-            $('img', container).each(function() {
+            $('img', container).each(function () {
               imagesToLoad++;
               var i = new Image();
-              i.onload = function() {
+              i.onload = function () {
                 imagesToLoad--;
                 if (!imagesToLoad) {
                   fadeIn(container[0]);
@@ -40,7 +41,7 @@
           });
         }
       })
-      .catch(function(err) {
+      .catch(function (err) {
         console.error('Failure to fetch', url, 'error:', err);
       });
   }
