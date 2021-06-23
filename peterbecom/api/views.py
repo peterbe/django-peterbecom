@@ -220,7 +220,7 @@ def categories(request):
     # Prepare all the names and IDs
     all_categories = {}
     for id, name in Category.objects.all().values_list("id", "name"):
-        all_categories[id] = {"name": name, "count": 0}
+        all_categories[id] = {"name": name, "count": 0, "id": id}
 
     # Gather each categories usage count
     qs = (
@@ -245,6 +245,7 @@ def categories(request):
             continue
         categories.append(all_categories[id])
         seen.add(id)
+
     for id, category in all_categories.items():
         if id not in seen:
             categories.append(category)
