@@ -60,4 +60,4 @@ requests-mock==1.9.3
 flake8==3.9.2
 ipython==7.25.0
 honcho==1.0.1
-pip-tools==6.1.0
+pip-tools==6.2.0
