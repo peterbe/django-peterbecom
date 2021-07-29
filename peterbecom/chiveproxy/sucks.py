@@ -33,7 +33,7 @@ def get_cards(limit=None):
             continue
 
         assert img.startswith("https"), img
-        for a in slot("h3.post-title a").items():
+        for a in slot("h1.post-title a").items():
             text = a.text().replace("\xa0", " ").strip()
             if text.lower().endswith("(video)"):
                 continue
