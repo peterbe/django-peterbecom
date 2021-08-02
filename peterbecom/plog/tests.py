@@ -77,20 +77,8 @@ def test_blog_post_ping(client):
     assert response.status_code == 200
     assert response.json()["ok"]
 
-    hit, = BlogItemHit.objects.all()
+    (hit,) = BlogItemHit.objects.all()
     assert hit.blogitem == blog
-
-
-@pytest.mark.django_db
-def test_blog_post_with_newline_request_path(client):
-    url = reverse("blog_post", args=["myoid"])
-    response = client.get(url + "\n")
-    assert response.status_code == 301
-    assert urlparse(response["location"]).path == url
-
-    response = client.get(url + "\nsomething")
-    assert response.status_code == 301
-    assert urlparse(response["location"]).path == url
 
 
 @pytest.mark.django_db

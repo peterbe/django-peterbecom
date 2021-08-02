@@ -1,6 +1,5 @@
 import datetime
 import os
-from urllib.parse import urlparse
 
 import pytest
 from django.urls import reverse
@@ -123,11 +122,3 @@ def test_about_page_fs_cached(client, tmpfscacheroot):
     response = client.get(url)
     assert response.status_code == 200
     assert os.path.isfile(fs_path)
-
-
-@pytest.mark.django_db
-def test_about_page_with_newline_request_path(client, tmpfscacheroot):
-    url = reverse("about")
-    response = client.get(url + "\n")
-    assert response.status_code == 301
-    assert urlparse(response["location"]).path == url
