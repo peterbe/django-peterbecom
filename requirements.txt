@@ -246,9 +246,9 @@ elasticsearch==7.13.4 \
     # via
     #   -r requirements.in
     #   elasticsearch-dsl
-elasticsearch-dsl==7.3.0 \
-    --hash=sha256:0ed75f6ff037e36b2397a8e92cae0ddde79b83adc70a154b8946064cb62f7301 \
-    --hash=sha256:9390d8e5cf82ebad3505e7f656e407259cf703f5a4035f211cef454127672572
+elasticsearch-dsl==7.4.0 \
+    --hash=sha256:046ea10820b94c075081b528b4526c5bc776bda4226d702f269a5f203232064b \
+    --hash=sha256:c4a7b93882918a413b63bed54018a1685d7410ffd8facbc860ee7fd57f214a6d
     # via -r requirements.in
 feedparser==6.0.8 \
     --hash=sha256:1b7f57841d9cf85074deb316ed2c795091a238adb79846bc46dccdaf80f9c59a \
