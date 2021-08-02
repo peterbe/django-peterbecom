@@ -1,4 +1,4 @@
-from django.conf.urls import url
+from django.urls import path
 
 from . import views
 
@@ -6,7 +6,7 @@ from . import views
 app_name = "awspa"
 
 urlpatterns = [
-    url("^keywords$", views.all_keywords, name="all_keywords"),
-    url("^delete$", views.delete_awsproduct, name="delete_awsproduct"),
-    url("^archive$", views.plog_archive, name="plog_archive"),
+    path("keywords", views.all_keywords, name="all_keywords"),
+    path("delete", views.delete_awsproduct, name="delete_awsproduct"),
+    path("archive", views.plog_archive, name="plog_archive"),
 ]
