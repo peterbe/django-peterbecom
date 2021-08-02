@@ -1,8 +1,8 @@
-from django.conf.urls import url
+from django.urls import path
 
 from . import views
 
 
 app_name = "minimalcss"
 
-urlpatterns = [url("^minimize", views.minimize, name="minimize")]
+urlpatterns = [path("minimize", views.minimize, name="minimize")]
