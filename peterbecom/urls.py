@@ -15,7 +15,6 @@ urlpatterns += [
     ),
     path("awspa/", include("peterbecom.awspa.urls", namespace="awspa")),
     path("api/v0/", include("peterbecom.api.urls", namespace="api")),
-    # url(r"^plog/", include("peterbecom.plog.urls")),
     path("plog/", include("peterbecom.plog.urls")),
     path("minimalcss/", include("peterbecom.minimalcss.urls")),
     path("chiveproxy", lambda x: http.HttpResponseRedirect("/chiveproxy/")),
