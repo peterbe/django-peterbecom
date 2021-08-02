@@ -1,7 +1,7 @@
 # To manually upgrade these; literally edit this file then run:
 #
 #   pip-compile --generate-hashes requirements.in
-#   pip install -I -r requirements.txt
+#   pip install -I -r requirements.txt --allow-unsafe
 
 Django==3.2.5
 Jinja2==3.0.1
@@ -11,7 +11,7 @@ sorl-thumbnail==12.7.0
 Pillow==8.3.1
 cssmin==0.2.0
 cssselect==1.1.0
-requests[security]==2.25.1
+requests==2.26.0
 lxml==4.6.3
 django-semanticui-form==0.0.1
 django-pipeline==2.0.6
@@ -58,6 +58,5 @@ requests-mock==1.9.3
 # Not sure these belong in here but what the heck, it's not a huge overhead
 # to put these into production. At least now there's only one file.
 flake8==3.9.2
-ipython==7.25.0
 honcho==1.0.1
 pip-tools==6.2.0
