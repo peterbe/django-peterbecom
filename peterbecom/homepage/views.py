@@ -1065,7 +1065,10 @@ def fill_random_avatars_redis_list():
 
 def fill_random_avatars_redis_list_filled():
     key = REDIS_RANDOM_AVATARS_LIST_KEY
-    print(f"# random avatars in Redis: {redis_client.llen(key)} ({timezone.now()})")
+    count = redis_client.llen(key)
+    print(f"# random avatars in Redis: {count} ({timezone.now()})")
+    if count >= 1000:
+        return
 
     # Because of how Huey works, make sure you import this here
     # within the function. Weird but necessary.
