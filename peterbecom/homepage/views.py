@@ -999,6 +999,9 @@ def avatar_image_test_page(request):
     return render(request, "homepage/avatar-image.html", context)
 
 
+short_term_random_avatar = None
+
+
 def avatar_image(request, seed=None):
     if not seed:
         seed = request.GET.get("seed") or "random"
@@ -1009,7 +1012,16 @@ def avatar_image(request, seed=None):
     random_avatar = redis_client.rpop(REDIS_RANDOM_AVATARS_LIST_KEY)
     print(f"RANDOM AVATAR: {random_avatar and 'Redis HIT' or 'Redis Miss'}")
     if not random_avatar:
-        random_avatar = get_random_avatar()
+        # On Redis cache misses, store, for 5 seconds on in a module-level global
+        # cache.
+        global short_term_random_avatar
+        if short_term_random_avatar and time.time() - short_term_random_avatar[0] < 5:
+            print("Got RANDOM AVATAR from short-term")
+            random_avatar = short_term_random_avatar[1]
+        else:
+            random_avatar = get_random_avatar()
+            print("Generated new RANDOM AVATAR")
+            short_term_random_avatar = (time.time(), random_avatar, seed)
 
     response = http.HttpResponse(random_avatar)
     response["content-type"] = "image/png"
