@@ -1011,9 +1011,16 @@ def avatar_image(request, seed=None):
 
     # Try to read from the "global cache first"
     global short_term_random_avatar
-    if short_term_random_avatar and time.time() - short_term_random_avatar[0] < 2:
+    if short_term_random_avatar and isinstance(short_term_random_avatar, tuple):
+        short_term_random_avatar = {}
+
+    if (
+        short_term_random_avatar
+        and time.time() - short_term_random_avatar["time"] < 2
+        and short_term_random_avatar["seed"] == seed
+    ):
         print("Got RANDOM AVATAR from short-term", request.META.get("HTTP_REFERER"))
-        random_avatar = short_term_random_avatar[1]
+        random_avatar = short_term_random_avatar["avatar"]
     else:
         random_avatar = redis_client.rpop(REDIS_RANDOM_AVATARS_LIST_KEY)
         print(
@@ -1023,12 +1030,18 @@ def avatar_image(request, seed=None):
         if not random_avatar:
             random_avatar = get_random_avatar()
             print("Generated new RANDOM AVATAR", request.META.get("HTTP_REFERER"))
-        short_term_random_avatar = (time.time(), random_avatar, seed)
+        short_term_random_avatar = {
+            "time": time.time(),
+            "avatar": random_avatar,
+            "seed": seed,
+        }
 
     response = http.HttpResponse(random_avatar)
     response["content-type"] = "image/png"
     if seed == "random":
-        add_never_cache_headers(response)
+        # Aug 8, had to do this to lift load off the server.
+        patch_cache_control(response, max_age=10, public=True)
+        # add_never_cache_headers(response)
     else:
         patch_cache_control(response, max_age=60, public=True)
 
