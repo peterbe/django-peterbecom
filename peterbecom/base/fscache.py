@@ -231,6 +231,7 @@ def cache_request(request, response):
             "/auth",
             "/podcasttime",
             "/nodomain",
+            "/avatar.html",
         )
         for s in not_starts:
             if request.path.startswith(s):

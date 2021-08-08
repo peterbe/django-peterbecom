@@ -1016,7 +1016,7 @@ def avatar_image(request, seed=None):
 
     if (
         short_term_random_avatar
-        and time.time() - short_term_random_avatar["time"] < 2
+        and time.time() - short_term_random_avatar["time"] < 3
         and short_term_random_avatar["seed"] == seed
     ):
         print("Got RANDOM AVATAR from short-term", request.META.get("HTTP_REFERER"))
@@ -1040,7 +1040,7 @@ def avatar_image(request, seed=None):
     response["content-type"] = "image/png"
     if seed == "random":
         # Aug 8, had to do this to lift load off the server.
-        patch_cache_control(response, max_age=10, public=True)
+        patch_cache_control(response, max_age=60, public=True)
         # add_never_cache_headers(response)
     else:
         patch_cache_control(response, max_age=60, public=True)
