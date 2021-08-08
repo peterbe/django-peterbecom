@@ -25,7 +25,7 @@ from huey import crontab
 from huey.contrib.djhuey import periodic_task, task
 from lxml import etree
 
-from peterbecom.base.decorators import variable_cache_control
+from peterbecom.base.decorators import lock_decorator, variable_cache_control
 from peterbecom.base.models import SearchResult
 from peterbecom.base.utils import get_base_url
 from peterbecom.plog.models import BlogComment, BlogItem
@@ -1030,6 +1030,8 @@ def avatar_image(request, seed=None):
         if not random_avatar:
             random_avatar = get_random_avatar()
             print("Generated new RANDOM AVATAR", request.META.get("HTTP_REFERER"))
+            fill_random_avatars_redis_list()
+
         short_term_random_avatar = {
             "time": time.time(),
             "avatar": random_avatar,
@@ -1051,10 +1053,22 @@ def avatar_image(request, seed=None):
 REDIS_RANDOM_AVATARS_LIST_KEY = "random_avatars_list"
 
 
-@periodic_task(crontab(minute="*/5"))
+@periodic_task(crontab(minute="*/2"))
 def keep_random_avatars_redis_list_filled():
+    fill_random_avatars_redis_list_filled()
+
+
+@lock_decorator()
+def fill_random_avatars_redis_list():
+    fill_random_avatars_redis_list_filled()
+
+
+def fill_random_avatars_redis_list_filled():
     key = REDIS_RANDOM_AVATARS_LIST_KEY
-    print(f"# random avatars in Redis: {redis_client.llen(key)} ({timezone.now()})")
+    count = redis_client.llen(key)
+    print(f"# random avatars in Redis: {count} ({timezone.now()})")
+    if count >= 1000:
+        return
 
     # Because of how Huey works, make sure you import this here
     # within the function. Weird but necessary.
