@@ -10,6 +10,7 @@ from django.conf import settings
 from peterbecom.mincss_response import has_been_css_minified
 from peterbecom.brotli_file import brotli_file
 from peterbecom.zopfli_file import zopfli_file
+from peterbecom.base.decorators import lock_decorator
 
 CDN = os.environ.get("CDN", "")
 
@@ -50,7 +51,7 @@ def _are_dir_trees_equal(dir1, dir2):
     @return: True if the directory trees are the same and
         there were no errors while accessing the directories or files,
         False otherwise.
-   """
+    """
 
     dirs_cmp = filecmp.dircmp(dir1, dir2)
     if (
@@ -225,27 +226,45 @@ def _post_process_template(
             _brotli(template)
 
 
+# def _zopfli(filepath: Path):
+#     while True:
+#         original_ts = filepath.stat().st_mtime
+#         original_size = filepath.stat().st_size
+#         t0 = time.time()
+#         # XXX What happens if you run two threads
+#         # 1. thread1 starts `zopfli_file(path)`
+#         # 2. thread2 deletes `path` whilst thread1 is running
+#         new_filepath: Path = zopfli_file(filepath)
+#         t1 = time.time()
+#         if new_filepath:
+#             print(
+#                 f"Generated {new_filepath} ({new_filepath.stat().st_size:,} bytes, "
+#                 f"originally {original_size:,} bytes) Took {t1 - t0:.2f}s"
+#             )
+#             if original_ts != filepath.stat().st_mtime:
+#                 print(
+#                     f"WARNING! The file {filepath} changed during the zopfli process."
+#                 )
+#                 continue
+#             break
+
+
+@lock_decorator(key_maker=lambda filepath: str(filepath))
 def _zopfli(filepath: Path):
-    while True:
-        original_ts = filepath.stat().st_mtime
-        original_size = filepath.stat().st_size
-        t0 = time.time()
-        # XXX What happens if you run two threads
-        # 1. thread1 starts `zopfli_file(path)`
-        # 2. thread2 deletes `path` whilst thread1 is running
-        new_filepath: Path = zopfli_file(filepath)
-        t1 = time.time()
-        if new_filepath:
-            print(
-                f"Generated {new_filepath} ({new_filepath.stat().st_size:,} bytes, "
-                f"originally {original_size:,} bytes) Took {t1 - t0:.2f}s"
-            )
-            if original_ts != filepath.stat().st_mtime:
-                print(
-                    f"WARNING! The file {filepath} changed during the zopfli process."
-                )
-                continue
-            break
+    original_ts = filepath.stat().st_mtime
+    original_size = filepath.stat().st_size
+    t0 = time.perf_counter()
+    new_filepath: Path = zopfli_file(filepath)
+    t1 = time.perf_counter()
+    if new_filepath:
+        print(
+            f"Generated {new_filepath} ({new_filepath.stat().st_size:,} bytes, "
+            f"originally {original_size:,} bytes) Took {t1 - t0:.2f}s"
+        )
+        if original_ts != filepath.stat().st_mtime:
+            print(f"WARNING! The file {filepath} changed during the zopfli process.")
+    else:
+        print(f"Failed to zopfli the file {filepath}!")
 
 
 def _brotli(filepath: Path):

@@ -8,10 +8,10 @@ import {
   Input,
   Loader,
   Message,
-  Table
+  Table,
 } from 'semantic-ui-react';
 
-import { DisplayDate, ShowServerError } from './Common';
+import { formatFileSize, DisplayDate, ShowServerError } from './Common';
 import XCacheAnalyze from './XCacheAnalyze';
 
 class CDN extends React.Component {
@@ -38,7 +38,7 @@ class CDNCheck extends React.PureComponent {
     loading: true,
     result: null,
     serverError: null,
-    showConfig: false
+    showConfig: false,
   };
   async componentDidMount() {
     if (!this.props.accessToken) {
@@ -49,8 +49,8 @@ class CDNCheck extends React.PureComponent {
     try {
       response = await fetch(url, {
         headers: {
-          Authorization: `Bearer ${this.props.accessToken}`
-        }
+          Authorization: `Bearer ${this.props.accessToken}`,
+        },
       });
     } catch (ex) {
       return this.setState({ loading: false, serverError: ex });
@@ -64,7 +64,7 @@ class CDNCheck extends React.PureComponent {
       this.setState({
         loading: false,
         result,
-        serverError: null
+        serverError: null,
       });
     } else {
       this.setState({ loading: false, serverError: response });
@@ -97,7 +97,7 @@ class CDNCheck extends React.PureComponent {
         {!loading && result && result.checked && (
           <p style={{ marginTop: 10 }}>
             <Button
-              onClick={event => {
+              onClick={(event) => {
                 this.setState({ showConfig: !showConfig });
               }}
             >
@@ -124,7 +124,7 @@ class ProbeUrl extends React.PureComponent {
     purgeResult: null,
     result: null,
     serverError: null,
-    url: ''
+    url: '',
   };
 
   componentDidMount() {
@@ -145,7 +145,7 @@ class ProbeUrl extends React.PureComponent {
       throw new Error('No accessToken');
     }
     let response;
-    let url = '/api/v0/cdn/probe';
+    const url = '/api/v0/cdn/probe';
     const formData = new FormData();
     formData.append('url', this.state.url);
 
@@ -154,8 +154,8 @@ class ProbeUrl extends React.PureComponent {
         method: 'POST',
         body: formData,
         headers: {
-          Authorization: `Bearer ${this.props.accessToken}`
-        }
+          Authorization: `Bearer ${this.props.accessToken}`,
+        },
       });
     } catch (ex) {
       return this.setState({ loading: false, serverError: ex });
@@ -169,14 +169,14 @@ class ProbeUrl extends React.PureComponent {
       this.setState({
         loading: false,
         result,
-        serverError: null
+        serverError: null,
       });
     } else {
       this.setState({ loading: false, serverError: response });
     }
   };
 
-  purgeUrl = async absoluteUrl => {
+  purgeUrl = async (absoluteUrl) => {
     if (!this.props.accessToken) {
       throw new Error('No accessToken');
     }
@@ -189,7 +189,7 @@ class ProbeUrl extends React.PureComponent {
     }
     if (this.state.purgeAllPages) {
       if (this.state.result.other_pages) {
-        this.state.result.other_pages.forEach(page => {
+        this.state.result.other_pages.forEach((page) => {
           formData.append('urls', page.url);
         });
       }
@@ -199,8 +199,8 @@ class ProbeUrl extends React.PureComponent {
         method: 'POST',
         body: formData,
         headers: {
-          Authorization: `Bearer ${this.props.accessToken}`
-        }
+          Authorization: `Bearer ${this.props.accessToken}`,
+        },
       });
     } catch (ex) {
       return this.setState({ loading: false, serverError: ex });
@@ -215,7 +215,7 @@ class ProbeUrl extends React.PureComponent {
         deletedFSCacheFiles: result.deleted,
         loading: false,
         purgeResult: result.purge,
-        serverError: null
+        serverError: null,
       });
     } else {
       this.setState({ loading: false, serverError: response });
@@ -231,20 +231,20 @@ class ProbeUrl extends React.PureComponent {
       purgeResult,
       result,
       serverError,
-      url
+      url,
     } = this.state;
     return (
       <form
-        onSubmit={event => {
+        onSubmit={(event) => {
           event.preventDefault();
           this.props.history.push({
-            search: `?url=${encodeURI(this.state.url)}`
+            search: `?url=${encodeURI(this.state.url)}`,
           });
           this.setState(
             {
               loading: true,
               purgeResult: null,
-              deletedFSCacheFiles: null
+              deletedFSCacheFiles: null,
             },
             () => {
               this.probeUrl();
@@ -288,13 +288,13 @@ class ProbeUrl extends React.PureComponent {
             <Button
               disabled={loading}
               loading={loading}
-              onClick={event => {
+              onClick={(event) => {
                 event.preventDefault();
                 this.setState(
                   {
                     loading: true,
                     purgeResult: null,
-                    deletedFSCacheFiles: null
+                    deletedFSCacheFiles: null,
                   },
                   () => {
                     this.purgeUrl(result.absolute_url);
@@ -308,14 +308,14 @@ class ProbeUrl extends React.PureComponent {
             <Button
               disabled={loading}
               loading={loading}
-              onClick={event => {
+              onClick={(event) => {
                 event.preventDefault();
                 this.setState(
                   {
                     loading: true,
                     result: null,
                     purgeResult: null,
-                    deletedFSCacheFiles: null
+                    deletedFSCacheFiles: null,
                   },
                   this.probeUrl
                 );
@@ -330,7 +330,7 @@ class ProbeUrl extends React.PureComponent {
           <div style={{ textAlign: 'left' }}>
             <h5>All URLs</h5>
             <ul>
-              {purgeResult.all_urls.map(u => {
+              {purgeResult.all_urls.map((u) => {
                 return (
                   <li key={u}>
                     <code>{u}</code>
@@ -346,7 +346,7 @@ class ProbeUrl extends React.PureComponent {
             <h4>Deleted FSCache Files</h4>
             {!deletedFSCacheFiles.length && <i>No FSCache files deleted</i>}
             <ul>
-              {deletedFSCacheFiles.map(path => {
+              {deletedFSCacheFiles.map((path) => {
                 return (
                   <li key={path}>
                     <code>{path}</code>
@@ -373,15 +373,26 @@ class ProbeUrl extends React.PureComponent {
               </span>
             )}
             {result.fscache.exists &&
-            result.fscache.files &&
-            result.fscache.files.length ? (
-              <ul>
-                {result.fscache.files.map(p => (
-                  <li key={p}>
-                    <code>{p}</code>
-                  </li>
-                ))}
-              </ul>
+            result.fscache.files_extended &&
+            result.fscache.files_extended.length > 0 ? (
+              <table>
+                <tbody>
+                  {result.fscache.files_extended.map((p) => (
+                    <tr key={p.filepath}>
+                      <td>
+                        <code title={p.filepath}>{p.name}</code>
+                      </td>
+                      <td>{formatFileSize(p.size)}</td>
+                      <td>
+                        <DisplayDate
+                          date={new Date(p.mtime * 1000)}
+                          prefix=""
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             ) : (
               <i>No other files</i>
             )}
@@ -392,18 +403,18 @@ class ProbeUrl extends React.PureComponent {
           <div style={{ textAlign: 'left' }}>
             <h4>Other Pages ({result.other_pages.length})</h4>
             <ul>
-              {result.other_pages.map(page => {
+              {result.other_pages.map((page) => {
                 return (
                   <li key={page.url}>
                     <a
                       href={`?url=${encodeURI(page.url)}`}
-                      onClick={event => {
+                      onClick={(event) => {
                         event.preventDefault();
                         this.setState(
                           {
                             url: page.url,
                             result: null,
-                            loading: true
+                            loading: true,
                           },
                           this.probeUrl
                         );
@@ -514,7 +525,7 @@ function ShowHeaders({ headers, title }) {
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {keys.map(key => {
+          {keys.map((key) => {
             return (
               <Table.Row key={key}>
                 <Table.Cell>
@@ -534,7 +545,7 @@ class ZoneConfig extends React.PureComponent {
   state = {
     config: null,
     loading: true,
-    serverError: null
+    serverError: null,
   };
 
   componentDidMount() {
@@ -550,8 +561,8 @@ class ZoneConfig extends React.PureComponent {
     try {
       response = await fetch(url, {
         headers: {
-          Authorization: `Bearer ${this.props.accessToken}`
-        }
+          Authorization: `Bearer ${this.props.accessToken}`,
+        },
       });
     } catch (ex) {
       return this.setState({ loading: false, serverError: ex });
@@ -565,7 +576,7 @@ class ZoneConfig extends React.PureComponent {
       this.setState({
         loading: false,
         serverError: null,
-        zoneConfig: result.data
+        zoneConfig: result.data,
       });
     } else {
       this.setState({ loading: false, serverError: response });
@@ -615,7 +626,7 @@ function ShowZoneConfig({ config }) {
         </Table.Row>
       </Table.Header>
       <Table.Body>
-        {keys.map(key => {
+        {keys.map((key) => {
           return (
             <Table.Row key={key}>
               <Table.Cell>
@@ -646,7 +657,7 @@ class PurgeURLs extends React.PureComponent {
     loopSeconds: defaultLoopSeconds(),
     queued: null,
     recent: null,
-    serverError: null
+    serverError: null,
   };
 
   componentDidMount() {
@@ -677,8 +688,8 @@ class PurgeURLs extends React.PureComponent {
     try {
       response = await fetch(url, {
         headers: {
-          Authorization: `Bearer ${accessToken}`
-        }
+          Authorization: `Bearer ${accessToken}`,
+        },
       });
     } catch (ex) {
       return this.setState({ serverError: ex });
@@ -693,7 +704,7 @@ class PurgeURLs extends React.PureComponent {
         {
           queued: data.queued,
           recent: data.recent,
-          serverError: null
+          serverError: null,
         },
         () => {
           if (this.state.queued.length) {
@@ -745,7 +756,7 @@ class PurgeURLs extends React.PureComponent {
           </Table.Header>
 
           <Table.Body>
-            {queued.map(record => {
+            {queued.map((record) => {
               return (
                 <Table.Row
                   key={record.id}
@@ -781,7 +792,7 @@ class PurgeURLs extends React.PureComponent {
           </Table.Header>
 
           <Table.Body>
-            {recent.map(record => {
+            {recent.map((record) => {
               return (
                 <Table.Row key={record.id} warning={!!record.cancelled}>
                   <Table.Cell>

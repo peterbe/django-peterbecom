@@ -1075,7 +1075,6 @@ def fill_random_avatars_redis_list_filled():
     import xml.etree.ElementTree as ET
 
     while redis_client.llen(key) < 1000:
-        # random_avatars = [get_random_avatar() for _ in range(100)]
         random_avatars = []
         for _ in range(100):
             try:

@@ -8,6 +8,7 @@ import traceback
 from collections import defaultdict
 from functools import lru_cache, wraps
 from io import StringIO
+from pathlib import Path
 from urllib.parse import urlparse
 
 import requests
@@ -1642,11 +1643,19 @@ def cdn_probe(request):
         "exists": fscache_path.exists(),
     }
     if context["fscache"]["exists"]:
-        context["fscache"]["files"] = [
-            x
-            for x in os.listdir(fscache_path_dir)
-            if os.path.isfile(os.path.join(fscache_path_dir, x))
-        ]
+        context["fscache"]["files"] = []  # XXX delete some day
+        context["fscache"]["files_extended"] = []
+        for file in Path(fscache_path_dir).iterdir():
+            if file.is_dir():
+                continue
+            context["fscache"]["files_extended"].append(
+                {
+                    "filepath": str(file),
+                    "name": file.name,
+                    "mtime": file.stat().st_mtime,
+                    "size": file.stat().st_size,
+                }
+            )
 
     if blogitem and not re.findall(r"/p\d+$", absolute_url):
         comment_count = BlogComment.objects.filter(
