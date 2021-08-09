@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "auth0-js": "9.16.2",
-    "date-fns": "2.22.1",
+    "date-fns": "2.23.0",
     "md5": "2.3.0",
     "pondjs": "0.9.0",
     "react": "17.0.2",
