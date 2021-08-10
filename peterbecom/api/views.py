@@ -1880,9 +1880,10 @@ def lyrics_page_healthcheck(request):
         else:
             return False, "No script files referenced!"
 
+        # As of requests >=2.26 it sends `br` in the 'Accept-Encoding' by default.
         try:
-            if r.headers["Content-Encoding"] != "gzip":
-                return False, "Content-Encoding is not gzip!"
+            if r.headers["Content-Encoding"] != "br":
+                return False, "No Brotli Content-Encoding"
         except KeyError:
             if "peterbecom.local" not in url:
                 raise
@@ -1895,16 +1896,15 @@ def lyrics_page_healthcheck(request):
         if "peterbecom.local" not in url:
             r2 = session.get(
                 url,
-                headers={"Accept-encoding": "br", "User-Agent": USER_AGENT},
+                headers={"Accept-encoding": "gzip", "User-Agent": USER_AGENT},
                 timeout=3,
             )
             try:
-                if r2.headers["content-encoding"] != "br":
+                if r2.headers["content-encoding"] != "gzip":
                     # It works but it's not perfect.
-                    return True, "No Brotli Content-Encoding"
+                    return True, "Content-Encoding is not gzip!"
             except KeyError:
                 return True, "No 'Content-Encoding' header"
-            # data = brotli.decompress(r2.content).decode("utf-8")
             data = r2.text
             if data != r.text:
                 return True, "Brotli content different from Gzip content"
