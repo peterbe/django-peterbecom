@@ -1,13 +1,15 @@
 /*global $, localStorage, location*/
 
-var F = (function() {
+var F = (function () {
   'use strict';
 
   var form = $('form#comment');
   var preview = $('#preview-comment-outer');
   var submitting = false;
   var preparing = false;
+  var prepared = false;
   var reattempted = false;
+  var warned = false;
 
   function commentData() {
     if (!$('input[name="csrfmiddlewaretoken"]', form).val()) {
@@ -18,7 +20,7 @@ var F = (function() {
       email: $('input[name="email"]', form).val(),
       parent: $('input[name="parent"]', form).val(),
       comment: $('textarea', form).val(),
-      csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]', form).val()
+      csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]', form).val(),
     };
   }
 
@@ -31,7 +33,7 @@ var F = (function() {
     el.style.display = ''; // peterbe added
 
     var last = +new Date();
-    var tick = function() {
+    var tick = function () {
       el.style.opacity = +el.style.opacity + (new Date() - last) / 400;
       last = +new Date();
 
@@ -42,19 +44,24 @@ var F = (function() {
     };
     tick();
   }
+  function fadeIn2($element) {
+    $element.css('opacity', '0').show();
+    $element.css('transition', 'opacity 600ms');
+    $element.css('opacity', '1');
+  }
 
   return {
-    prepare: function(callback) {
-      if (preparing) {
+    prepare: function (callback) {
+      if (preparing || prepared) {
         return; // to avoid excessive calls
       }
       preparing = true;
 
       fetch('/plog/prepare.json')
-        .then(function(r) {
+        .then(function (r) {
           return r.json();
         })
-        .then(function(response) {
+        .then(function (response) {
           $('input[name="csrfmiddlewaretoken"]', form).val(response.csrf_token);
 
           if (response.name && !$('input[name="name"]', form).val()) {
@@ -64,9 +71,7 @@ var F = (function() {
           } else {
             var name = localStorage.getItem('name');
             if (name) {
-              $('input[name="name"]', form)
-                .attr('placeholder', '')
-                .val(name);
+              $('input[name="name"]', form).attr('placeholder', '').val(name);
             }
           }
           if (response.email && !$('input[name="email"]', form).val()) {
@@ -76,46 +81,45 @@ var F = (function() {
           } else {
             var email = localStorage.getItem('email');
             if (email) {
-              $('input[name="email"]', form)
-                .attr('placeholder', '')
-                .val(email);
+              $('input[name="email"]', form).attr('placeholder', '').val(email);
             }
           }
 
           preparing = false;
+          prepared = true;
           if (callback) {
             callback();
           }
         });
     },
-    setupReply: function(parent) {
+    setupReply: function (parent) {
       preparing = false;
       if (parent.length !== 1) {
         throw new Error('Must be exactly 1 parent');
       }
-      // form.detach().insertAfter($('p:eq(0)', parent));
+      $('.preview-error', form).hide();
       form.detach().insertAfter($('p', parent).eq(0));
       preview.detach().insertBefore(form);
       $('input[name="parent"]', form).val(parent.attr('id'));
       F.prepare();
       $('textarea', form)[0].focus();
     },
-    reset: function() {
+    reset: function () {
       form.css('opacity', 1);
       $('textarea', form).val('');
       $('input[name="parent"]', form).val('');
       $('#comments-outer').append(form.detach());
-      preview
-        .detach()
-        .insertBefore(form)
-        .hide();
+      preview.detach().insertBefore(form).hide();
       $('button.preview').addClass('primary');
       $('button.post').removeClass('primary');
       submitting = false;
       form.detach().insertAfter('#comments-outer');
+      $('.warn-about-email', form).hide();
+      warned = false;
+      $('.preview-error', form).hide();
       return false;
     },
-    preview: function(callback) {
+    preview: function (callback) {
       preview.hide();
       var data = commentData();
       if (!data.csrfmiddlewaretoken && !reattempted) {
@@ -129,25 +133,33 @@ var F = (function() {
       }
       fetch('/plog/preview.json', {
         body: formData,
-        method: 'POST'
+        method: 'POST',
       })
-        .then(function(r) {
+        .then(function (r) {
           if (r.ok) {
-            r.json().then(function(response) {
+            r.json().then(function (response) {
               preview.html(response.html);
               fadeIn(preview[0]);
               callback();
             });
           } else {
-            // Should deal with this better
             console.error(r);
+            if (!$('.preview-error', form).length) {
+              var text = 'An error occurred trying to preview your comment. ';
+              text += 'Try again or try reloading.';
+              form.prepend(
+                $('<div class="ui red message preview-error"></div>').text(text)
+              );
+            } else {
+              $('.preview-error', form).show();
+            }
           }
         })
-        .catch(function(ex) {
+        .catch(function (ex) {
           alert('Error: ' + ex);
         });
     },
-    submit: function() {
+    submit: function () {
       var data = commentData();
       if (!data.csrfmiddlewaretoken && !reattempted) {
         reattempted = true;
@@ -158,6 +170,15 @@ var F = (function() {
         return false;
       }
       if (submitting) {
+        return false;
+      }
+      if (
+        !warned &&
+        !data.email &&
+        !data.parent &&
+        $('.warn-about-email').length > 0
+      ) {
+        F.warnAboutEmail();
         return false;
       }
       submitting = true;
@@ -180,12 +201,11 @@ var F = (function() {
 
       fetch(form.attr('action'), {
         method: 'POST',
-        body: formData
+        body: formData,
       })
-        .then(function(r) {
-          // console.log('R:', r);
+        .then(function (r) {
           if (r.ok) {
-            return r.json().then(function(response) {
+            return r.json().then(function (response) {
               var parent;
               if (response.parent) {
                 parent = $('.comments', '#' + response.parent).eq(1);
@@ -200,7 +220,7 @@ var F = (function() {
               // Put a slight delay on these updates so it "feels"
               // slightly more realistic if the POST manages to happen
               // too fast.
-              setTimeout(function() {
+              setTimeout(function () {
                 parent.hide().append(response.html);
                 fadeIn(parent[0]);
                 $('textarea', form).val('');
@@ -245,7 +265,7 @@ var F = (function() {
             submitting = false;
           }
         })
-        .catch(function(ex) {
+        .catch(function (ex) {
           console.error(ex);
           $('.dimmer', form).removeClass('active');
           var msg = 'Error: ' + ex.toString();
@@ -253,11 +273,15 @@ var F = (function() {
           submitting = false;
         });
       return false;
-    }
+    },
+    warnAboutEmail: function () {
+      fadeIn2($('.warn-about-email', form));
+      warned = true;
+    },
   };
 })();
 
-$(function() {
+$(function () {
   'use strict';
 
   // This JS might be included on all pages. Even those that are
@@ -270,27 +294,27 @@ $(function() {
   }
 
   function preLyricsPostingMessage() {
-    if (document.location.pathname.indexOf('/plog/blogitem-040601-1') > -1) {
-      if ($('.ui.message.floating.warning').length) return;
-      var message = $(
-        '<div class="ui message floating warning" style="margin-top:20px;display:block">'
-      );
-      message.append(
-        $('<div class="header">Before your post a comment...</div>')
-      );
-      message.append(
-        $('<p>')
-          .append(
-            $(
-              '<b>Go to <a href="https://songsear.ch/" title="Search for songs by the lyrics">songsear.ch</a> and do your search</b>'
-            )
-          )
-          .append(
-            '<span>, then copy the link to the search results together with your comment.</span>'
-          )
-      );
-      message.insertAfter(form);
-    }
+    // if (document.location.pathname.indexOf('/plog/blogitem-040601-1') > -1) {
+    //   if ($('.ui.message.floating.warning').length) return;
+    //   var message = $(
+    //     '<div class="ui message floating warning" style="margin-top:20px;display:block">'
+    //   );
+    //   message.append(
+    //     $('<div class="header">Before your post a comment...</div>')
+    //   );
+    //   message.append(
+    //     $('<p>')
+    //       .append(
+    //         $(
+    //           '<b>Go to <a href="https://songsear.ch/" title="Search for songs by the lyrics">songsear.ch</a> and do your search</b>'
+    //         )
+    //       )
+    //       .append(
+    //         '<span>, then copy the link to the search results together with your comment.</span>'
+    //       )
+    //   );
+    //   message.insertAfter(form);
+    // }
   }
 
   // Create a "Reply" link for all existing comments.
@@ -306,20 +330,33 @@ $(function() {
   //   });
   // }
   if (form.length) {
-    form.on('mouseover', function() {
+    form.on('mouseover', function () {
       $(this).off('mouseover');
       F.prepare();
-      preLyricsPostingMessage();
+      // preLyricsPostingMessage();
     });
 
-    $('textarea', form).on('focus', function() {
+    if ('IntersectionObserver' in window) {
+      var target = form[0];
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            F.prepare();
+            observer.unobserve(target);
+          }
+        });
+      });
+      observer.observe(target);
+    }
+
+    $('textarea', form).on('focus', function () {
       $(this).off('focus');
-      preLyricsPostingMessage();
+      // preLyricsPostingMessage();
     });
 
-    form.on('click', 'button.preview', function() {
+    form.on('click', 'button.preview', function () {
       if ($('textarea', form).val()) {
-        F.preview(function() {
+        F.preview(function () {
           $('button.preview', form).removeClass('primary');
           $('button.post', form).addClass('primary');
         });
@@ -327,39 +364,14 @@ $(function() {
       return false;
     });
 
-    $('#comments-outer').on('click', 'a.reply', function() {
-      var parentOid = $(this)
-        .parent()
-        .attr('id');
+    $();
+
+    $('#comments-outer').on('click', 'a.reply', function () {
+      var parentOid = $(this).parent().attr('id');
       F.setupReply($('#' + parentOid));
       return false;
     });
 
     form.on('submit', F.submit);
-  }
-
-  var commentsOuter = $('#comments-outer');
-
-  if (commentsOuter.length) {
-    var loadingAllComments = false; // for the slow-load lock
-    $('.comments-truncated').on('click', 'button', function() {
-      if (loadingAllComments) return;
-      loadingAllComments = true;
-
-      if (!$('.comments-truncated .dimmer').length) {
-        // Inject it into the DOM now
-        $('<div class="ui inverted dimmer">')
-          .append(
-            $(
-              '<div class="ui text loader">Loading all the other comments</div>'
-            )
-          )
-          .prependTo($('.comments-truncated'));
-      }
-      $('.comments-truncated .dimmer').addClass('active');
-      commentsOuter.load(location.pathname + '/all-comments', function() {
-        $('.comments-truncated').remove();
-      });
-    });
   }
 });
