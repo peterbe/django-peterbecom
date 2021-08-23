@@ -44,12 +44,10 @@ def get_cdn_config(api=None):
         # we'll just have to set it afterwards.
         api.session = get_requests_retry_session()
 
-    cache_key = "cdn_config:{}".format(settings.KEYCDN_ZONE_ID)
+    cache_key = f"cdn_config:{settings.KEYCDN_ZONE_ID}"
     r = cache.get(cache_key)
     if r is None:
-        with open("/tmp/get_cdn_config.log", "a") as f:
-            f.write("{}\t{}\n".format(timezone.now(), get_stack_signature()))
-        r = api.get("zones/{}.json".format(settings.KEYCDN_ZONE_ID))
+        r = api.get(f"zones/{settings.KEYCDN_ZONE_ID}.json")
         cache.set(cache_key, r, 60 * 60)
     return r
 
