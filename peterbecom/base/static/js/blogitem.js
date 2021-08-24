@@ -25,29 +25,31 @@ var F = (function () {
   }
 
   // http://youmightnotneedjquery.com/#fade_in
-  function fadeIn(el) {
-    if (!el) {
-      throw new Error('Element is null');
-    }
-    el.style.opacity = 0;
-    el.style.display = ''; // peterbe added
+  // function fadeIn(el) {
+  //   if (!el) {
+  //     throw new Error('Element is null');
+  //   }
+  //   el.style.opacity = 0;
+  //   el.style.display = ''; // peterbe added
 
-    var last = +new Date();
-    var tick = function () {
-      el.style.opacity = +el.style.opacity + (new Date() - last) / 400;
-      last = +new Date();
+  //   var last = +new Date();
+  //   var tick = function () {
+  //     el.style.opacity = +el.style.opacity + (new Date() - last) / 400;
+  //     last = +new Date();
 
-      if (+el.style.opacity < 1) {
-        (window.requestAnimationFrame && requestAnimationFrame(tick)) ||
-          setTimeout(tick, 16);
-      }
-    };
-    tick();
-  }
+  //     if (+el.style.opacity < 1) {
+  //       (window.requestAnimationFrame && requestAnimationFrame(tick)) ||
+  //         setTimeout(tick, 16);
+  //     }
+  //   };
+  //   tick();
+  // }
   function fadeIn2($element) {
-    $element.css('opacity', '0').show();
+    $element.css('opacity', 0).show();
     $element.css('transition', 'opacity 600ms');
-    $element.css('opacity', '1');
+    setTimeout(function () {
+      $element.css('opacity', 1);
+    }, 10);
   }
 
   return {
@@ -139,7 +141,7 @@ var F = (function () {
           if (r.ok) {
             r.json().then(function (response) {
               preview.html(response.html);
-              fadeIn(preview[0]);
+              fadeIn2(preview);
               callback();
             });
           } else {
@@ -222,7 +224,7 @@ var F = (function () {
               // too fast.
               setTimeout(function () {
                 parent.hide().append(response.html);
-                fadeIn(parent[0]);
+                fadeIn2(parent);
                 $('textarea', form).val('');
                 $('.dimmer', form).removeClass('active');
               }, 500);
@@ -237,7 +239,7 @@ var F = (function () {
                   text = response.comment_count + ' comments';
                 }
                 $count.text(text);
-                fadeIn($count[0]);
+                fadeIn2($count);
               }
 
               // save the name and email if possible
@@ -293,30 +295,6 @@ $(function () {
     return;
   }
 
-  function preLyricsPostingMessage() {
-    // if (document.location.pathname.indexOf('/plog/blogitem-040601-1') > -1) {
-    //   if ($('.ui.message.floating.warning').length) return;
-    //   var message = $(
-    //     '<div class="ui message floating warning" style="margin-top:20px;display:block">'
-    //   );
-    //   message.append(
-    //     $('<div class="header">Before your post a comment...</div>')
-    //   );
-    //   message.append(
-    //     $('<p>')
-    //       .append(
-    //         $(
-    //           '<b>Go to <a href="https://songsear.ch/" title="Search for songs by the lyrics">songsear.ch</a> and do your search</b>'
-    //         )
-    //       )
-    //       .append(
-    //         '<span>, then copy the link to the search results together with your comment.</span>'
-    //       )
-    //   );
-    //   message.insertAfter(form);
-    // }
-  }
-
   // Create a "Reply" link for all existing comments.
   // But only if the post allows comments.
   // if ($('#preview-comment-outer').length) {
@@ -333,7 +311,6 @@ $(function () {
     form.on('mouseover', function () {
       $(this).off('mouseover');
       F.prepare();
-      // preLyricsPostingMessage();
     });
 
     if ('IntersectionObserver' in window) {
@@ -351,7 +328,6 @@ $(function () {
 
     $('textarea', form).on('focus', function () {
       $(this).off('focus');
-      // preLyricsPostingMessage();
     });
 
     form.on('click', 'button.preview', function () {
@@ -364,7 +340,19 @@ $(function () {
       return false;
     });
 
-    $();
+    $('input[name="email"]', form).on('change', function () {
+      if ($(this).val()) {
+        // The reason for the delay is that if we trigger this immediately onChange
+        // it might cause a layout shift such that a press on the submit button
+        // no longer registers.
+        // Also remember, in Cash, you can't use `:visible` on a selector.
+        setTimeout(function () {
+          $('.warn-about-email')
+            .css('transition', 'opacity 1000ms')
+            .css('opacity', 0);
+        }, 400);
+      }
+    });
 
     $('#comments-outer').on('click', 'a.reply', function () {
       var parentOid = $(this).parent().attr('id');
