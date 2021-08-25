@@ -1,17 +1,25 @@
-const requestIdleCallback =
-  requestIdleCallback ||
-  function(cb) {
-    const start = Date.now();
-    return setTimeout(function() {
-      cb({
-        didTimeout: false,
-        timeRemaining: function() {
-          return Math.max(0, 50 - (Date.now() - start));
-        }
+if (!window.requestIdleCallback) {
+  window.requestIdleCallback = function (callback, options) {
+    var options = options || {};
+    var relaxation = 1;
+    var timeout = options.timeout || relaxation;
+    var start = performance.now();
+    return setTimeout(function () {
+      callback({
+        get didTimeout() {
+          return options.timeout
+            ? false
+            : performance.now() - start - relaxation > timeout;
+        },
+        timeRemaining: function () {
+          return Math.max(0, relaxation + (performance.now() - start));
+        },
       });
-    }, 1);
+    }, relaxation);
   };
-requestIdleCallback(() => {
+}
+
+window.requestIdleCallback(() => {
   /**
    * Checks if a feature on `link` is natively supported.
    * Examples of features include `prefetch` and `preload`.
@@ -60,6 +68,7 @@ requestIdleCallback(() => {
     });
   }
 
+  console.log({ supported: support('prefetch') });
   const supportedPrefetchStrategy = support('prefetch')
     ? linkPrefetchStrategy
     : xhrPrefetchStrategy;
@@ -72,7 +81,9 @@ requestIdleCallback(() => {
    * @return {Object} a Promise
    */
   function prefetcher(url, conn) {
+    console.log({ PREFETCH: url });
     if (preFetched[url]) {
+      console.log({ ALREADY_PREFETCHED: url });
       return;
     }
 
@@ -83,9 +94,12 @@ requestIdleCallback(() => {
 
     // Wanna do something on catch()?
     return supportedPrefetchStrategy(url).then(() => {
+      console.log({ PREFETCHED: url });
       preFetched[url] = true;
     });
   }
+
+  let prefetchTimer = null;
 
   function onMouseOver(event) {
     const url = new URL(event.target.href, document.location.href);
@@ -95,7 +109,7 @@ requestIdleCallback(() => {
     }, 200);
   }
 
-  function onMouseOut(event) {
+  function onMouseOut() {
     if (prefetchTimer) {
       clearTimeout(prefetchTimer);
     }
@@ -105,8 +119,8 @@ requestIdleCallback(() => {
    */
   const MAX_PREFETCH = 5;
   const toPrefetch = new Set();
-  var prefetchTimer = null;
-  Array.from(document.querySelectorAll('a'), link => {
+
+  Array.from(document.querySelectorAll('a'), (link) => {
     if (
       link.href &&
       link.rel !== 'nofollow' &&
