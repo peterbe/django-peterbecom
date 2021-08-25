@@ -25,7 +25,7 @@ class AuthenticationMiddleware:
         return response
 
     def process_request(self, request):
-        if request.path.startswith("/api/"):
+        if request.path.startswith("/api/v0"):
             if request.headers.get("Authorization") or request.method != "GET":
                 header_value = request.headers["Authorization"]
                 if not header_value:

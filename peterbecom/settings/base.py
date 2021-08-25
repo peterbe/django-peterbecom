@@ -187,6 +187,7 @@ INSTALLED_APPS = (
     "peterbecom.base",
     "peterbecom.plog",
     "peterbecom.api",
+    "peterbecom.publicapi",
     "peterbecom.homepage",
     "peterbecom.chiveproxy",
     "peterbecom.ajaxornot",
