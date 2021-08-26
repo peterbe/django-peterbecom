@@ -24,26 +24,6 @@ var F = (function () {
     };
   }
 
-  // http://youmightnotneedjquery.com/#fade_in
-  // function fadeIn(el) {
-  //   if (!el) {
-  //     throw new Error('Element is null');
-  //   }
-  //   el.style.opacity = 0;
-  //   el.style.display = ''; // peterbe added
-
-  //   var last = +new Date();
-  //   var tick = function () {
-  //     el.style.opacity = +el.style.opacity + (new Date() - last) / 400;
-  //     last = +new Date();
-
-  //     if (+el.style.opacity < 1) {
-  //       (window.requestAnimationFrame && requestAnimationFrame(tick)) ||
-  //         setTimeout(tick, 16);
-  //     }
-  //   };
-  //   tick();
-  // }
   function fadeIn2($element) {
     $element.css('opacity', 0).show();
     $element.css('transition', 'opacity 600ms');
@@ -174,15 +154,6 @@ var F = (function () {
       if (submitting) {
         return false;
       }
-      if (
-        !warned &&
-        !data.email &&
-        !data.parent &&
-        $('.warn-about-email').length > 0
-      ) {
-        F.warnAboutEmail();
-        return false;
-      }
       submitting = true;
       if (!$('.dimmer', form).length) {
         // Need to add this to the DOM before we can activate the dimmer.
@@ -277,6 +248,7 @@ var F = (function () {
       return false;
     },
     warnAboutEmail: function () {
+      $('.note-about-email').hide();
       fadeIn2($('.warn-about-email', form));
       warned = true;
     },
@@ -340,17 +312,26 @@ $(function () {
       return false;
     });
 
-    $('input[name="email"]', form).on('change', function () {
+    $('input[name="email"]', form).on('keypress', function () {
       if ($(this).val()) {
+        $(this).off('keypress');
         // The reason for the delay is that if we trigger this immediately onChange
         // it might cause a layout shift such that a press on the submit button
         // no longer registers.
         // Also remember, in Cash, you can't use `:visible` on a selector.
         setTimeout(function () {
           $('.warn-about-email')
-            .css('transition', 'opacity 1000ms')
+            .css('transition', 'opacity 700ms')
             .css('opacity', 0);
-        }, 400);
+        }, 200);
+      }
+    });
+    $('textarea', form).on('keypress', function () {
+      if ($(this).val().length > 10) {
+        if (!$('input[name="email"]', form).val()) {
+          F.warnAboutEmail();
+        }
+        $(this).off('keypress');
       }
     });
 

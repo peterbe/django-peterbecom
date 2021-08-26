@@ -83,10 +83,10 @@ PIPELINE_JS = {
         "template_name": "custom_pipeline/js.html",
     },
     "prefetcher": {
-        "source_filenames": ("js/prefetcher.es6",),
+        "source_filenames": ("js/prefetcher.js",),
         "output_filename": "js/prefetcher.min.js",
         "extra_context": {"defer": True},
-        "template_name": "custom_pipeline/js.html",
+        "template_name": "custom_pipeline/js-module.html",
     },
     "lyrics": {
         "source_filenames": ("libs/cash-8.1.0.min.js", "js/blogitem.js"),
