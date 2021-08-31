@@ -6,10 +6,10 @@ import time
 from urllib.parse import urlparse
 
 import delegator
-import requests
 from django.conf import settings
-
 from pyquery import PyQuery
+
+from peterbecom.base.utils import requests_retry_session
 
 try:
     import cssmin
@@ -19,7 +19,6 @@ except ImportError:
 
 logger = logging.getLogger("mincss-response")
 
-_style_regex = re.compile("<style.*?</style>", re.M | re.DOTALL)
 _link_regex = re.compile("<link.*?>", re.M | re.DOTALL)
 
 # A hack to use files instead of memcache
@@ -30,16 +29,13 @@ if not os.path.isdir(cache_save_dir):
 
 def mincss_html(html, abs_uri, include_minimalcss_stats=True):
     t0 = time.time()
-    r = requests.post(
+    r = requests_retry_session().post(
         settings.MINIMALCSS_SERVER_URL + "/minimize",
         json={"url": abs_uri},
         timeout=settings.MINIMALCSS_TIMEOUT_SECONDS,
     )
     if r.status_code != 200:
-        print(
-            "WARNING! "
-            "{} status code trying to minimize {}".format(r.status_code, abs_uri)
-        )
+        print(f"WARNING! {r.status_code} status code trying to minimize {abs_uri}")
         return
 
     result = r.json()["result"]
