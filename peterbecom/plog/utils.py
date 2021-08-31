@@ -25,7 +25,7 @@ from bleach.linkifier import Linker
 from django.conf import settings
 from django import http
 from django.core.validators import validate_email
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.utils import timezone
 from .gfm import gfm
 
@@ -171,48 +171,50 @@ def stx_to_html(text, codesyntax):
     return _regex.sub(match, rendered)
 
 
+LEXER_CLASSES = {
+    "js": lexers.JavascriptLexer,
+    "python": lexers.PythonLexer,
+    "json": lexers.JsonLexer,
+    "html": lexers.HtmlLexer,
+    "django": lexers.DjangoLexer,
+    "yaml": lexers.YamlLexer,
+    "css": lexers.CssLexer,
+    "bash": lexers.BashLexer,
+    "go": lexers.GoLexer,
+    "diff": lexers.DiffLexer,
+    "emacslisp": lexers.EmacsLispLexer,
+    "lisp": lexers.CommonLispLexer,
+    "rust": lexers.RustLexer,
+    "jsx": BabylonLexer,
+    "docker": lexers.DockerLexer,
+    "nginx": lexers.NginxConfLexer,
+}
+LEXER_ALIASES = {
+    "cpp": "js",
+    "javascript": "js",
+    "xml": "html",
+    "jinja": "django",
+    "yml": "yaml",
+    "sh": "bash",
+    "dockerfile": "docker",
+}
+for dest in LEXER_ALIASES.values():
+    if dest not in LEXER_CLASSES:
+        raise ValueError(f"{dest!r} is not in LEXER_CLASSES")
+
+
 def _get_lexer(codesyntax):
-    if codesyntax in ("cpp", "javascript", "js"):
-        return lexers.JavascriptLexer()
-    elif codesyntax == "python":
-        return lexers.PythonLexer()
-    elif codesyntax == "json":
-        return lexers.JsonLexer()
-    elif codesyntax == "xml" or codesyntax == "html":
-        return lexers.HtmlLexer()
-    elif codesyntax == "django" or codesyntax == "jinja":
-        return lexers.DjangoLexer()
-    elif codesyntax == "yml" or codesyntax == "yaml":
-        return lexers.YamlLexer()
-    elif codesyntax == "css":
-        return lexers.CssLexer()
-    elif codesyntax == "sql":
-        return lexers.SqlLexer()
-    elif codesyntax == "bash" or codesyntax == "sh":
-        return lexers.BashLexer()
-    elif codesyntax == "go":
-        return lexers.GoLexer()
-    elif codesyntax == "diff":
-        return lexers.DiffLexer()
-    elif codesyntax == "emacslisp":
-        return lexers.EmacsLispLexer()
-    elif codesyntax == "lisp":
-        return lexers.CommonLispLexer()
-    elif codesyntax == "rust":
-        return lexers.RustLexer()
-    elif codesyntax == "jsx":
-        return BabylonLexer()
-    elif codesyntax == "docker" or codesyntax == "dockerfile":
-        return lexers.DockerLexer()
-    elif codesyntax:
-        raise NotImplementedError(codesyntax)
-    else:
+    if not codesyntax:
         return lexers.TextLexer()
+    key = LEXER_ALIASES.get(codesyntax, codesyntax)
+    if key not in LEXER_CLASSES:
+        raise ImproperlyConfigured(f"{key!r} is not a recognized lexer key")
+
+    return LEXER_CLASSES[key]()
 
 
-_codesyntax_regex = re.compile(
-    "```(python|cpp|javascript|json|xml|html|yml|django|jinja|yaml|lisp|emacslisp|css|sql|sh|bash|go|diff|jsx|rust|dockerfile|docker|js)"  # noqa
-)
+_all_lexer_keys = list(LEXER_CLASSES.keys()) + list(LEXER_ALIASES.keys())
+_codesyntax_regex = re.compile(f"```({'|'.join(_all_lexer_keys)})")
 _markdown_pre_regex = re.compile(r"(```(.*?)```)", re.M | re.DOTALL)
 
 
