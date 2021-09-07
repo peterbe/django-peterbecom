@@ -188,6 +188,7 @@ LEXER_CLASSES = {
     "jsx": BabylonLexer,
     "docker": lexers.DockerLexer,
     "nginx": lexers.NginxConfLexer,
+    "typescript": lexers.TypeScriptLexer,
 }
 LEXER_ALIASES = {
     "cpp": "js",
@@ -197,6 +198,7 @@ LEXER_ALIASES = {
     "yml": "yaml",
     "sh": "bash",
     "dockerfile": "docker",
+    "ts": "typescript",
 }
 for dest in LEXER_ALIASES.values():
     if dest not in LEXER_CLASSES:
