@@ -41,16 +41,16 @@ class CDNCheck extends React.PureComponent {
     showConfig: false,
   };
   async componentDidMount() {
-    if (!this.props.accessToken) {
-      throw new Error('No accessToken');
-    }
+    // if (!this.props.accessToken) {
+    //   throw new Error('No accessToken');
+    // }
     let response;
     let url = '/api/v0/cdn/check';
     try {
       response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${this.props.accessToken}`,
-        },
+        // headers: {
+        //   Authorization: `Bearer ${this.props.accessToken}`,
+        // },
       });
     } catch (ex) {
       return this.setState({ loading: false, serverError: ex });
@@ -141,9 +141,9 @@ class ProbeUrl extends React.PureComponent {
   }
 
   probeUrl = async () => {
-    if (!this.props.accessToken) {
-      throw new Error('No accessToken');
-    }
+    // if (!this.props.accessToken) {
+    //   throw new Error('No accessToken');
+    // }
     let response;
     const url = '/api/v0/cdn/probe';
     const formData = new FormData();
@@ -153,9 +153,9 @@ class ProbeUrl extends React.PureComponent {
       response = await fetch(url, {
         method: 'POST',
         body: formData,
-        headers: {
-          Authorization: `Bearer ${this.props.accessToken}`,
-        },
+        // headers: {
+        //   Authorization: `Bearer ${this.props.accessToken}`,
+        // },
       });
     } catch (ex) {
       return this.setState({ loading: false, serverError: ex });
@@ -177,9 +177,9 @@ class ProbeUrl extends React.PureComponent {
   };
 
   purgeUrl = async (absoluteUrl) => {
-    if (!this.props.accessToken) {
-      throw new Error('No accessToken');
-    }
+    // if (!this.props.accessToken) {
+    //   throw new Error('No accessToken');
+    // }
     let response;
     let url = '/api/v0/cdn/purge';
     const formData = new FormData();
@@ -198,9 +198,9 @@ class ProbeUrl extends React.PureComponent {
       response = await fetch(url, {
         method: 'POST',
         body: formData,
-        headers: {
-          Authorization: `Bearer ${this.props.accessToken}`,
-        },
+        // headers: {
+        //   Authorization: `Bearer ${this.props.accessToken}`,
+        // },
       });
     } catch (ex) {
       return this.setState({ loading: false, serverError: ex });
@@ -439,12 +439,7 @@ class ProbeUrl extends React.PureComponent {
         )}
 
         {result && <ShowProbeResult result={result} />}
-        {result && (
-          <XCacheAnalyze
-            accessToken={this.props.accessToken}
-            url={result.absolute_url}
-          />
-        )}
+        {result && <XCacheAnalyze url={result.absolute_url} />}
       </form>
     );
   }
@@ -553,16 +548,16 @@ class ZoneConfig extends React.PureComponent {
   }
 
   fetchZoneConfig = async () => {
-    if (!this.props.accessToken) {
-      throw new Error('No accessToken');
-    }
+    // if (!this.props.accessToken) {
+    //   throw new Error('No accessToken');
+    // }
     let response;
     let url = '/api/v0/cdn/config';
     try {
       response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${this.props.accessToken}`,
-        },
+        // headers: {
+        //   Authorization: `Bearer ${this.props.accessToken}`,
+        // },
       });
     } catch (ex) {
       return this.setState({ loading: false, serverError: ex });
@@ -679,17 +674,17 @@ class PurgeURLs extends React.PureComponent {
   }
 
   fetchPurgeURLs = async () => {
-    const { accessToken } = this.props;
-    if (!accessToken) {
-      throw new Error('No accessToken');
-    }
+    // const { accessToken } = this.props;
+    // if (!accessToken) {
+    //   throw new Error('No accessToken');
+    // }
     let response;
     let url = '/api/v0/cdn/purge/urls';
     try {
       response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+        // headers: {
+        //   Authorization: `Bearer ${accessToken}`,
+        // },
       });
     } catch (ex) {
       return this.setState({ serverError: ex });
@@ -720,7 +715,7 @@ class PurgeURLs extends React.PureComponent {
   };
 
   startLoop = () => {
-    this.fetchPurgeURLs(this.props.accessToken);
+    this.fetchPurgeURLs();
     if (this._loop) {
       window.clearTimeout(this._loop);
     }

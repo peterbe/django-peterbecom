@@ -10,24 +10,25 @@ class OpenGraphImageBlogitem extends React.Component {
     images: null,
     loading: true,
     serverError: null,
-    updated: null
+    updated: null,
   };
 
   componentDidMount() {
     document.title = 'Open Graph Image';
-    this.fetchAllImages(this.props.accessToken);
+    // this.fetchAllImages(this.props.accessToken);
+    this.fetchAllImages();
   }
 
-  fetchAllImages = async accessToken => {
-    if (!this.props.accessToken) {
-      throw new Error('No accessToken');
-    }
+  fetchAllImages = async () => {
+    // if (!this.props.accessToken) {
+    //   throw new Error('No accessToken');
+    // }
     const oid = this.props.match.params.oid;
     try {
       const response = await fetch(`/api/v0/plog/${oid}/open-graph-image`, {
-        headers: {
-          Authorization: `Bearer ${this.props.accessToken}`
-        }
+        // headers: {
+        //   Authorization: `Bearer ${this.props.accessToken}`,
+        // },
       });
       this.setState({ loading: false });
       if (response.ok) {
@@ -45,10 +46,10 @@ class OpenGraphImageBlogitem extends React.Component {
     }
   };
 
-  pickOpenGraphImage = async src => {
-    if (!this.props.accessToken) {
-      throw new Error('No accessToken');
-    }
+  pickOpenGraphImage = async (src) => {
+    // if (!this.props.accessToken) {
+    //   throw new Error('No accessToken');
+    // }
     const oid = this.props.match.params.oid;
     const data = { src };
     const response = await fetch(`/api/v0/plog/${oid}/open-graph-image`, {
@@ -56,9 +57,9 @@ class OpenGraphImageBlogitem extends React.Component {
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.props.accessToken}`
+        // Authorization: `Bearer ${this.props.accessToken}`,
       },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
     if (response.ok) {
       // const data = await response.json();
@@ -119,10 +120,10 @@ class OpenGraphImageBlogitem extends React.Component {
           <Images
             oid={oid}
             images={images}
-            onPicked={image => {
+            onPicked={(image) => {
               this.pickOpenGraphImage(image.src);
             }}
-            onRemove={image => {
+            onRemove={(image) => {
               throw new Error('Work harder');
             }}
           />
@@ -143,7 +144,7 @@ class Images extends React.PureComponent {
         <h5>
           <Link to={`/plog/${oid}`}>Back to Edit</Link>
         </h5>
-        {images.map(image => {
+        {images.map((image) => {
           // console.log('IMAGE', image);
           return (
             <div
@@ -151,7 +152,7 @@ class Images extends React.PureComponent {
               style={{
                 borderBottom: '1px solid #666',
                 marginBottom: 50,
-                paddingBottom: 20
+                paddingBottom: 20,
               }}
             >
               <img src={BASE_URL + image.src} alt={image.title} />
@@ -166,7 +167,7 @@ class Images extends React.PureComponent {
               </p>
               <Button
                 disabled={image.current}
-                onClick={event => {
+                onClick={(event) => {
                   event.preventDefault();
                   this.props.onPicked(image);
                 }}

@@ -58,9 +58,9 @@ class UploadImages extends React.Component {
       const response = await fetch(`/api/v0/plog/${oid}/images`, {
         method: 'POST',
         body: formData,
-        headers: {
-          Authorization: `Bearer ${this.props.accessToken}`,
-        },
+        // headers: {
+        //   Authorization: `Bearer ${this.props.accessToken}`,
+        // },
       });
       if (response.ok) {
         const result = await response.json();
@@ -96,9 +96,9 @@ class UploadImages extends React.Component {
       let url = `/api/v0/plog/${oid}/images?id=${preview.uploaded}`;
       const response = await fetch(url, {
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${this.props.accessToken}`,
-        },
+        // headers: {
+        //   Authorization: `Bearer ${this.props.accessToken}`,
+        // },
       });
       if (response.ok) {
         // const result = await response.json();

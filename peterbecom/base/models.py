@@ -1,8 +1,10 @@
+import json
 import sys
 import traceback
 from io import StringIO
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import ArrayField
 from django.db import models, transaction
 from django.db.models import F
@@ -204,3 +206,16 @@ class CDNPurgeURL(models.Model):
             cancelled__isnull=True, processed__isnull=True
         ).count()
         send_pulse_message({"cdn_purge_urls": count})
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
+    claims = models.JSONField(default=dict)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "User profile"
+
+    def __str__(self):
+        return json.dumps(self.claims)

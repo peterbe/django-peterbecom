@@ -6,13 +6,13 @@ import {
   Flag,
   Loader,
   Dimmer,
-  Segment
+  Segment,
 } from 'semantic-ui-react';
 import {
   withScriptjs,
   withGoogleMap,
   GoogleMap,
-  Marker
+  Marker,
 } from 'react-google-maps';
 
 import { ShowServerError } from './Common';
@@ -23,7 +23,7 @@ class GeoComments extends React.Component {
     loading: false,
     comments: null,
     apiKey: null,
-    serverError: null
+    serverError: null,
   };
   componentDidMount() {
     document.title = 'Geo Comments';
@@ -31,16 +31,16 @@ class GeoComments extends React.Component {
   }
 
   loadComments = async () => {
-    if (!this.props.accessToken) {
-      throw new Error('No accessToken');
-    }
+    // if (!this.props.accessToken) {
+    //   throw new Error('No accessToken');
+    // }
     let response;
     let url = '/api/v0/plog/comments/geo/';
     try {
       response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${this.props.accessToken}`
-        }
+        // headers: {
+        //   Authorization: `Bearer ${this.props.accessToken}`
+        // }
       });
     } catch (ex) {
       return this.setState({ loading: false, serverError: ex });
@@ -55,7 +55,7 @@ class GeoComments extends React.Component {
         loading: false,
         comments: result.comments,
         apiKey: result.google_maps_api_key,
-        serverError: null
+        serverError: null,
       });
     } else {
       this.setState({ loading: false, serverError: response });
@@ -87,12 +87,12 @@ class GeoComments extends React.Component {
 export default GeoComments;
 
 const MyMapComponent = withScriptjs(
-  withGoogleMap(props => (
+  withGoogleMap((props) => (
     <GoogleMap
       defaultZoom={2}
       defaultCenter={{ lat: 42.189451, lng: -5.01385 }}
     >
-      {props.markers.map(marker => (
+      {props.markers.map((marker) => (
         <Marker key={marker.id} position={marker.position} />
       ))}
       {/* {props.isMarkerShown && (
@@ -103,14 +103,14 @@ const MyMapComponent = withScriptjs(
 );
 
 function ShowComments({ comments, apiKey }) {
-  const markers = comments.map(comment => {
+  const markers = comments.map((comment) => {
     return {
       id: comment.id,
       position: {
         lat: comment.location.latitude,
-        lng: comment.location.longitude
+        lng: comment.location.longitude,
       },
-      title: comment.blogitem.title
+      title: comment.blogitem.title,
     };
   });
   return (
@@ -133,7 +133,7 @@ function ShowComments({ comments, apiKey }) {
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {comments.map(comment => {
+          {comments.map((comment) => {
             return (
               <Table.Row key={comment.id}>
                 <Table.Cell>

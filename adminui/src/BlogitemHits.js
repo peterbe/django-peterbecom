@@ -13,7 +13,7 @@ class BlogitemHits extends React.Component {
     categories: null,
     summedCategoryScores: null,
     filters: null,
-    loadAll: false
+    loadAll: false,
   };
 
   componentDidMount() {
@@ -22,9 +22,9 @@ class BlogitemHits extends React.Component {
   }
 
   fetchHits = async () => {
-    if (!this.props.accessToken) {
-      throw new Error('No accessToken');
-    }
+    // if (!this.props.accessToken) {
+    //   throw new Error('No accessToken');
+    // }
     let response;
     let url = '/api/v0/plog/hits/';
     if (this.state.filters) {
@@ -36,9 +36,9 @@ class BlogitemHits extends React.Component {
     }
     try {
       response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${this.props.accessToken}`
-        }
+        // headers: {
+        //   Authorization: `Bearer ${this.props.accessToken}`
+        // }
       });
     } catch (ex) {
       return this.setState({ serverError: ex });
@@ -54,7 +54,7 @@ class BlogitemHits extends React.Component {
         hits: data.all_hits,
         categories: data.categories,
         summedCategoryScores: data.summed_category_scores,
-        serverError: null
+        serverError: null,
       });
     } else {
       this.setState({ serverError: response });
@@ -68,7 +68,7 @@ class BlogitemHits extends React.Component {
       hits,
       loadAll,
       categories,
-      summedCategoryScores
+      summedCategoryScores,
     } = this.state;
 
     return (
@@ -129,7 +129,7 @@ class Hits extends React.PureComponent {
         </Table.Header>
 
         <Table.Body>
-          {hits.map(record => {
+          {hits.map((record) => {
             const theseCategories = categories[record.id] || [];
             return (
               <Table.Row key={record.id}>
@@ -141,7 +141,7 @@ class Hits extends React.PureComponent {
                   >
                     {record.title}
                   </a>{' '}
-                  {theseCategories.map(name => {
+                  {theseCategories.map((name) => {
                     return (
                       <a
                         key={name}
@@ -186,7 +186,7 @@ class Categories extends React.PureComponent {
           </Table.Header>
 
           <Table.Body>
-            {summedCategoryScores.map(each => {
+            {summedCategoryScores.map((each) => {
               return (
                 <Table.Row key={each.name}>
                   <Table.Cell>

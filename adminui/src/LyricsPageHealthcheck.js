@@ -21,15 +21,15 @@ const xcacheAnalyzeLoopOptions = [...Array(5 + 1).keys()]
 
 const LOOP_SECONDS = 30;
 
-function LyricsPageHealthcheck({ accessToken }) {
+function LyricsPageHealthcheck() {
   const [nextFetch, setNextFetch] = useState(null);
   const { data, error } = useSWR(
     '/api/v0/lyrics-page-healthcheck',
     async (url) => {
       const response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+        // headers: {
+        //   Authorization: `Bearer ${accessToken}`,
+        // },
       });
       if (!response.ok) {
         throw new Error(`${response.status} on ${response.url}`);
@@ -58,7 +58,7 @@ function LyricsPageHealthcheck({ accessToken }) {
         <Dimmer active={loading} inverted>
           <Loader inverted>Loading</Loader>
         </Dimmer>
-        {health && <ShowHealth health={health} accessToken={accessToken} />}
+        {health && <ShowHealth health={health} />}
         {nextFetch && <ShowLoopCountdown nextFetch={nextFetch} />}
       </Segment>
     </Container>
@@ -90,13 +90,11 @@ function ShowLoopCountdown({ nextFetch }) {
   }
 }
 
-function ShowHealth({ health, accessToken }) {
+function ShowHealth({ health }) {
   const [xcacheAnalyzeAll, setXCacheAnalyzeAll] = React.useState(null);
   const [loopsDone, setLoopsDone] = React.useState(0);
-  const [
-    maxXCacheAnalyzeAllLoops,
-    setMaxXCacheAnalyzeAllLoops,
-  ] = useLocalStorage('max-xcache-analyze-all-loops', 1);
+  const [maxXCacheAnalyzeAllLoops, setMaxXCacheAnalyzeAllLoops] =
+    useLocalStorage('max-xcache-analyze-all-loops', 1);
 
   const [xcacheAnalysisDone, setXCacheAnalysisDone] = React.useState(0);
   const documentTitleRef = useRef(document.title);
@@ -236,7 +234,6 @@ function ShowHealth({ health, accessToken }) {
                 <ShowErrors errors={page.errors} />
               ) : null}{' '}
               <XCacheAnalyze
-                accessToken={accessToken}
                 url={page.url}
                 start={isAutoStart(page.url)}
                 finished={(error) => {

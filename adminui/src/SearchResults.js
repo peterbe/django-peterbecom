@@ -8,7 +8,7 @@ import {
   Loader,
   Statistic,
   Table,
-  Input
+  Input,
 } from 'semantic-ui-react';
 
 import { filterToQueryString, DisplayDate, ShowServerError } from './Common';
@@ -32,7 +32,7 @@ class SearchResults extends React.Component {
     statistics: null,
     records: null,
     filters: null,
-    loopSeconds: defaultLoopSeconds()
+    loopSeconds: defaultLoopSeconds(),
   };
 
   componentDidMount() {
@@ -45,10 +45,10 @@ class SearchResults extends React.Component {
     if (this._loop) window.clearTimeout(this._loop);
   }
 
-  fetchSearchResults = async accessToken => {
-    if (!accessToken) {
-      throw new Error('No accessToken');
-    }
+  fetchSearchResults = async () => {
+    // if (!accessToken) {
+    //   throw new Error('No accessToken');
+    // }
     let response;
     let url = '/api/v0/searchresults/';
     if (this.state.filters) {
@@ -56,9 +56,9 @@ class SearchResults extends React.Component {
     }
     try {
       response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`
-        }
+        // headers: {
+        //   Authorization: `Bearer ${accessToken}`
+        // }
       });
     } catch (ex) {
       return this.setState({ serverError: ex });
@@ -72,7 +72,7 @@ class SearchResults extends React.Component {
       this.setState({
         records: data.records,
         statistics: data.statistics,
-        serverError: null
+        serverError: null,
       });
     } else {
       this.setState({ serverError: response });
@@ -80,7 +80,8 @@ class SearchResults extends React.Component {
   };
 
   startLoop = () => {
-    this.fetchSearchResults(this.props.accessToken);
+    // this.fetchSearchResults(this.props.accessToken);
+    this.fetchSearchResults();
     if (this._loop) {
       window.clearTimeout(this._loop);
     }
@@ -118,7 +119,7 @@ class SearchResults extends React.Component {
           <Records
             records={records}
             filters={filters}
-            updateFilters={filters => {
+            updateFilters={(filters) => {
               this.setState({ filters }, this.startLoop);
             }}
           />
@@ -130,7 +131,7 @@ class SearchResults extends React.Component {
             <Checkbox
               toggle
               defaultChecked={!!this.state.loopSeconds}
-              onChange={event => {
+              onChange={(event) => {
                 if (!this.state.loopSeconds) {
                   this.setState({ loopSeconds: 10 }, () => {
                     this.startLoop();
@@ -146,7 +147,7 @@ class SearchResults extends React.Component {
                 <Input
                   type="number"
                   size="small"
-                  onChange={event => {
+                  onChange={(event) => {
                     const loopSeconds = parseInt(event.target.value);
                     if (loopSeconds > 0) {
                       this.setState({ loopSeconds }, () => {
@@ -182,7 +183,7 @@ function equalArrays(array1, array2) {
 // Can we refactor to reuse?
 class Statistics extends React.PureComponent {
   state = {
-    differentKeys: []
+    differentKeys: [],
   };
   componentDidUpdate(prevProps, prevState) {
     if (equalArrays(prevState.differentKeys, this.state.differentKeys)) {
@@ -208,12 +209,12 @@ class Statistics extends React.PureComponent {
 
     return (
       <div>
-        {statistics.groups.map(group => {
+        {statistics.groups.map((group) => {
           return (
             <div key={group.key}>
               <Header as="h3">{group.label}</Header>
               <Statistic.Group widths="four">
-                {group.items.map(item => {
+                {group.items.map((item) => {
                   const different = this.state.differentKeys.includes(
                     group.key + item.key
                   );
@@ -249,16 +250,16 @@ class Records extends React.PureComponent {
   state = { differentIds: [], expanded: {} };
   componentDidUpdate(prevProps, prevState) {
     if (equalArrays(prevState.differentIds, this.state.differentIds)) {
-      const before = prevProps.records.map(r => r.id);
-      const now = this.props.records.map(r => r.id);
-      const differentIds = now.filter(id => !before.includes(id));
+      const before = prevProps.records.map((r) => r.id);
+      const now = this.props.records.map((r) => r.id);
+      const differentIds = now.filter((id) => !before.includes(id));
       if (!equalArrays(differentIds, this.state.differentIds)) {
         this.setState({ differentIds });
       }
     }
   }
 
-  renderSearchTimesListText = times => {
+  renderSearchTimesListText = (times) => {
     return times
       .map(([key, seconds]) => {
         return `${key} in ${(seconds * 1000).toFixed(1)}ms`;
@@ -270,7 +271,7 @@ class Records extends React.PureComponent {
     const { differentIds } = this.state;
     return (
       <form
-        onSubmit={event => {
+        onSubmit={(event) => {
           event.preventDefault();
           updateFilters({ q: this.refs.q.inputRef.value });
         }}
@@ -286,7 +287,7 @@ class Records extends React.PureComponent {
           </Table.Header>
 
           <Table.Body>
-            {records.map(record => {
+            {records.map((record) => {
               return (
                 <Table.Row
                   key={record.id}
@@ -319,7 +320,7 @@ class Records extends React.PureComponent {
                       color="grey"
                       size="small"
                       name={this.state.expanded[record.id] ? 'minus' : 'plus'}
-                      onClick={event => {
+                      onClick={(event) => {
                         event.preventDefault();
                         const expanded = Object.assign({}, this.state.expanded);
                         expanded[record.id] = !expanded[record.id];
@@ -346,7 +347,7 @@ class Records extends React.PureComponent {
                   <Table.Cell>
                     {(Object.keys(record.keywords).length && (
                       <span>
-                        {Object.keys(record.keywords).map(k => (
+                        {Object.keys(record.keywords).map((k) => (
                           <span key={k}>
                             {k} = <code>{record.keywords[k]}</code>
                           </span>

@@ -7,14 +7,14 @@ import {
   Input,
   Label,
   Loader,
-  Table
+  Table,
 } from 'semantic-ui-react';
 
 import {
   DisplayDate,
   equalArrays,
   filterToQueryString,
-  ShowServerError
+  ShowServerError,
 } from './Common';
 
 function defaultLoopSeconds(default_ = 10) {
@@ -37,7 +37,7 @@ class RealtimeBlogitemHits extends React.Component {
     loading: true,
     loopSeconds: defaultLoopSeconds(),
     ongoing: null,
-    serverError: null
+    serverError: null,
   };
 
   componentDidMount() {
@@ -63,9 +63,9 @@ class RealtimeBlogitemHits extends React.Component {
   };
 
   fetchHits = async () => {
-    if (!this.props.accessToken) {
-      throw new Error('No accessToken');
-    }
+    // if (!this.props.accessToken) {
+    //   throw new Error('No accessToken');
+    // }
     let response;
     let url = '/api/v0/plog/realtimehits/?';
     if (this.state.lastAddDate) {
@@ -76,9 +76,9 @@ class RealtimeBlogitemHits extends React.Component {
     }
     try {
       response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${this.props.accessToken}`
-        }
+        // headers: {
+        //   Authorization: `Bearer ${this.props.accessToken}`,
+        // },
       });
     } catch (ex) {
       return this.setState({ serverError: ex });
@@ -96,21 +96,21 @@ class RealtimeBlogitemHits extends React.Component {
         hits,
         lastAddDate: data.last_add_date || this.state.lastAddDate,
         loading: false,
-        serverError: null
+        serverError: null,
       });
     } else {
       this.setState({ serverError: response });
     }
   };
 
-  _groupHits = hits => {
+  _groupHits = (hits) => {
     const byOids = {};
-    hits.forEach(hit => {
+    hits.forEach((hit) => {
       if (!byOids[hit.blogitem.oid]) {
         byOids[hit.blogitem.oid] = {
           blogitem: hit.blogitem,
           count: 0,
-          date: hit.add_date
+          date: hit.add_date,
           // http_referers: {}
         };
       }
@@ -130,7 +130,7 @@ class RealtimeBlogitemHits extends React.Component {
       .slice(0, 30);
   };
 
-  updateFilters = filters => {
+  updateFilters = (filters) => {
     this.setState(
       { filters, grouped: null, hits: [], lastAddDate: null },
       this.startLoop
@@ -168,7 +168,7 @@ class RealtimeBlogitemHits extends React.Component {
           <div>
             <Checkbox
               defaultChecked={!!this.state.loopSeconds}
-              onChange={event => {
+              onChange={(event) => {
                 if (!this.state.loopSeconds) {
                   this.setState({ loopSeconds: 10 }, () => {
                     this.startLoop();
@@ -183,7 +183,7 @@ class RealtimeBlogitemHits extends React.Component {
               <div>
                 Every{' '}
                 <Input
-                  onChange={event => {
+                  onChange={(event) => {
                     const loopSeconds = parseInt(event.target.value);
                     if (loopSeconds > 0) {
                       this.setState({ loopSeconds }, () => {
@@ -216,13 +216,13 @@ class Hits extends React.PureComponent {
     search:
       this.props.filters && this.props.filters.search
         ? this.props.filters.search
-        : ''
+        : '',
   };
   componentDidUpdate(prevProps, prevState) {
     if (equalArrays(prevState.differentIds, this.state.differentIds)) {
-      const before = prevProps.grouped.map(r => r.blogitem.id);
-      const now = this.props.grouped.map(r => r.blogitem.id);
-      const differentIds = now.filter(id => !before.includes(id));
+      const before = prevProps.grouped.map((r) => r.blogitem.id);
+      const now = this.props.grouped.map((r) => r.blogitem.id);
+      const differentIds = now.filter((id) => !before.includes(id));
       if (!equalArrays(differentIds, this.state.differentIds)) {
         this.setState({ differentIds });
       }
@@ -233,7 +233,7 @@ class Hits extends React.PureComponent {
     const { differentIds } = this.state;
     return (
       <form
-        onSubmit={event => {
+        onSubmit={(event) => {
           event.preventDefault();
           updateFilters({ search: this.state.search });
         }}
@@ -257,7 +257,7 @@ class Hits extends React.PureComponent {
           </Table.Header>
 
           <Table.Body>
-            {grouped.map(record => {
+            {grouped.map((record) => {
               return (
                 <Table.Row
                   key={record.blogitem.oid}

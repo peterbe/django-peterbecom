@@ -79,10 +79,10 @@ class Comments extends React.Component {
 
   fetchComments = (loadMore = false) => {
     this.setState({ loading: true }, async () => {
-      const { accessToken } = this.props;
-      if (!accessToken) {
-        throw new Error('No accessToken');
-      }
+      // const { accessToken } = this.props;
+      // if (!accessToken) {
+      //   throw new Error('No accessToken');
+      // }
       const { oldest, search } = this.state;
       let url = `/api/v0/plog/comments/?search=${encodeURIComponent(search)}`;
       if (loadMore) {
@@ -96,9 +96,9 @@ class Comments extends React.Component {
       let response;
       try {
         response = await fetch(url, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
+          // headers: {
+          //   Authorization: `Bearer ${accessToken}`,
+          // },
         });
       } catch (ex) {
         return this.setState({ loading: false, serverError: ex });
@@ -166,10 +166,10 @@ class Comments extends React.Component {
   };
 
   _deleteOrApproveComments = async (type, data) => {
-    const { accessToken } = this.props;
-    if (!accessToken) {
-      throw new Error('No accessToken');
-    }
+    // const { accessToken } = this.props;
+    // if (!accessToken) {
+    //   throw new Error('No accessToken');
+    // }
     if (!(type === 'delete' || type === 'approve')) {
       throw new Error(`Invalid endpoint ${type}`);
     }
@@ -180,7 +180,7 @@ class Comments extends React.Component {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
+          // Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify(data),
       });
@@ -200,10 +200,10 @@ class Comments extends React.Component {
   editComment = async (comment, data) => {
     this.setState({ loading: true });
 
-    const { accessToken } = this.props;
-    if (!accessToken) {
-      throw new Error('No accessToken');
-    }
+    // const { accessToken } = this.props;
+    // if (!accessToken) {
+    //   throw new Error('No accessToken');
+    // }
     // const data = { comment: text, oid: comment.oid };
     // Correct the alias
     data.comment = data.text;
@@ -215,7 +215,7 @@ class Comments extends React.Component {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
+          // Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify(data),
       });

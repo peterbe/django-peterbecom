@@ -113,7 +113,7 @@ MIDDLEWARE = (
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "rollbar.contrib.django.middleware.RollbarNotifierMiddleware",
-    "peterbecom.api.middleware.AuthenticationMiddleware",
+    "peterbecom.api.middleware.AuthenticationMiddleware2",
     "peterbecom.base.middleware.NoNewlineRequestPaths",
     # Important that this is last
     "peterbecom.base.middleware.FSCacheMiddleware",
@@ -123,7 +123,18 @@ MIDDLEWARE = (
 
 ROOT_URLCONF = "peterbecom.urls"
 
-AUTHENTICATION_BACKENDS = ("django.contrib.auth.backends.ModelBackend",)
+AUTHENTICATION_BACKENDS = (
+    "peterbecom.base.auth.AuthenticationBackend",
+    "django.contrib.auth.backends.ModelBackend",
+)
+OIDC_RP_SCOPES = "openid email picture profile"
+
+OIDC_OP_AUTHORIZATION_ENDPOINT = "https://peterbecom.auth0.com/authorize"
+OIDC_OP_TOKEN_ENDPOINT = "https://peterbecom.auth0.com/oauth/token"
+OIDC_OP_USER_ENDPOINT = "https://peterbecom.auth0.com/userinfo"
+
+LOGIN_REDIRECT_URL = "/?login=1"
+LOGOUT_REDIRECT_URL = "/?loggedout=1"
 
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = "peterbecom.wsgi.application"
@@ -182,6 +193,7 @@ INSTALLED_APPS = (
     "django.contrib.sites",
     "django.contrib.staticfiles",
     "django.contrib.postgres",
+    "mozilla_django_oidc",
     "semanticuiform",
     "sorl.thumbnail",
     "peterbecom.base",

@@ -6,7 +6,7 @@ import {
   Input,
   Label,
   Loader,
-  Table
+  Table,
 } from 'semantic-ui-react';
 import { debounce } from 'throttle-debounce';
 import { DisplayDate, ShowServerError } from './Common';
@@ -28,7 +28,7 @@ class Blogitems extends React.Component {
     orderBy: null,
     page: 1,
     search: getDefaultSearch(),
-    serverError: null
+    serverError: null,
   };
   componentDidMount() {
     document.title = 'Blogitems';
@@ -50,19 +50,19 @@ class Blogitems extends React.Component {
   }
 
   fetchBlogitems = async () => {
-    const { accessToken } = this.props;
-    if (!accessToken) {
-      throw new Error('No accessToken');
-    }
+    // const { accessToken } = this.props;
+    // if (!accessToken) {
+    //   throw new Error('No accessToken');
+    // }
     const { page, search, orderBy } = this.state;
     let url = `/api/v0/plog/?page=${page}&search=${encodeURIComponent(search)}`;
     if (orderBy) {
       url += `&order=${encodeURIComponent(orderBy)}`;
     }
     const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`
-      }
+      // headers: {
+      //   Authorization: `Bearer ${accessToken}`
+      // }
     });
     if (response.ok) {
       const data = await response.json();
@@ -71,7 +71,7 @@ class Blogitems extends React.Component {
           this._getStorageCacheKey(),
           JSON.stringify({
             blogitems: this.state.blogitems,
-            count: this.state.count
+            count: this.state.count,
           })
         );
       });
@@ -83,7 +83,7 @@ class Blogitems extends React.Component {
   changeOrderColumn = () => {
     this.setState(
       {
-        orderBy: this.state.orderBy === 'pub_date' ? 'modify_date' : 'pub_date'
+        orderBy: this.state.orderBy === 'pub_date' ? 'modify_date' : 'pub_date',
       },
       () => this.fetchBlogitems()
     );
@@ -121,10 +121,10 @@ class Blogitems extends React.Component {
             orderDirection={this.getOrderDirection()}
             orderLabel={this.getOrderLabel()}
             search={this.state.search}
-            updateFilterSearch={search => {
+            updateFilterSearch={(search) => {
               this.setState({ search }, () => {
                 this.props.history.push({
-                  search: `?search=${encodeURI(this.state.search)}`
+                  search: `?search=${encodeURI(this.state.search)}`,
                 });
                 this.fetchBlogitems();
               });
@@ -140,7 +140,7 @@ export default Blogitems;
 
 class BlogitemsTable extends React.PureComponent {
   state = {
-    search: this.props.search
+    search: this.props.search,
   };
 
   render() {
@@ -153,7 +153,7 @@ class BlogitemsTable extends React.PureComponent {
               Title ({count.toLocaleString()})
             </Table.HeaderCell>
             <Table.HeaderCell
-              onClick={event => {
+              onClick={(event) => {
                 this.props.changeOrderColumn();
               }}
               sorted={this.props.orderDirection}
@@ -166,7 +166,7 @@ class BlogitemsTable extends React.PureComponent {
               <Input
                 icon="search"
                 list="search-autofills"
-                onChange={event => {
+                onChange={(event) => {
                   this.setState(
                     { search: event.target.value },
                     debounce(500, () => {
@@ -181,7 +181,7 @@ class BlogitemsTable extends React.PureComponent {
               {this.state.search ? (
                 <Button
                   icon="remove"
-                  onClick={event => {
+                  onClick={(event) => {
                     this.setState({ search: '' }, () => {
                       this.props.updateFilterSearch('');
                     });
@@ -193,15 +193,15 @@ class BlogitemsTable extends React.PureComponent {
         </Table.Header>
 
         <Table.Body>
-          {blogitems.map(item => {
+          {blogitems.map((item) => {
             return (
               <Table.Row key={item.oid}>
                 <Table.Cell>
                   <Link to={`/plog/${item.oid}`}>{item.title}</Link>
-                  {item.categories.map(category => (
+                  {item.categories.map((category) => (
                     <Label
                       key={category.id}
-                      onClick={event => {
+                      onClick={(event) => {
                         this.updateFilterCategories(category.name);
                       }}
                       size="tiny"

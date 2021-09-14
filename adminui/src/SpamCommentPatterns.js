@@ -10,7 +10,7 @@ import {
   Dimmer,
   Segment,
   Message,
-  Table
+  Table,
 } from 'semantic-ui-react';
 
 import { ShowServerError } from './Common';
@@ -20,7 +20,7 @@ class SpamCommentPatterns extends React.Component {
     loading: false,
     patterns: null,
     serverError: null,
-    deletedPattern: null
+    deletedPattern: null,
   };
   componentDidMount() {
     document.title = 'Spam Comment Patterns';
@@ -28,16 +28,16 @@ class SpamCommentPatterns extends React.Component {
   }
 
   loadPatterns = async () => {
-    if (!this.props.accessToken) {
-      throw new Error('No accessToken');
-    }
+    // if (!this.props.accessToken) {
+    //   throw new Error('No accessToken');
+    // }
     let response;
     let url = '/api/v0/plog/spam/patterns';
     try {
       response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${this.props.accessToken}`
-        }
+        // headers: {
+        //   Authorization: `Bearer ${this.props.accessToken}`
+        // }
       });
     } catch (ex) {
       return this.setState({ loading: false, serverError: ex });
@@ -51,7 +51,7 @@ class SpamCommentPatterns extends React.Component {
       this.setState({
         loading: false,
         patterns: result.patterns,
-        serverError: null
+        serverError: null,
       });
     } else {
       this.setState({ loading: false, serverError: response });
@@ -62,23 +62,23 @@ class SpamCommentPatterns extends React.Component {
   }
 
   addHandler = async ({ pattern, isRegex, isURLPattern }) => {
-    if (!this.props.accessToken) {
-      throw new Error('No accessToken');
-    }
+    // if (!this.props.accessToken) {
+    //   throw new Error('No accessToken');
+    // }
     let response;
     let url = '/api/v0/plog/spam/patterns';
     const data = {
       pattern,
       is_regex: isRegex,
-      is_url_pattern: isURLPattern
+      is_url_pattern: isURLPattern,
     };
     try {
       response = await fetch(url, {
         method: 'POST',
         body: JSON.stringify(data),
-        headers: {
-          Authorization: `Bearer ${this.props.accessToken}`
-        }
+        // headers: {
+        //   Authorization: `Bearer ${this.props.accessToken}`
+        // }
       });
     } catch (ex) {
       return this.setState({ serverError: ex });
@@ -91,7 +91,7 @@ class SpamCommentPatterns extends React.Component {
       const result = await response.json();
       return this.setState({
         patterns: result.patterns,
-        serverError: null
+        serverError: null,
       });
     } else if (response.status === 400) {
       const result = await response.json();
@@ -101,19 +101,19 @@ class SpamCommentPatterns extends React.Component {
     }
   };
 
-  deletePattern = async pattern => {
+  deletePattern = async (pattern) => {
     if (window.confirm('Are you sure?')) {
-      if (!this.props.accessToken) {
-        throw new Error('No accessToken');
-      }
+      // if (!this.props.accessToken) {
+      //   throw new Error('No accessToken');
+      // }
       let response;
       let url = `/api/v0/plog/spam/patterns/${pattern.id}`;
       try {
         response = await fetch(url, {
           method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${this.props.accessToken}`
-          }
+          // headers: {
+          //   Authorization: `Bearer ${this.props.accessToken}`
+          // }
         });
       } catch (ex) {
         return this.setState({ serverError: ex });
@@ -127,7 +127,7 @@ class SpamCommentPatterns extends React.Component {
         return this.setState({
           patterns: result.patterns,
           deletedPattern: pattern,
-          serverError: null
+          serverError: null,
         });
       } else {
         return this.setState({ serverError: response });
@@ -160,7 +160,7 @@ class SpamCommentPatterns extends React.Component {
             </Table.Header>
 
             <Table.Body>
-              {patterns.map(pattern => {
+              {patterns.map((pattern) => {
                 return (
                   <Table.Row key={pattern.id}>
                     <Table.Cell>
@@ -185,7 +185,7 @@ class SpamCommentPatterns extends React.Component {
                       <Button
                         color="red"
                         size="small"
-                        onClick={event => {
+                        onClick={(event) => {
                           this.deletePattern(pattern);
                         }}
                       >
@@ -275,12 +275,12 @@ function AddFormRow({ addHandler }) {
         <Button
           primary
           disabled={!pattern.trim()}
-          onClick={event => {
+          onClick={(event) => {
             if (pattern) {
               addHandler({
                 pattern,
                 isRegex,
-                isURLPattern
+                isURLPattern,
               }).then(() => {
                 setPattern('');
                 setIsRegex(false);
