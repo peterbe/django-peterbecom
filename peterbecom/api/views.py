@@ -1980,6 +1980,7 @@ def whoami(request):
         context["user"] = {
             "username": request.user.username,
             "email": request.user.email,
+            "is_superuser": request.user.is_superuser,
             "csrfmiddlewaretoken": get_token(request),
         }
         for user_profile in UserProfile.objects.filter(user=request.user):
