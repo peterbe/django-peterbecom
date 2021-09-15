@@ -13,7 +13,9 @@ class AuthenticationMiddleware:
 
     def process_request(self, request):
         if request.path.startswith("/api/"):
-            if not request.user.is_authenticated:
-                if not request.path.startswith("/api/v0/whoami"):
+            if not request.path.startswith("/api/v0/whoami"):
+                if not request.user.is_authenticated:
                     return http.HttpResponseForbidden("Not authenticated")
+                if not request.user.is_superuser:
+                    return http.HttpResponseForbidden("Not superuser")
             request.csrf_processing_done = True

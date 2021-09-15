@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import useSWR from 'swr';
 import {
@@ -11,7 +11,7 @@ import {
   Table,
 } from 'semantic-ui-react';
 
-import { DisplayDate, ShowServerError } from './Common';
+import { DisplayDate, ShowServerError, usePrevious } from './Common';
 
 const LOCALSTORAGE_KEY = 'realtimehits-loopseconds';
 function defaultLoopSeconds(default_ = 10) {
@@ -174,14 +174,6 @@ function groupHits(hits) {
       return b.count - a.count;
     })
     .slice(0, 30);
-}
-
-function usePrevious(value) {
-  const ref = useRef();
-  useEffect(() => {
-    ref.current = value;
-  });
-  return ref.current;
 }
 
 function Hits({ filters, loading, grouped, updateFilters }) {
