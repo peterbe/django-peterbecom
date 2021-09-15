@@ -29,6 +29,8 @@ REDIS_URL = 'redis://localhost:6379/0'
 HMAC_KEYS = {'some': 'thing'}
 SECRET_KEY = 'something'
 GEOIP_PATH = base.path('GeoIP2-City-Test.mmdb')
+OIDC_RP_CLIENT_ID = 'secret'
+OIDC_RP_CLIENT_SECRET = 'secreter'
 SETTINGS
 
 echo "Run collect static to collect all final static assets."
