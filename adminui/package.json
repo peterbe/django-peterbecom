@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "auth0-js": "9.16.4",
     "date-fns": "2.23.0",
     "http-proxy-middleware": "2.0.1",
     "md5": "2.3.0",
