@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Button,
   Checkbox,
@@ -10,9 +10,20 @@ import {
   Message,
   Table,
 } from 'semantic-ui-react';
+import useSWR, { mutate } from 'swr';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
+import { toast } from 'react-semantic-toasts';
 
 import { formatFileSize, DisplayDate, ShowServerError } from './Common';
 import XCacheAnalyze from './XCacheAnalyze';
+
+async function basicFetch(url) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`${response.status} on ${url}`);
+  }
+  return await response.json();
+}
 
 class CDN extends React.Component {
   componentDidMount() {
@@ -31,397 +42,264 @@ class CDN extends React.Component {
   }
 }
 
-export default CDN;
-
-class CDNCheck extends React.PureComponent {
-  state = {
-    loading: true,
-    result: null,
-    serverError: null,
-    showConfig: false,
-  };
-  async componentDidMount() {
-    // if (!this.props.accessToken) {
-    //   throw new Error('No accessToken');
-    // }
-    let response;
-    let url = '/api/v0/cdn/check';
-    try {
-      response = await fetch(url, {
-        // headers: {
-        //   Authorization: `Bearer ${this.props.accessToken}`,
-        // },
-      });
-    } catch (ex) {
-      return this.setState({ loading: false, serverError: ex });
-    }
-
-    if (this.dismounted) {
-      return;
-    }
-    if (response.ok) {
-      const result = await response.json();
-      this.setState({
-        loading: false,
-        result,
-        serverError: null,
-      });
-    } else {
-      this.setState({ loading: false, serverError: response });
-    }
-  }
-  render() {
-    const { loading, result, serverError, showConfig } = this.state;
-    if (!loading && !result && !serverError) {
-      return null;
-    }
-    return (
-      <>
-        <div style={{ marginTop: 50 }}>
-          <Header as="h3">CDN Check</Header>
-          <ShowServerError error={serverError} />
-          {loading && <i>Loading CDN Check...</i>}
-          {!loading && result && (
-            <Message
-              negative={!result.checked}
-              size="tiny"
-              success={!!result.checked}
-            >
-              {result.checked
-                ? `CDN Looks fine (${result.checked})`
-                : 'CDN Check failed!'}
-            </Message>
-          )}
-        </div>
-
-        {!loading && result && result.checked && (
-          <p style={{ marginTop: 10 }}>
-            <Button
-              onClick={(event) => {
-                this.setState({ showConfig: !showConfig });
-              }}
-            >
-              {showConfig
-                ? 'Hide Full Zone Config'
-                : 'Display Full Zone Config'}
-            </Button>
-          </p>
-        )}
-        {!loading && showConfig && result && result.checked && (
-          <ZoneConfig {...this.props} />
-        )}
-      </>
-    );
-  }
+export default function CDNOuter() {
+  const location = useLocation();
+  return <CDN location={location} />;
 }
 
-class ProbeUrl extends React.PureComponent {
-  state = {
-    deletedFSCacheFiles: null,
-    loading: false,
-    purgeAllPages: true,
-    purgeFSCache: true,
-    purgeResult: null,
-    result: null,
-    serverError: null,
-    url: '',
-  };
-
-  componentDidMount() {
-    const { location } = this.props;
-    if (location.search) {
-      const searchParams = new URLSearchParams(
-        location.search.slice(1, location.search.length)
-      );
-      const url = searchParams.get('url') || '';
-      if (url) {
-        this.setState({ loading: true, url }, this.probeUrl);
-      }
-    }
-  }
-
-  probeUrl = async () => {
-    // if (!this.props.accessToken) {
-    //   throw new Error('No accessToken');
-    // }
-    let response;
-    const url = '/api/v0/cdn/probe';
-    const formData = new FormData();
-    formData.append('url', this.state.url);
-
-    try {
-      response = await fetch(url, {
-        method: 'POST',
-        body: formData,
-        // headers: {
-        //   Authorization: `Bearer ${this.props.accessToken}`,
-        // },
-      });
-    } catch (ex) {
-      return this.setState({ loading: false, serverError: ex });
-    }
-
-    if (this.dismounted) {
-      return;
-    }
-    if (response.ok) {
-      const result = await response.json();
-      this.setState({
-        loading: false,
-        result,
-        serverError: null,
-      });
-    } else {
-      this.setState({ loading: false, serverError: response });
-    }
-  };
-
-  purgeUrl = async (absoluteUrl) => {
-    // if (!this.props.accessToken) {
-    //   throw new Error('No accessToken');
-    // }
-    let response;
-    let url = '/api/v0/cdn/purge';
-    const formData = new FormData();
-    formData.append('urls', absoluteUrl);
-    if (this.state.purgeFSCache) {
-      formData.append('fscache', true);
-    }
-    if (this.state.purgeAllPages) {
-      if (this.state.result.other_pages) {
-        this.state.result.other_pages.forEach((page) => {
-          formData.append('urls', page.url);
-        });
-      }
-    }
-    try {
-      response = await fetch(url, {
-        method: 'POST',
-        body: formData,
-        // headers: {
-        //   Authorization: `Bearer ${this.props.accessToken}`,
-        // },
-      });
-    } catch (ex) {
-      return this.setState({ loading: false, serverError: ex });
-    }
-
-    if (this.dismounted) {
-      return;
-    }
-    if (response.ok) {
-      const result = await response.json();
-      this.setState({
-        deletedFSCacheFiles: result.deleted,
-        loading: false,
-        purgeResult: result.purge,
-        serverError: null,
-      });
-    } else {
-      this.setState({ loading: false, serverError: response });
-    }
-  };
-
-  render() {
-    const {
-      deletedFSCacheFiles,
-      loading,
-      purgeAllPages,
-      purgeFSCache,
-      purgeResult,
-      result,
-      serverError,
-      url,
-    } = this.state;
-    return (
-      <form
-        onSubmit={(event) => {
-          event.preventDefault();
-          this.props.history.push({
-            search: `?url=${encodeURI(this.state.url)}`,
-          });
-          this.setState(
-            {
-              loading: true,
-              purgeResult: null,
-              deletedFSCacheFiles: null,
-            },
-            () => {
-              this.probeUrl();
-            }
-          );
-        }}
-      >
-        <Header as="h2">URL Probe</Header>
-        <Input
-          action="Search"
-          disabled={loading}
-          fluid
-          loading={loading}
-          onChange={(event, data) => {
-            this.setState({ url: data.value });
-          }}
-          placeholder="URL, oid, pattern"
-          value={url}
-        />
+function CDNCheck() {
+  const [showConfig, setShowConfig] = useState(false);
+  const { data: result, error: serverError } = useSWR(
+    '/api/v0/cdn/check',
+    basicFetch
+  );
+  const loading = !result && !serverError;
+  return (
+    <>
+      <div style={{ marginTop: 50 }}>
+        <Header as="h3">CDN Check</Header>
         <ShowServerError error={serverError} />
-        {result && (
-          <div style={{ marginTop: 20 }}>
-            {result.other_pages && result.other_pages.length && (
-              <Checkbox
-                defaultChecked={purgeAllPages}
-                label={`Purge all (${result.other_pages.length}) other pages too`}
-                onChange={(event, data) => {
-                  this.setState({ purgeAllPages: data.checked });
-                }}
-                toggle
-              />
-            )}{' '}
+        {loading && <i>Loading CDN Check...</i>}
+        {!loading && result && (
+          <Message
+            negative={!result.checked}
+            size="tiny"
+            success={!!result.checked}
+          >
+            {result.checked
+              ? `CDN Looks fine (${result.checked})`
+              : 'CDN Check failed!'}
+          </Message>
+        )}
+      </div>
+
+      {!loading && result && result.checked && (
+        <p style={{ marginTop: 10 }}>
+          <Button
+            onClick={() => {
+              setShowConfig((prevState) => !prevState);
+            }}
+          >
+            {showConfig ? 'Hide Full Zone Config' : 'Display Full Zone Config'}
+          </Button>
+        </p>
+      )}
+      {!loading && showConfig && result && result.checked && <ZoneConfig />}
+    </>
+  );
+}
+
+function ProbeUrl() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [url, setURL] = useState(searchParams.get('url') || '');
+  const [purgeAllPages, setPurgeAllPages] = useState(true);
+  const [purgeFSCache, setPurgeFSCache] = useState(true);
+  const [purgeURL, setPurgeURL] = useState(null);
+
+  const probeURL = useMemo(() => {
+    if (!searchParams.get('url')) return null;
+    return '/api/v0/cdn/probe?' + searchParams.toString();
+  }, [searchParams]);
+
+  const { data: probeResult, error: probeError } = useSWR(
+    probeURL,
+    async (url) => {
+      const formData = new FormData();
+      formData.append('url', searchParams.get('url'));
+      const response = await fetch(url, { method: 'POST', body: formData });
+      if (!response.ok) {
+        throw new Error(`${response.status} on ${url}`);
+      }
+      return await response.json();
+    }
+  );
+
+  useEffect(() => {
+    setPurgeURL(null);
+  }, [probeURL]);
+
+  const { data: purgeResult, error: purgeError } = useSWR(
+    purgeURL ? '/api/v0/cdn/purge' : null,
+    async (url) => {
+      const formData = new FormData();
+      formData.append('urls', purgeURL);
+      if (purgeFSCache) {
+        formData.append('fscache', true);
+      }
+      if (purgeAllPages && probeResult.other_pages) {
+        for (const page of probeResult.other_pages) {
+          formData.append('urls', page.url);
+        }
+      }
+      const response = await fetch(url, { method: 'POST', body: formData });
+      if (!response.ok) {
+        throw new Error(`${response.status} on ${url}`);
+      }
+      return await response.json();
+    },
+    {
+      revalidateOnFocus: false,
+    }
+  );
+
+  const loading = Boolean(
+    searchParams.get('url') && !probeResult && !probeError
+  );
+  const deletedFSCacheFiles = null;
+  return (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        setSearchParams({ url: url.trim() });
+      }}
+    >
+      <Header as="h2">URL Probe</Header>
+      <Input
+        action="Search"
+        disabled={loading}
+        fluid
+        loading={loading}
+        onChange={(event, data) => {
+          setURL(data.value);
+        }}
+        placeholder="URL, oid, pattern"
+        value={url}
+      />
+      <ShowServerError error={probeError} />
+      <ShowServerError error={purgeError} />
+      {probeResult && (
+        <div style={{ marginTop: 20 }}>
+          {probeResult.other_pages && probeResult.other_pages.length && (
             <Checkbox
-              defaultChecked={purgeFSCache}
-              label="Purge FSCache too"
+              defaultChecked={purgeAllPages}
+              label={`Purge all (${probeResult.other_pages.length}) other pages too`}
               onChange={(event, data) => {
-                this.setState({ purgeFSCache: data.checked });
+                setPurgeAllPages(data.checked);
               }}
               toggle
-            />{' '}
-            <Button
-              disabled={loading}
-              loading={loading}
-              onClick={(event) => {
-                event.preventDefault();
-                this.setState(
-                  {
-                    loading: true,
-                    purgeResult: null,
-                    deletedFSCacheFiles: null,
-                  },
-                  () => {
-                    this.purgeUrl(result.absolute_url);
-                  }
-                );
-              }}
-              primary
-            >
-              Purge
-            </Button>
-            <Button
-              disabled={loading}
-              loading={loading}
-              onClick={(event) => {
-                event.preventDefault();
-                this.setState(
-                  {
-                    loading: true,
-                    result: null,
-                    purgeResult: null,
-                    deletedFSCacheFiles: null,
-                  },
-                  this.probeUrl
-                );
-              }}
-              primary
-            >
-              Probe Again
-            </Button>{' '}
-          </div>
-        )}
-        {purgeResult && (
-          <div style={{ textAlign: 'left' }}>
-            <h5>All URLs</h5>
-            <ul>
-              {purgeResult.all_urls.map((u) => {
-                return (
-                  <li key={u}>
-                    <code>{u}</code>
-                  </li>
-                );
-              })}
-            </ul>
-            <pre>{JSON.stringify(purgeResult.result, null, 2)}</pre>
-          </div>
-        )}
-        {deletedFSCacheFiles ? (
-          <div style={{ textAlign: 'left' }}>
-            <h4>Deleted FSCache Files</h4>
-            {!deletedFSCacheFiles.length && <i>No FSCache files deleted</i>}
-            <ul>
-              {deletedFSCacheFiles.map((path) => {
-                return (
-                  <li key={path}>
-                    <code>{path}</code>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ) : null}
+            />
+          )}{' '}
+          <Checkbox
+            defaultChecked={purgeFSCache}
+            label="Purge FSCache too"
+            onChange={(event, data) => {
+              setPurgeFSCache(data.checked);
+            }}
+            toggle
+          />{' '}
+          <Button
+            disabled={loading}
+            loading={loading}
+            onClick={(event) => {
+              event.preventDefault();
+              setPurgeURL(probeResult.absolute_url);
+            }}
+            primary
+          >
+            Purge
+          </Button>
+          <Button
+            disabled={loading}
+            loading={loading}
+            onClick={(event) => {
+              event.preventDefault();
+              mutate(probeURL);
+            }}
+            primary
+          >
+            Probe Again
+          </Button>{' '}
+        </div>
+      )}
+      {purgeResult && (
+        <div style={{ textAlign: 'left' }}>
+          <h5>All URLs</h5>
+          <ul>
+            {purgeResult.purge.all_urls.map((u) => {
+              return (
+                <li key={u}>
+                  <code>{u}</code>
+                </li>
+              );
+            })}
+          </ul>
+          <pre>{JSON.stringify(purgeResult.purge.result, null, 2)}</pre>
+        </div>
+      )}
+      {deletedFSCacheFiles ? (
+        <div style={{ textAlign: 'left' }}>
+          <h4>Deleted FSCache Files</h4>
+          {!deletedFSCacheFiles.length && <i>No FSCache files deleted</i>}
+          <ul>
+            {deletedFSCacheFiles.map((path) => {
+              return (
+                <li key={path}>
+                  <code>{path}</code>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ) : null}
 
-        {result && result.fscache && (
-          <div style={{ textAlign: 'left' }}>
-            <h4>FSCache Files</h4>
+      {probeResult && probeResult.fscache && (
+        <div style={{ textAlign: 'left' }}>
+          <h4>FSCache Files</h4>
 
-            {result.fscache.exists ? (
-              <span>
-                <code>{result.fscache.fspath}</code>{' '}
-                <Icon color="green" name="check" title="Exists!" />
-              </span>
-            ) : (
-              <span>
-                Does not exist
-                <Icon color="orange" name="dont" title="Doest not exist" />
-              </span>
-            )}
-            {result.fscache.exists &&
-            result.fscache.files_extended &&
-            result.fscache.files_extended.length > 0 ? (
-              <table>
-                <tbody>
-                  {result.fscache.files_extended.map((p) => (
-                    <tr key={p.filepath}>
-                      <td>
-                        <code title={p.filepath}>{p.name}</code>
-                      </td>
-                      <td>{formatFileSize(p.size)}</td>
-                      <td>
-                        <DisplayDate
-                          date={new Date(p.mtime * 1000)}
-                          prefix=""
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <i>No other files</i>
-            )}
-          </div>
-        )}
+          {probeResult.fscache.exists ? (
+            <span>
+              <code>{probeResult.fscache.fspath}</code>{' '}
+              <Icon color="green" name="check" title="Exists!" />
+            </span>
+          ) : (
+            <span>
+              Does not exist
+              <Icon color="orange" name="dont" title="Doest not exist" />
+            </span>
+          )}
+          {probeResult.fscache.exists &&
+          probeResult.fscache.files_extended &&
+          probeResult.fscache.files_extended.length > 0 ? (
+            <table>
+              <tbody>
+                {probeResult.fscache.files_extended.map((p) => (
+                  <tr key={p.filepath}>
+                    <td>
+                      <code title={p.filepath}>{p.name}</code>
+                    </td>
+                    <td>{formatFileSize(p.size)}</td>
+                    <td>
+                      <DisplayDate date={new Date(p.mtime * 1000)} prefix="" />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <i>No other files</i>
+          )}
+        </div>
+      )}
 
-        {result && result.other_pages && result.other_pages.length && (
+      {probeResult &&
+        probeResult.other_pages &&
+        probeResult.other_pages.length && (
           <div style={{ textAlign: 'left' }}>
-            <h4>Other Pages ({result.other_pages.length})</h4>
+            <h4>Other Pages ({probeResult.other_pages.length})</h4>
             <ul>
-              {result.other_pages.map((page) => {
+              {probeResult.other_pages.map((page) => {
                 return (
                   <li key={page.url}>
-                    <a
-                      href={`?url=${encodeURI(page.url)}`}
+                    <Link
+                      to={`?url=${encodeURI(page.url)}`}
                       onClick={(event) => {
                         event.preventDefault();
-                        this.setState(
-                          {
-                            url: page.url,
-                            result: null,
-                            loading: true,
-                          },
-                          this.probeUrl
-                        );
+                        setSearchParams({ url: page.url });
+                        setURL(page.url);
                       }}
                     >
                       {page.url}
-                    </a>{' '}
+                    </Link>{' '}
                     {page.fspath_exists ? (
                       <Icon color="green" name="check" title="Exists!" />
                     ) : (
@@ -438,11 +316,10 @@ class ProbeUrl extends React.PureComponent {
           </div>
         )}
 
-        {result && <ShowProbeResult result={result} />}
-        {result && <XCacheAnalyze url={result.absolute_url} />}
-      </form>
-    );
-  }
+      {probeResult && <ShowProbeResult result={probeResult} />}
+      {probeResult && <XCacheAnalyze url={probeResult.absolute_url} />}
+    </form>
+  );
 }
 
 function ShowProbeResult({ result }) {
@@ -536,68 +413,28 @@ function ShowHeaders({ headers, title }) {
   );
 }
 
-class ZoneConfig extends React.PureComponent {
-  state = {
-    config: null,
-    loading: true,
-    serverError: null,
-  };
-
-  componentDidMount() {
-    this.fetchZoneConfig();
-  }
-
-  fetchZoneConfig = async () => {
-    // if (!this.props.accessToken) {
-    //   throw new Error('No accessToken');
-    // }
-    let response;
-    let url = '/api/v0/cdn/config';
-    try {
-      response = await fetch(url, {
-        // headers: {
-        //   Authorization: `Bearer ${this.props.accessToken}`,
-        // },
-      });
-    } catch (ex) {
-      return this.setState({ loading: false, serverError: ex });
-    }
-
-    if (this.dismounted) {
-      return;
-    }
-    if (response.ok) {
-      const result = await response.json();
-      this.setState({
-        loading: false,
-        serverError: null,
-        zoneConfig: result.data,
-      });
-    } else {
-      this.setState({ loading: false, serverError: response });
-    }
-  };
-  render() {
-    const { loading, serverError, zoneConfig } = this.state;
-    return (
-      <div style={{ marginTop: 50 }}>
-        <Header as="h2">Zone Config</Header>
-        <ShowServerError error={serverError} />
-        {!serverError && loading && (
-          <Container>
-            <Loader
-              active
-              content="Loading..."
-              inline="centered"
-              size="massive"
-              style={{ margin: '200px 0' }}
-            />
-          </Container>
-        )}
-        {zoneConfig && <ShowZoneConfig config={zoneConfig.zone} />}
-      </div>
-    );
-  }
+function ZoneConfig() {
+  const { data, error: serverError } = useSWR('/api/v0/cdn/config', basicFetch);
+  const loading = !data && !serverError;
+  const zoneConfig = data ? data.data : null;
+  return (
+    <div style={{ marginTop: 50 }}>
+      <Header as="h2">Zone Config</Header>
+      <ShowServerError error={serverError} />
+      {!serverError && loading && (
+        <Container>
+          <Loader
+            active
+            content="Loading..."
+            inline="centered"
+            size="massive"
+            style={{ margin: '200px 0' }}
+          />
+        </Container>
+      )}
+      {zoneConfig && <ShowZoneConfig config={zoneConfig.zone} />}
+    </div>
+  );
 }
 
 function ShowZoneConfig({ config }) {
@@ -636,187 +473,117 @@ function ShowZoneConfig({ config }) {
   );
 }
 
-function defaultLoopSeconds(default_ = 60) {
-  try {
-    return parseInt(
-      window.localStorage.getItem('purgeurls-loopseconds') || default_,
-      10
-    );
-  } catch (ex) {
-    return default_;
-  }
-}
-
-class PurgeURLs extends React.PureComponent {
-  state = {
-    loopSeconds: defaultLoopSeconds(),
-    queued: null,
-    recent: null,
-    serverError: null,
-  };
-
-  componentDidMount() {
-    this.startLoop();
-    this.originalTitle = 'CDN';
-  }
-
-  componentDidUpdate(prevProps) {
-    const newCount = this.props.purgeUrlsCount;
-    const oldCount = prevProps.purgeUrlsCount;
-    if (newCount !== null && oldCount !== null && newCount !== oldCount) {
-      this.fetchPurgeURLs();
+function PurgeURLs() {
+  const [refreshInterval] = useState(10000);
+  const { data, error: serverError } = useSWR(
+    '/api/v0/cdn/purge/urls',
+    basicFetch,
+    {
+      refreshInterval,
     }
-  }
+  );
 
-  componentWillUnmount() {
-    this.dismounted = true;
-    if (this._loop) window.clearTimeout(this._loop);
-  }
-
-  fetchPurgeURLs = async () => {
-    // const { accessToken } = this.props;
-    // if (!accessToken) {
-    //   throw new Error('No accessToken');
-    // }
-    let response;
-    let url = '/api/v0/cdn/purge/urls';
-    try {
-      response = await fetch(url, {
-        // headers: {
-        //   Authorization: `Bearer ${accessToken}`,
-        // },
+  useEffect(() => {
+    if (serverError) {
+      toast({
+        type: 'error',
+        title: 'CDN Purge URLs Error',
+        description: serverError.toString(),
+        time: 7000,
       });
-    } catch (ex) {
-      return this.setState({ serverError: ex });
     }
+  }, [serverError]);
 
-    if (this.dismounted) {
-      return;
-    }
-    if (response.ok) {
-      const data = await response.json();
-      this.setState(
-        {
-          queued: data.queued,
-          recent: data.recent,
-          serverError: null,
-        },
-        () => {
-          if (this.state.queued.length) {
-            document.title = `${this.originalTitle} (${this.state.queued.length} queued)`;
-          } else {
-            document.title = this.originalTitle;
-          }
-        }
-      );
-    } else {
-      this.setState({ serverError: response });
-    }
-  };
+  const loading = !data && !serverError;
 
-  startLoop = () => {
-    this.fetchPurgeURLs();
-    if (this._loop) {
-      window.clearTimeout(this._loop);
-    }
-    if (this.state.loopSeconds) {
-      this._loop = window.setTimeout(() => {
-        this.startLoop();
-      }, 1000 * this.state.loopSeconds);
-    }
-  };
-
-  render() {
-    const { queued, recent, serverError } = this.state;
-    if (!queued || !recent) {
-      return (
-        <p>
-          <i>Loading Purge CDN URLs</i>
-        </p>
-      );
-    }
-
+  if (loading) {
     return (
-      <div style={{ marginTop: 50 }}>
-        <Header as="h2">Purge URLs</Header>
-        <ShowServerError error={serverError} />
-        <Header as="h3">Queued URLs ({queued.length})</Header>
-        <Table celled>
-          <Table.Header>
-            <Table.Row>
-              <Table.HeaderCell>URL</Table.HeaderCell>
-              <Table.HeaderCell>Attempts</Table.HeaderCell>
-              <Table.HeaderCell>Date</Table.HeaderCell>
-            </Table.Row>
-          </Table.Header>
-
-          <Table.Body>
-            {queued.map((record) => {
-              return (
-                <Table.Row
-                  key={record.id}
-                  negative={!!record.exception}
-                  warning={!!record.attempts}
-                >
-                  <Table.Cell>
-                    <code>{record.url}</code>
-                    {record.exception && <pre>{record.exception}</pre>}
-                  </Table.Cell>
-                  <Table.Cell>{record.attempts}</Table.Cell>
-                  <Table.Cell>
-                    <DisplayDate date={record.created} />{' '}
-                    {record.attempted && (
-                      <DisplayDate date={record.attempted} />
-                    )}
-                  </Table.Cell>
-                </Table.Row>
-              );
-            })}
-          </Table.Body>
-        </Table>
-        <Header as="h3">Recent URLs</Header>
-        <Table celled>
-          <Table.Header>
-            <Table.Row>
-              <Table.HeaderCell>URL</Table.HeaderCell>
-              <Table.HeaderCell>
-                <abbr title="Attempts">A</abbr>
-              </Table.HeaderCell>
-              <Table.HeaderCell>Processed</Table.HeaderCell>
-            </Table.Row>
-          </Table.Header>
-
-          <Table.Body>
-            {recent.map((record) => {
-              return (
-                <Table.Row key={record.id} warning={!!record.cancelled}>
-                  <Table.Cell>
-                    <a href={record.url}>{record.url}</a>
-                  </Table.Cell>
-                  <Table.Cell>{record.attempts}</Table.Cell>
-                  <Table.Cell>
-                    {record.cancelled ? 'cancelled ' : 'processed '}
-                    <DisplayDate
-                      date={
-                        record.cancelled ? record.cancelled : record.processed
-                      }
-                    />{' '}
-                    (
-                    <DisplayDate
-                      date={
-                        record.cancelled ? record.cancelled : record.processed
-                      }
-                      now={record.created}
-                      prefix="took"
-                    />
-                    )
-                  </Table.Cell>
-                </Table.Row>
-              );
-            })}
-          </Table.Body>
-        </Table>
-      </div>
+      <p>
+        <i>Loading Purge CDN URLs</i>
+      </p>
     );
   }
+
+  const { queued, recent } = data;
+
+  return (
+    <div style={{ marginTop: 50 }}>
+      <Header as="h2">Purge URLs</Header>
+      <ShowServerError error={serverError} />
+      <Header as="h3">Queued URLs ({queued.length})</Header>
+      <Table celled>
+        <Table.Header>
+          <Table.Row>
+            <Table.HeaderCell>URL</Table.HeaderCell>
+            <Table.HeaderCell>Attempts</Table.HeaderCell>
+            <Table.HeaderCell>Date</Table.HeaderCell>
+          </Table.Row>
+        </Table.Header>
+
+        <Table.Body>
+          {queued.map((record) => {
+            return (
+              <Table.Row
+                key={record.id}
+                negative={!!record.exception}
+                warning={!!record.attempts}
+              >
+                <Table.Cell>
+                  <code>{record.url}</code>
+                  {record.exception && <pre>{record.exception}</pre>}
+                </Table.Cell>
+                <Table.Cell>{record.attempts}</Table.Cell>
+                <Table.Cell>
+                  <DisplayDate date={record.created} />{' '}
+                  {record.attempted && <DisplayDate date={record.attempted} />}
+                </Table.Cell>
+              </Table.Row>
+            );
+          })}
+        </Table.Body>
+      </Table>
+      <Header as="h3">Recent URLs</Header>
+      <Table celled>
+        <Table.Header>
+          <Table.Row>
+            <Table.HeaderCell>URL</Table.HeaderCell>
+            <Table.HeaderCell>
+              <abbr title="Attempts">A</abbr>
+            </Table.HeaderCell>
+            <Table.HeaderCell>Processed</Table.HeaderCell>
+          </Table.Row>
+        </Table.Header>
+
+        <Table.Body>
+          {recent.map((record) => {
+            return (
+              <Table.Row key={record.id} warning={!!record.cancelled}>
+                <Table.Cell>
+                  <a href={record.url}>{record.url}</a>
+                </Table.Cell>
+                <Table.Cell>{record.attempts}</Table.Cell>
+                <Table.Cell>
+                  {record.cancelled ? 'cancelled ' : 'processed '}
+                  <DisplayDate
+                    date={
+                      record.cancelled ? record.cancelled : record.processed
+                    }
+                  />{' '}
+                  (
+                  <DisplayDate
+                    date={
+                      record.cancelled ? record.cancelled : record.processed
+                    }
+                    now={record.created}
+                    prefix="took"
+                  />
+                  )
+                </Table.Cell>
+              </Table.Row>
+            );
+          })}
+        </Table.Body>
+      </Table>
+    </div>
+  );
 }

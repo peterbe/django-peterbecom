@@ -76,7 +76,6 @@ export default function Blogitems() {
             const sp = createSearchParams({
               ...Object.fromEntries(searchParams),
             });
-            console.log({ search });
             if (search) {
               sp.set('search', search);
             } else if (sp.get('search')) {

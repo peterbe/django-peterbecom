@@ -53,15 +53,8 @@ class EditBlogitem extends React.Component {
     if (allCategories) {
       this.setState({ allCategories: JSON.parse(allCategories) });
     }
-    // if (!this.props.accessToken) {
-    //   throw new Error('No accessToken');
-    // }
     try {
-      const response = await fetch('/api/v0/categories', {
-        // headers: {
-        //   Authorization: `Bearer ${this.props.accessToken}`,
-        // },
-      });
+      const response = await fetch('/api/v0/categories');
       if (!this.dismounted) {
         if (response.ok) {
           const json = await response.json();
@@ -85,11 +78,7 @@ class EditBlogitem extends React.Component {
   fetchBlogitem = async (oid) => {
     let response;
     try {
-      response = await fetch(`/api/v0/plog/${encodeURIComponent(oid)}`, {
-        // headers: {
-        //   Authorization: `Bearer ${this.props.accessToken}`,
-        // },
-      });
+      response = await fetch(`/api/v0/plog/${encodeURIComponent(oid)}`);
     } catch (ex) {
       if (this.dismounted) return;
       return this.setState({ serverError: ex, loading: false });
@@ -103,14 +92,6 @@ class EditBlogitem extends React.Component {
   };
 
   previewBlogitem = async (data) => {
-    // if (!this.props.accessToken) {
-    //   throw new Error('No accessToken');
-    // }
-    // if (!this.props.user) {
-    //   throw new Error('No user');
-    // }
-    // data.csrfmiddlewaretoken = this.props.user.csrfmiddlewaretoken;
-    // console.log(data);
     let response;
     try {
       response = await fetch(`/api/v0/plog/preview/`, {
@@ -118,7 +99,6 @@ class EditBlogitem extends React.Component {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          // Authorization: `Bearer ${this.props.accessToken}`,
         },
         body: JSON.stringify(data),
       });
@@ -134,9 +114,6 @@ class EditBlogitem extends React.Component {
   };
 
   updateBlogitem = async (data) => {
-    // if (!this.props.accessToken) {
-    //   throw new Error('No accessToken');
-    // }
     const oid = this.state.blogitem.oid;
     let response;
     try {
@@ -145,7 +122,6 @@ class EditBlogitem extends React.Component {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          // Authorization: `Bearer ${this.props.accessToken}`,
         },
         body: JSON.stringify(data),
       });
@@ -243,17 +219,14 @@ class EditBlogitem extends React.Component {
         )}
         {blogitem && (
           <EditForm
-            // accessToken={this.props.accessToken}
             blogitem={blogitem}
             allCategories={this.state.allCategories}
             validationErrors={this.state.validationErrors}
             onLoadPreview={async (data) => {
-              // this.previewBlogitem(data, this.props.accessToken);
               this.previewBlogitem(data);
             }}
             onSubmitData={(data) => {
               this.setState({ updated: null });
-              // this.updateBlogitem(data, this.props.accessToken);
               this.updateBlogitem(data);
             }}
           />
@@ -261,10 +234,7 @@ class EditBlogitem extends React.Component {
         <PreviewBlogitem data={this.state.preview} />
 
         {this.state.blogitem && this.state.blogitem._published && (
-          <BlogitemHits
-            // accessToken={this.props.accessToken}
-            blogitem={blogitem}
-          />
+          <BlogitemHits blogitem={blogitem} />
         )}
       </Container>
     );
@@ -289,14 +259,10 @@ class AddBlogitem extends EditBlogitem {
   componentDidMount() {
     document.title = 'Add Blogitem';
 
-    // this.fetchAllCategories(this.props.accessToken);
     this.fetchAllCategories();
   }
 
   createBlogitem = async (data) => {
-    // if (!this.props.accessToken) {
-    //   throw new Error('No accessToken');
-    // }
     let response;
     try {
       response = await fetch(`/api/v0/plog/`, {
@@ -304,7 +270,6 @@ class AddBlogitem extends EditBlogitem {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          // Authorization: `Bearer ${this.props.accessToken}`,
         },
         body: JSON.stringify(data),
       });
@@ -730,16 +695,9 @@ class Thumbnails extends React.PureComponent {
   state = { copied: null, show: false, images: null };
 
   async componentDidMount() {
-    // if (!this.props.accessToken) {
-    //   throw new Error('No accessToken');
-    // }
     const oid = this.props.oid;
     try {
-      const response = await fetch(`/api/v0/plog/${oid}/images`, {
-        // headers: {
-        //   Authorization: `Bearer ${this.props.accessToken}`,
-        // },
-      });
+      const response = await fetch(`/api/v0/plog/${oid}/images`, {});
       if (!this.dismounted) {
         this.setState({ loading: false });
         if (response.ok) {
@@ -894,11 +852,7 @@ class BlogitemHits extends React.PureComponent {
   fetchHits = async () => {
     const { blogitem } = this.props;
     try {
-      const response = await fetch(`/api/v0/plog/${blogitem.oid}/hits`, {
-        // headers: {
-        //   Authorization: `Bearer ${this.props.accessToken}`,
-        // },
-      });
+      const response = await fetch(`/api/v0/plog/${blogitem.oid}/hits`);
       if (!this.dismounted) {
         if (response.ok) {
           const json = await response.json();

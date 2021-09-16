@@ -164,7 +164,6 @@ function groupHits(hits) {
     if (hit.add_date > byOids[hit.blogitem.oid].date) {
       byOids[hit.blogitem.oid].date = hit.add_date;
     }
-    // if ()
   });
   return Object.values(byOids)
     .sort((a, b) => {

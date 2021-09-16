@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import md5 from 'md5';
 import {
   Button,
@@ -16,6 +16,7 @@ import {
   TextArea,
   Form,
 } from 'semantic-ui-react';
+import { useLocation } from 'react-router-dom';
 import { parseISO, formatDistance } from 'date-fns/esm';
 import { DisplayDate, ShowServerError } from './Common';
 import { BASE_URL } from './Config';
@@ -200,11 +201,6 @@ class Comments extends React.Component {
   editComment = async (comment, data) => {
     this.setState({ loading: true });
 
-    // const { accessToken } = this.props;
-    // if (!accessToken) {
-    //   throw new Error('No accessToken');
-    // }
-    // const data = { comment: text, oid: comment.oid };
     // Correct the alias
     data.comment = data.text;
     data.oid = comment.oid;
@@ -215,7 +211,6 @@ class Comments extends React.Component {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          // Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify(data),
       });
@@ -400,7 +395,10 @@ class Comments extends React.Component {
   }
 }
 
-export default Comments;
+export default function CommentsOuter() {
+  const location = useLocation();
+  return <Comments location={location} />;
+}
 
 class FilterForm extends React.Component {
   state = {
@@ -822,82 +820,46 @@ function ShowOtherCommentCount({ count }) {
   return <small title={msg}>({count})</small>;
 }
 
-class EditComment extends React.PureComponent {
-  state = {
-    text: this.props.comment.comment,
-    name: this.props.comment.name || '',
-    email: this.props.comment.email || '',
-  };
-  render() {
-    return (
-      <Form
-        onSubmit={(event) => {
-          event.preventDefault();
-          this.props.editComment(this.props.comment, {
-            text: this.state.text,
-            name: this.state.name,
-            email: this.state.email,
-          });
-        }}
-      >
-        <Input
-          value={this.state.name}
-          onChange={(_, data) => {
-            this.setState({ name: data.value });
-          }}
-          placeholder="Name..."
-        />
-        <Input
-          value={this.state.email}
-          onChange={(_, data) => {
-            this.setState({ email: data.value });
-          }}
-          placeholder="Email..."
-        />
-        <TextArea
-          value={this.state.text}
-          onChange={(_, data) => {
-            this.setState({ text: data.value });
-          }}
-        />
-        <Button primary>Save</Button>
-      </Form>
-    );
-  }
-}
+function EditComment({ comment, editComment }) {
+  const [text, setText] = useState(comment.comment);
+  const [name, setName] = useState(comment.name || '');
+  const [email, setEmail] = useState(comment.email || '');
 
-// class ShowCountries extends React.PureComponent {
-//   render() {
-//     const { countries } = this.props;
-//     return (
-//       <div style={{ marginBottom: 40 }}>
-//         <Header as="h3" dividing>
-//           Countries of Commenters
-//         </Header>
-//         <List>
-//           {countries.map(row => {
-//             return (
-//               <List.Item key={row.name}>
-//                 <List.Content>
-//                   <List.Header>
-//                     {[...Array(row.count).keys()].map(i => (
-//                       <Flag
-//                         key={`${row.country_code}${i}`}
-//                         name={row.country_code.toLowerCase()}
-//                         title={`${row.count} from ${row.name}`}
-//                       />
-//                     ))}
-//                     {row.name} <small>({row.count})</small>
-//                   </List.Header>
-//                 </List.Content>
-//               </List.Item>
-//             );
-//           })}
-//         </List>
-//       </div>
-//     );
-//   }
-// }
+  return (
+    <Form
+      onSubmit={(event) => {
+        event.preventDefault();
+        editComment(comment, {
+          text,
+          name,
+          email,
+        });
+      }}
+    >
+      <Input
+        value={name}
+        onChange={(_, data) => {
+          setName(data.value);
+        }}
+        placeholder="Name..."
+      />
+      <Input
+        value={email}
+        onChange={(_, data) => {
+          setEmail(data.value);
+        }}
+        placeholder="Email..."
+      />
+      <TextArea
+        value={text}
+        onChange={(_, data) => {
+          setText(data.value);
+        }}
+      />
+      <Button primary>Save</Button>
+    </Form>
+  );
+}
 
 function ShowAutoApproveGoodComments({ records }) {
   if (!records || !records.records.length) {
