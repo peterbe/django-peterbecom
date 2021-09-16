@@ -7,6 +7,7 @@ import {
   Loader,
   Card,
 } from 'semantic-ui-react';
+import { useParams } from 'react-router-dom';
 
 import { formatFileSize, BlogitemBreadcrumb, ShowServerError } from './Common';
 
@@ -47,7 +48,7 @@ class UploadImages extends React.Component {
   };
 
   fileUpload = async (preview, title) => {
-    const { oid } = this.props.match.params;
+    const { oid } = this.props;
 
     const formData = new FormData();
 
@@ -91,7 +92,7 @@ class UploadImages extends React.Component {
   };
 
   undoUpload = async (preview) => {
-    const { oid } = this.props.match.params;
+    const { oid } = this.props;
     try {
       let url = `/api/v0/plog/${oid}/images?id=${preview.uploaded}`;
       const response = await fetch(url, {
@@ -127,7 +128,7 @@ class UploadImages extends React.Component {
 
   render() {
     const { loading, serverError } = this.state;
-    const oid = this.props.match.params.oid;
+    const { oid } = this.props;
     if (!serverError && loading) {
       return (
         <Container>
@@ -168,7 +169,10 @@ class UploadImages extends React.Component {
   }
 }
 
-export default UploadImages;
+export default function UploadImagesOuter() {
+  const { oid } = useParams();
+  return <UploadImages oid={oid} />;
+}
 
 class PreviewCard extends React.Component {
   state = { title: '' };

@@ -43,7 +43,7 @@ class EditBlogitem extends React.Component {
 
   componentDidMount() {
     document.title = 'Edit Blogitem';
-    this.fetchBlogitem(this.props.match.params.oid);
+    this.fetchBlogitem(this.props.oid);
     this.fetchAllCategories();
   }
 

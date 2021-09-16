@@ -1,8 +1,9 @@
 import React, { Suspense, useEffect, useState } from 'react';
-import { BrowserRouter as Router, Link, Route, Switch } from 'react-router-dom';
+import { Route, Routes, Link, useParams } from 'react-router-dom';
+
 import useSWR from 'swr';
 import 'semantic-ui-css/semantic.min.css';
-import { Container, Dropdown, Loader, Menu } from 'semantic-ui-react';
+import { Container, Dropdown, Menu } from 'semantic-ui-react';
 import { SemanticToastContainer } from 'react-semantic-toasts';
 import { toast } from 'react-semantic-toasts';
 import 'react-semantic-toasts/styles/react-semantic-alert.css';
@@ -36,10 +37,12 @@ const AWSPASearch = React.lazy(() => import('./AWSPASearch'));
 
 // These exist so I can have just 1 *default* export from the 'EditBlogItem.js'
 function AddBlogitem(props) {
+  // const { "*": slug, locale } = useParams();
   return <AddOrEditBlogitem addOrEdit="add" {...props} />;
 }
 function EditBlogitem(props) {
-  return <AddOrEditBlogitem addOrEdit="edit" {...props} />;
+  const { oid } = useParams();
+  return <AddOrEditBlogitem addOrEdit="edit" oid={oid} {...props} />;
 }
 
 export default function App() {
@@ -59,7 +62,7 @@ export default function App() {
       }
       const data = await response.json();
       if (data.is_authenticated) {
-        return data;
+        return data.user;
       }
       return null;
     }
@@ -128,242 +131,165 @@ export default function App() {
   }, [whoamiError]);
 
   return (
-    <Router>
-      <div>
-        <SemanticToastContainer />
-        <Menu fixed="top" inverted>
-          <Pulse onMessage={onWebSocketMessage} />
-          <Container>
-            <Menu.Item header>
-              <Link to="/">Peterbe.com Admin</Link>
-            </Menu.Item>
-            <Dropdown item simple text="Blogitems">
-              <Dropdown.Menu>
-                <DropdownLink to="/plog">Blogitems</DropdownLink>
-                <DropdownLink to="/plog/add">Add new blogitem</DropdownLink>
-                <DropdownLink to="/plog/realtimehits">
-                  Realtime Hits
-                </DropdownLink>
-                <DropdownLink to="/plog/hits">Hits</DropdownLink>
-                <DropdownLink to="/plog/spam/patterns">
-                  Spam Comment Patterns
-                </DropdownLink>
-              </Dropdown.Menu>
-            </Dropdown>
-            <Dropdown item simple text="Comments">
-              <Dropdown.Menu>
-                <DropdownLink to="/plog/comments" style={{ color: '#000' }}>
-                  All comments
-                </DropdownLink>
-                <DropdownLink
-                  to="/plog/comments?unapproved=only"
-                  style={{ color: '#000' }}
-                >
-                  Unapproved
-                </DropdownLink>
-                <DropdownLink
-                  to="/plog/comments?autoapproved=only"
-                  style={{ color: '#000' }}
-                >
-                  Autoapproved
-                </DropdownLink>
-                <DropdownLink
-                  to="/plog/comments/counts"
-                  style={{ color: '#000' }}
-                >
-                  Counts
-                </DropdownLink>
-                <DropdownLink
-                  to="/plog/comments/auto-approved-records"
-                  style={{ color: '#000' }}
-                >
-                  Auto Approved Records
-                </DropdownLink>
-                <DropdownLink to="/plog/comments/geo" style={{ color: '#000' }}>
-                  Geo
-                </DropdownLink>
-              </Dropdown.Menu>
-            </Dropdown>
-            <Menu.Item>
-              <Link to="/postprocessings">Post Processings</Link>
-            </Menu.Item>
-            <Menu.Item>
-              <Link to="/searchresults">Search Results</Link>
-            </Menu.Item>
-            <Menu.Item>
-              <Link to="/cdn">
-                CDN
-                {!!purgeUrlsCount && ` (${purgeUrlsCount})`}
-              </Link>
-            </Menu.Item>
-            <Menu.Item>
-              <Link to="/lyrics-page-healthcheck">Lyrics Page Healthcheck</Link>
-            </Menu.Item>
+    <div>
+      <SemanticToastContainer />
+      <Menu fixed="top" inverted>
+        <Pulse onMessage={onWebSocketMessage} />
+        <Container>
+          <Menu.Item header>
+            <Link to="/">Peterbe.com Admin</Link>
+          </Menu.Item>
+          <Dropdown item simple text="Blogitems">
+            <Dropdown.Menu>
+              <DropdownLink to="/plog">Blogitems</DropdownLink>
+              <DropdownLink to="/plog/add">Add new blogitem</DropdownLink>
+              <DropdownLink to="/plog/realtimehits">Realtime Hits</DropdownLink>
+              <DropdownLink to="/plog/hits">Hits</DropdownLink>
+              <DropdownLink to="/plog/spam/patterns">
+                Spam Comment Patterns
+              </DropdownLink>
+            </Dropdown.Menu>
+          </Dropdown>
+          <Dropdown item simple text="Comments">
+            <Dropdown.Menu>
+              <DropdownLink to="/plog/comments" style={{ color: '#000' }}>
+                All comments
+              </DropdownLink>
+              <DropdownLink
+                to="/plog/comments?unapproved=only"
+                style={{ color: '#000' }}
+              >
+                Unapproved
+              </DropdownLink>
+              <DropdownLink
+                to="/plog/comments?autoapproved=only"
+                style={{ color: '#000' }}
+              >
+                Autoapproved
+              </DropdownLink>
+              <DropdownLink
+                to="/plog/comments/counts"
+                style={{ color: '#000' }}
+              >
+                Counts
+              </DropdownLink>
+              <DropdownLink
+                to="/plog/comments/auto-approved-records"
+                style={{ color: '#000' }}
+              >
+                Auto Approved Records
+              </DropdownLink>
+              <DropdownLink to="/plog/comments/geo" style={{ color: '#000' }}>
+                Geo
+              </DropdownLink>
+            </Dropdown.Menu>
+          </Dropdown>
+          <Menu.Item>
+            <Link to="/postprocessings">Post Processings</Link>
+          </Menu.Item>
+          <Menu.Item>
+            <Link to="/searchresults">Search Results</Link>
+          </Menu.Item>
+          <Menu.Item>
+            <Link to="/cdn">
+              CDN
+              {!!purgeUrlsCount && ` (${purgeUrlsCount})`}
+            </Link>
+          </Menu.Item>
+          <Menu.Item>
+            <Link to="/lyrics-page-healthcheck">Lyrics Page Healthcheck</Link>
+          </Menu.Item>
 
-            <Menu.Menu position="right">
-              {user ? (
-                <Menu.Item>
-                  <img
-                    alt="Avatar"
-                    src={
-                      user.picture_url ||
-                      'https://www.peterbe.com/avatar.random.png'
-                    }
-                    title={`${user.username} ${user.email}`}
-                  />
-                </Menu.Item>
-              ) : null}
-              {user ? (
-                <Menu.Item
-                  name="logout"
-                  onClick={async (event) => {
-                    event.preventDefault();
-                    await logOut();
-                  }}
+          <Menu.Menu position="right">
+            {user ? (
+              <Menu.Item>
+                <img
+                  alt="Avatar"
+                  src={
+                    user.picture_url ||
+                    'https://www.peterbe.com/avatar.random.png'
+                  }
+                  title={`${user.username} ${user.email}`}
                 />
-              ) : (
-                <Menu.Item
-                  name="login"
-                  onClick={(event) => {
-                    event.preventDefault();
-                    authorize();
-                  }}
-                />
-              )}
-            </Menu.Menu>
-          </Container>
-        </Menu>
-
-        <Container style={{ marginTop: '5em' }}>
-          <Suspense fallback={<div>Loading...</div>}>
-            <Switch>
-              <Route
-                path="/"
-                exact
-                render={(props) => (
-                  <Dashboard {...props} user={user} authorize={authorize} />
-                )}
+              </Menu.Item>
+            ) : null}
+            {user ? (
+              <Menu.Item
+                name="logout"
+                onClick={async (event) => {
+                  event.preventDefault();
+                  await logOut();
+                }}
               />
-              <SecureRoute
-                path="/plog/spam/patterns"
-                exact
-                component={SpamCommentPatterns}
-                user={user}
+            ) : (
+              <Menu.Item
+                name="login"
+                onClick={(event) => {
+                  event.preventDefault();
+                  authorize();
+                }}
               />
-              <SecureRoute
-                path="/plog/comments/geo"
-                exact
-                component={GeoComments}
-                user={user}
-              />
-              <SecureRoute
-                path="/plog/comments/counts"
-                exact
-                component={CommentCounts}
-                user={user}
-              />
-              <SecureRoute
-                path="/plog/comments/auto-approved-records"
-                exact
-                component={CommentAutoApproveds}
-                user={user}
-              />
-              <SecureRoute
-                path="/plog/comments"
-                exact
-                component={Comments}
-                user={user}
-              />
-              <SecureRoute
-                path="/plog/hits"
-                exact
-                component={BlogitemHits}
-                user={user}
-              />
-              <SecureRoute
-                path="/plog/realtimehits"
-                exact
-                component={RealtimeBlogitemHits}
-                user={user}
-              />
-              <SecureRoute
-                path="/plog"
-                exact
-                component={Blogitems}
-                user={user}
-              />
-              <SecureRoute
-                path="/plog/add"
-                exact
-                component={AddBlogitem}
-                user={user}
-              />
-              <SecureRoute
-                path="/plog/:oid/open-graph-image"
-                component={OpenGraphImageBlogitem}
-                user={user}
-              />
-              <SecureRoute
-                path="/plog/:oid/images"
-                component={UploadImages}
-                user={user}
-              />
-              <SecureRoute
-                path="/plog/:oid"
-                component={EditBlogitem}
-                user={user}
-              />
-              <SecureRoute
-                path="/postprocessings"
-                exact
-                component={PostProcessings}
-                user={user}
-                latestPostProcessing={latestPostProcessing}
-              />
-              <SecureRoute
-                path="/searchresults"
-                exact
-                component={SearchResults}
-                user={user}
-              />
-              <SecureRoute
-                path="/cdn"
-                exact
-                component={CDN}
-                user={user}
-                purgeUrlsCount={purgeUrlsCount}
-              />
-              <SecureRoute
-                path="/lyrics-page-healthcheck"
-                exact
-                component={LyricsPageHealthcheck}
-                user={user}
-              />
-              <SecureRoute
-                path="/awspa"
-                exact
-                component={AWSPAItems}
-                user={user}
-              />
-              <SecureRoute
-                path="/awspa/search"
-                exact
-                component={AWSPASearch}
-                user={user}
-              />
-              <SecureRoute
-                path="/awspa/:id"
-                exact
-                component={AWSPAItem}
-                user={user}
-              />
-
-              <Route component={NoMatch} />
-            </Switch>
-          </Suspense>
+            )}
+          </Menu.Menu>
         </Container>
-      </div>
-    </Router>
+      </Menu>
+
+      <Container style={{ marginTop: '5em' }}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <Routes>
+            <Route
+              path="/"
+              element={<Dashboard user={user} authorize={authorize} />}
+            />
+            <Route
+              path="/plog/spam/patterns"
+              element={<SpamCommentPatterns />}
+            />
+            <Route path="/plog/comments/geo" element={<GeoComments />} />
+            <Route path="/plog/comments/counts" element={<CommentCounts />} />
+            <Route
+              path="/plog/comments/auto-approved-records"
+              element={<CommentAutoApproveds />}
+            />
+            <Route path="/plog/comments" element={<Comments />} />
+            <Route path="/plog/hits" exact element={<BlogitemHits />} />
+            <Route
+              path="/plog/realtimehits"
+              exact
+              element={<RealtimeBlogitemHits />}
+            />
+            <Route path="/plog" element={<Blogitems />} />
+            <Route path="/plog/add" element={<AddBlogitem />} />
+            <Route
+              path="/plog/:oid/open-graph-image"
+              element={<OpenGraphImageBlogitem />}
+            />
+            <Route path="/plog/:oid/images" element={<UploadImages />} />
+            <Route path="/plog/:oid" element={<EditBlogitem />} />
+            <Route
+              path="/postprocessings"
+              element={<PostProcessings />}
+              latestPostProcessing={latestPostProcessing}
+            />
+            <Route path="/searchresults" element={<SearchResults />} />
+            <Route
+              path="/cdn"
+              element={<CDN />}
+              purgeUrlsCount={purgeUrlsCount}
+            />
+            <Route
+              path="/lyrics-page-healthcheck"
+              element={<LyricsPageHealthcheck />}
+            />
+            <Route path="/awspa" exact element={<AWSPAItems />} />
+            <Route path="/awspa/search" component={AWSPASearch} />
+            <Route path="/awspa/:id" component={AWSPAItem} />
+
+            <Route path="*" element={<NoMatch />} />
+          </Routes>
+        </Suspense>
+      </Container>
+    </div>
   );
 }
 
@@ -393,29 +319,29 @@ function NoMatch({ location }) {
   );
 }
 
-function SecureRoute(props) {
-  const { user, path, component } = props;
-  if (!user) {
-    return (
-      <Container>
-        <Loader
-          active
-          size="massive"
-          inline="centered"
-          content="Waiting to log you in..."
-          style={{ margin: '200px 0' }}
-        />
-      </Container>
-    );
-  }
-  const Component = component;
-  const outerProps = props;
-  return (
-    <Route
-      path={path}
-      render={(props) => {
-        return <Component {...outerProps} {...props} user={user} />;
-      }}
-    />
-  );
-}
+// function SecureRoute(props) {
+//   const { user, path, component } = props;
+//   if (!user) {
+//     return (
+//       <Container>
+//         <Loader
+//           active
+//           size="massive"
+//           inline="centered"
+//           content="Waiting to log you in..."
+//           style={{ margin: '200px 0' }}
+//         />
+//       </Container>
+//     );
+//   }
+//   const Component = component;
+//   const outerProps = props;
+//   return (
+//     <Route
+//       path={path}
+//       element={(props) => {
+//         return <Component {...outerProps} {...props}/>;
+//       }}
+//     />
+//   );
+// }

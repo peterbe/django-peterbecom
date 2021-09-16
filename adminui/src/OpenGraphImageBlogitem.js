@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button, Message, Container, Loader } from 'semantic-ui-react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 
 import { DisplayDate, ShowServerError, BlogitemBreadcrumb } from './Common';
 import { BASE_URL } from './Config';
@@ -23,7 +23,7 @@ class OpenGraphImageBlogitem extends React.Component {
     // if (!this.props.accessToken) {
     //   throw new Error('No accessToken');
     // }
-    const oid = this.props.match.params.oid;
+    const oid = this.props.oid;
     try {
       const response = await fetch(`/api/v0/plog/${oid}/open-graph-image`, {
         // headers: {
@@ -50,7 +50,7 @@ class OpenGraphImageBlogitem extends React.Component {
     // if (!this.props.accessToken) {
     //   throw new Error('No accessToken');
     // }
-    const oid = this.props.match.params.oid;
+    const oid = this.props.oid;
     const data = { src };
     const response = await fetch(`/api/v0/plog/${oid}/open-graph-image`, {
       method: 'POST',
@@ -97,7 +97,7 @@ class OpenGraphImageBlogitem extends React.Component {
 
   render() {
     const { loading, serverError, images } = this.state;
-    const oid = this.props.match.params.oid;
+    const oid = this.props.oid;
     if (!serverError && loading) {
       return (
         <Container>
@@ -133,51 +133,52 @@ class OpenGraphImageBlogitem extends React.Component {
   }
 }
 
-export default OpenGraphImageBlogitem;
+// So I can use hooks until the day I rewrite <OpenGraphImageBlogitem/>
+export default function OpenGraphImageBlogitemOuter() {
+  const { oid } = useParams();
+  return <OpenGraphImageBlogitem oid={oid} />;
+}
 
-class Images extends React.PureComponent {
-  render() {
-    const { oid, images } = this.props;
-    return (
-      <div>
-        <h2>{images.length} images found</h2>
-        <h5>
-          <Link to={`/plog/${oid}`}>Back to Edit</Link>
-        </h5>
-        {images.map((image) => {
-          // console.log('IMAGE', image);
-          return (
-            <div
-              key={image.src}
-              style={{
-                borderBottom: '1px solid #666',
-                marginBottom: 50,
-                paddingBottom: 20,
+function Images({ oid, images, onPicked }) {
+  return (
+    <div>
+      <h2>{images.length} images found</h2>
+      <h5>
+        <Link to={`/plog/${oid}`}>Back to Edit</Link>
+      </h5>
+      {images.map((image) => {
+        // console.log('IMAGE', image);
+        return (
+          <div
+            key={image.src}
+            style={{
+              borderBottom: '1px solid #666',
+              marginBottom: 50,
+              paddingBottom: 20,
+            }}
+          >
+            <img src={BASE_URL + image.src} alt={image.title} />
+            <p>
+              <b>{image.label}</b>
+              <br />
+              <i>
+                {image.size[0]}x{image.size[1]}
+              </i>
+              <br />
+              {image.used_in_text && <b>Found in text!</b>}
+            </p>
+            <Button
+              disabled={image.current}
+              onClick={(event) => {
+                event.preventDefault();
+                onPicked(image);
               }}
             >
-              <img src={BASE_URL + image.src} alt={image.title} />
-              <p>
-                <b>{image.label}</b>
-                <br />
-                <i>
-                  {image.size[0]}x{image.size[1]}
-                </i>
-                <br />
-                {image.used_in_text && <b>Found in text!</b>}
-              </p>
-              <Button
-                disabled={image.current}
-                onClick={(event) => {
-                  event.preventDefault();
-                  this.props.onPicked(image);
-                }}
-              >
-                This one!
-              </Button>
-            </div>
-          );
-        })}
-      </div>
-    );
-  }
+              This one!
+            </Button>
+          </div>
+        );
+      })}
+    </div>
+  );
 }
