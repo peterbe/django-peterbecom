@@ -20,6 +20,7 @@ from django.db.models.functions import Trunc
 from django.shortcuts import get_object_or_404
 from django.template import Context
 from django.template.loader import get_template
+from django.middleware.csrf import get_token
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.timesince import timesince as django_timesince
@@ -40,7 +41,12 @@ from peterbecom.base.cdn import (
 )
 from peterbecom.base.fscache import invalidate_by_url, path_to_fs_path
 from peterbecom.base.geo import ip_to_city
-from peterbecom.base.models import CDNPurgeURL, PostProcessing, SearchResult
+from peterbecom.base.models import (
+    CDNPurgeURL,
+    PostProcessing,
+    SearchResult,
+    UserProfile,
+)
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
 from peterbecom.base.utils import fake_ip_address, do_healthcheck
 from peterbecom.base.xcache_analyzer import get_x_cache
@@ -1963,6 +1969,25 @@ def xcache_analyze(request):
         return http.HttpResponseServerError("ConnectionError")
 
     return _response({"xcache": results})
+
+
+@never_cache
+def whoami(request):
+    context = {
+        "is_authenticated": request.user.is_authenticated,
+    }
+    if request.user.is_authenticated:
+        context["user"] = {
+            "username": request.user.username,
+            "email": request.user.email,
+            "is_superuser": request.user.is_superuser,
+            "csrfmiddlewaretoken": get_token(request),
+        }
+        for user_profile in UserProfile.objects.filter(user=request.user):
+            if user_profile.claims.get("picture"):
+                context["user"]["picture_url"] = user_profile.claims["picture"]
+            break
+    return _response(context)
 
 
 @never_cache

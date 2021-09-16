@@ -19,5 +19,6 @@ urlpatterns += [
     path("minimalcss/", include("peterbecom.minimalcss.urls")),
     path("chiveproxy", lambda x: http.HttpResponseRedirect("/chiveproxy/")),
     path("chiveproxy/", include("peterbecom.chiveproxy.urls")),
+    path("oidc/", include("mozilla_django_oidc.urls")),
     path("", include("peterbecom.homepage.urls")),
 ]

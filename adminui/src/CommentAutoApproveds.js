@@ -7,7 +7,7 @@ class CommentAutoApproveds extends React.Component {
   state = {
     loading: false,
     data: null,
-    serverError: null
+    serverError: null,
   };
   componentDidMount() {
     document.title = 'Comment Auto Approved Records';
@@ -19,16 +19,16 @@ class CommentAutoApproveds extends React.Component {
   }
 
   loadData = async () => {
-    if (!this.props.accessToken) {
-      throw new Error('No accessToken');
-    }
+    // if (!this.props.accessToken) {
+    //   throw new Error('No accessToken');
+    // }
     let response;
     let url = '/api/v0/plog/comments/auto-approved-records/';
     try {
       response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${this.props.accessToken}`
-        }
+        // headers: {
+        //   Authorization: `Bearer ${this.props.accessToken}`
+        // }
       });
     } catch (ex) {
       return this.setState({ loading: false, serverError: ex });
@@ -42,7 +42,7 @@ class CommentAutoApproveds extends React.Component {
       this.setState({
         loading: false,
         data,
-        serverError: null
+        serverError: null,
       });
     } else {
       this.setState({ loading: false, serverError: response });
@@ -85,7 +85,7 @@ function ShowAutoApproveGoodComments({ records }) {
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {records.records.map(record => {
+          {records.records.map((record) => {
             return (
               <Table.Row key={record.date}>
                 <Table.Cell>{record.date}</Table.Cell>

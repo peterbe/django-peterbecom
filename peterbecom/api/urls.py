@@ -76,6 +76,7 @@ urlpatterns = [
     ),
     path("xcache/analyze", views.xcache_analyze, name="xcache_analyze"),
     path("whereami", views.whereami, name="whereami"),
+    path("whoami", views.whoami, name="whoami"),
     path("__healthcheck__", views.healthcheck, name="healthcheck"),
     path("", views.catch_all, name="catch_all"),
 ]
