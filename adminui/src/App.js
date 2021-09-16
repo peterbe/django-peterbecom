@@ -96,16 +96,30 @@ export default function App() {
       setLatestPostProcessing(msg.post_processed);
     } else {
       let description = JSON.stringify(msg);
+      let title = 'Pulse message';
       if (typeof msg === 'object') {
-        // Perhaps we can do better!
         if (msg.searched) {
+          title = 'Search made';
           description = `Someone searched for '${msg.searched.q}' and found ${msg.searched.documents_found} documents.`;
+        } else if (msg.commented) {
+          title = 'Posted a comment';
+          const sp = new URLSearchParams({
+            search: `/plog/${msg.commented.blogitem.oid}`,
+          });
+          description = (
+            <span>
+              On{' '}
+              <Link to={`/plog/comments?${sp.toString()}`}>
+                {msg.commented.blogitem.title}
+              </Link>
+            </span>
+          );
         }
       }
       if (!document.hidden) {
         toast({
           type: 'info',
-          title: 'Pulse message',
+          title,
           description,
           time: 7000,
           // size: null // https://github.com/academia-de-codigo/react-semantic-toasts/issues/40
