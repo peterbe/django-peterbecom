@@ -167,10 +167,6 @@ class Comments extends React.Component {
   };
 
   _deleteOrApproveComments = async (type, data) => {
-    // const { accessToken } = this.props;
-    // if (!accessToken) {
-    //   throw new Error('No accessToken');
-    // }
     if (!(type === 'delete' || type === 'approve')) {
       throw new Error(`Invalid endpoint ${type}`);
     }
@@ -181,7 +177,6 @@ class Comments extends React.Component {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          // Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify(data),
       });
@@ -545,12 +540,27 @@ class CommentsTree extends React.PureComponent {
   }
 }
 
-class CommentTree extends React.PureComponent {
-  static defaultProps = {
-    root: false,
-    showBlogitem: false,
-  };
-  hotness = (seconds) => {
+function CommentTree({
+  comment,
+  root,
+  showBlogitem,
+  addToSearch,
+
+  checkedForApproval,
+  checkedForDelete,
+  setCheckedForApproval,
+  setCheckedForDelete,
+  setEditing,
+  editing,
+  editComment,
+  approveComment,
+  deleteComment,
+  deleted,
+  approved,
+  deleting,
+  approving,
+}) {
+  function hotness(seconds) {
     if (seconds < 60) {
       return '🔥🔥🔥';
     } else if (seconds < 60 * 60) {
@@ -559,11 +569,12 @@ class CommentTree extends React.PureComponent {
       return '🔥';
     }
     return '';
-  };
+  }
 
-  gravatarSrc = (comment) => {
+  function gravatarSrc(comment) {
+    const seed = comment.email ? md5(comment.email) : comment.oid;
     let default_ = new URL(
-      `/avatar.${comment.oid}.png`,
+      `/avatar.${seed}.png`,
       'https://www.peterbe.com'
     ).toString();
     if (comment.email) {
@@ -572,9 +583,9 @@ class CommentTree extends React.PureComponent {
       )}?d=${encodeURIComponent(default_)}&s=35`;
     }
     return default_;
-  };
+  }
 
-  bumpedIndicator = (comment) => {
+  function bumpedIndicator(comment) {
     if (!comment._bumped) return null;
     const diff = formatDistance(
       parseISO(comment.add_date),
@@ -582,233 +593,211 @@ class CommentTree extends React.PureComponent {
     );
     const title = `Last modified ${comment.modify_date} (difference ${diff})`;
     return <Icon name="exclamation" color="purple" title={title} />;
-  };
+  }
 
-  render() {
-    const {
-      comment,
-      root,
-      showBlogitem,
-      addToSearch,
-      checkedForApproval,
-      checkedForDelete,
-      setCheckedForApproval,
-      setCheckedForDelete,
-      setEditing,
-      editing,
-      editComment,
-      approveComment,
-      deleteComment,
-      deleted,
-      approved,
-      deleting,
-      approving,
-    } = this.props;
+  const showAvatars = !window.matchMedia('(max-width: 600px)').matches;
 
-    const showAvatars = !window.matchMedia('(max-width: 600px)').matches;
+  if (
+    comment.location &&
+    comment.location.country_code &&
+    comment.location.country_code.toLowerCase() === 'im'
+  ) {
+    // Isle of Man is not recognized, so fake it
+    comment.location.country_code = 'uk';
+  }
 
-    if (
-      comment.location &&
-      comment.location.country_code &&
-      comment.location.country_code.toLowerCase() === 'im'
-    ) {
-      // Isle of Man is not recognized, so fake it
-      comment.location.country_code = 'uk';
-    }
+  return (
+    <Comment>
+      {root && showBlogitem && (
+        <Header as="h4" dividing>
+          <a
+            href={BASE_URL + comment.blogitem._absolute_url}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {comment.blogitem.title}
+          </a>{' '}
+          <Icon
+            color="grey"
+            style={{ display: 'inline', cursor: 'pointer' }}
+            size="mini"
+            name="search"
+            onClick={(event) => {
+              event.preventDefault();
+              addToSearch(`blogitem:${comment.blogitem.oid}`);
+            }}
+          />
+        </Header>
+      )}
 
-    return (
-      <Comment>
-        {root && showBlogitem && (
-          <Header as="h4" dividing>
+      {showAvatars && <Comment.Avatar src={gravatarSrc(comment)} />}
+      <Comment.Content>
+        <Comment.Author as="a">
+          {comment.name || <i>No name</i>}{' '}
+          {comment.email ? `<${comment.email}>` : <i>No email</i>}{' '}
+          <ShowOtherCommentCount count={comment.user_other_comments_count} />{' '}
+          {comment.location && comment.location.country_code && (
+            <small>
+              <Flag
+                name={comment.location.country_code.toLowerCase()}
+                title={JSON.stringify(comment.location, null, 2)}
+              />{' '}
+              {comment.location.city || <i>no city</i>},{' '}
+              {comment.location.country_name || <i>no country</i>}
+            </small>
+          )}
+        </Comment.Author>
+        <Comment.Metadata>
+          <div>
+            {hotness(comment.age_seconds)}
             <a
-              href={BASE_URL + comment.blogitem._absolute_url}
+              href={BASE_URL + comment._absolute_url}
               target="_blank"
               rel="noopener noreferrer"
             >
-              {comment.blogitem.title}
+              <DisplayDate date={comment.add_date} />
             </a>{' '}
-            <Icon
-              color="grey"
-              style={{ display: 'inline', cursor: 'pointer' }}
-              size="mini"
-              name="search"
+            <small>
+              <b>Page: {comment.page ? comment.page : 'Overflowing'}</b>
+            </small>{' '}
+            {bumpedIndicator(comment)}{' '}
+            <small style={{ marginLeft: 10 }}>
+              {comment.comment.length.toLocaleString()} characters
+            </small>{' '}
+            {comment.auto_approved && <b>Auto approved!</b>}
+          </div>
+        </Comment.Metadata>
+        <Comment.Text>
+          {editing[comment.oid] ? (
+            <EditComment comment={comment} editComment={editComment} />
+          ) : (
+            <p dangerouslySetInnerHTML={{ __html: comment.rendered }} />
+          )}
+
+          {!comment.approved && !editing[comment.oid] && (
+            <p>
+              Clues: <code>{JSON.stringify(comment._clues)}</code>
+              {!!Object.keys(comment._clues.good).length &&
+                !Object.keys(comment._clues.bad).length && (
+                  <span
+                    title="So good it would automatically approve!"
+                    role="img"
+                    aria-label="Party!"
+                  >
+                    🎉⭐️🚢
+                  </span>
+                )}
+            </p>
+          )}
+        </Comment.Text>
+        <Comment.Actions style={{ fontSize: '1em' }}>
+          <Comment.Action>
+            {comment.replies.length}{' '}
+            {comment.replies.length === 1 ? 'reply' : 'replies'}
+          </Comment.Action>
+          <Comment.Action>
+            <Button
+              type="checkbox"
               onClick={(event) => {
-                event.preventDefault();
-                addToSearch(`blogitem:${comment.blogitem.oid}`);
+                setEditing(comment.oid);
               }}
+              size="mini"
+            >
+              {editing[comment.oid] ? 'Cancel' : 'Edit'}
+            </Button>
+          </Comment.Action>
+          {!comment.approved && deleted[comment.oid] && (
+            <b style={{ color: '#db2828' }}>Deleted!</b>
+          )}
+          {!comment.approved && approved[comment.oid] && (
+            <b style={{ color: '#21ba45' }}>Approved!</b>
+          )}
+          {!comment.approved &&
+            !(deleted[comment.oid] || approved[comment.oid]) && (
+              <Comment.Action>
+                <Checkbox
+                  value={comment.oid}
+                  checked={!!checkedForApproval[comment.oid]}
+                  onChange={(_, data) => {
+                    setCheckedForApproval(comment.oid, data.checked);
+                    if (data.checked) {
+                      setCheckedForDelete(comment.oid, false);
+                    }
+                  }}
+                  style={{ paddingRight: 30, paddingLeft: 10 }}
+                />
+                <Button
+                  disabled={
+                    deleted[comment.oid] ||
+                    approved[comment.oid] ||
+                    deleting[comment.oid]
+                  }
+                  positive
+                  loading={!!approving[comment.oid]}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    approveComment(comment.oid);
+                  }}
+                >
+                  Approve
+                </Button>
+                <Button
+                  disabled={
+                    deleted[comment.oid] ||
+                    approved[comment.oid] ||
+                    approving[comment.oid]
+                  }
+                  negative
+                  loading={!!deleting[comment.oid]}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    deleteComment(comment.oid);
+                  }}
+                >
+                  Delete
+                </Button>
+                <Checkbox
+                  value={comment.oid}
+                  checked={!!checkedForDelete[comment.oid]}
+                  onChange={(_, data) => {
+                    setCheckedForDelete(comment.oid, data.checked);
+                    if (data.checked) {
+                      setCheckedForApproval(comment.oid, false);
+                    }
+                  }}
+                  style={{ paddingRight: 30, paddingLeft: 10 }}
+                />
+              </Comment.Action>
+            )}
+        </Comment.Actions>
+      </Comment.Content>
+
+      {comment.replies.length ? (
+        <Comment.Group>
+          {comment.replies.map((reply) => (
+            <CommentTree
+              comment={reply}
+              key={reply.id}
+              addToSearch={addToSearch}
+              checkedForApproval={checkedForApproval}
+              checkedForDelete={checkedForDelete}
+              setCheckedForApproval={setCheckedForApproval}
+              setCheckedForDelete={setCheckedForDelete}
+              setEditing={setEditing}
+              approveComment={approveComment}
+              deleteComment={deleteComment}
+              editComment={editComment}
+              editing={editing}
+              approving={approving}
+              deleting={deleting}
+              approved={approved}
+              deleted={deleted}
             />
-          </Header>
-        )}
-
-        {showAvatars && <Comment.Avatar src={this.gravatarSrc(comment)} />}
-        <Comment.Content>
-          <Comment.Author as="a">
-            {comment.name || <i>No name</i>}{' '}
-            {comment.email ? `<${comment.email}>` : <i>No email</i>}{' '}
-            <ShowOtherCommentCount count={comment.user_other_comments_count} />{' '}
-            {comment.location && comment.location.country_code && (
-              <small>
-                <Flag
-                  name={comment.location.country_code.toLowerCase()}
-                  title={JSON.stringify(comment.location, null, 2)}
-                />{' '}
-                {comment.location.city || <i>no city</i>},{' '}
-                {comment.location.country_name || <i>no country</i>}
-              </small>
-            )}
-          </Comment.Author>
-          <Comment.Metadata>
-            <div>
-              {this.hotness(comment.age_seconds)}
-              <a
-                href={BASE_URL + comment._absolute_url}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <DisplayDate date={comment.add_date} />
-              </a>{' '}
-              <small>
-                <b>Page: {comment.page ? comment.page : 'Overflowing'}</b>
-              </small>{' '}
-              {this.bumpedIndicator(comment)}{' '}
-              <small style={{ marginLeft: 10 }}>
-                {comment.comment.length.toLocaleString()} characters
-              </small>{' '}
-              {comment.auto_approved && <b>Auto approved!</b>}
-            </div>
-          </Comment.Metadata>
-          <Comment.Text>
-            {editing[comment.oid] ? (
-              <EditComment comment={comment} editComment={editComment} />
-            ) : (
-              <p dangerouslySetInnerHTML={{ __html: comment.rendered }} />
-            )}
-
-            {!comment.approved && !editing[comment.oid] && (
-              <p>
-                Clues: <code>{JSON.stringify(comment._clues)}</code>
-                {!!Object.keys(comment._clues.good).length &&
-                  !Object.keys(comment._clues.bad).length && (
-                    <span
-                      title="So good it would automatically approve!"
-                      role="img"
-                      aria-label="Party!"
-                    >
-                      🎉⭐️🚢
-                    </span>
-                  )}
-              </p>
-            )}
-          </Comment.Text>
-          <Comment.Actions style={{ fontSize: '1em' }}>
-            <Comment.Action>
-              {comment.replies.length}{' '}
-              {comment.replies.length === 1 ? 'reply' : 'replies'}
-            </Comment.Action>
-            <Comment.Action>
-              <Button
-                type="checkbox"
-                onClick={(event) => {
-                  setEditing(comment.oid);
-                }}
-                size="mini"
-              >
-                {editing[comment.oid] ? 'Cancel' : 'Edit'}
-              </Button>
-            </Comment.Action>
-            {!comment.approved && deleted[comment.oid] && (
-              <b style={{ color: '#db2828' }}>Deleted!</b>
-            )}
-            {!comment.approved && approved[comment.oid] && (
-              <b style={{ color: '#21ba45' }}>Approved!</b>
-            )}
-            {!comment.approved &&
-              !(deleted[comment.oid] || approved[comment.oid]) && (
-                <Comment.Action>
-                  <Checkbox
-                    value={comment.oid}
-                    checked={!!checkedForApproval[comment.oid]}
-                    onChange={(_, data) => {
-                      setCheckedForApproval(comment.oid, data.checked);
-                      if (data.checked) {
-                        setCheckedForDelete(comment.oid, false);
-                      }
-                    }}
-                    style={{ paddingRight: 30, paddingLeft: 10 }}
-                  />
-                  <Button
-                    disabled={
-                      deleted[comment.oid] ||
-                      approved[comment.oid] ||
-                      deleting[comment.oid]
-                    }
-                    positive
-                    loading={!!approving[comment.oid]}
-                    onClick={(event) => {
-                      event.preventDefault();
-                      approveComment(comment.oid);
-                    }}
-                  >
-                    Approve
-                  </Button>
-                  <Button
-                    disabled={
-                      deleted[comment.oid] ||
-                      approved[comment.oid] ||
-                      approving[comment.oid]
-                    }
-                    negative
-                    loading={!!deleting[comment.oid]}
-                    onClick={(event) => {
-                      event.preventDefault();
-                      deleteComment(comment.oid);
-                    }}
-                  >
-                    Delete
-                  </Button>
-                  <Checkbox
-                    value={comment.oid}
-                    checked={!!checkedForDelete[comment.oid]}
-                    onChange={(_, data) => {
-                      setCheckedForDelete(comment.oid, data.checked);
-                      if (data.checked) {
-                        setCheckedForApproval(comment.oid, false);
-                      }
-                    }}
-                    style={{ paddingRight: 30, paddingLeft: 10 }}
-                  />
-                </Comment.Action>
-              )}
-          </Comment.Actions>
-        </Comment.Content>
-
-        {comment.replies.length ? (
-          <Comment.Group>
-            {comment.replies.map((reply) => (
-              <CommentTree
-                comment={reply}
-                key={reply.id}
-                addToSearch={addToSearch}
-                checkedForApproval={checkedForApproval}
-                checkedForDelete={checkedForDelete}
-                setCheckedForApproval={setCheckedForApproval}
-                setCheckedForDelete={setCheckedForDelete}
-                setEditing={setEditing}
-                approveComment={approveComment}
-                deleteComment={deleteComment}
-                editComment={editComment}
-                editing={editing}
-                approving={approving}
-                deleting={deleting}
-                approved={approved}
-                deleted={deleted}
-              />
-            ))}
-          </Comment.Group>
-        ) : null}
-      </Comment>
-    );
-  }
+          ))}
+        </Comment.Group>
+      ) : null}
+    </Comment>
+  );
 }
 
 function ShowOtherCommentCount({ count }) {
