@@ -1,151 +1,111 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useMemo } from 'react';
+import { Link, createSearchParams, useSearchParams } from 'react-router-dom';
 import {
   Button,
   Container,
   Input,
   Label,
   Loader,
-  Table
+  Table,
 } from 'semantic-ui-react';
-import { debounce } from 'throttle-debounce';
+import useSWR from 'swr';
+
 import { DisplayDate, ShowServerError } from './Common';
 
-function getDefaultSearch() {
-  if (window.location && window.location.search) {
-    const searchParams = new URLSearchParams(
-      window.location.search.slice(1, window.location.search.length)
-    );
-    return searchParams.get('search') || '';
-  }
-  return '';
+export default function Blogitems() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const apiURL = useMemo(() => {
+    const base = '/api/v0/plog/';
+    const sp = new URLSearchParams();
+
+    if (searchParams.get('search')) {
+      sp.set('search', searchParams.get('search'));
+    }
+    if (searchParams.get('orderBy')) {
+      sp.set('order', searchParams.get('orderBy'));
+    }
+    return `${base}?${sp.toString()}`;
+  }, [searchParams]);
+
+  const { data, error: serverError } = useSWR(apiURL, async (url) => {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`${response.status} on ${url}`);
+    }
+    return await response.json();
+  });
+
+  const loading = !data && !serverError;
+  const orderBy = searchParams.get('orderBy');
+  const orderDirection =
+    orderBy && orderBy.charAt(0) === '-' ? 'descending' : 'ascending';
+  const orderLabel = orderBy === 'pub_date' ? 'Published' : 'Modified';
+
+  return (
+    <Container>
+      <ShowServerError error={serverError} />
+      {loading && (
+        <Loader
+          active
+          content="Loading Blogitems..."
+          inline="centered"
+          size="massive"
+          style={{ margin: '200px 0' }}
+        />
+      )}
+      {data && (
+        <BlogitemsTable
+          blogitems={data.blogitems}
+          changeOrderColumn={() => {
+            setSearchParams(
+              createSearchParams({
+                ...Object.fromEntries(searchParams),
+                orderBy:
+                  searchParams.get('orderBy') === 'pub_date'
+                    ? 'modify_date'
+                    : 'pub_date',
+              }).toString()
+            );
+          }}
+          search={searchParams.get('search') || ''}
+          count={data.count}
+          orderDirection={orderDirection}
+          orderLabel={orderLabel}
+          updateFilterSearch={(search) => {
+            const sp = createSearchParams({
+              ...Object.fromEntries(searchParams),
+            });
+            if (search) {
+              sp.set('search', search);
+            } else if (sp.get('search')) {
+              sp.delete('search');
+            }
+            setSearchParams(sp);
+          }}
+        />
+      )}
+    </Container>
+  );
 }
 
-class Blogitems extends React.Component {
-  state = {
-    blogitems: null,
-    count: 0,
-    orderBy: null,
-    page: 1,
-    search: getDefaultSearch(),
-    serverError: null
-  };
-  componentDidMount() {
-    document.title = 'Blogitems';
-    let cached = sessionStorage.getItem(this._getStorageCacheKey());
-    if (cached) {
-      this.setState(JSON.parse(cached));
-      cached = '';
-    }
-    this.fetchBlogitems();
-  }
-
-  _getStorageCacheKey() {
-    let cacheKey = 'blogitems';
-    const { orderBy, page, search } = this.state;
-    cacheKey += `:orderBy${orderBy}`;
-    cacheKey += `:page${page}`;
-    cacheKey += `:search${search}`;
-    return cacheKey;
-  }
-
-  fetchBlogitems = async () => {
-    const { accessToken } = this.props;
-    if (!accessToken) {
-      throw new Error('No accessToken');
-    }
-    const { page, search, orderBy } = this.state;
-    let url = `/api/v0/plog/?page=${page}&search=${encodeURIComponent(search)}`;
-    if (orderBy) {
-      url += `&order=${encodeURIComponent(orderBy)}`;
-    }
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`
-      }
-    });
-    if (response.ok) {
-      const data = await response.json();
-      this.setState({ blogitems: data.blogitems, count: data.count }, () => {
-        sessionStorage.setItem(
-          this._getStorageCacheKey(),
-          JSON.stringify({
-            blogitems: this.state.blogitems,
-            count: this.state.count
-          })
-        );
-      });
-    } else {
-      this.setState({ serverError: response });
-    }
-  };
-
-  changeOrderColumn = () => {
-    this.setState(
-      {
-        orderBy: this.state.orderBy === 'pub_date' ? 'modify_date' : 'pub_date'
-      },
-      () => this.fetchBlogitems()
-    );
-  };
-
-  getOrderLabel = () => {
-    return this.state.orderBy === 'pub_date' ? 'Published' : 'Modified';
-  };
-
-  getOrderDirection = () => {
-    if (this.state.orderBy) {
-      return this.state.orderBy.charAt(0) === '-' ? 'descending' : 'ascending';
-    }
-    return 'ascending';
-  };
-
-  render() {
-    return (
-      <Container>
-        <ShowServerError error={this.state.serverError} />
-        {this.state.blogitems === null && this.state.serverError === null ? (
-          <Loader
-            active
-            content="Loading Blogitems..."
-            inline="centered"
-            size="massive"
-            style={{ margin: '200px 0' }}
-          />
-        ) : null}
-        {this.state.blogitems && (
-          <BlogitemsTable
-            blogitems={this.state.blogitems}
-            changeOrderColumn={this.changeOrderColumn}
-            count={this.state.count}
-            orderDirection={this.getOrderDirection()}
-            orderLabel={this.getOrderLabel()}
-            search={this.state.search}
-            updateFilterSearch={search => {
-              this.setState({ search }, () => {
-                this.props.history.push({
-                  search: `?search=${encodeURI(this.state.search)}`
-                });
-                this.fetchBlogitems();
-              });
-            }}
-          />
-        )}
-      </Container>
-    );
-  }
-}
-
-export default Blogitems;
-
-class BlogitemsTable extends React.PureComponent {
-  state = {
-    search: this.props.search
-  };
-
-  render() {
-    const { blogitems, count } = this.props;
-    return (
+function BlogitemsTable({
+  blogitems,
+  count,
+  orderDirection,
+  changeOrderColumn,
+  orderLabel,
+  updateFilterSearch,
+  search,
+}) {
+  const [ownSearch, setOwnSearch] = useState(search);
+  return (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        updateFilterSearch(ownSearch);
+      }}
+    >
       <Table celled>
         <Table.Header>
           <Table.Row>
@@ -153,12 +113,12 @@ class BlogitemsTable extends React.PureComponent {
               Title ({count.toLocaleString()})
             </Table.HeaderCell>
             <Table.HeaderCell
-              onClick={event => {
-                this.props.changeOrderColumn();
+              onClick={() => {
+                changeOrderColumn();
               }}
-              sorted={this.props.orderDirection}
+              sorted={orderDirection}
             >
-              {this.props.orderLabel}
+              {orderLabel}
             </Table.HeaderCell>
           </Table.Row>
           <Table.Row>
@@ -166,25 +126,20 @@ class BlogitemsTable extends React.PureComponent {
               <Input
                 icon="search"
                 list="search-autofills"
-                onChange={event => {
-                  this.setState(
-                    { search: event.target.value },
-                    debounce(500, () => {
-                      this.props.updateFilterSearch(this.state.search);
-                    })
-                  );
+                onChange={(event) => {
+                  setOwnSearch(event.target.value);
                 }}
                 placeholder="Search..."
                 style={{ width: '90%' }}
-                value={this.state.search}
+                value={ownSearch}
               />
-              {this.state.search ? (
+              {search ? (
                 <Button
+                  type="button"
                   icon="remove"
-                  onClick={event => {
-                    this.setState({ search: '' }, () => {
-                      this.props.updateFilterSearch('');
-                    });
+                  onClick={() => {
+                    setOwnSearch('');
+                    updateFilterSearch('');
                   }}
                 />
               ) : null}
@@ -193,16 +148,17 @@ class BlogitemsTable extends React.PureComponent {
         </Table.Header>
 
         <Table.Body>
-          {blogitems.map(item => {
+          {blogitems.map((item) => {
             return (
               <Table.Row key={item.oid}>
                 <Table.Cell>
                   <Link to={`/plog/${item.oid}`}>{item.title}</Link>
-                  {item.categories.map(category => (
+                  {item.categories.map((category) => (
                     <Label
                       key={category.id}
-                      onClick={event => {
-                        this.updateFilterCategories(category.name);
+                      onClick={() => {
+                        console.warn('Not implemented');
+                        // this.updateFilterCategories(category.name);
                       }}
                       size="tiny"
                       style={{ cursor: 'pointer' }}
@@ -235,6 +191,6 @@ class BlogitemsTable extends React.PureComponent {
           })}
         </Table.Body>
       </Table>
-    );
-  }
+    </form>
+  );
 }

@@ -433,7 +433,17 @@ def update_comment_rendered(sender, instance, **kwargs):
 def send_search_result_pulse_message(sender, instance, **kwargs):
     if kwargs.get("created"):
         send_pulse_message(
-            {"commented": {"oid": instance.oid, "blogitem": instance.blogitem.oid}}
+            {
+                "commented": {
+                    "oid": instance.oid,
+                    "blogitem": {
+                        "oid": instance.blogitem.oid,
+                        "title": instance.blogitem.title,
+                    },
+                    "name": instance.name,
+                    "email": instance.email,
+                }
+            }
         )
 
 

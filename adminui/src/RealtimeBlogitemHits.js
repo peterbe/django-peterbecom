@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import useSWR from 'swr';
 import {
   Checkbox,
   Container,
@@ -7,20 +8,16 @@ import {
   Input,
   Label,
   Loader,
-  Table
+  Table,
 } from 'semantic-ui-react';
 
-import {
-  DisplayDate,
-  equalArrays,
-  filterToQueryString,
-  ShowServerError
-} from './Common';
+import { DisplayDate, ShowServerError, usePrevious } from './Common';
 
+const LOCALSTORAGE_KEY = 'realtimehits-loopseconds';
 function defaultLoopSeconds(default_ = 10) {
   try {
     return parseInt(
-      window.localStorage.getItem('realtimehits-loopseconds') || default_,
+      window.localStorage.getItem(LOCALSTORAGE_KEY) || default_,
       10
     );
   } catch (ex) {
@@ -28,259 +25,217 @@ function defaultLoopSeconds(default_ = 10) {
   }
 }
 
-class RealtimeBlogitemHits extends React.Component {
-  state = {
-    filters: null,
-    grouped: null,
-    hits: [],
-    lastAddDate: null,
-    loading: true,
-    loopSeconds: defaultLoopSeconds(),
-    ongoing: null,
-    serverError: null
-  };
+export default function RealtimeBlogitemHits() {
+  const [loopSeconds, setLoopSeconds] = useState(defaultLoopSeconds());
+  const [hits, setHits] = useState([]);
+  const [filters, setFilters] = useState(null);
+  const previousFilters = usePrevious(filters);
+  const [lastAddDate, setLastAddDate] = useState(null);
+  useEffect(() => {
+    if (
+      (filters && !previousFilters) ||
+      JSON.stringify(filters) !== JSON.stringify(previousFilters)
+    ) {
+      setHits([]);
+      setLastAddDate(null);
+    }
+  }, [filters, previousFilters]);
 
-  componentDidMount() {
-    document.title = 'Blogitem Realtime Hits';
-    this.startLoop();
-  }
+  const apiURL = useMemo(() => {
+    let url = '/api/v0/plog/realtimehits/';
+    const sp = new URLSearchParams(filters ? filters : {});
+    if (lastAddDate) {
+      sp.set('since', lastAddDate);
+    }
+    return `${url}?${sp.toString()}`;
+  }, [lastAddDate, filters]);
 
-  componentWillUnmount() {
-    this.dismounted = true;
-    if (this._loop) window.clearTimeout(this._loop);
-  }
-
-  startLoop = () => {
-    this.fetchHits();
-    if (this._loop) {
-      window.clearTimeout(this._loop);
-    }
-    if (this.state.loopSeconds) {
-      this._loop = window.setTimeout(() => {
-        this.startLoop();
-      }, 1000 * this.state.loopSeconds);
-    }
-  };
-
-  fetchHits = async () => {
-    if (!this.props.accessToken) {
-      throw new Error('No accessToken');
-    }
-    let response;
-    let url = '/api/v0/plog/realtimehits/?';
-    if (this.state.lastAddDate) {
-      url += `since=${encodeURIComponent(this.state.lastAddDate)}`;
-    }
-    if (this.state.filters) {
-      url += `&${filterToQueryString(this.state.filters)}`;
-    }
-    try {
-      response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${this.props.accessToken}`
-        }
-      });
-    } catch (ex) {
-      return this.setState({ serverError: ex });
-    }
-
-    if (this.dismounted) {
-      return;
-    }
-    if (response.ok) {
+  const { data, error: serverError } = useSWR(
+    apiURL,
+    async (url) => {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`${response.status} on ${url}`);
+      }
       const data = await response.json();
-      const hits = this.state.hits.concat(data.hits);
+      return data;
+    },
+    {
+      dedupingInterval: 1000,
+      refreshInterval: loopSeconds * 1000,
+    }
+  );
 
-      this.setState({
-        grouped: this._groupHits(hits),
-        hits,
-        lastAddDate: data.last_add_date || this.state.lastAddDate,
-        loading: false,
-        serverError: null
+  useEffect(() => {
+    if (data && data.last_add_date) {
+      setLastAddDate(data.last_add_date);
+    }
+  }, [data]);
+  useEffect(() => {
+    if (data) {
+      setHits((prevState) => {
+        return [...prevState, ...data.hits];
       });
-    } else {
-      this.setState({ serverError: response });
     }
-  };
+  }, [data]);
 
-  _groupHits = hits => {
-    const byOids = {};
-    hits.forEach(hit => {
-      if (!byOids[hit.blogitem.oid]) {
-        byOids[hit.blogitem.oid] = {
-          blogitem: hit.blogitem,
-          count: 0,
-          date: hit.add_date
-          // http_referers: {}
-        };
-      }
-      byOids[hit.blogitem.oid].count++;
-      if (hit.add_date > byOids[hit.blogitem.oid].date) {
-        byOids[hit.blogitem.oid].date = hit.add_date;
-      }
-      // if ()
-    });
-    return Object.values(byOids)
-      .sort((a, b) => {
-        if (a.count === b.count) {
-          return a.date < b.date ? 1 : -1;
-        }
-        return b.count - a.count;
-      })
-      .slice(0, 30);
-  };
+  useEffect(() => {
+    if (loopSeconds >= 0) {
+      window.localStorage.setItem(LOCALSTORAGE_KEY, loopSeconds);
+    }
+  }, [loopSeconds]);
 
-  updateFilters = filters => {
-    this.setState(
-      { filters, grouped: null, hits: [], lastAddDate: null },
-      this.startLoop
-    );
-  };
+  const loading = !hits.length && !data && !serverError;
+  const grouped = groupHits(hits);
 
-  render() {
-    const { filters, grouped, loading, serverError } = this.state;
-
-    return (
-      <Container textAlign="center">
-        <Header as="h1">Blogitem Realtime Hits</Header>
-        <ShowServerError error={this.state.serverError} />
-        {!serverError && loading && (
-          <Container>
-            <Loader
-              active
-              content="Loading..."
-              inline="centered"
-              size="massive"
-              style={{ margin: '200px 0' }}
-            />
-          </Container>
-        )}
-
-        {grouped && (
-          <Hits
-            filters={filters}
-            grouped={grouped}
-            loading={loading}
-            updateFilters={this.updateFilters}
+  return (
+    <Container textAlign="center">
+      <Header as="h1">Blogitem Realtime Hits</Header>
+      <ShowServerError error={serverError} />
+      {!serverError && loading && (
+        <Container>
+          <Loader
+            active
+            content="Loading..."
+            inline="centered"
+            size="massive"
+            style={{ margin: '200px 0' }}
           />
-        )}
-        {grouped && (
-          <div>
-            <Checkbox
-              defaultChecked={!!this.state.loopSeconds}
-              onChange={event => {
-                if (!this.state.loopSeconds) {
-                  this.setState({ loopSeconds: 10 }, () => {
-                    this.startLoop();
-                  });
-                } else {
-                  this.setState({ loopSeconds: null });
-                }
-              }}
-              toggle
-            />
-            {this.state.loopSeconds && (
-              <div>
-                Every{' '}
-                <Input
-                  onChange={event => {
-                    const loopSeconds = parseInt(event.target.value);
-                    if (loopSeconds > 0) {
-                      this.setState({ loopSeconds }, () => {
-                        window.localStorage.setItem(
-                          'postprocess-loopseconds',
-                          this.state.loopSeconds
-                        );
-                      });
-                    }
-                  }}
-                  size="small"
-                  type="number"
-                  value={this.state.loopSeconds}
-                />{' '}
-                seconds.
-              </div>
-            )}
-          </div>
-        )}
-      </Container>
-    );
-  }
-}
+        </Container>
+      )}
 
-export default RealtimeBlogitemHits;
-
-class Hits extends React.PureComponent {
-  state = {
-    differentIds: [],
-    search:
-      this.props.filters && this.props.filters.search
-        ? this.props.filters.search
-        : ''
-  };
-  componentDidUpdate(prevProps, prevState) {
-    if (equalArrays(prevState.differentIds, this.state.differentIds)) {
-      const before = prevProps.grouped.map(r => r.blogitem.id);
-      const now = this.props.grouped.map(r => r.blogitem.id);
-      const differentIds = now.filter(id => !before.includes(id));
-      if (!equalArrays(differentIds, this.state.differentIds)) {
-        this.setState({ differentIds });
-      }
-    }
-  }
-  render() {
-    const { loading, grouped, updateFilters } = this.props;
-    const { differentIds } = this.state;
-    return (
-      <form
-        onSubmit={event => {
-          event.preventDefault();
-          updateFilters({ search: this.state.search });
-        }}
-      >
-        <Input
-          fluid
-          placeholder="Search filter..."
-          value={this.state.search}
+      {Object.keys(grouped).length > 0 && (
+        <Hits
+          filters={filters}
+          grouped={grouped}
           loading={loading}
-          action="Search"
-          onChange={(event, data) => {
-            this.setState({ search: data.value });
+          updateFilters={(newFilters) => {
+            setFilters((prevState) => {
+              return Object.assign({}, prevState ? prevState : {}, newFilters);
+            });
           }}
         />
-        <Table celled className="hits">
-          <Table.Header>
-            <Table.Row>
-              <Table.HeaderCell>Title</Table.HeaderCell>
-              <Table.HeaderCell>Count</Table.HeaderCell>
-            </Table.Row>
-          </Table.Header>
+      )}
+      {Object.keys(grouped).length > 0 && (
+        <div>
+          <Checkbox
+            defaultChecked={!!loopSeconds}
+            onChange={() => {
+              if (!loopSeconds) {
+                setLoopSeconds(10);
+              } else {
+                setLoopSeconds(0);
+              }
+            }}
+            toggle
+          />
+          {loopSeconds > 0 && (
+            <div>
+              Every{' '}
+              <Input
+                onChange={(event) => {
+                  setLoopSeconds(parseInt(event.target.value));
+                }}
+                size="small"
+                type="number"
+                value={loopSeconds}
+              />{' '}
+              seconds.
+            </div>
+          )}
+        </div>
+      )}
+    </Container>
+  );
+}
 
-          <Table.Body>
-            {grouped.map(record => {
-              return (
-                <Table.Row
-                  key={record.blogitem.oid}
-                  warning={differentIds.includes(record.blogitem.id)}
-                >
-                  <Table.Cell>
-                    <Link to={`/plog/${record.blogitem.oid}`}>
-                      {record.blogitem.title}
-                    </Link>{' '}
-                    <Label
-                      color={!record.blogitem._is_published ? 'orange' : null}
-                      size="tiny"
-                    >
-                      Published <DisplayDate date={record.blogitem.pub_date} />
-                    </Label>
-                  </Table.Cell>
-                  <Table.Cell>{record.count.toLocaleString()}</Table.Cell>
-                </Table.Row>
-              );
-            })}
-          </Table.Body>
-        </Table>
-      </form>
-    );
+function groupHits(hits) {
+  const byOids = {};
+  hits.forEach((hit) => {
+    if (!byOids[hit.blogitem.oid]) {
+      byOids[hit.blogitem.oid] = {
+        blogitem: hit.blogitem,
+        count: 0,
+        date: hit.add_date,
+        // http_referers: {}
+      };
+    }
+    byOids[hit.blogitem.oid].count++;
+    if (hit.add_date > byOids[hit.blogitem.oid].date) {
+      byOids[hit.blogitem.oid].date = hit.add_date;
+    }
+  });
+  return Object.values(byOids)
+    .sort((a, b) => {
+      if (a.count === b.count) {
+        return a.date < b.date ? 1 : -1;
+      }
+      return b.count - a.count;
+    })
+    .slice(0, 30);
+}
+
+function Hits({ filters, loading, grouped, updateFilters }) {
+  const [search, setSearch] = useState(
+    filters && filters.search ? filters.search : ''
+  );
+  const previousGrouped = usePrevious(grouped);
+  let differentIds = [];
+  if (previousGrouped) {
+    const before = previousGrouped.map((r) => r.blogitem.id);
+    const now = grouped.map((r) => r.blogitem.id);
+    differentIds = now.filter((id) => !before.includes(id));
   }
+
+  return (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        updateFilters({ search });
+      }}
+    >
+      <Input
+        fluid
+        placeholder="Search filter..."
+        value={search}
+        loading={loading}
+        action="Search"
+        onChange={(event, data) => {
+          setSearch(data.value);
+        }}
+      />
+      <Table celled className="hits">
+        <Table.Header>
+          <Table.Row>
+            <Table.HeaderCell>Title</Table.HeaderCell>
+            <Table.HeaderCell>Count</Table.HeaderCell>
+          </Table.Row>
+        </Table.Header>
+
+        <Table.Body>
+          {grouped.map((record) => {
+            return (
+              <Table.Row
+                key={record.blogitem.oid}
+                warning={differentIds.includes(record.blogitem.id)}
+              >
+                <Table.Cell>
+                  <Link to={`/plog/${record.blogitem.oid}`}>
+                    {record.blogitem.title}
+                  </Link>{' '}
+                  <Label
+                    color={!record.blogitem._is_published ? 'orange' : null}
+                    size="tiny"
+                  >
+                    Published <DisplayDate date={record.blogitem.pub_date} />
+                  </Label>
+                </Table.Cell>
+                <Table.Cell>{record.count.toLocaleString()}</Table.Cell>
+              </Table.Row>
+            );
+          })}
+        </Table.Body>
+      </Table>
+    </form>
+  );
 }

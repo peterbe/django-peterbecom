@@ -66,3 +66,36 @@ def on_commit_immediately():
     with mock.patch("django.db.transaction.on_commit") as mocker:
         mocker.side_effect = run_immediately
         yield mocker
+
+
+@pytest.fixture
+def admin_user(db, django_user_model):
+    return django_user_model.objects.create(
+        username="admin", email="admin@example.com", is_staff=True, is_superuser=True
+    )
+
+
+@pytest.fixture
+def mortal_user(db, django_user_model):
+    return django_user_model.objects.create(
+        username="mortal",
+        email="mortal@example.com",
+        is_staff=False,
+        is_superuser=False,
+    )
+
+
+@pytest.fixture
+def admin_client(client, admin_user):
+    admin_user.set_password("secret")
+    admin_user.save()
+    client.login(username=admin_user.username, password="secret")
+    return client
+
+
+@pytest.fixture
+def mortal_client(client, mortal_user):
+    mortal_user.set_password("secret")
+    mortal_user.save()
+    client.login(username=mortal_user.username, password="secret")
+    return client

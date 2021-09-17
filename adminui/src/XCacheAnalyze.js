@@ -4,7 +4,6 @@ import { Button, Flag, Header, Label, Table } from 'semantic-ui-react';
 import { ShowServerError } from './Common';
 
 function XCacheAnalyze({
-  accessToken,
   url,
   minimalButton = false,
   finished = null,
@@ -23,9 +22,6 @@ function XCacheAnalyze({
       response = await fetch('/api/v0/xcache/analyze', {
         method: 'POST',
         body: formData,
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
       });
       if (!response.ok) {
         throw new Error(`${response.status} on ${response.url}`);
@@ -39,7 +35,7 @@ function XCacheAnalyze({
         finished(error);
       }
     }
-  }, [accessToken, error, finished, url]);
+  }, [error, finished, url]);
 
   useEffect(() => {
     if (start && !(loading || error || results)) {

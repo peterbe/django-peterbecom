@@ -10,9 +10,9 @@ class Dashboard extends React.Component {
     return (
       <Container>
         <Header as="h1">Dashboard</Header>
-        {!this.props.accessToken ? (
+        {!this.props.user ? (
           <Button
-            onClick={event => {
+            onClick={(event) => {
               event.preventDefault();
               // console.log(this.props);
               this.props.authorize();

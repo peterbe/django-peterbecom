@@ -13,7 +13,7 @@ from django.core.management.base import BaseCommand as DjangoBaseCommand
 
 from peterbecom.base.models import CommandRun
 
-ROLLBAR_ENABLED = settings.ROLLBAR.get("enabled", True)
+ROLLBAR_ENABLED = settings.ROLLBAR and settings.ROLLBAR.get("enabled", True)
 if ROLLBAR_ENABLED:
     rollbar.init(settings.ROLLBAR["access_token"], settings.ROLLBAR["environment"])
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { parseISO, isBefore, formatDistance } from 'date-fns/esm';
 import { Breadcrumb, Message } from 'semantic-ui-react';
@@ -163,4 +163,12 @@ export function useLocalStorage(key, initialValue) {
     }
   };
   return [storedValue, setValue];
+}
+
+export function usePrevious(value) {
+  const ref = useRef();
+  useEffect(() => {
+    ref.current = value;
+  });
+  return ref.current;
 }

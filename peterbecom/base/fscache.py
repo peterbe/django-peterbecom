@@ -29,8 +29,8 @@ def create_parents(fs_path: Path):
     fs_path.parent.mkdir(parents=True, exist_ok=True)
 
 
-def too_old(fs_path: Path, seconds):
-    age = time.time() - fs_path.stat().st_mtime
+def too_old(file: Path, seconds: int):
+    age = time.time() - file.stat().st_mtime
     return age > seconds
 
 
@@ -126,7 +126,7 @@ def delete_empty_directory(filepath):
 
 
 def revisit_url(path: Path, verbose=False):
-    pathname = str(path.relative_to(settings.FSCACHE_ROOT))
+    pathname = str(path.parent.relative_to(settings.FSCACHE_ROOT))
     site = Site.objects.get_current()
     secure = getattr(settings, "FSCACHE_SECURE_SITE", True)
     base_url = secure and "https://" or "http://"
@@ -134,62 +134,53 @@ def revisit_url(path: Path, verbose=False):
     url = urljoin(base_url, pathname)
     response = requests.get(url)
     if verbose:
-        print("REVISITED", url, response.status_code)
+        print("REVISITED", url, response.status_code, response.headers.get("x-cache"))
 
 
 def invalidate_too_old(verbose=False, dry_run=False, revisit=False):
     found = []
     deleted = []
 
-    def visit(root):
-        count_files_or_folders = 0
-        for file in root.iterdir():
-            count_files_or_folders += 1
+    root = settings.FSCACHE_ROOT
+    count_files_or_folders = 0
+    for file in root.rglob("index.html"):
+        count_files_or_folders += 1
 
-            if file.is_dir():
-                visit(file)
-                continue
+        if "index.html" in file.name and file.exists() and not file.stat().st_size:
+            # raise EmptyFSCacheFile(file)
+            print(f"Warning! {file} is empty!")
+            continue
 
-            if file.name.endswith(".metadata"):
-                continue
+        if Path(str(file) + ".metadata").exists():
+            found.append(file.stat().st_size)
+            seconds = None
 
-            if "index.html" in file.name and file.exists() and not file.stat().st_size:
-                # raise EmptyFSCacheFile(file)
-                print(f"Warning! {file} is empty!")
-                continue
+            # If it ends with .metadata it has to be the index.html
+            assert file.name == "index.html", file
 
-            if Path(str(file) + ".metadata").exists():
-                found.append(file.stat().st_size)
-                seconds = None
+            cc_file = Path(str(file) + ".cache_control")
+            if cc_file.exists():
+                with open(cc_file) as seconds_f:
+                    seconds = int(seconds_f.read())
 
-                # If it ends with .metadata it has to be the index.html
-                assert file.name == "index.html", file
-
-                cc_file = Path(str(file) + ".cache_control")
-                if cc_file.exists():
-                    with open(cc_file) as seconds_f:
-                        seconds = int(seconds_f.read())
-
-                if seconds is None or too_old(file, seconds):
+            if seconds is None or too_old(file, seconds):
+                if verbose:
+                    print("INVALIDATE", file)
+                if not dry_run:
+                    found.append(file.stat().st_size)
+                    these_deleted = _invalidate(file)
+                    deleted.extend(these_deleted)
                     if verbose:
-                        print("INVALIDATE", file)
-                    if not dry_run:
-                        found.append(file.stat().st_size)
-                        these_deleted = _invalidate(file)
-                        deleted.extend(these_deleted)
-                        if verbose:
-                            print("\tDELETED", these_deleted)
-                        delete_empty_directory(file)
-                        if revisit:
-                            revisit_url(file, verbose=verbose)
+                        print("\tDELETED", these_deleted)
+                    delete_empty_directory(file)
+                    if revisit:
+                        revisit_url(file, verbose=verbose)
 
-        if not count_files_or_folders:
-            if verbose:
-                print("NO FILES IN", root)
-            if not dry_run:
-                root.rmdir()
-
-    visit(settings.FSCACHE_ROOT)
+    if not count_files_or_folders:
+        if verbose:
+            print("NO FILES IN", root)
+        if not dry_run:
+            root.rmdir()
 
     if verbose:
         print(f"Found {len(found):,} possible files")
