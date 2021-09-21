@@ -202,11 +202,6 @@ def invalidate_too_old(
                         if revisit:
                             revisit_url(file, verbose=verbose)
 
-                    # print("FILE:", file, file.stat().st_mtime)
-                    # for x, y in age_differences:
-                    #     print("\t", x, y)
-                    # print()
-
     t1 = time.time()
     if not count_files_or_folders:
         if verbose:
@@ -222,6 +217,8 @@ def invalidate_too_old(
 
 
 def delete_empty_directories(verbose=False, dry_run=False):
+    deleted = []
+
     def walk(root: Path):
         count_things = 0
         for thing in root.iterdir():
@@ -234,8 +231,12 @@ def delete_empty_directories(verbose=False, dry_run=False):
                 print(f"{root} is an empty directory")
             if not dry_run:
                 root.rmdir()
+            deleted.append(root)
 
     walk(settings.FSCACHE_ROOT)
+
+    if verbose:
+        print(f"Deleted {len(deleted)} empty directories")
 
 
 def cache_request(request, response):

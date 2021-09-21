@@ -420,7 +420,7 @@ def delete_old_commandsruns():
     CommandRun.objects.filter(created__lt=old).delete()
 
 
-@periodic_task(crontab(minute="*/15"))
+@periodic_task(crontab(minute="*/5"))
 def fscache_invalidate_too_old():
     invalidate_too_old(
         # verbose=settings.DEBUG,
