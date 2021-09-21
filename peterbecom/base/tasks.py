@@ -21,6 +21,7 @@ from requests.exceptions import ReadTimeout
 from peterbecom.base import songsearch_autocomplete
 from peterbecom.base.cdn import purge_cdn_urls
 from peterbecom.base.decorators import lock_decorator
+from peterbecom.base.fscache import invalidate_too_old, delete_empty_directories
 from peterbecom.base.models import CDNPurgeURL, PostProcessing, CommandRun
 from peterbecom.base.utils import do_healthcheck
 from peterbecom.base.xcache_analyzer import get_x_cache
@@ -193,9 +194,8 @@ def run_purge_cdn_urls():
         if queue:
             queue_count = CDNPurgeURL.count()
             print(
-                "{} (of {}) queued CDN URLs for purging: {} ({})".format(
-                    len(queue), queue_count, queue, timezone.now()
-                )
+                f"{len(queue)} (of {queue_count}) queued CDN URLs for purging: "
+                f"{queue} ({timezone.now()})"
             )
             try:
                 results = purge_cdn_urls(queue)
@@ -208,7 +208,7 @@ def run_purge_cdn_urls():
                 for url in results["all_urls"]:
                     post_process_after_cdn_purge(url)
         else:
-            print("No queued CDN URLs for purgning ({})".format(timezone.now()))
+            print(f"No queued CDN URLs for purgning ({timezone.now()})")
 
         time.sleep(10)
 
@@ -418,3 +418,22 @@ def health_check_to_disk():
 def delete_old_commandsruns():
     old = timezone.now() - datetime.timedelta(days=90)
     CommandRun.objects.filter(created__lt=old).delete()
+
+
+@periodic_task(crontab(minute="*/15"))
+def fscache_invalidate_too_old():
+    invalidate_too_old(
+        # verbose=settings.DEBUG,
+        verbose=True,
+        dry_run=False,
+        revisit=not settings.DEBUG,
+        check_other_files_age=True,
+    )
+
+
+@periodic_task(crontab(minute="*/30"))
+def fscache_delete_empty_directories():
+    delete_empty_directories(
+        verbose=settings.DEBUG,
+        dry_run=False,
+    )
