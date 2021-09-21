@@ -285,16 +285,16 @@ flake8==3.9.2 \
 ftfy==6.0.3 \
     --hash=sha256:ba71121a9c8d7790d3e833c6c1021143f3e5c4118293ec3afb5d43ed9ca8e72b
     # via -r requirements.in
-geoip2==4.2.0 \
-    --hash=sha256:906a1dbf15a179a1af3522970e8420ab15bb3e0afc526942cc179e12146d9c1d \
-    --hash=sha256:b97b44031fdc463e84eb1316b4f19edd978cb1d78703465fcb1e36dc5a822ba6
+geoip2==4.3.0 \
+    --hash=sha256:599914784cea08b50fb50c22ed6a59143b5ff2d027ba782d2d5b6f3668293821 \
+    --hash=sha256:7ad10942e9fd6c54bc850d8311618f04dacd3fff5b55ba48b7ad83502fc884bd
     # via -r requirements.in
 honcho==1.0.1 \
     --hash=sha256:af5806bf13e3b20acdcb9ff8c0beb91eee6fe07393c3448dfad89667e6ac7576 \
     --hash=sha256:c189402ad2e337777283c6a12d0f4f61dc6dd20c254c9a3a4af5087fc66cea6e
     # via -r requirements.in
-huey==2.4.0 \
-    --hash=sha256:82981fb8f1964e8c9ee8f4ebcd5a2ebad561dd93ce8b454bf4f4ecfb54bd1411
+huey==2.4.1 \
+    --hash=sha256:bd55e90746cec16e7a61d6dc60d4591c74cba59000dca96c387a4d4eee1395f6
     # via -r requirements.in
 idna==2.10 \
     --hash=sha256:b307872f855b18632ce0c21c5e45be78c0ea7ae4c15c828c20788b26921eb3f6 \
@@ -415,8 +415,8 @@ markupsafe==2.0.1 \
     --hash=sha256:f9081981fe268bd86831e5c75f7de206ef275defcb82bc70740ae6dc507aee51 \
     --hash=sha256:fa130dd50c57d53368c9d59395cb5526eda596d3ffe36666cd81a44d56e48872
     # via jinja2
-maxminddb==2.0.3 \
-    --hash=sha256:47e86a084dd814fac88c99ea34ba3278a74bc9de5a25f4b815b608798747c7dc
+maxminddb==2.1.0 \
+    --hash=sha256:c47b8acba98d03b8c762684d899623c257976f3eb0c9d557ff865d20cddc9d6b
     # via geoip2
 mccabe==0.6.1 \
     --hash=sha256:ab8a6258860da4b6677da4bd2fe5dc2c659cff31b3ee4f7f5d64e79735b80d42 \

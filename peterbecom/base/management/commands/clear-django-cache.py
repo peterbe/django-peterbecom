@@ -7,5 +7,5 @@ class Command(BaseCommand):
         count = 0
         for key in cache.iter_keys("*"):
             count += 1
-        self.stdout.write("Cleared {} cache keys".format(format(count, ",")))
+        self.stdout.write(f"Cleared {count:,} cache keys")
         cache.clear()

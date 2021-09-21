@@ -32,9 +32,8 @@ wait_for() {
 case $1 in
   web)
     # echo "STARTING WEB-DEV"
-    python manage.py clear-django-cache
+    #python manage.py clear-django-cache
     python manage.py collectstatic --noinput
-    python manage.py fscache -v 2 --skip-cdn-purge
     python manage.py migrate --noinput
     # export PYTHONWARNINGS=d
     exec python manage.py runserver 0.0.0.0:8000

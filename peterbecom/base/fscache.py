@@ -137,12 +137,15 @@ def revisit_url(path: Path, verbose=False):
         print("REVISITED", url, response.status_code, response.headers.get("x-cache"))
 
 
-def invalidate_too_old(verbose=False, dry_run=False, revisit=False):
+def invalidate_too_old(
+    verbose=False, dry_run=False, revisit=False, check_other_files_age=False
+):
     found = []
     deleted = []
 
     root = settings.FSCACHE_ROOT
     count_files_or_folders = 0
+    t0 = time.time()
     for file in root.rglob("index.html"):
         count_files_or_folders += 1
 
@@ -165,17 +168,41 @@ def invalidate_too_old(verbose=False, dry_run=False, revisit=False):
 
             if seconds is None or too_old(file, seconds):
                 if verbose:
-                    print("INVALIDATE", file)
+                    print("INVALIDATE", file, "(dry run)" if dry_run else "")
                 if not dry_run:
                     found.append(file.stat().st_size)
                     these_deleted = _invalidate(file)
                     deleted.extend(these_deleted)
                     if verbose:
                         print("\tDELETED", these_deleted)
-                    delete_empty_directory(file)
                     if revisit:
                         revisit_url(file, verbose=verbose)
+            elif check_other_files_age:
+                age_differences = []
+                index_html_age = file.stat().st_mtime
+                bad_other_files = 0
+                for other_file in file.parent.glob("index.html*"):
+                    if other_file.name == "index.html":
+                        continue
+                    other_file_age = other_file.stat().st_mtime
+                    age_days = (index_html_age - other_file_age) / 60 / 60 / 24
+                    if age_days >= 1:
+                        bad_other_files += 1
+                    age_differences.append((round(age_days, 1), other_file))
 
+                if bad_other_files:
+                    if verbose:
+                        print("INVALIDATE", file, "(dry run)" if dry_run else "")
+                    if not dry_run:
+                        found.append(file.stat().st_size)
+                        these_deleted = _invalidate(file)
+                        deleted.extend(these_deleted)
+                        if verbose:
+                            print("\tDELETED", these_deleted)
+                        if revisit:
+                            revisit_url(file, verbose=verbose)
+
+    t1 = time.time()
     if not count_files_or_folders:
         if verbose:
             print("NO FILES IN", root)
@@ -183,10 +210,33 @@ def invalidate_too_old(verbose=False, dry_run=False, revisit=False):
             root.rmdir()
 
     if verbose:
-        print(f"Found {len(found):,} possible files")
+        print(f"Found {len(found):,} possible files in {t1 - t0:.1f} seconds")
         mb = sum(found) / 1024.0 / 1024.0
         print(f"Totalling {mb:.1f} MB")
         print(f"Deleted {len(deleted):,} files")
+
+
+def delete_empty_directories(verbose=False, dry_run=False):
+    deleted = []
+
+    def walk(root: Path):
+        count_things = 0
+        for thing in root.iterdir():
+            count_things += 1
+            if thing.is_dir():
+                walk(thing)
+
+        if not count_things:
+            if verbose:
+                print(f"{root} is an empty directory")
+            if not dry_run:
+                root.rmdir()
+            deleted.append(root)
+
+    walk(settings.FSCACHE_ROOT)
+
+    if verbose:
+        print(f"Deleted {len(deleted)} empty directories")
 
 
 def cache_request(request, response):
