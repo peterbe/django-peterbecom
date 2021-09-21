@@ -21,7 +21,7 @@ from requests.exceptions import ReadTimeout
 from peterbecom.base import songsearch_autocomplete
 from peterbecom.base.cdn import purge_cdn_urls
 from peterbecom.base.decorators import lock_decorator
-from peterbecom.base.models import CDNPurgeURL, PostProcessing
+from peterbecom.base.models import CDNPurgeURL, PostProcessing, CommandRun
 from peterbecom.base.utils import do_healthcheck
 from peterbecom.base.xcache_analyzer import get_x_cache
 from peterbecom.brotli_file import brotli_file
@@ -412,3 +412,9 @@ def health_check_to_disk():
                 f,
             )
         raise
+
+
+@periodic_task(crontab(hour="1", minute="1"))
+def delete_old_commandsruns():
+    old = timezone.now() - datetime.timedelta(days=90)
+    CommandRun.objects.filter(created__lt=old).delete()
