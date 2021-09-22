@@ -1,3 +1,4 @@
+import datetime
 from collections import defaultdict
 
 from django import http
@@ -46,3 +47,46 @@ def blogitems(request):
             group_dates.append(tup)
 
     return http.JsonResponse({"groups": groups})
+
+
+def blogpost(request, oid):
+    try:
+        blogitem = BlogItem.objects.get(oid__iexact=oid)
+    except BlogItem.DoesNotExist:
+        return http.HttpResponseNotFound(oid)
+
+    future = timezone.now() + datetime.timedelta(days=10)
+    if blogitem.pub_date > future:
+        return http.HttpResponseNotFound("not published yet")
+    if blogitem.archived:
+        return http.HttpResponseNotFound("blog post archived")
+
+    post = {
+        "oid": blogitem.oid,
+        "title": blogitem.title,
+        "body": blogitem.text_rendered,
+        "pub_date": blogitem.pub_date,
+        "open_graph_image": blogitem.open_graph_image,
+        "url": blogitem.url,
+        "summary": blogitem.summary,
+        "categories": [x.name for x in blogitem.categories.all()],
+    }
+
+    if blogitem.oid != "blogitem-040601-1":
+        try:
+            previous = blogitem.get_previous_by_pub_date(archived__isnull=True)
+            post["previous_post"] = {"oid": previous.oid, "title": previous.title}
+        except BlogItem.DoesNotExist:
+            pass
+
+        try:
+            next = blogitem.get_next_by_pub_date(
+                pub_date__lt=timezone.now(),
+                archived__isnull=True,
+            )
+            post["next_post"] = {"oid": next.oid, "title": next.title}
+        except BlogItem.DoesNotExist:
+            pass
+
+    comments = []
+    return http.JsonResponse({"post": post, "comments": comments})
