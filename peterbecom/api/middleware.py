@@ -13,7 +13,11 @@ class AuthenticationMiddleware:
 
     def process_request(self, request):
         if request.path.startswith("/api/v0"):
-            if not request.path.startswith("/api/v0/whoami"):
+            if not (
+                request.path.startswith("/api/v0/whoami")
+                or request.path.startswith("/api/v0/__healthcheck__")
+                or request.path.startswith("/api/v0/lyrics-page-healthcheck")
+            ):
                 if not request.user.is_authenticated:
                     return http.HttpResponseForbidden("Not authenticated")
                 if not request.user.is_superuser:
