@@ -146,13 +146,10 @@ def invalidate_too_old(
     possibly_empty = []
 
     root = settings.FSCACHE_ROOT
-    # count_files_or_folders = 0
     t0 = time.time()
     for file in root.rglob("index.html"):
-        # count_files_or_folders += 1
 
         if not file.stat().st_size:
-            # raise EmptyFSCacheFile(file)
             print(f"FSCACHE: Warning! {file} is empty!")
             continue
 
