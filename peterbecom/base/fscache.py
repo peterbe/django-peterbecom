@@ -143,7 +143,7 @@ def invalidate_too_old(
     found = []
     deleted = []
 
-    possibly_empty = []
+    possibly_empty = set()
 
     root = settings.FSCACHE_ROOT
     t0 = time.time()
@@ -165,7 +165,6 @@ def invalidate_too_old(
                 with open(cc_file) as seconds_f:
                     seconds = int(seconds_f.read())
 
-            invalidated = False
             if seconds is None or too_old(file, seconds):
                 if verbose:
                     print(
@@ -179,7 +178,7 @@ def invalidate_too_old(
                         print(f"\tFSCACHE: Deleted {[str(x) for x in these_deleted]}")
                     if revisit:
                         revisit_url(file, verbose=verbose)
-                invalidated = True
+                possibly_empty.add(file.parent)
             elif check_other_files_age:
                 age_differences = []
                 index_html_age = file.stat().st_mtime
@@ -208,10 +207,7 @@ def invalidate_too_old(
                             )
                         if revisit:
                             revisit_url(file, verbose=verbose)
-                    invalidated = True
-
-            if invalidated:
-                possibly_empty.append(file.parent)
+                    possibly_empty.add(file.parent)
 
     for path in possibly_empty:
         # Let's check if there are now 0 files left here in this directory.
