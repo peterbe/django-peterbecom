@@ -143,15 +143,14 @@ def invalidate_too_old(
     found = []
     deleted = []
 
+    possibly_empty = set()
+
     root = settings.FSCACHE_ROOT
-    count_files_or_folders = 0
     t0 = time.time()
     for file in root.rglob("index.html"):
-        count_files_or_folders += 1
 
-        if "index.html" in file.name and file.exists() and not file.stat().st_size:
-            # raise EmptyFSCacheFile(file)
-            print(f"Warning! {file} is empty!")
+        if not file.stat().st_size:
+            print(f"FSCACHE: Warning! {file} is empty!")
             continue
 
         if Path(str(file) + ".metadata").exists():
@@ -168,15 +167,18 @@ def invalidate_too_old(
 
             if seconds is None or too_old(file, seconds):
                 if verbose:
-                    print("INVALIDATE", file, "(dry run)" if dry_run else "")
+                    print(
+                        f"FSCACHE: Invalidate {file} {'(dry run)' if dry_run else ''}"
+                    )
                 if not dry_run:
                     found.append(file.stat().st_size)
                     these_deleted = _invalidate(file)
                     deleted.extend(these_deleted)
                     if verbose:
-                        print("\tDELETED", these_deleted)
+                        print(f"\tFSCACHE: Deleted {[str(x) for x in these_deleted]}")
                     if revisit:
                         revisit_url(file, verbose=verbose)
+                possibly_empty.add(file.parent)
             elif check_other_files_age:
                 age_differences = []
                 index_html_age = file.stat().st_mtime
@@ -192,28 +194,36 @@ def invalidate_too_old(
 
                 if bad_other_files:
                     if verbose:
-                        print("INVALIDATE", file, "(dry run)" if dry_run else "")
+                        print(
+                            f"FSCACHE: Invalidate {file} {'(dry run)' if dry_run else ''}"
+                        )
                     if not dry_run:
                         found.append(file.stat().st_size)
                         these_deleted = _invalidate(file)
                         deleted.extend(these_deleted)
                         if verbose:
-                            print("\tDELETED", these_deleted)
+                            print(
+                                f"\tFSCACHE: Deleted {[str(x) for x in these_deleted]}"
+                            )
                         if revisit:
                             revisit_url(file, verbose=verbose)
+                    possibly_empty.add(file.parent)
+
+    for path in possibly_empty:
+        # Let's check if there are now 0 files left here in this directory.
+        if not list(path.iterdir()):
+            if verbose:
+                print(f"FSCACHE: No more files in {path}")
+            if not dry_run:
+                path.rmdir()
 
     t1 = time.time()
-    if not count_files_or_folders:
-        if verbose:
-            print("NO FILES IN", root)
-        if not dry_run:
-            root.rmdir()
 
     if verbose:
-        print(f"Found {len(found):,} possible files in {t1 - t0:.1f} seconds")
+        print(f"FSCACHE: Found {len(found):,} possible files in {t1 - t0:.1f} seconds")
         mb = sum(found) / 1024.0 / 1024.0
-        print(f"Totalling {mb:.1f} MB")
-        print(f"Deleted {len(deleted):,} files")
+        print(f"FSCACHE: Totalling {mb:.1f} MB")
+        print(f"FSCACHE: Deleted {len(deleted):,} files")
 
 
 def delete_empty_directories(verbose=False, dry_run=False):

@@ -63,6 +63,7 @@ def download(urls, base_url, max=100, sleeptime=1, state_file=None):
     headers = {"User-Agent": "download-all-plogs.py/requests 1.0"}
     fasts = slows = 0
     x_caches = defaultdict(int)
+    print(f"Found {len(urls):,} to enumerate")
     for i, url in enumerate(urls[:max]):
         # print(url.ljust(80))
         t0 = time.time()
