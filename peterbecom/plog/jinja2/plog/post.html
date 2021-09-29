@@ -9,29 +9,29 @@
   {% else %}
 
     {% if '/plog/blogitem-040601-1' not in request.path  %}
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ post.title }}">
-    {% if post.summary %}
-    <meta name="twitter:description" content="{{ post.summary }}">
-    {% endif %}
-    <meta name="twitter:creator" content="@peterbe">
+      <meta name="twitter:card" content="summary_large_image">
+      <meta name="twitter:title" content="{{ post.title }}">
+      {% if post.summary %}
+        <meta name="twitter:description" content="{{ post.summary }}">
+      {% endif %}
+      <meta name="twitter:creator" content="@peterbe">
     {% endif %}
 
     <meta property="og:url" content="{{ post._absolute_url }}">
     <meta property="og:type" content="article">
     <meta property="og:title" content="{{ post.title }}">
     {% if post.summary %}
-    <meta property="og:description" content="{{ post.summary }}" />
+      <meta property="og:description" content="{{ post.summary }}" />
     {% endif %}
 
     {% if '/plog/blogitem-040601-1' not in request.path %}
-    {% if screenshot_image %}
-    <meta name="twitter:image" content="{{ screenshot_image }}">
-    <meta property="og:image" content="{{ screenshot_image }}">
-    {% elif absolute_open_graph_image %}
-    <meta name="twitter:image" content="{{ absolute_open_graph_image }}">
-    <meta property="og:image" content="{{ absolute_open_graph_image }}">
-    {% endif %}
+      {% if screenshot_image %}
+        <meta name="twitter:image" content="{{ screenshot_image }}">
+        <meta property="og:image" content="{{ screenshot_image }}">
+      {% elif absolute_open_graph_image %}
+        <meta name="twitter:image" content="{{ absolute_open_graph_image }}">
+        <meta property="og:image" content="{{ absolute_open_graph_image }}">
+      {% endif %}
     {% endif %}
   {% endif %}
   {%- if '/plog/blogitem-040601-1' in request.path  -%}
@@ -51,13 +51,15 @@
 
 {% block title %}
 {%- if '/plog/blogitem-040601-1' in request.path  -%}
-{% if page > 1 -%}Find song by lyrics (Page {{ page }})
-{%- else -%}Find song by lyrics - Looking for songs by the lyrics
-{%- endif %}
+  {% if page > 1 -%}Find song by lyrics (Page {{ page }})
+  {%- else -%}Find song by lyrics - Looking for songs by the lyrics
+  {%- endif %}
 
 {%- else -%}
-{{ post.title }} {% if page > 1 %}(page {{ page }}){% endif %} - Peterbe.com
-{%- endif -%}{% endblock %}
+  {{ post.title }} {% if page > 1 %}(page {{ page }}){% endif %} - Peterbe.com
+{%- endif -%}
+
+{% endblock %}
 
 {% block page_title -%}
 {{ page_title }}
