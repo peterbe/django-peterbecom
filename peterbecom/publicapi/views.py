@@ -22,6 +22,7 @@ from peterbecom.plog.spamprevention import (
 from peterbecom.plog.tasks import send_new_comment_email
 from peterbecom.plog.utils import render_comment_text
 from peterbecom.publicapi.forms import SubmitForm
+from peterbecom.homepage.utils import make_categories_q
 
 
 def blogitems(request):
@@ -191,15 +192,13 @@ def blogpost(request, oid):
     comments["count"] = count_comments
     comments["tree"] = traverse_and_serialize_comments(all_comments)
 
+    comments["next_page"] = comments["previous_page"] = None
     if page < settings.MAX_BLOGCOMMENT_PAGES:
         # But is there even a next page?!
         if page * settings.MAX_RECENT_COMMENTS < root_comments_count:
-            comments["paginate_uri_next"] = f"/plog/{blogitem.oid}/p{page + 1}"
+            comments["next_page"] = page + 1
     if page > 1:
-        if page == 2:
-            comments["paginate_uri_previous"] = f"/plog/{blogitem.oid}"
-        else:
-            comments["paginate_uri_previous"] = f"/plog/{blogitem.oid}/p{page - 1}"
+        comments["previous_page"] = page - 1
 
     return http.JsonResponse({"post": post, "comments": comments})
 
@@ -302,10 +301,6 @@ def submit_comment(request):
     if not form.is_valid():
         return http.HttpResponseBadRequest(form.errors.as_json())
 
-    from pprint import pprint
-
-    pprint(form.cleaned_data)
-
     blogitem = form.cleaned_data["oid"]
     name = form.cleaned_data["name"]
     email = form.cleaned_data["email"]
@@ -376,3 +371,73 @@ def submit_comment(request):
             "comment": blog_comment.comment_rendered,
         }
     )
+
+
+def homepage_blogitems(request):
+    context = {}
+    try:
+        page = int(request.GET.get("page") or "1")
+        if page <= 0:
+            raise ValueError()
+    except ValueError:
+        return http.HttpResponseBadRequest("invalid page")
+
+    qs = BlogItem.objects.filter(pub_date__lt=timezone.now(), archived__isnull=True)
+
+    ocs = request.GET.getlist("oc")
+    if ocs:
+        categories = []
+        for oc in ocs:
+            try:
+                categories.append(Category.objects.get(name=oc))
+            except Category.DoesNotExist:
+                return http.HttpResponseBadRequest(f"invalid oc {oc!r}")
+
+        cat_q = make_categories_q(categories)
+        qs = qs.filter(cat_q)
+
+    if request.method == "HEAD":
+        return http.HttpResponse("")
+
+    batch_size = settings.HOMEPAGE_BATCH_SIZE
+    page = page - 1
+    n, m = page * batch_size, (page + 1) * batch_size
+    max_count = qs.count()
+    if page * batch_size > max_count:
+        return http.HttpResponseNotFound("Too far back in time")
+
+    if (page + 1) * batch_size < max_count:
+        context["next_page"] = page + 2
+    else:
+        context["next_page"] = None
+
+    if page >= 1:
+        context["previous_page"] = page
+    else:
+        context["previous_page"] = None
+
+    blogitems = (qs.prefetch_related("categories").order_by("-pub_date"))[n:m]
+
+    approved_comments_count = {}
+    blog_comments_count_qs = (
+        BlogComment.objects.filter(blogitem__in=blogitems, approved=True)
+        .values("blogitem_id")
+        .annotate(count=Count("blogitem_id"))
+    )
+    for count in blog_comments_count_qs:
+        approved_comments_count[count["blogitem_id"]] = count["count"]
+
+    context["posts"] = []
+    # XXX can be optimized to use .values()
+    for blogitem in blogitems:
+        context["posts"].append(
+            {
+                "oid": blogitem.oid,
+                "title": blogitem.title,
+                "comments": approved_comments_count.get(blogitem.id) or 0,
+                "categories": [x.name for x in blogitem.categories.all()],
+                "html": blogitem.text_rendered,
+            }
+        )
+
+    return http.JsonResponse(context)
