@@ -22,6 +22,7 @@ urlpatterns = [
         name="submit_comment",
     ),
     path("plog/homepage", views.homepage_blogitems, name="homepage_blogitems"),
-    path("plog/<slug:oid>", views.blogpost, name="blogpost"),
+    path("plog/<str:oid>", views.blogpost, name="blogpost"),
     path("plog/", views.blogitems, name="blogitems"),
+    path("search/", views.search, name="search"),
 ]

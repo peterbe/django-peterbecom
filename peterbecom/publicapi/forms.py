@@ -24,3 +24,16 @@ class SubmitForm(forms.Form):
 
     def clean_comment(self):
         return self.cleaned_data["comment"].strip()
+
+
+class SearchForm(forms.Form):
+    q = forms.CharField(max_length=90)
+    debug = forms.BooleanField(required=False)
+
+    CHOICES = ("multiply", "sum", "avg")
+    popularity_factor = forms.FloatField(required=False)
+    boost_mode = forms.ChoiceField(choices=[(x, x) for x in CHOICES], required=False)
+
+    def clean_q(self):
+        value = self.cleaned_data["q"]
+        return value
