@@ -68,7 +68,6 @@ window.requestIdleCallback(() => {
     });
   }
 
-  console.log({ supported: support('prefetch') });
   const supportedPrefetchStrategy = support('prefetch')
     ? linkPrefetchStrategy
     : xhrPrefetchStrategy;
@@ -81,9 +80,7 @@ window.requestIdleCallback(() => {
    * @return {Object} a Promise
    */
   function prefetcher(url, conn) {
-    console.log({ PREFETCH: url });
     if (preFetched[url]) {
-      console.log({ ALREADY_PREFETCHED: url });
       return;
     }
 
@@ -94,7 +91,6 @@ window.requestIdleCallback(() => {
 
     // Wanna do something on catch()?
     return supportedPrefetchStrategy(url).then(() => {
-      console.log({ PREFETCHED: url });
       preFetched[url] = true;
     });
   }
