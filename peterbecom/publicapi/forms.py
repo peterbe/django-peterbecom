@@ -9,6 +9,7 @@ class SubmitForm(forms.Form):
     parent = forms.CharField(required=False)
     name = forms.CharField(required=False)
     email = forms.EmailField(required=False)
+    hash = forms.CharField(required=False)
 
     def clean_oid(self):
         value = self.cleaned_data["oid"]
