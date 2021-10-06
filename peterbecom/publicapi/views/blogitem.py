@@ -9,7 +9,7 @@ from django.conf import settings
 from peterbecom.plog.models import BlogComment, BlogItem
 
 
-def blogpost(request, oid):
+def blogitem(request, oid):
     try:
         blogitem = BlogItem.objects.get(oid__iexact=oid)
     except BlogItem.DoesNotExist:
@@ -55,7 +55,6 @@ def blogpost(request, oid):
     if blogitem.oid != "blogitem-040601-1":
         try:
             previous = blogitem.get_previous_by_pub_date(archived__isnull=True)
-            # post["previous_post"] = {"oid": previous.oid, "title": previous.title}
         except BlogItem.DoesNotExist:
             previous = None
 
@@ -64,7 +63,6 @@ def blogpost(request, oid):
                 pub_date__lt=timezone.now(),
                 archived__isnull=True,
             )
-            # post["next_post"] = {"oid": next.oid, "title": next.title}
         except BlogItem.DoesNotExist:
             next = None
 
