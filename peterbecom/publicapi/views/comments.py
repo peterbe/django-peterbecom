@@ -129,6 +129,7 @@ def submit_comment(request):
 
     return http.JsonResponse(
         {
+            "oid": blog_comment.oid,
             "hash": blog_comment_hash,
             "comment": blog_comment.comment_rendered,
         }
