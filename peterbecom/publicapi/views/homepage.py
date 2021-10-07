@@ -62,16 +62,21 @@ def homepage_blogitems(request):
         approved_comments_count[count["blogitem_id"]] = count["count"]
 
     context["posts"] = []
-    # XXX can be optimized to use .values()
+
+    def serialize_blogitem(blogitem):
+        serialized = {
+            "oid": blogitem.oid,
+            "title": blogitem.title,
+            "pub_date": blogitem.pub_date,
+            "comments": approved_comments_count.get(blogitem.id) or 0,
+            "categories": [x.name for x in blogitem.categories.all()],
+            "html": blogitem.text_rendered,
+            "url": blogitem.url,
+            "disallow_comments": blogitem.disallow_comments,
+        }
+        return serialized
+
     for blogitem in blogitems:
-        context["posts"].append(
-            {
-                "oid": blogitem.oid,
-                "title": blogitem.title,
-                "comments": approved_comments_count.get(blogitem.id) or 0,
-                "categories": [x.name for x in blogitem.categories.all()],
-                "html": blogitem.text_rendered,
-            }
-        )
+        context["posts"].append(serialize_blogitem(blogitem))
 
     return http.JsonResponse(context)
