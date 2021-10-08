@@ -343,6 +343,8 @@ CSSO_CLI_BINARY = path("node_modules/.bin/csso")
 
 # ElasticSearch
 
+# ES_BLOG_ITEM_INDEX = config("ES_BLOG_ITEM_INDEX", default="blog_item")
+# ES_BLOG_COMMENT_INDEX = config("ES_BLOG_COMMENT_INDEX", default="blog_comment")
 ES_BLOG_ITEM_INDEX = "blog_item"
 ES_BLOG_COMMENT_INDEX = "blog_comment"
 ES_PODCAST_INDEX = "podcast"

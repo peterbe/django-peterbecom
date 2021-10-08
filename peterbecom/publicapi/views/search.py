@@ -3,13 +3,74 @@ import time
 
 from django import http
 from django.conf import settings
+from django.utils.cache import patch_cache_control
 from django.utils.html import strip_tags
 from elasticsearch_dsl import Q, query
+from elasticsearch_dsl.query import MultiMatch
 
 from peterbecom.homepage.utils import STOPWORDS, split_search
 from peterbecom.plog.models import BlogItem
 from peterbecom.plog.search import BlogCommentDoc, BlogItemDoc
 from peterbecom.publicapi.forms import SearchForm
+
+
+def autocompete(request):
+    q = request.GET.get("q", "")
+    if not q:
+        return http.JsonResponse({"error": "Missing 'q'"}, status=400)
+    size = int(request.GET.get("n", 10))
+    terms = [q]
+    search_query = BlogItemDoc.search(index=settings.ES_BLOG_ITEM_INDEX)
+    if len(q) > 2:
+        suggestion = search_query.suggest("suggestions", q, term={"field": "title"})
+        response = suggestion.execute()
+        suggestions = response.suggest.suggestions
+        for suggestion in suggestions:
+            for option in suggestion.options:
+                terms.append(q.replace(suggestion.text, option.text))
+
+    search_query.update_from_dict({"query": {"range": {"pub_date": {"lt": "now"}}}})
+
+    query = MultiMatch(
+        query=terms[0],
+        type="bool_prefix",
+        fields=[
+            "title_autocomplete",
+            "title_autocomplete._2gram",
+            "title_autocomplete._3gram",
+        ],
+    )
+
+    for term in terms[1:]:
+        query |= MultiMatch(
+            query=term,
+            type="bool_prefix",
+            fields=[
+                "title_autocomplete",
+                "title_autocomplete._2gram",
+                # Commented out because sometimes the `terms[:1]` are a little bit
+                # too wild.
+                # What might be a better idea is to make 2 ES queries. One with
+                # `term[0]` and if that yields less than $batch_size, we make
+                # another query with the `terms[1:]` and append the results.
+                # "title_autocomplete._3gram",
+            ],
+        )
+
+    search_query = search_query.query(query)
+
+    # search_query = search_query.sort("-pub_date", "_score")
+    search_query = _add_function_score(search_query, query)
+    search_query = search_query[:size]
+    response = search_query.execute()
+    results = []
+    for hit in response.hits:
+        results.append([f"/plog/{hit.oid}", hit.title])
+
+    response = http.JsonResponse({"results": results, "terms": terms})
+    if len(q) < 5:
+        patch_cache_control(response, public=True, max_age=60 + 60 * (5 - len(q)))
+    return response
 
 
 def search(request):
@@ -23,23 +84,14 @@ def search(request):
     popularity_factor = (
         form.cleaned_data["popularity_factor"] or settings.DEFAULT_POPULARITY_FACTOR
     )
-    # t0 = time.time()
-
     non_stopwords_q = [x for x in q.split() if x.lower() not in STOPWORDS]
-
     search_results = _search(q, popularity_factor, boost_mode, debug_search=debug)
-    # t1 = time.time()
-    # search_time = t1 - t0
-
-    print({"q": q, "debug": debug})
     context = {
         "q": q,
         "debug": debug,
         "original_q": original_q,
         "count_documents": 0,
         "results": search_results,
-        # "search_time": search_time,
-        # "keywords": keywoards,
         "non_stopwords_q": non_stopwords_q,
     }
 
@@ -67,6 +119,7 @@ def _search(
 
     search_terms = [(1.1, q)]
     _search_terms = set([q])
+
     doc_type_keys = ((BlogItemDoc, ("title", "text")), (BlogCommentDoc, ("comment",)))
     for doc_type, keys in doc_type_keys:
         suggester = doc_type.search()
@@ -82,7 +135,7 @@ def _search(
                             search_terms.append((option["score"], better))
                             _search_terms.add(better)
 
-    search_query = BlogItemDoc.search()
+    search_query = BlogItemDoc.search(index=settings.ES_BLOG_ITEM_INDEX)
     search_query.update_from_dict({"query": {"range": {"pub_date": {"lt": "now"}}}})
 
     if keyword_search.get("keyword"):
@@ -203,7 +256,7 @@ def _search(
     context["count_documents"] = response.hits.total.value
 
     # Now append the search results based on blog comments
-    search_query = BlogCommentDoc.search()
+    search_query = BlogCommentDoc.search(index=settings.ES_BLOG_COMMENT_INDEX)
     search_query = search_query.filter("term", approved=True)
     search_query = search_query.query("match_phrase", comment=q)
 
@@ -243,6 +296,9 @@ def _search(
             texts.append(strip_tags(result["comment"])[:100] + "...")
         summary = "<br>".join(texts)
         blogitem_lookups.add(result["blogitem_id"])
+        from pprint import pprint
+
+        pprint(result)
         documents.append(
             {
                 "_id": result["blogitem_id"],
