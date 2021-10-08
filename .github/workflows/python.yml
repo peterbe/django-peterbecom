@@ -86,10 +86,6 @@ jobs:
           python -m pip install --upgrade pip wheel --progress-bar off
           pip install -r requirements.txt --progress-bar off
 
-      - name: Create Elasticsearch synonym file
-        run: |
-          ./manage.py export-synonyms-file --filename /tmp/peterbe.synonyms
-
       - name: Run Tests
         env:
           SYNONYM_FILE_NAME: /tmp/peterbe.synonyms

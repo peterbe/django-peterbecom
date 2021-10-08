@@ -36,6 +36,8 @@ SETTINGS
 echo "Run collect static to collect all final static assets."
 ./manage.py collectstatic --noinput
 
+./manage.py export-synonyms-file --filename /tmp/peterbe.synonyms
+
 # Make sure we're running Elasticsearch
 curl -v http://localhost:9200/
 
