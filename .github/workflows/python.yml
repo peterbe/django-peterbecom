@@ -92,6 +92,8 @@ jobs:
           ./manage.py export-synonyms-file --filename /etc/elasticsearch/peterbe.synonyms
 
       - name: Run Tests
+        env:
+          SYNONYM_FILE_NAME: /etc/elasticsearch/peterbe.synonyms
         run: |
           ./scripts/ci-test.sh
       - name: Run Lints
