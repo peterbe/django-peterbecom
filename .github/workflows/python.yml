@@ -88,12 +88,11 @@ jobs:
 
       - name: Create Elasticsearch synonym file
         run: |
-          ls -l /etc/elasticsearch/
-          ./manage.py export-synonyms-file --filename /etc/elasticsearch/peterbe.synonyms
+          ./manage.py export-synonyms-file --filename /tmp/peterbe.synonyms
 
       - name: Run Tests
         env:
-          SYNONYM_FILE_NAME: /etc/elasticsearch/peterbe.synonyms
+          SYNONYM_FILE_NAME: /tmp/peterbe.synonyms
         run: |
           ./scripts/ci-test.sh
       - name: Run Lints
