@@ -31,6 +31,9 @@ SECRET_KEY = 'something'
 GEOIP_PATH = base.path('GeoIP2-City-Test.mmdb')
 OIDC_RP_CLIENT_ID = 'secret'
 OIDC_RP_CLIENT_SECRET = 'secreter'
+ROLLBAR = {
+    "enabled": False,  # NOTE!
+}
 SETTINGS
 
 echo "Run collect static to collect all final static assets."
