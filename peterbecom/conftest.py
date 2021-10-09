@@ -1,11 +1,33 @@
-from pathlib import Path
 import tempfile
+from pathlib import Path
 
 import mock
-import requests_mock
 import pytest
-
+import requests_mock
 from django.core.cache import cache
+
+from peterbecom.plog.search import BlogCommentDoc, BlogItemDoc
+
+TEST_ES_BLOG_COMMENT_INDEX = "test_blog_comments"
+TEST_ES_BLOG_ITEM_INDEX = "test_blog_items"
+
+
+@pytest.fixture(scope="session", autouse=True)
+def assert_elasticsearch_index():
+    blog_item_index = BlogItemDoc._index
+    blog_item_index._name = TEST_ES_BLOG_ITEM_INDEX
+    blog_item_index.delete(ignore=404)
+    blog_item_index.create()
+    blog_comment_index = BlogCommentDoc._index
+    blog_comment_index._name = TEST_ES_BLOG_COMMENT_INDEX
+    blog_comment_index.delete(ignore=404)
+    blog_comment_index.create()
+
+
+@pytest.fixture(autouse=True)
+def force_elasticsearch_test_index(settings):
+    settings.ES_BLOG_ITEM_INDEX = TEST_ES_BLOG_ITEM_INDEX
+    settings.ES_BLOG_COMMENT_INDEX = TEST_ES_BLOG_COMMENT_INDEX
 
 
 @pytest.fixture(autouse=True)

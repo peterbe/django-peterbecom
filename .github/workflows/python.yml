@@ -50,25 +50,25 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v2.4.1
         with:
-          node-version: '12'
+          node-version: '16'
           cache: 'yarn'
 
-      - name: Display Node version
-        run: node --version
-      - name: Display Yarn version
-        run: yarn --version
+      - name: Cache node_modules
+        uses: actions/cache@v2.1.6
+        id: cached-node_modules
+        with:
+          path: |
+            node_modules
+          key: ${{ runner.os }}-${{ hashFiles('yarn.lock') }}-${{ hashFiles('.github/workflows/python.yml') }}
 
       - name: Install yarn packages
+        if: steps.cached-node_modules.outputs.cache-hit != 'true'
         run: yarn --frozen-lockfile
 
       - name: Set up Python 3.8
         uses: actions/setup-python@v2
         with:
           python-version: '3.8'
-      - name: Display Python and pip version
-        run: |
-          python -c "import sys; print(sys.version)"
-          pip --version
 
       - name: Cache pip
         uses: actions/cache@v2
@@ -82,6 +82,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip wheel --progress-bar off
           pip install -r requirements.txt --progress-bar off
+
       - name: Run Tests
         run: |
           ./scripts/ci-test.sh

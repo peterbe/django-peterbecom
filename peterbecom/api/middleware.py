@@ -12,7 +12,7 @@ class AuthenticationMiddleware:
         return response
 
     def process_request(self, request):
-        if request.path.startswith("/api/"):
+        if request.path.startswith("/api/v0"):
             if not (
                 request.path.startswith("/api/v0/whoami")
                 or request.path.startswith("/api/v0/__healthcheck__")

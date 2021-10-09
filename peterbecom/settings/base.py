@@ -201,6 +201,7 @@ INSTALLED_APPS = (
     "peterbecom.base",
     "peterbecom.plog",
     "peterbecom.api",
+    "peterbecom.publicapi",
     "peterbecom.homepage",
     "peterbecom.chiveproxy",
     "peterbecom.ajaxornot",
@@ -342,6 +343,8 @@ CSSO_CLI_BINARY = path("node_modules/.bin/csso")
 
 # ElasticSearch
 
+# ES_BLOG_ITEM_INDEX = config("ES_BLOG_ITEM_INDEX", default="blog_item")
+# ES_BLOG_COMMENT_INDEX = config("ES_BLOG_COMMENT_INDEX", default="blog_comment")
 ES_BLOG_ITEM_INDEX = "blog_item"
 ES_BLOG_COMMENT_INDEX = "blog_comment"
 ES_PODCAST_INDEX = "podcast"
@@ -486,6 +489,7 @@ DB_MAINTENANCE_MODE = False
 SEND_PULSE_MESSAGES = True
 
 SYNONYM_FILE_NAME = config("SYNONYM_FILE_NAME", default="peterbecom.synonyms")
+USE_ES_SYNONYM_FILE_NAME = config("USE_ES_SYNONYM_FILE_NAME", default=True, cast=bool)
 
 # Every 404 is captured and counted in an upsert query. Each time,
 # the 'last_seen' date is updated.
