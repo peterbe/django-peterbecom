@@ -13,24 +13,30 @@ from elasticsearch_dsl import (
 )
 
 
-synonym_tokenfilter = token_filter(
-    "synonym_tokenfilter",
-    "synonym",
-    # synonyms=all_synonyms
-    synonyms_path=dj_settings.SYNONYM_FILE_NAME,
-)
+if dj_settings.USE_ES_SYNONYM_FILE_NAME:
+    synonym_tokenfilter = token_filter(
+        "synonym_tokenfilter",
+        "synonym",
+        synonyms_path=dj_settings.SYNONYM_FILE_NAME,
+    )
+else:
+    synonym_tokenfilter = None
 
 
 text_analyzer = analyzer(
     "text_analyzer",
     tokenizer="standard",
-    filter=["standard", "lowercase", "stop", synonym_tokenfilter, "snowball"],
+    filter=["standard", "lowercase", "stop", synonym_tokenfilter, "snowball"]
+    if synonym_tokenfilter
+    else ["standard", "lowercase", "stop", "snowball"],
     char_filter=["html_strip"],
 )
 text_analyzer = analyzer(
     "text_analyzer",
     tokenizer="standard",
-    filter=["lowercase", "stop", synonym_tokenfilter, "snowball"],
+    filter=["lowercase", "stop", synonym_tokenfilter, "snowball"]
+    if synonym_tokenfilter
+    else ["lowercase", "stop", synonym_tokenfilter, "snowball"],
     char_filter=["html_strip"],
 )
 

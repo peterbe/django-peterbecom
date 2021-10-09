@@ -489,6 +489,7 @@ DB_MAINTENANCE_MODE = False
 SEND_PULSE_MESSAGES = True
 
 SYNONYM_FILE_NAME = config("SYNONYM_FILE_NAME", default="peterbecom.synonyms")
+USE_ES_SYNONYM_FILE_NAME = config("USE_ES_SYNONYM_FILE_NAME", default=True, cast=bool)
 
 # Every 404 is captured and counted in an upsert query. Each time,
 # the 'last_seen' date is updated.

@@ -34,12 +34,11 @@ OIDC_RP_CLIENT_SECRET = 'secreter'
 ROLLBAR = {
     "enabled": False,  # NOTE!
 }
+USE_ES_SYNONYM_FILE_NAME = False
 SETTINGS
 
 echo "Run collect static to collect all final static assets."
 ./manage.py collectstatic --noinput
-
-./manage.py export-synonyms-file --filename /tmp/peterbe.synonyms
 
 # Make sure we're running Elasticsearch
 curl -v http://localhost:9200/

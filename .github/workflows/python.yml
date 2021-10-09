@@ -87,8 +87,6 @@ jobs:
           pip install -r requirements.txt --progress-bar off
 
       - name: Run Tests
-        env:
-          SYNONYM_FILE_NAME: /tmp/peterbe.synonyms
         run: |
           ./scripts/ci-test.sh
       - name: Run Lints
