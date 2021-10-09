@@ -62,16 +62,13 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('yarn.lock') }}-${{ hashFiles('.github/workflows/python.yml') }}
 
       - name: Install yarn packages
+        if: steps.cached-node_modules.outputs.cache-hit != 'true'
         run: yarn --frozen-lockfile
 
       - name: Set up Python 3.8
         uses: actions/setup-python@v2
         with:
           python-version: '3.8'
-      - name: Display Python and pip version
-        run: |
-          python -c "import sys; print(sys.version)"
-          pip --version
 
       - name: Cache pip
         uses: actions/cache@v2

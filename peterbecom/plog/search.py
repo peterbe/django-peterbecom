@@ -13,6 +13,10 @@ from elasticsearch_dsl import (
 )
 
 
+# It's useful to be able to turn off synonyms in CI because there it's
+# not possible to place a synonyms file in the config directory of the
+# elasticsearch server because it's used as an GitHub Action that uses
+# a docker image.
 if dj_settings.USE_ES_SYNONYM_FILE_NAME:
     synonym_tokenfilter = token_filter(
         "synonym_tokenfilter",
@@ -36,7 +40,7 @@ text_analyzer = analyzer(
     tokenizer="standard",
     filter=["lowercase", "stop", synonym_tokenfilter, "snowball"]
     if synonym_tokenfilter
-    else ["lowercase", "stop", synonym_tokenfilter, "snowball"],
+    else ["lowercase", "stop", "snowball"],
     char_filter=["html_strip"],
 )
 
