@@ -682,6 +682,16 @@ def catchall(request, path):
         return static.serve(
             request, path.replace("static/", ""), document_root=settings.STATIC_ROOT
         )
+    if path.startswith("cache/"):
+        # This only really happens when there's no Nginx at play.
+        # For example, when the mincss post process thing runs, it's
+        # forced to download the 'localhost:8000/cache/1e/a7/1ea7b1a42e91c4.png'
+        # file.
+        return static.serve(
+            request,
+            path.replace("cache/", ""),
+            document_root=settings.BASE_DIR / "cache",
+        )
     if path.startswith("q/") and path.count("/") == 1:
         # E.g. www.peterbe.com/q/have%20to%20learn
         url = "https://songsear.ch/" + path
