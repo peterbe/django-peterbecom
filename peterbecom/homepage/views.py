@@ -1042,10 +1042,10 @@ def avatar_image(request, seed=None):
     response["content-type"] = "image/png"
     if seed == "random":
         # Aug 8, had to do this to lift load off the server.
-        patch_cache_control(response, max_age=60, public=True)
+        patch_cache_control(response, max_age=60 * 2, public=True)
         # add_never_cache_headers(response)
     else:
-        patch_cache_control(response, max_age=60, public=True)
+        patch_cache_control(response, max_age=60 * 2, public=True)
 
     return response
 
