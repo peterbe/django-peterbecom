@@ -14,7 +14,7 @@ cssselect==1.1.0
 requests==2.26.0
 lxml==4.6.3
 django-semanticui-form==0.0.1
-django-pipeline==2.0.6
+django-pipeline==2.0.7
 feedparser==6.0.8
 pyquery==1.4.3
 xmltodict==0.12.0
