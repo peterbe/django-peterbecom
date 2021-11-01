@@ -59,5 +59,5 @@ requests-mock==1.9.3
 # Not sure these belong in here but what the heck, it's not a huge overhead
 # to put these into production. At least now there's only one file.
 flake8==3.9.2
-honcho==1.0.1
+honcho==1.1.0
 pip-tools==6.4.0
