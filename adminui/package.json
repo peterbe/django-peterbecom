@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "date-fns": "2.25.0",
+    "date-fns": "2.26.0",
     "history": "5.0.1",
     "http-proxy-middleware": "2.0.1",
     "md5": "2.3.0",
