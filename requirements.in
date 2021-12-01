@@ -33,7 +33,7 @@ python-decouple==3.5
 delegator.py==0.1.1
 ptyprocess==0.7.0
 ipaddress==1.0.23
-django-redis==5.0.0
+django-redis==5.1.0
 psycopg2-binary==2.9.2
 bleach==3.3.1
 rollbar==0.16.2
