@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import comments, homepage, blogitem, blogitems, search
+from .views import comments, homepage, blogitem, blogitems, search, hydro
 
 
 app_name = "publicapi"
@@ -29,4 +29,5 @@ urlpatterns = [
     # sans trailing /. Not loving this.
     path("autocompete", search.autocompete, name="autocompete"),
     path("search/", search.search, name="search"),
+    path("__hydro__", hydro.receive, name="hydro_receive"),
 ]
