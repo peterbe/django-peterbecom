@@ -6,7 +6,7 @@ from requests.exceptions import ReadTimeout
 from django.conf import settings
 
 
-def get_x_cache(url):
+def get_x_cache(url, no_brotli=False):
     endpoints = settings.HTTP_RELAY_ENDPOINTS
     assert endpoints
     session = requests.Session()
@@ -18,6 +18,8 @@ def get_x_cache(url):
     futures = {}
     with concurrent.futures.ThreadPoolExecutor() as executor:
         for use_brotli in (True, False):
+            if no_brotli and use_brotli:
+                continue
             for endpoint in endpoints:
                 futures[
                     executor.submit(
