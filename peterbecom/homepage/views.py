@@ -1132,3 +1132,13 @@ def get_random_avatar():
 def preview_500(request):
     print("HI there4")
     return render(request, "500.html")
+
+
+ROBOTS_TXT = """
+User-agent: *
+"""
+
+
+@cache_control(public=True, max_age=ONE_WEEK)
+def robots_txt(request):
+    return http.HttpResponse(f"{ROBOTS_TXT.strip()}\n", content_type="text/plain")

@@ -29,5 +29,6 @@ urlpatterns = [
     path("__huey__", views.huey_test, name="huey_test"),
     path("__dynamic__", views.dynamic_page, name="dynamic_page"),
     path("__500__", views.preview_500, name="preview_500"),
+    path("robots.txt", views.robots_txt, name="robots_txt"),
     re_path(r"^(.*)", views.catchall, name="catchall"),
 ]
