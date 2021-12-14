@@ -31,7 +31,19 @@ def get_base_url(request):
         base_url.append(x_forwarded_host)
     else:
         base_url.append(request.get_host())
-    return "".join(base_url)
+    combined = "".join(base_url)
+
+    if x_forwarded_host == "www.peterbe.com":
+        # Exception! When a request comes into https://www.peterbe.com it first
+        # goes to the CDN, then to https://www-origin.peterbe.com which is Nginx
+        # that terminates the HTTPS and sends it to Node (server.mjs).
+        # Then that Node will proxy it forward to the Django backend. At this
+        # point the X-Forwarded-Host header is passed along, but the HTTPS is gone.
+        # So exclusively for this specific backend, we override and force
+        # it "back" to https://.
+        combined = combined.replace("http://", "https://")
+
+    return combined
 
 
 def requests_retry_session(

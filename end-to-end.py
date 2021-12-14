@@ -2,6 +2,7 @@ import os
 import re
 import time
 from collections import defaultdict
+from urllib.parse import urlparse
 
 import pyquery
 import xmltodict
@@ -45,7 +46,7 @@ def test_rss_feeds():
     assert r.status_code == 200
     assert "public" in r.headers["cache-control"]
     assert re.findall(r"max-age=\d+", r.headers["cache-control"])
-    assert r.headers["content-encoding"] == "gzip"
+    assert r.headers["content-encoding"] == "br"
     parsed = xmltodict.parse(r.text)
     django_items2 = parsed["rss"]["channel"]["item"]
     django_titles2 = [x["title"] for x in django_items2]
@@ -57,11 +58,11 @@ def test_homepage():
     assert r.status_code == 200
     assert re.findall(r"max-age=\d+", r.headers["cache-control"])
     assert "public" in r.headers["cache-control"]
-    assert r.headers["content-encoding"] == "gzip"
+    assert r.headers["content-encoding"] == "br"
     assert r.headers["content-type"].lower() == "text/html; charset=utf-8".lower()
-    # Commented out because it doesn't work when testing locally with http://
-    # assert r.headers["Strict-Transport-Security"]
-    print(r.headers.items())
+    if BASE_URL == "https://www.peterbe.com":
+        assert r.headers["Strict-Transport-Security"]
+    # print(r.headers.items())
     assert r.headers["x-cache"]
 
 
@@ -71,7 +72,7 @@ def test_search():
     # assert re.findall(r"max-age=\d+", r.headers["cache-control"])
     # assert "public" in r.headers["cache-control"]
     doc = pyquery.PyQuery(r.text.strip())
-    header, = doc("h1").items()
+    (header,) = doc("h1").items()
     print(header)
 
 
@@ -80,6 +81,12 @@ def test_sitemap_paginated():
     assert r.status_code == 200
     parsed = xmltodict.parse(r.text)
     urls = [x["loc"] for x in parsed["urlset"]["url"]]
+    for url in urls:
+        if urlparse(BASE_URL).scheme == "https":
+            assert (
+                urlparse(url).scheme == "https"
+            ), f"BASE_URL is https:// but {url} isn't"
+
     todo = [x for x in urls if re.findall(r"/p\d+", x)]
     grouped = defaultdict(list)
     for url in todo:
