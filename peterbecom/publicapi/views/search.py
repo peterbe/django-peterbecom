@@ -296,9 +296,6 @@ def _search(
             texts.append(strip_tags(result["comment"])[:100] + "...")
         summary = "<br>".join(texts)
         blogitem_lookups.add(result["blogitem_id"])
-        from pprint import pprint
-
-        pprint(result)
         documents.append(
             {
                 "_id": result["blogitem_id"],
