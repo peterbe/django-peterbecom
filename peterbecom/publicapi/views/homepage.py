@@ -23,7 +23,11 @@ def homepage_blogitems(request):
         categories = []
         for oc in ocs:
             try:
-                categories.append(Category.objects.get(name=oc))
+                category = Category.objects.get(name__iexact=oc)
+                categories.append(category)
+                if category.name != oc:
+                    return http.HttpResponsePermanentRedirect(f"/oc-{category.name}")
+                    # return http.HttpResponseBadRequest(f"/oc-{category.name}")
             except Category.DoesNotExist:
                 return http.HttpResponseBadRequest(f"invalid oc {oc!r}")
 
