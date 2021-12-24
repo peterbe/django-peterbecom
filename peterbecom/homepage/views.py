@@ -631,7 +631,7 @@ def sitemap(request):
     # BlogItemTotalHits and use the join to build this list.
     # Then we can sort by a scoring function.
     # This will only work once ALL blogitems have at least 1 hit.
-    blogitems = BlogItem.objects.filter(pub_date__lt=now)
+    blogitems = BlogItem.objects.filter(pub_date__lt=now, archived__isnull=True)
 
     approved_comments_count = {}
     blog_comments_count_qs = (
@@ -645,6 +645,8 @@ def sitemap(request):
         approved_comments_count[count["blogitem_id"]] = count["count"]
 
     for blogitem in blogitems.order_by("-pub_date"):
+        if blogitem.archived:
+            print(repr(blogitem))
         age = (now - blogitem.modify_date).days
         comment_count = approved_comments_count.get(blogitem.id, 0)
         pages = comment_count // settings.MAX_RECENT_COMMENTS
