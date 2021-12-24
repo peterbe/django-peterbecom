@@ -645,8 +645,6 @@ def sitemap(request):
         approved_comments_count[count["blogitem_id"]] = count["count"]
 
     for blogitem in blogitems.order_by("-pub_date"):
-        if blogitem.archived:
-            print(repr(blogitem))
         age = (now - blogitem.modify_date).days
         comment_count = approved_comments_count.get(blogitem.id, 0)
         pages = comment_count // settings.MAX_RECENT_COMMENTS
