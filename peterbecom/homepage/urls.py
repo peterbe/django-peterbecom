@@ -23,7 +23,7 @@ urlpatterns = [
     re_path(
         r"avatar\.(?P<seed>\w+)\.png",
         views.avatar_image,
-        name="avatar_image",
+        name="avatar_image_seed",
     ),
     path("avatar.png", views.avatar_image, name="avatar_image"),
     path("__huey__", views.huey_test, name="huey_test"),
