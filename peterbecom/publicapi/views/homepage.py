@@ -6,6 +6,8 @@ from django.utils import timezone
 from peterbecom.homepage.utils import make_categories_q
 from peterbecom.plog.models import BlogComment, BlogItem, Category
 
+_global_oc_cache = {}
+
 
 def homepage_blogitems(request):
     context = {}
@@ -23,7 +25,11 @@ def homepage_blogitems(request):
         categories = []
         for oc in ocs:
             try:
-                category = Category.objects.get(name__iexact=oc)
+                if _global_oc_cache.get(oc.lower()):
+                    category = _global_oc_cache[oc.lower()]
+                else:
+                    category = Category.objects.get(name__iexact=oc)
+                    _global_oc_cache[oc.lower()] = category
                 categories.append(category)
                 if category.name != oc:
                     return http.HttpResponsePermanentRedirect(f"/oc-{category.name}")
