@@ -293,8 +293,8 @@ honcho==1.1.0 \
     --hash=sha256:a4d6e3a88a7b51b66351ecfc6e9d79d8f4b87351db9ad7e923f5632cc498122f \
     --hash=sha256:c5eca0bded4bef6697a23aec0422fd4f6508ea3581979a3485fc4b89357eb2a9
     # via -r requirements.in
-huey==2.4.2 \
-    --hash=sha256:20683288e27e851f786b38465784c5d0e7e2b93b8791cc826898f9555a320cb4
+huey==2.4.3 \
+    --hash=sha256:4fa2f6055d581778c3bcf93fc8c9ce87aecc2a345d5ff35bd955da152c02ef37
     # via -r requirements.in
 idna==2.10 \
     --hash=sha256:b307872f855b18632ce0c21c5e45be78c0ea7ae4c15c828c20788b26921eb3f6 \
