@@ -11,9 +11,12 @@ from peterbecom.plog.models import BlogComment, BlogItem
 
 def blogitem(request, oid):
     try:
-        blogitem = BlogItem.objects.get(oid__iexact=oid)
+        blogitem = BlogItem.objects.get(oid=oid)
     except BlogItem.DoesNotExist:
-        return http.HttpResponseNotFound(oid)
+        try:
+            blogitem = BlogItem.objects.get(oid__iexact=oid)
+        except BlogItem.DoesNotExist:
+            return http.HttpResponseNotFound(oid)
 
     future = timezone.now() + datetime.timedelta(days=10)
     if blogitem.pub_date > future:
@@ -134,12 +137,21 @@ def blogitem(request, oid):
     if root_comments_count > settings.MAX_RECENT_COMMENTS:
         comments_truncated = settings.MAX_RECENT_COMMENTS
 
+    _values = (
+        "id",
+        "add_date",
+        "parent_id",
+        "oid",
+        "name",
+        "comment_rendered",
+        "approved",
+    )
     all_comments = defaultdict(list)
-    for comment in root_comments:
-        all_comments[comment.parent_id].append(comment)
+    for comment in root_comments.values(*_values):
+        all_comments[comment["parent_id"]].append(comment)
 
-    for comment in replies:
-        all_comments[comment.parent_id].append(comment)
+    for comment in replies.values(*_values):
+        all_comments[comment["parent_id"]].append(comment)
 
     comments = {}
     comments["truncated"] = comments_truncated
@@ -167,7 +179,7 @@ def traverse_and_serialize_comments(all_comments, comment=None, depth=None):
     if not comment:
         iterator = all_comments[None]
     else:
-        iterator = all_comments[comment.id]
+        iterator = all_comments[comment["id"]]
     depth = depth or 0
     for comment in iterator:
         serialized = serialize_comment(comment)
@@ -183,14 +195,25 @@ def traverse_and_serialize_comments(all_comments, comment=None, depth=None):
 
 
 def serialize_comment(blogcomment):
-    return {
-        "id": blogcomment.id,
-        "oid": blogcomment.oid,
-        "add_date": blogcomment.add_date,
-        "name": blogcomment.name or None,
-        "comment": blogcomment.comment_rendered,
-        "approved": bool(blogcomment.approved),
-    }
+    if isinstance(blogcomment, dict):
+        return {
+            "id": blogcomment["id"],
+            "oid": blogcomment["oid"],
+            "add_date": blogcomment["add_date"],
+            "name": blogcomment["name"] or None,
+            "comment": blogcomment["comment_rendered"],
+            "approved": bool(blogcomment["approved"]),
+        }
+    else:
+        raise Exception("/????")
+        return {
+            "id": blogcomment.id,
+            "oid": blogcomment.oid,
+            "add_date": blogcomment.add_date,
+            "name": blogcomment.name or None,
+            "comment": blogcomment.comment_rendered,
+            "approved": bool(blogcomment.approved),
+        }
 
 
 def get_blogcomment_slice(count_comments, page):
