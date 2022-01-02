@@ -3,10 +3,12 @@ from collections import defaultdict
 from django import http
 from django.db.models import Count
 from django.utils import timezone
+from django.views.decorators.cache import cache_page
 
 from peterbecom.plog.models import BlogComment, BlogItem, Category
 
 
+@cache_page(60)
 def blogitems(request):
     groups = defaultdict(list)
     now = timezone.now()
