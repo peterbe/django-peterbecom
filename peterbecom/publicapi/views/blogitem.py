@@ -9,7 +9,7 @@ from django.views.decorators.cache import cache_page
 from peterbecom.plog.models import BlogComment, BlogItem
 
 
-@cache_page(60)
+@cache_page(0 if settings.DEBUG else 60)
 def blogitem(request, oid):
     try:
         blogitem = BlogItem.objects.get(oid=oid)
