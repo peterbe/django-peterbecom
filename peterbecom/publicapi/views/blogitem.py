@@ -1,14 +1,15 @@
 import datetime
 from collections import defaultdict
 
-
 from django.utils import timezone
 from django import http
 from django.conf import settings
+from django.views.decorators.cache import cache_page
 
 from peterbecom.plog.models import BlogComment, BlogItem
 
 
+@cache_page(0 if settings.DEBUG else 60)
 def blogitem(request, oid):
     try:
         blogitem = BlogItem.objects.get(oid=oid)

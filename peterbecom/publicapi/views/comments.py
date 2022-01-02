@@ -5,6 +5,7 @@ from django import http
 from django.conf import settings
 from django.core.cache import cache
 from django.db import transaction
+from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
 
@@ -20,6 +21,7 @@ from peterbecom.plog.utils import render_comment_text
 from peterbecom.publicapi.forms import SubmitForm
 
 
+@never_cache
 @ensure_csrf_cookie
 def prepare_comment(request):
     token = request.META["CSRF_COOKIE"]

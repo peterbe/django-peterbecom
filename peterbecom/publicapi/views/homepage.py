@@ -2,6 +2,7 @@ from django import http
 from django.conf import settings
 from django.db.models import Count
 from django.utils import timezone
+from django.views.decorators.cache import cache_page
 
 from peterbecom.homepage.utils import make_categories_q
 from peterbecom.plog.models import BlogComment, BlogItem, Category
@@ -9,6 +10,7 @@ from peterbecom.plog.models import BlogComment, BlogItem, Category
 _global_oc_cache = {}
 
 
+@cache_page(0 if settings.DEBUG else 60)
 def homepage_blogitems(request):
     context = {}
     try:
