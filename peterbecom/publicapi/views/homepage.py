@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django import http
 from django.conf import settings
 from django.db.models import Count
@@ -74,20 +76,27 @@ def homepage_blogitems(request):
 
     context["posts"] = []
 
+    category_names = dict((x.id, x.name) for x in Category.objects.all())
+    categories = defaultdict(list)
+    for e in BlogItem.categories.through.objects.all():
+        categories[e.blogitem_id].append(category_names[e.category_id])
+
     def serialize_blogitem(blogitem):
         serialized = {
-            "oid": blogitem.oid,
-            "title": blogitem.title,
-            "pub_date": blogitem.pub_date,
-            "comments": approved_comments_count.get(blogitem.id) or 0,
-            "categories": [x.name for x in blogitem.categories.all()],
-            "html": blogitem.text_rendered,
-            "url": blogitem.url,
-            "disallow_comments": blogitem.disallow_comments,
+            "oid": blogitem["oid"],
+            "title": blogitem["title"],
+            "pub_date": blogitem["pub_date"],
+            "comments": approved_comments_count.get(blogitem["id"]) or 0,
+            "categories": categories[blogitem["id"]],
+            "html": blogitem["text_rendered"],
+            "url": blogitem["url"],
+            "disallow_comments": blogitem["disallow_comments"],
         }
         return serialized
 
-    for blogitem in blogitems:
+    for blogitem in blogitems.values(
+        "id", "oid", "title", "pub_date", "text_rendered", "url", "disallow_comments"
+    ):
         context["posts"].append(serialize_blogitem(blogitem))
 
     return http.JsonResponse(context)
