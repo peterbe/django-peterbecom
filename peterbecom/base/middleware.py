@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 from django import http
 from django.conf import settings
 from django.core.cache import cache
+from django.core.exceptions import MiddlewareNotUsed
 from django.utils.encoding import force_bytes
 
 from peterbecom.base import fscache
@@ -23,6 +24,9 @@ def _is_too_new(fs_path: Path, timeout=5):
 class FSCacheMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
+
+        if not settings.FSCACHE_ROOT:
+            raise MiddlewareNotUsed
 
     def __call__(self, request):
 

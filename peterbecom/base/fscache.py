@@ -66,6 +66,9 @@ def _invalidate(fs_path: Path):
 
 
 def invalidate_by_url(url, revisit=False):
+    if not settings.FSCACHE_ROOT:
+        print("Note! FSCACHE_ROOT is not set. Not going to invalidate anything by URL!")
+        return
     if not url.startswith("/"):
         url = urlparse(url).path
     if not url.endswith("/"):
@@ -227,6 +230,10 @@ def invalidate_too_old(
 
 
 def delete_empty_directories(verbose=False, dry_run=False):
+    if not settings.FSCACHE_ROOT:
+        print("Note! FSCACHE_ROOT is not set. Can't delete empty directories.")
+        return
+
     deleted = []
 
     def walk(root: Path):
@@ -251,8 +258,9 @@ def delete_empty_directories(verbose=False, dry_run=False):
 
 def cache_request(request, response):
     if not settings.FSCACHE_ROOT:
-        # bail if it hasn't been set up
+        print("Note! FSCACHE_ROOT is not set. Not going to cache any requests!")
         return False
+
     if (
         request.method == "GET"
         and
