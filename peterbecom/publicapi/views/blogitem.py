@@ -9,7 +9,7 @@ from django.views.decorators.cache import cache_page
 from peterbecom.plog.models import BlogComment, BlogItem
 
 
-@cache_page(0 if settings.DEBUG else 60)
+@cache_page(10 if settings.DEBUG else 60 * 5, key_prefix="publicapi_cache_page")
 def blogitem(request, oid):
     try:
         blogitem = BlogItem.objects.get(oid=oid)

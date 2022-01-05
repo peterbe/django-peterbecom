@@ -33,10 +33,6 @@ class HTMLRenderingError(Exception):
     """When rendering Markdown or RsT generating invalid HTML."""
 
 
-def _get_doc_type_name(model):
-    return model._meta.verbose_name.lower().replace(" ", "_")
-
-
 class Category(models.Model):
     name = models.CharField(max_length=100)
 
