@@ -12,7 +12,7 @@ from peterbecom.plog.models import BlogComment, BlogItem, Category
 _global_oc_cache = {}
 
 
-@cache_page(0 if settings.DEBUG else 60)
+@cache_page(10 if settings.DEBUG else 60 * 5, key_prefix="publicapi_cache_page")
 def homepage_blogitems(request):
     context = {}
     try:
