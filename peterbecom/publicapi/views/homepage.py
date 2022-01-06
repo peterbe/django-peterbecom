@@ -76,7 +76,7 @@ def homepage_blogitems(request):
 
     context["posts"] = []
 
-    category_names = dict((x.id, x.name) for x in Category.objects.all())
+    category_names = dict(Category.objects.all().values_list("id", "name"))
     categories = defaultdict(list)
     for e in BlogItem.categories.through.objects.all():
         categories[e.blogitem_id].append(category_names[e.category_id])

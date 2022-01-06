@@ -143,6 +143,10 @@ def revisit_url(path: Path, verbose=False):
 def invalidate_too_old(
     verbose=False, dry_run=False, revisit=False, check_other_files_age=False
 ):
+    if not settings.FSCACHE_ROOT:
+        print("Note! FSCACHE_ROOT is not set. Not going to things that are too old.")
+        return
+
     found = []
     deleted = []
 
