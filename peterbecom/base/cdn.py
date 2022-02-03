@@ -1,6 +1,7 @@
 import inspect
 from urllib.parse import urlparse
 from itertools import islice
+from pathlib import Path
 
 import keycdn
 import requests
@@ -147,6 +148,31 @@ def purge_cdn_urls(urls, api=None):
                 all_urls, urls, r
             )
         )
+
+    # In production, because the backend server is actually fronted by
+    # both the CDN and Nginx, we also have to ask Nginx to purge.
+    if settings.NGINX_CACHE_DIRECTORY:
+        try:
+            root = settings.NGINX_CACHE_DIRECTORY
+            if isinstance(root, str):
+                root = Path(root)
+
+            for file in list(root.iterdir()):
+                with open(file, "rb") as f:
+                    content = f.read()
+                    if url.encode("utf-8") in content:
+                        file.unlink()
+                        print(
+                            f"NGINX_CACHE_DIRECTORY: Yay! Found traces of URL in nginx cache file {file}"
+                        )
+                        break
+
+        except Exception as err:
+            print(
+                f"NGINX_CACHE_DIRECTORY: Unable to delete Nginx cache file by {url!r}",
+                err,
+            )
+
     return {"result": r, "all_urls": all_all_urls}
 
 

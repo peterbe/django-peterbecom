@@ -438,6 +438,9 @@ USE_NGINX_BYPASS = False
 # it might need a base_url if the request URL is just the path.
 NGINX_BYPASS_BASEURL = None
 
+# E.g. /var/cache/nginx-cache/next
+NGINX_CACHE_DIRECTORY = None
+
 ORIGIN_TO_HOST = {"www-origin.peterbe.com": "www.peterbe.com"}
 
 FAKE_BLOG_COMMENT_IP_ADDRESS = False
