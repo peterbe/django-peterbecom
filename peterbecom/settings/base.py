@@ -207,7 +207,6 @@ INSTALLED_APPS = (
     "peterbecom.ajaxornot",
     "peterbecom.localvsxhr",
     "peterbecom.cdnthis",
-    "peterbecom.podcasttime",
     "peterbecom.awspa",
     "peterbecom.minimalcss",
     "peterbecom.bayes",
