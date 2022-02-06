@@ -27,7 +27,7 @@ class ScrapingError(Exception):
 def api_cards(request):
     context = {"cards": []}
     qs = Card.objects
-    batch_size = 40
+    batch_size = 80
 
     since = request.GET.get("since")
     if since == "null":
