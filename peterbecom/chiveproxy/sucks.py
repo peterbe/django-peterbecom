@@ -145,16 +145,29 @@ def get_card(url):
             gifsrc = gifsrc.replace("http://", "https://")
             # assert gifsrc.startswith("https://")
 
+        combined_caption = "\n".join(
+            [x.strip() for x in caption if x.replace("\xa0", " ").strip()]
+        )
+        combined_caption_html = "<br>".join(
+            [
+                x.strip()
+                for x in caption_html
+                if remove_html_comments(x).replace("\xa0", " ").strip()
+            ]
+        )
+
         pictures.append(
             {
                 "img": src,
                 "gifsrc": gifsrc,
                 "mp4src": mp4src,
-                "caption": "\n".join(caption),
-                "caption_html": "<br>".join(
-                    [x.strip() for x in caption_html if x.strip()]
-                ),
+                "caption": combined_caption,
+                "caption_html": combined_caption_html,
             }
         )
 
     return {"text": text, "pictures": pictures, "date": date}
+
+
+def remove_html_comments(html_string):
+    return re.sub("(<!--.*?-->)", "", html_string, flags=re.DOTALL)
