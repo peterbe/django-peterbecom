@@ -9,7 +9,7 @@ on:
       - .github/workflows/adminui.yml
 
 jobs:
-  build:
+  build-and-test-adminui:
     runs-on: ubuntu-latest
 
     steps:

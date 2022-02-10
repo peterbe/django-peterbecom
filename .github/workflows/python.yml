@@ -10,7 +10,7 @@ on:
     branches: [master]
 
 jobs:
-  build:
+  build-and-test-django:
     runs-on: ubuntu-latest
 
     steps:
