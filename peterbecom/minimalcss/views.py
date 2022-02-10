@@ -43,6 +43,12 @@ def minimize(request):
 
     prettier = options.get("prettier")
 
+    print(
+        "SENDING",
+        url,
+        "TO",
+        settings.MINIMALCSS_SERVER_URL + "/minimize",
+    )
     t0 = time.time()
     r = requests.post(
         settings.MINIMALCSS_SERVER_URL + "/minimize",
