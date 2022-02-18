@@ -1,7 +1,6 @@
 import inspect
 from urllib.parse import urlparse
 from itertools import islice
-from pathlib import Path
 
 import keycdn
 import requests
@@ -54,127 +53,91 @@ def get_cdn_config(api=None):
 
 
 def purge_cdn_urls(urls, api=None):
-    if settings.USE_NGINX_BYPASS:
-        # Note! This Nginx trick will not just purge the proxy_cache, it will
-        # immediately trigger a refetch.
-        x_cache_headers = []
-        urls_succeeded = []
-        urls_failed = []
-        for url in urls:
-            if "://" not in url:
-                absolute_url = settings.NGINX_BYPASS_BASEURL + url
+    all_all_urls = []
+    all_results = []
+    if settings.PURGE_URL:
+        payload = {
+            "pathnames": urls,
+        }
+        headers = {}
+        if settings.PURGE_SECRET:
+            headers["Authorization"] = f"Bearer {settings.PURGE_SECRET}"
+        r = requests.post(settings.PURGE_URL, json=payload, headers=headers)
+        if r.status_code == 200:
+            print("PURGE RESULT:", r.json())
+            all_results.append(True)
+            CDNPurgeURL.succeeded(urls)
+        else:
+            print("PURGE FAILURE:", r)
+            CDNPurgeURL.failed(urls)
+
+    if settings.SEND_KEYCDN_PURGES:
+        if not keycdn_zone_check():
+            print("WARNING! Unable to use KeyCDN API at the moment :(")
+            return
+
+        if not api:
+            api = keycdn.Api(settings.KEYCDN_API_KEY)
+            api.session = get_requests_retry_session()
+        config = get_cdn_config(api)
+        # See https://www.keycdn.com/api#purge-zone-url
+        try:
+            cachebr = config["data"]["zone"]["cachebr"] == "enabled"
+        except KeyError:
+            raise BrokenKeyCDNConfig("Config={!r}".format(config))
+        all_urls = []
+
+        # For KeyCDN we need to do some transformations. Our URLs are different
+        # from the KeyCDN "URLs". When we make this transformation, maintain a map
+        # *back* to the original URLs as they're known to us.
+        original_urls = {}
+
+        for absolute_url in urls:
+            url = settings.KEYCDN_ZONE_URL + urlparse(absolute_url).path
+            all_urls.append(url)
+            original_urls[url] = absolute_url
+            if cachebr:
+                all_urls.append(url + "br")
+                original_urls[url + "br"] = absolute_url
+
+        # Make absolutely sure nothing's repeated.
+        all_all_urls.extend(sorted(list(set(all_urls))))
+
+        def get_original_urls(cdn_urls):
+            original = set()
+            for url in cdn_urls:
+                original_url = original_urls[url]
+                if "://" in original_url and original_url.startswith("http"):
+                    original_url = urlparse(original_url).path
+                original.add(original_url)
+            return original
+
+        def chunks(it, size):
+            iterator = iter(it)
+            while chunk := list(islice(iterator, size)):
+                yield chunk
+
+        # Break it up into lists of 100
+        for all_urls in chunks(all_all_urls, 100):
+            call = f"zones/purgeurl/{settings.KEYCDN_ZONE_ID}.json"
+            params = {"urls": all_urls}
+
+            with open("/tmp/purge_cdn_urls.log", "a") as f:
+                f.write(f"{timezone.now()}\t{all_urls!r}\t{get_stack_signature()}\n")
             try:
-                r = requests.get(absolute_url, headers={"secret-header": "true"})
-                if r.status_code == 404:
-                    # Rogue URL, but don't raise an error or it'll get stuck
-                    pass
-                else:
-                    r.raise_for_status()
-                    x_cache_headers.append(
-                        {"url": absolute_url, "x-cache": r.headers.get("x-cache")}
-                    )
-                urls_succeeded.append(url)
+                r = api.delete(call, params)
+                CDNPurgeURL.succeeded(get_original_urls(all_urls))
+                all_results.append(r)
+
             except Exception:
-                urls_failed.append(url)
-                CDNPurgeURL.failed(urls_failed)
+                CDNPurgeURL.failed(get_original_urls(all_urls))
                 raise
-        if urls_succeeded:
-            CDNPurgeURL.succeeded(urls_succeeded)
-        return {"all_urls": urls, "result": x_cache_headers}
-
-    if not keycdn_zone_check():
-        print("WARNING! Unable to use KeyCDN API at the moment :(")
-        return
-
-    if not api:
-        api = keycdn.Api(settings.KEYCDN_API_KEY)
-        api.session = get_requests_retry_session()
-    config = get_cdn_config(api)
-    # See https://www.keycdn.com/api#purge-zone-url
-    try:
-        cachebr = config["data"]["zone"]["cachebr"] == "enabled"
-    except KeyError:
-        raise BrokenKeyCDNConfig("Config={!r}".format(config))
-    all_urls = []
-
-    # For KeyCDN we need to do some transformations. Our URLs are different
-    # from the KeyCDN "URLs". When we make this transformation, maintain a map
-    # *back* to the original URLs as they're known to us.
-    original_urls = {}
-
-    for absolute_url in urls:
-        url = settings.KEYCDN_ZONE_URL + urlparse(absolute_url).path
-        all_urls.append(url)
-        original_urls[url] = absolute_url
-        if cachebr:
-            all_urls.append(url + "br")
-            original_urls[url + "br"] = absolute_url
-
-    # Make absolutely sure nothing's repeated.
-    all_all_urls = sorted(list(set(all_urls)))
-
-    def get_original_urls(cdn_urls):
-        original = set()
-        for url in cdn_urls:
-            original_url = original_urls[url]
-            if "://" in original_url and original_url.startswith("http"):
-                original_url = urlparse(original_url).path
-            original.add(original_url)
-        return original
-
-    def chunks(it, size):
-        iterator = iter(it)
-        while chunk := list(islice(iterator, size)):
-            yield chunk
-
-    # Break it up into lists of 100
-    for all_urls in chunks(all_all_urls, 100):
-        call = "zones/purgeurl/{}.json".format(settings.KEYCDN_ZONE_ID)
-        params = {"urls": all_urls}
-
-        with open("/tmp/purge_cdn_urls.log", "a") as f:
-            f.write(
-                "{}\t{!r}\t{}\n".format(timezone.now(), all_urls, get_stack_signature())
-            )
-        try:
-            r = api.delete(call, params)
-            CDNPurgeURL.succeeded(get_original_urls(all_urls))
-
-        except Exception:
-            CDNPurgeURL.failed(get_original_urls(all_urls))
-            raise
-        print(
-            "SENT CDN PURGE FOR: {!r}\tORIGINAL URLS: {!r}\tRESULT: {}".format(
-                all_urls, urls, r
-            )
-        )
-
-    # In production, because the backend server is actually fronted by
-    # both the CDN and Nginx, we also have to ask Nginx to purge.
-    if settings.NGINX_CACHE_DIRECTORY:
-        try:
-            for url in urls:
-                root = settings.NGINX_CACHE_DIRECTORY
-                if isinstance(root, str):
-                    root = Path(root)
-
-                for file in list(root.iterdir()):
-                    with open(file, "rb") as f:
-                        content = f.read()
-                        if url.encode("utf-8") in content:
-                            file.unlink()
-                            print(
-                                f"NGINX_CACHE_DIRECTORY: Yay! Found traces of URL in nginx cache file {file}"
-                            )
-                            break
-
-        except Exception as err:
             print(
-                f"NGINX_CACHE_DIRECTORY: Unable to delete Nginx cache file by {url!r}",
-                err,
+                f"SENT CDN PURGE FOR: {all_urls!r}\t"
+                f"ORIGINAL URLS: {urls!r}\tRESULT: {r}"
             )
 
-    return {"result": r, "all_urls": all_all_urls}
+    return {"results": all_results, "all_urls": all_all_urls}
 
 
 def keycdn_zone_check(refresh=False):

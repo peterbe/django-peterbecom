@@ -223,7 +223,7 @@ function ProbeUrl() {
               );
             })}
           </ul>
-          <pre>{JSON.stringify(purgeResult.purge.result, null, 2)}</pre>
+          <pre>{JSON.stringify(purgeResult.purge.results, null, 2)}</pre>
         </div>
       )}
       {deletedFSCacheFiles ? (
