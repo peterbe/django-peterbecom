@@ -1,3 +1,5 @@
+from subprocess import TimeoutExpired
+
 from django import http
 from django.conf import settings
 from django.core.cache import cache
@@ -80,7 +82,8 @@ def update_cards_periodically():
     update_cards(limit=15)
 
 
-@periodic_task(crontab(hour="*", minute="10"))
+# @periodic_task(crontab(hour="*", minute="10"))
+@periodic_task(crontab(minute="*/15"))
 def update_cards_without_pictures_periodically():
     print(f"CARDS: Updating cards without pictures ({timezone.now()})")
     qs = Card.objects
@@ -109,10 +112,17 @@ def update_cards(limit=None):
     for card in sorted(get_cards(limit=limit), key=lambda c: c["date"]):
         url = card.pop("url")
         if not Card.objects.filter(url=url).exists():
-            data = get_card(url)
-            if data:
-                card.update(data)
-                Card.objects.create(url=url, data=card)
+            key = f"get_card_failures:{url}"
+            previous_value = cache.get(key) or 0
+            print(f"PREVIOUS FAILURES {url}: {previous_value}")
+            try:
+                data = get_card(url)
+                if data:
+                    card.update(data)
+                    Card.objects.create(url=url, data=card)
+            except TimeoutExpired:
+                new_value = previous_value + 1
+                cache.set(key, new_value, 60 * 60)
 
 
 @cache_control(max_age=settings.DEBUG and 10 or 60 * 60 * 6, public=True)
