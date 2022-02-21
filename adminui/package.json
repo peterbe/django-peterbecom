@@ -21,7 +21,7 @@
     "semantic-ui-css": "2.4.1",
     "semantic-ui-react": "2.1.2",
     "sockette": "2.0.6",
-    "swr": "1.2.0",
+    "swr": "1.2.2",
     "web-vitals": "2.1.4"
   },
   "resolutions": {
