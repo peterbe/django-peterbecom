@@ -43,7 +43,7 @@ aiohttp==3.7.4.post0 \
     --hash=sha256:f881853d2643a29e643609da57b96d5f9c9b93f62429dcc1cbb413c7d07f0e1a \
     --hash=sha256:fe60131d21b31fd1a14bd43e6bb88256f69dfc3188b3a89d736d6c71ed43ec95
     # via geoip2
-amightygirl.paapi5-python-sdk==1.0.0 \
+amightygirl-paapi5-python-sdk==1.0.0 \
     --hash=sha256:03703b228f8f93f1d3473e98054ebde7a4ca3184dd7f3645b4b95f4cdf9229d1 \
     --hash=sha256:9d1f03bca56911e1dc779e81202260988cfea3f48bc71d5fb5688e2ee79c709b
     # via -r requirements.in
@@ -119,7 +119,7 @@ certifi==2021.5.30 \
     --hash=sha256:2bbf76fd432960138b3ef6dda3dde0544f27cbf8546c458e60baf371917ba9ee \
     --hash=sha256:50b1e4f8446b06f41be7dd6338db18e0990601dce795c2b1686458aa7e8fa7d8
     # via
-    #   amightygirl.paapi5-python-sdk
+    #   amightygirl-paapi5-python-sdk
     #   elasticsearch
     #   requests
 cffi==1.14.5 \
@@ -227,7 +227,7 @@ defusedxml==0.7.1 \
     --hash=sha256:1bb3032db185915b62d7c6209c5a8792be6a32ab2fedacc84e01b52c51aa3e69 \
     --hash=sha256:a352e7e428770286cc899e2542b6cdaedb2b4953ff269a210103ec58f6198a61
     # via cairosvg
-delegator.py==0.1.1 \
+delegator-py==0.1.1 \
     --hash=sha256:814657d96b98a244c479e3d5f6e9e850ac333e85f807d6bc846e72bbb2537806 \
     --hash=sha256:e6cc9cedab9ae59b169ee0422e17231adedadb144e63c0b5a60e6ff8adf8521b
     # via -r requirements.in
@@ -286,8 +286,9 @@ flake8==4.0.1 \
     --hash=sha256:479b1304f72536a55948cb40a32dce8bb0ffe3501e26eaf292c7e60eb5e0428d \
     --hash=sha256:806e034dda44114815e23c16ef92f95c91e4c71100ff52813adf7132a6ad870d
     # via -r requirements.in
-ftfy==6.0.3 \
-    --hash=sha256:ba71121a9c8d7790d3e833c6c1021143f3e5c4118293ec3afb5d43ed9ca8e72b
+ftfy==6.1.1 \
+    --hash=sha256:0ffd33fce16b54cccaec78d6ec73d95ad370e5df5a25255c8966a6147bd667ca \
+    --hash=sha256:bfc2019f84fcd851419152320a6375604a0f1459c281b5b199b2cd0d2e727f8f
     # via -r requirements.in
 geoip2==4.5.0 \
     --hash=sha256:2aed03b45f8037b9e16f02567bcf3623801d6d20689c5fc5676d7c08ed067334 \
@@ -507,7 +508,7 @@ pep517==0.10.0 \
 pexpect==4.8.0 \
     --hash=sha256:0b48a55dcb3c05f3329815901ea4fc1537514d6ba867a152b581d69ae3710937 \
     --hash=sha256:fc65a43959d153d0114afe13997d439c22823a27cefceb5ff35c2178c6784c0c
-    # via delegator.py
+    # via delegator-py
 pillow==9.0.0 \
     --hash=sha256:03b27b197deb4ee400ed57d8d4e572d2d8d80f825b6634daf6e2c18c3c6ccfa6 \
     --hash=sha256:0b281fcadbb688607ea6ece7649c5d59d4bbd574e90db6cd030e9e85bde9fecc \
@@ -675,7 +676,7 @@ python-dateutil==2.8.2 \
     --hash=sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9
     # via
     #   -r requirements.in
-    #   amightygirl.paapi5-python-sdk
+    #   amightygirl-paapi5-python-sdk
     #   elasticsearch-dsl
 python-decouple==3.5 \
     --hash=sha256:68e4b3fcc97e24bc90eecc514852d0bf970f4ff031f5f7a6728ddafa9afefcaf
@@ -716,7 +717,7 @@ six==1.16.0 \
     --hash=sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926 \
     --hash=sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254
     # via
-    #   amightygirl.paapi5-python-sdk
+    #   amightygirl-paapi5-python-sdk
     #   bleach
     #   elasticsearch-dsl
     #   pyopenssl
@@ -752,7 +753,7 @@ urllib3==1.26.5 \
     --hash=sha256:753a0374df26658f99d826cfe40394a686d05985786d946fbe4165b5148f5a7c \
     --hash=sha256:a7acd0977125325f516bda9735fa7142b909a8d01e8b2e4c8108d0984e6e0098
     # via
-    #   amightygirl.paapi5-python-sdk
+    #   amightygirl-paapi5-python-sdk
     #   elasticsearch
     #   geoip2
     #   requests
@@ -867,7 +868,7 @@ yarl==1.6.3 \
     --hash=sha256:f0b059678fd549c66b89bed03efcabb009075bd131c248ecdf087bdb6faba24a \
     --hash=sha256:fcbb48a93e8699eae920f8d92f7160c03567b421bc17362a9ffbbd706a816f71
     # via aiohttp
-zope.structuredtext==4.3 \
+zope-structuredtext==4.3 \
     --hash=sha256:59e8cac73e4d7e35b92411bb5d14cfef0ac651f495cebdf83f063f396abca29e \
     --hash=sha256:b104e76b090179f11f0462ef7efb4d31378b0e4e20b1d844eae05d2da5e97d00
     # via -r requirements.in
