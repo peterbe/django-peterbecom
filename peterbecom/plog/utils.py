@@ -18,6 +18,7 @@ from requests.exceptions import ConnectionError
 import zope.structuredtext
 from pygments import highlight
 from pygments import lexers
+from pygments.lexers.sql import SqlLexer
 from pygments.formatters import HtmlFormatter
 from pygmentslexerbabylon import BabylonLexer
 from bleach.linkifier import Linker
@@ -189,6 +190,7 @@ LEXER_CLASSES = {
     "docker": lexers.DockerLexer,
     "nginx": lexers.NginxConfLexer,
     "typescript": lexers.TypeScriptLexer,
+    "sql": SqlLexer,
 }
 LEXER_ALIASES = {
     "cpp": "js",
