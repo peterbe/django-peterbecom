@@ -37,7 +37,7 @@ django-redis==5.2.0
 psycopg2-binary==2.9.3
 bleach==4.1.0
 rollbar==0.16.2
-zopfli==0.1.9
+zopfli==0.2.1
 huey==2.4.3
 brotlipy==0.7.0
 backoff==1.11.1
