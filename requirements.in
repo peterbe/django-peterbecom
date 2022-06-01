@@ -15,7 +15,7 @@ requests==2.27.1
 lxml==4.8.0
 django-semanticui-form==0.0.1
 django-pipeline==2.0.8
-feedparser==6.0.8
+feedparser==6.0.10
 pyquery==1.4.3
 xmltodict==0.12.0
 pygments-lexer-babylon==0.12.0
