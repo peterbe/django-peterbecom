@@ -248,9 +248,9 @@ django==3.2.11 \
     #   django-redis
     #   django-semanticui-form
     #   mozilla-django-oidc
-django-jinja==2.10.0 \
-    --hash=sha256:ae6a3fdf1ffa7a9ef6fd2f0a59c1a68c96b29f7f00f5166375658ef392f1ed32 \
-    --hash=sha256:cce084eaf0be8a89f0955cde34cf33da7faaf6c68d05c076eda6fcd98481264c
+django-jinja==2.10.2 \
+    --hash=sha256:bfdfbb55c1f5a679d69ad575d550c4707d386634009152efe014089f3c4d1412 \
+    --hash=sha256:dd003ec1c95c0989eb28a538831bced62b1b61da551cb44a5dfd708fcf75589f
     # via -r requirements.in
 django-pipeline==2.0.8 \
     --hash=sha256:26f1d344a7bf39bc92c9dc520093471d912de53abd7d22ac715e77d779a831c8 \
