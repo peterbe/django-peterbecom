@@ -65,9 +65,9 @@ backoff==2.0.1 \
     --hash=sha256:8700797e5f45e41ee3bf357137f074a174797016dc9ad3c2b974a955bab92b50 \
     --hash=sha256:bd6f32d4aff2607a578e847bf5bdb978a0eb1911fe5c0b0a73325328881bb31c
     # via -r requirements.in
-bleach==4.1.0 \
-    --hash=sha256:0900d8b37eba61a802ee40ac0061f8c2b5dee29c1927dd1d233e075ebf5a71da \
-    --hash=sha256:4d2651ab93271d1129ac9cbc679f524565cc8a1b791909c4a51eac4446a15994
+bleach==5.0.0 \
+    --hash=sha256:08a1fe86d253b5c88c92cc3d810fd8048a16d15762e1e5b74d502256e5926aa1 \
+    --hash=sha256:c6d6cc054bdc9c83b48b8083e236e5f00f238428666d2ce2e083eaa5fd568565
     # via -r requirements.in
 brotlipy==0.7.0 \
     --hash=sha256:07194f4768eb62a4f4ea76b6d0df6ade185e24ebd85877c351daa0a069f1111a \
@@ -501,7 +501,6 @@ packaging==20.9 \
     --hash=sha256:5b327ac1320dc863dca72f4514ecc086f31186744b84a230374cc1fd776feae5 \
     --hash=sha256:67714da7f7bc052e064859c05c595155bd1ee9f69f76557e21f051443c20947a
     # via
-    #   bleach
     #   pytest
     #   redis
 pep517==0.10.0 \
