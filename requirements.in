@@ -41,7 +41,7 @@ zopfli==0.2.1
 huey==2.4.3
 brotlipy==0.7.0
 backoff==2.1.2
-geoip2==4.5.0
+geoip2==4.6.0
 keycdn==0.4.3
 django-querycount==0.7.0
 profanity==1.1
