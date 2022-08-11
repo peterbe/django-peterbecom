@@ -3,7 +3,7 @@
 #   pip-compile --generate-hashes requirements.in
 #   pip install -I -r requirements.txt --allow-unsafe
 
-Django==3.2.14
+Django==3.2.15
 Jinja2==3.0.3
 Pygments==2.12.0
 Markdown==3.3.4
