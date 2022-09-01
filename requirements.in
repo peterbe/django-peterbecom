@@ -53,7 +53,7 @@ mozilla-django-oidc==2.0.0
 mock==4.0.3
 pytest==7.1.2
 pytest-django==4.5.2
-requests-mock==1.9.3
+requests-mock==1.10.0
 
 # Dev requirements
 # Not sure these belong in here but what the heck, it's not a huge overhead
