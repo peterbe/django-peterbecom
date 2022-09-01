@@ -14,7 +14,7 @@
     "halfmoon": "1.1.1",
     "html-minifier": "4.0.0",
     "puppeteer": "13.7.0",
-    "uglify-js": "^3.16.3"
+    "uglify-js": "^3.17.0"
   },
   "devDependencies": {
     "@babel/preset-env": "7.18.9"
