@@ -272,9 +272,9 @@ django-semanticui-form==0.0.1 \
     --hash=sha256:6d43a663ec45d8d125b4d55053318c6d74f15d2893fd890bc751fafd6fc15ab7 \
     --hash=sha256:d3fe71ea4586b1bfb214f7b549321879cc4104bbf7e73f1d64f81a27322ef8c9
     # via -r requirements.in
-elasticsearch==7.17.4 \
-    --hash=sha256:540d646908761120926850e98230ffc08fee9a3f9b45073d42de08246f598652 \
-    --hash=sha256:81c1d15b0f9382b2dc40a896c634f8de09bfcd5079e19a8412940a9ddfbde64b
+elasticsearch==7.17.6 \
+    --hash=sha256:2c3400c9e9c7fee46c4732fb32b933577aebb07b5e94df025f6ff1a30d2397d0 \
+    --hash=sha256:f4b779fc2a035904b97bef0542110372efd94aa7ab2c13749af73158c08be110
     # via
     #   -r requirements.in
     #   elasticsearch-dsl
