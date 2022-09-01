@@ -766,9 +766,9 @@ six==1.16.0 \
     #   python-dateutil
     #   requests-mock
     #   rollbar
-sorl-thumbnail==12.8.0 \
-    --hash=sha256:7788b460d90896f1f8f2f1e5ad21bcf9dec744c35ce71654d1e0c6ef41f90b9c \
-    --hash=sha256:ee2a3c9f0b889e59919383d3781f1317dc9c4927fb44b22fb1437f6fe7054b96
+sorl-thumbnail==12.9.0 \
+    --hash=sha256:0cbc2f52152e7f2266e3c2cb4ae5d83afd2e96fd5e1c42e5667362baaa3d2db3 \
+    --hash=sha256:ec586724bea7dc8c53561ce18335ea641fcd0e560d6387b2353a2afdd06705a4
     # via -r requirements.in
 sqlparse==0.4.2 \
     --hash=sha256:0c00730c74263a94e5a9919ade150dfc3b19c574389985446148402998287dae \
