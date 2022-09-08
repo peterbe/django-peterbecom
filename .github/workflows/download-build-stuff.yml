@@ -23,6 +23,7 @@ jobs:
         run: |
 
           ls -l
+          file buildstuff
           unzip buildstuff.zip
           ls -l buildstuff
           cat buildstuff/file.txt
