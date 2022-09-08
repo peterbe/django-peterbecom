@@ -17,11 +17,12 @@ jobs:
         with:
           repo: peterbe/github-action-tricks
           token: ${{ secrets.GITHUB_TOKEN }}
-          artifact_name: buildstuff
+          artifact_name: buildstuff.zip
 
       - name: Look if something got downloaded
         run: |
 
           ls -l
+          unzip buildstuff.zip
           ls -l buildstuff
           cat buildstuff/file.txt
