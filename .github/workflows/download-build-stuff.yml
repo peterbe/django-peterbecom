@@ -25,6 +25,8 @@ jobs:
           ls -l
           file buildstuff*
           # file buildstuff
-          # unzip buildstuff.zip
+          unzip buildstuff.zip
+          tree
+          ls -ltr buildstuff*
           # ls -l buildstuff
           # cat buildstuff/file.txt
