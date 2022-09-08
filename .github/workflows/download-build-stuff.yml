@@ -1,0 +1,13 @@
+name: Download uploaded build stuff
+
+on:
+  repository_dispatch:
+    types: [ping]
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Only if started on repository_dispatch
+        if: github.event.action == 'ping'
+        run: echo "yes it was run because of a repository_dispatch"
