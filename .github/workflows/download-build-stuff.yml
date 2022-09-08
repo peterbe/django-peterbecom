@@ -23,11 +23,5 @@ jobs:
       - name: Look if something got downloaded
         run: |
 
-          ls -l
-          file buildstuff*
-          # file buildstuff
-          unzip buildstuff.zip
+          unzip buildstuff.zip -d buildstuff
           tree
-          ls -ltr buildstuff*
-          # ls -l buildstuff
-          # cat buildstuff/file.txt
