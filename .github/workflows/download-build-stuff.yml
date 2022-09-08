@@ -11,3 +11,16 @@ jobs:
       - name: Only if started on repository_dispatch
         if: github.event.action == 'ping'
         run: echo "yes it was run because of a repository_dispatch"
+
+      - name: Download artifact from build
+        uses: bettermarks/action-artifact-download@0.3.0
+        with:
+          repo: organization/the-repo-to-use
+          token: ${{ secrets.GITHUB_TOKEN }}
+          artifact_name: my-artifact
+          rename: new-artifact-name
+          wait_seconds: 60
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: my-artifact
