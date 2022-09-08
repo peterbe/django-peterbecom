@@ -17,7 +17,7 @@ jobs:
         with:
           repo: peterbe/github-action-tricks
           token: ${{ secrets.GITHUB_TOKEN }}
-          artifact_name: buildstuff.zip
+          artifact_name: buildstuff
 
       - name: Look if something got downloaded
         run: |
