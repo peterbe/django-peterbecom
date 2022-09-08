@@ -15,10 +15,10 @@ jobs:
       - name: Download artifact from build
         uses: bettermarks/action-artifact-download@0.3.0
         with:
-          repo: organization/the-repo-to-use
+          repo: peterbe/github-action-tricks
           token: ${{ secrets.GITHUB_TOKEN }}
-          artifact_name: my-artifact
-          rename: new-artifact-name
+          artifact_name: buildstuff
+          # rename: new-artifact-name
           wait_seconds: 60
 
       - uses: actions/download-artifact@v3
