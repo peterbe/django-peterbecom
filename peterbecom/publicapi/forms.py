@@ -28,7 +28,7 @@ class SubmitForm(forms.Form):
 
 
 class SearchForm(forms.Form):
-    q = forms.CharField(max_length=90)
+    q = forms.CharField(max_length=80)
     debug = forms.BooleanField(required=False)
 
     CHOICES = ("multiply", "sum", "avg")
