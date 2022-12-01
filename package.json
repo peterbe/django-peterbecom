@@ -10,7 +10,7 @@
   "dependencies": {
     "@babel/cli": "7.19.3",
     "@babel/core": "7.20.5",
-    "csso-cli": "3.0.0",
+    "csso-cli": "4.0.1",
     "halfmoon": "1.1.1",
     "html-minifier": "4.0.0",
     "puppeteer": "13.7.0",
