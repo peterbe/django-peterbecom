@@ -51,14 +51,6 @@ urlpatterns = [
     path("categories", views.categories, name="categories"),
     path("postprocessings/", views.postprocessings, name="postprocessings"),
     path("searchresults/", views.searchresults, name="searchresults"),
-    path("awspa", views.awspa_items, name="awspa_items"),
-    path("awspa/search", views.awspa_items_search, name="awspa_items_search"),
-    path(
-        "awspa/search/keywords",
-        views.awspa_items_search_keywords,
-        name="awspa_items_search_keywords",
-    ),
-    path("awspa/<int:id>", views.awspa_item, name="awspa_item"),
     path("cdn/check", views.cdn_check, name="cdn_check"),
     path("cdn/config", views.cdn_config, name="cdn_config"),
     path(

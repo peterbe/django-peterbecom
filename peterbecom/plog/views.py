@@ -1,6 +1,5 @@
 import datetime
 import logging
-import random
 import re
 from collections import defaultdict
 from urllib.parse import urlparse
@@ -19,7 +18,6 @@ from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods, require_POST
 from huey.contrib.djhuey import task
 
-from peterbecom.awspa.models import AWSProduct
 from peterbecom.base.templatetags.jinja_helpers import thumbnail
 from peterbecom.base.utils import fake_ip_address, get_base_url
 
@@ -35,10 +33,6 @@ from .tasks import send_new_comment_email
 from .utils import get_blogcomment_slice, json_view, render_comment_text
 
 logger = logging.getLogger("plog.views")
-
-
-class AWSPAError(Exception):
-    """happens when we get a Product Links API error"""
 
 
 ONE_HOUR = 60 * 60
@@ -587,38 +581,3 @@ def plog_hits_data(request):
     )
 
     return http.JsonResponse({"hits": hits})
-
-
-@cache_control(public=True, max_age=settings.DEBUG and ONE_DAY or ONE_MONTH)
-def blog_post_awspa(request, oid, page=None):
-    if page:
-        return redirect("blog_post_awspa", oid)
-    try:
-        blogitem = BlogItem.objects.get(oid=oid)
-    except BlogItem.DoesNotExist:
-        try:
-            blogitem = BlogItem.objects.get(oid__iexact=oid)
-        except BlogItem.DoesNotExist:
-            raise http.Http404()
-
-    keywords = blogitem.get_all_keywords()
-    if not keywords:
-        awsproducts = AWSProduct.objects.none()
-    else:
-        awsproducts = AWSProduct.objects.exclude(disabled=True).filter(
-            keywords__overlap=keywords
-        )
-
-    instances = []
-    seen = set()
-    for awsproduct in awsproducts:
-        if awsproduct.asin not in seen:
-            instances.append(awsproduct)
-            seen.add(awsproduct.asin)
-
-    if not instances:
-        print("No matching AWSProducts!", keywords, "OID:", oid)
-
-    random.shuffle(instances)
-    context = {"awsproducts": instances[:3]}
-    return render(request, "plog/post-awspa.html", context)

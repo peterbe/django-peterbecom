@@ -4,10 +4,8 @@ import os
 import re
 import statistics
 import time
-import traceback
 from collections import defaultdict
 from functools import lru_cache, wraps
-from io import StringIO
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -28,11 +26,6 @@ from django.views.decorators.cache import cache_control, never_cache
 from django.views.decorators.http import require_POST
 from requests.exceptions import ConnectionError
 
-from peterbecom.awspa.models import AWSProduct
-from peterbecom.awspa.search import NothingFoundError
-from peterbecom.awspa.search import lookup as awspa_lookup
-from peterbecom.awspa.search import search as awspa_search
-from peterbecom.awspa.templatetags.jinja_helpers import awspa_product
 from peterbecom.base.cdn import (
     get_cdn_base_url,
     get_cdn_config,
@@ -63,9 +56,6 @@ from peterbecom.plog.popularity import score_to_popularity
 from peterbecom.plog.utils import rate_blog_comment, valid_email  # move this some day
 
 from .forms import (
-    AWSPAFilterForm,
-    AWSPASaveForm,
-    AWSPASearchForm,
     BlogCommentBatchForm,
     BlogFileUpload,
     BlogitemRealtimeHitsForm,
@@ -76,15 +66,6 @@ from .forms import (
     SpamCommentPatternForm,
 )
 from .tasks import send_comment_reply_email
-
-
-def awspa_search_cached(*args, **kwargs):
-    cache_key = "awspa_search_cached:{}:{}".format(args, kwargs)
-    value = cache.get(cache_key)
-    if value is None:
-        value = awspa_search(*args, **kwargs)
-        cache.set(cache_key, value, 60 * 60)
-    return value
 
 
 def timesince(*args, **kwargs):
@@ -214,9 +195,6 @@ def blogitem(request, oid):
             "modify_date": item.modify_date,
             "open_graph_image": item.open_graph_image,
             "_absolute_url": "/plog/{}".format(item.oid),
-            "awsproducts_count": AWSProduct.objects.exclude(disabled=True)
-            .filter(keywords__overlap=item.get_all_keywords())
-            .count(),
             "archived": item.archived,
         }
     }
@@ -420,316 +398,6 @@ def _post_thumbnails(blogitem):
             }
         images.append(image)
     return images
-
-
-class AWSPAError(Exception):
-    """happens when we get a Product Links API error"""
-
-
-def load_more_awsproducts(keyword, searchindex):
-    raise NotImplementedError("use /awspa/search instead")
-    items = awspa_search(keyword, searchindex=searchindex, sleep=1)
-    keyword = keyword.lower()
-
-    new = []
-
-    for item in items:
-        asin = item["asin"]
-        assert asin, item
-        title = item["item_info"]["title"]["display_value"]
-        assert title, item
-        if not item["offers"]["listings"]:
-            print("SKIPPING BECAUSE NO LIST PRICE")
-            print(item)
-            continue
-        if not item["images"]["primary"]["medium"]:
-            print("SKIPPING BECAUSE NO MEDIUM IMAGE")
-            print(item)
-            continue
-        try:
-            awsproduct = AWSProduct.objects.get(
-                asin=asin, keyword=keyword, searchindex=searchindex
-            )
-            awsproduct.title = title
-            awsproduct.payload = item
-            awsproduct.save()
-        except AWSProduct.DoesNotExist:
-            awsproduct = AWSProduct.objects.create(
-                asin=asin,
-                title=title,
-                payload=item,
-                keyword=keyword,
-                searchindex=searchindex,
-                disabled=True,
-            )
-            new.append(awsproduct)
-
-    return new
-
-
-@api_superuser_required
-def awspa_items(request):
-    qs = AWSProduct.objects.all()
-    form = AWSPAFilterForm(request.GET)
-    if not form.is_valid():
-        return http.HttpResponseBadRequest(form.errors)
-
-    if form.cleaned_data["title"]:
-        qs = qs.filter(
-            Q(title__icontains=form.cleaned_data["title"])
-            | Q(asin=form.cleaned_data["title"])
-        )
-    if form.cleaned_data["disabled"]:
-        qs = qs.filter(disabled=True)
-    elif form.cleaned_data["disabled"] is False:  # ! None
-        qs = qs.exclude(disabled=True)
-
-    if form.cleaned_data["hasoffers"]:
-        qs = qs.exclude(payload__offers=None)
-    elif form.cleaned_data["hasoffers"] is False:  # ! None
-        qs = qs.exclude(payload__has_key="offers")
-
-    if form.cleaned_data["keywords"]:
-        qs = qs.filter(keywords__overlap=form.cleaned_data["keyword"])
-    if form.cleaned_data["searchindex"]:
-        qs = qs.filter(searchindex=form.cleaned_data["searchindex"])
-
-    order_by = form.cleaned_data["order_by"] or "-add_date"
-
-    # all_keywords = []
-    all_keywords_counts = defaultdict(int)
-    for keywords in AWSProduct.objects.all().values_list("keywords", flat=True):
-        for keyword in keywords:
-            all_keywords_counts[keyword] += 1
-    all_keywords = [
-        {"value": value, "count": count}
-        for (count, value) in sorted(
-            [(v, k) for k, v in all_keywords_counts.items()], reverse=True
-        )
-    ]
-    all_searchindexes = []
-    for x in (
-        AWSProduct.objects.all()
-        .order_by("searchindex")
-        .values("searchindex")
-        .annotate(count=Count("searchindex"))
-    ):
-        all_searchindexes.append({"value": x["searchindex"], "count": x["count"]})
-    context = {
-        "products": [],
-        "count": qs.count(),
-        "all_keywords": all_keywords,
-        "all_searchindexes": all_searchindexes,
-    }
-    page = int(request.GET.get("page", 1))
-    batch_size = int(request.GET.get("batch_size", 5))
-    n, m = ((page - 1) * batch_size, page * batch_size)
-    for product in qs.order_by(order_by)[n:m]:
-        html = html_error = None
-        try:
-            html = awspa_product(product)
-        except Exception as exception:
-            html_error = str(repr(exception))
-        context["products"].append(
-            {
-                "id": product.id,
-                "html": html,
-                "html_error": html_error,
-                "payload": product.payload,
-                "modify_date": product.modify_date,
-                "add_date": product.add_date,
-                "title": product.title,
-                "disabled": product.disabled,
-                "keywords": product.keywords,
-                "searchindex": product.searchindex,
-                "asin": product.asin,
-            }
-        )
-
-    return _response(context)
-
-
-@api_superuser_required
-def awspa_items_search(request):
-
-    ignore_asins = cache.get("awspa_items_search_ignore", [])
-
-    if request.method == "POST" and request.POST.get("remove"):
-        asin = request.POST["remove"]
-        ignore_asins.append(asin)
-        cache.set("awspa_items_search_ignore", ignore_asins, 60 * 5)
-    elif request.method == "POST":
-        form = AWSPASaveForm(request.POST)
-        if not form.is_valid():
-            return http.HttpResponseBadRequest(form.errors)
-
-        asin = form.cleaned_data["asin"]
-        keyword = form.cleaned_data["keyword"]
-        searchindex = form.cleaned_data["searchindex"]
-        assert not AWSProduct.objects.filter(asin=asin).exists()
-        payload = awspa_lookup(asin)
-        title = payload["item_info"]["title"]["display_value"]
-        AWSProduct.objects.create(
-            asin=asin,
-            title=title,
-            payload=payload,
-            keywords=[keyword],
-            searchindex=searchindex,
-            disabled=False,
-        )
-        return _response({"ok": True})
-
-    form = AWSPASearchForm(request.GET)
-    if not form.is_valid():
-        return http.HttpResponseBadRequest(form.errors)
-
-    searchindex = form.cleaned_data["searchindex"]
-    keyword = form.cleaned_data["keyword"].lower()
-
-    item_count = 25
-    finds = awspa_search_cached(keyword, searchindex=searchindex, item_count=item_count)
-    context = {
-        "products": [],
-    }
-    for find in finds:
-        if find["asin"] in ignore_asins:
-            continue
-        new = False
-        updated = False
-        for product in AWSProduct.objects.filter(asin=find["asin"]):
-            title = find["item_info"]["title"]["display_value"]
-            if title != product.title or find != product.payload:
-                product.title = title
-                product.payload = find
-                product.save()
-                updated = True
-            break
-
-        else:
-            product = AWSProduct(
-                asin=find["asin"],
-                title=find["item_info"]["title"]["display_value"],
-                payload=find,
-                disabled=False,
-                keywords=[keyword],
-                searchindex=searchindex,
-                add_date=timezone.now(),
-                modify_date=timezone.now(),
-            )
-            new = True
-
-        html = html_error = None
-        try:
-            html = awspa_product(product)
-        except Exception as exception:
-            html_error = str(repr(exception))
-        item = {
-            "id": product.id,
-            "html": html,
-            "html_error": html_error,
-            "payload": product.payload,
-            "modify_date": product.modify_date,
-            "add_date": product.add_date,
-            "title": product.title,
-            "disabled": product.disabled,
-            "keywords": product.keywords,
-            "searchindex": product.searchindex,
-            "asin": product.asin,
-            "new": new,
-            "updated": updated,
-        }
-        context["products"].append(item)
-
-    context["products"].sort(key=lambda x: x["new"], reverse=True)
-
-    return _response(context)
-
-
-def awspa_items_search_keywords(request):
-    context = {"all_possible_keywords": get_all_possible_keywords()}
-    return _response(context)
-
-
-def get_all_possible_keywords():
-    keywords = []
-    # keywords_seen = set()
-    for name in Category.objects.all().values_list("name", flat=True):
-        keyword = name.lower()
-        keywords.append(
-            {
-                "keyword": keyword,
-                "products": AWSProduct.objects.filter(
-                    keywords__overlap=[keyword]
-                ).count(),
-            }
-        )
-
-    return keywords
-
-
-@api_superuser_required
-def awspa_item(request, id):
-    product = get_object_or_404(AWSProduct, id=id)
-
-    nothing_found = None
-
-    if request.method == "POST":
-        if request.POST.get("refresh"):
-            try:
-                payload = awspa_lookup(product.asin)
-            except NothingFoundError:
-                product.disabled = True
-                product.save()
-                nothing_found = True
-            else:
-                product.payload = payload
-                product.save()
-
-        elif request.POST.get("disable"):
-            product.disabled = not product.disabled
-            product.save()
-
-        else:
-            raise NotImplementedError
-    elif request.method == "DELETE":
-        product.delete()
-        return _response({"ok": True})
-
-    html = html_error = None
-    try:
-        html = awspa_product(product)
-    except Exception:
-        out = StringIO()
-        traceback.print_exc(file=out)
-        html_error = out.getvalue()
-
-    context = {
-        "id": product.id,
-        "html": html,
-        "html_error": html_error,
-        "payload": product.payload,
-        "modify_date": product.modify_date,
-        "add_date": product.add_date,
-        "title": product.title,
-        "disabled": product.disabled,
-        "keywords": product.keywords,
-        "searchindex": product.searchindex,
-        "asin": product.asin,
-        "same_asin": [],
-        "nothing_found": nothing_found,
-    }
-    for p in AWSProduct.objects.exclude(id=product.id).filter(asin=product.asin):
-        context["same_asin"].append(
-            {
-                "id": p.id,
-                "title": p.title,
-                "modify_date": p.modify_date,
-                "add_date": p.add_date,
-                "disabled": p.disabled,
-            }
-        )
-
-    return _response(context)
 
 
 @api_superuser_required

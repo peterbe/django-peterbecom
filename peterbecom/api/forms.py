@@ -1,5 +1,4 @@
 import datetime
-import re
 
 from django import forms
 from django.db.models import Count
@@ -9,7 +8,6 @@ from django.utils import timezone
 from django.utils.datastructures import MultiValueDict
 from django.utils.dateparse import parse_datetime
 
-from peterbecom.awspa.models import AWSProduct
 from peterbecom.plog.models import (
     BlogComment,
     BlogFile,
@@ -176,52 +174,3 @@ class CommentCountsIntervalForm(forms.Form):
             days=cleaned_data["days"]
         )
         return cleaned_data
-
-
-class AWSPAFilterForm(forms.ModelForm):
-
-    disabled = forms.CharField(required=False)
-    hasoffers = forms.CharField(required=False)
-    order_by = forms.CharField(required=False)
-
-    class Meta:
-        model = AWSProduct
-        fields = ("title", "searchindex", "keywords")
-
-    def __init__(self, *args, **kwargs):
-        super(AWSPAFilterForm, self).__init__(*args, **kwargs)
-        for field in self.fields:
-            self.fields[field].required = False
-
-    def clean_disabled(self):
-        value = self.cleaned_data["disabled"]
-        if value == "yes":
-            return True
-        elif value == "no":
-            return False
-        return value
-
-    def clean_hasoffers(self):
-        value = self.cleaned_data["hasoffers"]
-        if value == "yes":
-            return True
-        elif value == "no":
-            return False
-        return value
-
-    def clean_order_by(self):
-        value = self.cleaned_data["order_by"]
-        if re.sub(r"^-?", "", value) not in ("add_date", "modify_date"):
-            raise forms.ValidationError("not valid value")
-        return value
-
-
-class AWSPASearchForm(forms.Form):
-
-    keyword = forms.CharField(required=True)
-    searchindex = forms.CharField(required=True)
-
-
-class AWSPASaveForm(AWSPASearchForm):
-
-    asin = forms.CharField(required=True)
