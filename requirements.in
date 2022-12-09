@@ -28,7 +28,7 @@ ftfy==6.1.1
 python-dateutil==2.8.2
 zope.structuredtext==4.4
 redis==4.4.0
-dj-database-url==0.5.0
+dj-database-url==1.0.0
 python-decouple==3.6
 delegator.py==0.1.1
 ptyprocess==0.7.0
