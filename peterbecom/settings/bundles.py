@@ -26,7 +26,6 @@ PIPELINE_CSS = {
             "css/semantic/search.css",
             "css/highlight.css",
             "css/peterbe.css",
-            "css/plog-awspa.css",
             "css/carbon-ads.css",
             # "css/carbon-campaign.css",
             "autocompeter/autocompeter.min.css",

@@ -9,7 +9,6 @@ urlpatterns += [
     path("ajaxornot/", include("peterbecom.ajaxornot.urls", namespace="ajaxornot")),
     path("cdnthis/", include("peterbecom.cdnthis.urls", namespace="cdnthis")),
     path("localvsxhr/", include("peterbecom.localvsxhr.urls", namespace="localvsxhr")),
-    path("awspa/", include("peterbecom.awspa.urls", namespace="awspa")),
     path("api/v0/", include("peterbecom.api.urls", namespace="api")),
     path("api/v1/", include("peterbecom.publicapi.urls", namespace="publicapi")),
     path("plog/", include("peterbecom.plog.urls")),

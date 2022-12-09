@@ -31,9 +31,6 @@ const SpamCommentPatterns = React.lazy(() => import('./SpamCommentPatterns'));
 const GeoComments = React.lazy(() => import('./GeoComments'));
 const CommentCounts = React.lazy(() => import('./CommentCounts'));
 const CommentAutoApproveds = React.lazy(() => import('./CommentAutoApproveds'));
-const AWSPAItems = React.lazy(() => import('./AWSPAItems'));
-const AWSPAItem = React.lazy(() => import('./AWSPAItem'));
-const AWSPASearch = React.lazy(() => import('./AWSPASearch'));
 
 // These exist so I can have just 1 *default* export from the 'EditBlogItem.js'
 function AddBlogitem(props) {
@@ -295,10 +292,6 @@ export default function App() {
               path="/lyrics-page-healthcheck"
               element={<LyricsPageHealthcheck />}
             />
-            <Route path="/awspa" exact element={<AWSPAItems />} />
-            <Route path="/awspa/search" component={AWSPASearch} />
-            <Route path="/awspa/:id" component={AWSPAItem} />
-
             <Route path="*" element={<NoMatch />} />
           </Routes>
         </Suspense>

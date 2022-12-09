@@ -75,14 +75,6 @@ class DashboardLinks extends React.PureComponent {
             <Link to="/plog/comments/geo">Geo Comments</Link>
           </Segment>
         </Segment.Group>
-        <Segment.Group>
-          <Segment>
-            <Link to="/awspa">AWS Affiliate Products</Link>
-          </Segment>
-          <Segment>
-            <Link to="/awspa/search">Search AWS Affiliate Products</Link>
-          </Segment>
-        </Segment.Group>
         <Segment>
           <Link to="/postprocessings">Post Processings</Link>
         </Segment>
