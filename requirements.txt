@@ -634,9 +634,9 @@ mock==4.0.3 \
     --hash=sha256:122fcb64ee37cfad5b3f48d7a7d51875d7031aaf3d8be7c42e2bee25044eee62 \
     --hash=sha256:7d3fbbde18228f4ff2f1f119a45cdffa458b4c0dee32eb4d2bb2f82554bac7bc
     # via -r requirements.in
-mozilla-django-oidc==2.0.0 \
-    --hash=sha256:53c39755b667e8c5923b1dffc3c29673198d03aa107aa42ac86b8a38b4720c25 \
-    --hash=sha256:a8b2f27c69c122d2f4d801c3759761d33debf06ae9dabbab8aed82887bba3bb8
+mozilla-django-oidc==3.0.0 \
+    --hash=sha256:a7d447af83cb5aa1671a24009b0ce6b2f0d259e9c58d8c88c7a8d0c27c05c04d \
+    --hash=sha256:f535eeddf03698ad9fd89dd87037828e9c7d503771acef21f0509f6cc42fc875
     # via -r requirements.in
 multidict==6.0.3 \
     --hash=sha256:018c8e3be7f161a12b3e41741b6721f9baeb2210f4ab25a6359b7d76c1017dce \
