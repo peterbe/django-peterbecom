@@ -83,9 +83,10 @@ jobs:
           python -m pip install --upgrade pip wheel --progress-bar off
           pip install -r requirements.txt --progress-bar off
 
-      - name: Run Tests
-        run: |
-          ./scripts/ci-test.sh
       - name: Run Lints
         run: |
           ./scripts/ci-lint.sh
+
+      - name: Run Tests
+        run: |
+          ./scripts/ci-test.sh

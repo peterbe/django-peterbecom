@@ -25,7 +25,7 @@ def test_cdnpurgeurl_basics():
     except Exception:
         models.CDNPurgeURL.failed("/uri1")
 
-    failed, = models.CDNPurgeURL.objects.filter(exception__isnull=False)
+    (failed,) = models.CDNPurgeURL.objects.filter(exception__isnull=False)
     assert "ZeroDivisionError" in failed.exception
 
     assert models.CDNPurgeURL.get() == ["/uri1"]  # still there!

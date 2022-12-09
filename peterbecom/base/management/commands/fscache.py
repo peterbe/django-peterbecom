@@ -47,11 +47,13 @@ class Command(BaseCommand):
         )
 
         find_missing_compressions(
-            verbose=options["verbosity"] > 1, revisit=options["revisit"],
+            verbose=options["verbosity"] > 1,
+            revisit=options["revisit"],
         )
 
         clean_disfunctional_folders(
-            verbose=options["verbosity"] > 1, revisit=options["revisit"],
+            verbose=options["verbosity"] > 1,
+            revisit=options["revisit"],
         )
 
         if not options["skip_cdn_purge"]:
