@@ -61,4 +61,4 @@ requests-mock==1.10.0
 # to put these into production. At least now there's only one file.
 flake8==4.0.1
 honcho==1.1.0
-pip-tools==6.8.0
+pip-tools==6.11.0

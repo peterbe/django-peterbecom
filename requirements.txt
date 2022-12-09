@@ -799,9 +799,9 @@ pillow==9.3.0 \
     # via
     #   -r requirements.in
     #   cairosvg
-pip-tools==6.8.0 \
-    --hash=sha256:39e8aee465446e02278d80dbebd4325d1dd8633248f43213c73a25f58e7d8a55 \
-    --hash=sha256:3e5cd4acbf383d19bdfdeab04738b6313ebf4ad22ce49bf529c729061eabfab8
+pip-tools==6.11.0 \
+    --hash=sha256:64a6b66887c270705a9006a10023eb4c893e9bf66c306bdcb4440541b367c057 \
+    --hash=sha256:90c5dc150e3856e4463b81ccc99307ccf9554e5db8393eb273705cb0b8f71c60
     # via -r requirements.in
 pluggy==1.0.0 \
     --hash=sha256:4224373bacce55f955a878bf9cfa763c1e360858e330072059e10bad68531159 \
