@@ -344,7 +344,12 @@ class AddBlogitem extends EditBlogitem {
 }
 
 function slugify(s) {
-  return s.trim().replace(/\s+/gi, '-').replace(/['?]/g, '').toLowerCase();
+  return s
+    .trim()
+    .replace(/\s+/gi, '-')
+    .replace(/['?]/g, '')
+    .replaceAll('/', '-')
+    .toLowerCase();
 }
 
 class EditForm extends React.PureComponent {
