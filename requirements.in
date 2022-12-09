@@ -47,7 +47,7 @@ django-querycount==0.7.0
 profanity==1.1
 amightygirl.paapi5-python-sdk==1.0.0
 py-avataaars==1.1.2
-mozilla-django-oidc==2.0.0
+mozilla-django-oidc==3.0.0
 
 # Testing (Should these be broken out?)
 mock==4.0.3
