@@ -262,7 +262,7 @@ class Bayes(object):
             count = pool.get(token, 0)
             if count:
                 if count == 1:
-                    del (pool[token])
+                    del pool[token]
                 else:
                     pool[token] = count - 1
                 pool.token_count -= 1
@@ -270,7 +270,7 @@ class Bayes(object):
             count = self.corpus.get(token, 0)
             if count:
                 if count == 1:
-                    del (self.corpus[token])
+                    del self.corpus[token]
                 else:
                     self.corpus[token] = count - 1
                 self.corpus.token_count -= 1
@@ -312,13 +312,13 @@ class Bayes(object):
     @staticmethod
     def robinson(probs, _):
         """Computes the probability of a message being spam (Robinson's method)
-            P = 1 - prod(1-p)^(1/n)
-            Q = 1 - prod(p)^(1/n)
-            S = (1 + (P-Q)/(P+Q)) / 2
-            Courtesy of http://christophe.delord.free.fr/en/index.html
+        P = 1 - prod(1-p)^(1/n)
+        Q = 1 - prod(p)^(1/n)
+        S = (1 + (P-Q)/(P+Q)) / 2
+        Courtesy of http://christophe.delord.free.fr/en/index.html
         """
 
-        nth = 1. / len(probs)
+        nth = 1.0 / len(probs)
         P = (
             1.0
             - functools.reduce(operator.mul, map(lambda p: 1.0 - p[1], probs), 1.0)
@@ -331,10 +331,10 @@ class Bayes(object):
     @staticmethod
     def robinson_fisher(probs, _):
         """Computes the probability of a message being spam (Robinson-Fisher method)
-            H = C-1( -2.ln(prod(p)), 2*n )
-            S = C-1( -2.ln(prod(1-p)), 2*n )
-            I = (1 + H - S) / 2
-            Courtesy of http://christophe.delord.free.fr/en/index.html
+        H = C-1( -2.ln(prod(p)), 2*n )
+        S = C-1( -2.ln(prod(1-p)), 2*n )
+        I = (1 + H - S) / 2
+        Courtesy of http://christophe.delord.free.fr/en/index.html
         """
         n = len(probs)
         try:
@@ -389,7 +389,7 @@ class Tokenizer:
 
 
 def chi_2_p(chi, df):
-    """ return P(chisq >= chi, with df degree of freedom)
+    """return P(chisq >= chi, with df degree of freedom)
 
     df must be even
     """

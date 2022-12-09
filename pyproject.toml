@@ -1,0 +1,2 @@
+[tool.black]
+exclude = '(podcasttime|migrations|settings/local\.py)'

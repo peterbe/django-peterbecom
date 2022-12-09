@@ -15,8 +15,8 @@ class NothingFoundError(Exception):
 class RateLimitedError(Exception):
     """When the AWS PA API says something like:
 
-        You are submitting requests too quickly.
-        Please retry your requests at a slower rate.
+    You are submitting requests too quickly.
+    Please retry your requests at a slower rate.
 
     """
 
