@@ -12,7 +12,7 @@ Pillow==9.3.0
 cssmin==0.2.0
 cssselect==1.2.0
 requests==2.28.1
-lxml==4.9.1
+lxml==4.9.2
 django-semanticui-form==0.0.1
 django-pipeline==2.0.8
 feedparser==6.0.10
