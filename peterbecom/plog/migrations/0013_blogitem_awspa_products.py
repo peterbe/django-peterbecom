@@ -7,12 +7,13 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [("awspa", "0001_initial"), ("plog", "0012_onetimeauthkey")]
+    # dependencies = [("awspa", "0001_initial"), ("plog", "0012_onetimeauthkey")]
+    dependencies = [("plog", "0012_onetimeauthkey")]
 
     operations = [
-        migrations.AddField(
-            model_name="blogitem",
-            name="awspa_products",
-            field=models.ManyToManyField(to="awspa.AWSProduct"),
-        )
+        # migrations.AddField(
+        #     model_name="blogitem",
+        #     name="awspa_products",
+        #     field=models.ManyToManyField(to="awspa.AWSProduct"),
+        # )
     ]
