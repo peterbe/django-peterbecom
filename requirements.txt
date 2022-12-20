@@ -338,15 +338,16 @@ delegator-py==0.1.1 \
     --hash=sha256:814657d96b98a244c479e3d5f6e9e850ac333e85f807d6bc846e72bbb2537806 \
     --hash=sha256:e6cc9cedab9ae59b169ee0422e17231adedadb144e63c0b5a60e6ff8adf8521b
     # via -r requirements.in
-dj-database-url==0.5.0 \
-    --hash=sha256:4aeaeb1f573c74835b0686a2b46b85990571159ffc21aa57ecd4d1e1cb334163 \
-    --hash=sha256:851785365761ebe4994a921b433062309eb882fedd318e1b0fcecc607ed02da9
+dj-database-url==1.2.0 \
+    --hash=sha256:5c2993b91801c0f78a8b19e642b497b90831124cbade0c265900d4c1037b4730 \
+    --hash=sha256:b23b15046cb38180e0c95207bcc90fe5e9dbde8eef16065907dd85cf4ca7036c
     # via -r requirements.in
 django==3.2.15 \
     --hash=sha256:115baf5049d5cf4163e43492cdc7139c306ed6d451e7d3571fe9612903903713 \
     --hash=sha256:f71934b1a822f14a86c9ac9634053689279cd04ae69cb6ade4a59471b886582b
     # via
     #   -r requirements.in
+    #   dj-database-url
     #   django-jinja
     #   django-redis
     #   django-semanticui-form
