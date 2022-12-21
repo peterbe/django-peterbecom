@@ -1,9 +1,9 @@
 # To manually upgrade these; literally edit this file then run:
 #
 #   pip-compile --generate-hashes requirements.in
-#   pip install -I -r requirements.txt
+#   pip install -r requirements.txt
 
-Django==3.2.15
+Django==4.1.4
 Jinja2==3.0.3
 Pygments==2.13.0
 Markdown==3.4.1

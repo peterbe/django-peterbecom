@@ -204,7 +204,6 @@ INSTALLED_APPS = (
     "peterbecom.publicapi",
     "peterbecom.homepage",
     "peterbecom.chiveproxy",
-    "peterbecom.ajaxornot",
     "peterbecom.localvsxhr",
     "peterbecom.cdnthis",
     "peterbecom.minimalcss",
