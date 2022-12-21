@@ -6,7 +6,6 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 urlpatterns = staticfiles_urlpatterns()
 
 urlpatterns += [
-    path("ajaxornot/", include("peterbecom.ajaxornot.urls", namespace="ajaxornot")),
     path("cdnthis/", include("peterbecom.cdnthis.urls", namespace="cdnthis")),
     path("localvsxhr/", include("peterbecom.localvsxhr.urls", namespace="localvsxhr")),
     path("api/v0/", include("peterbecom.api.urls", namespace="api")),
