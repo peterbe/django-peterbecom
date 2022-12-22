@@ -290,7 +290,6 @@ def cache_request(request, response):
             "/stats/",
             "/search",
             "/ajaxornot",
-            "/localvsxhr",
             "/auth",
             "/podcasttime",
             "/nodomain",

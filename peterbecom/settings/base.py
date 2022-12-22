@@ -203,7 +203,6 @@ INSTALLED_APPS = (
     "peterbecom.publicapi",
     "peterbecom.homepage",
     "peterbecom.chiveproxy",
-    "peterbecom.localvsxhr",
     "peterbecom.cdnthis",
     "peterbecom.minimalcss",
     "peterbecom.bayes",
