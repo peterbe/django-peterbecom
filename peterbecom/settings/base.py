@@ -196,7 +196,6 @@ INSTALLED_APPS = (
     "django.contrib.staticfiles",
     "django.contrib.postgres",
     "mozilla_django_oidc",
-    "semanticuiform",
     "sorl.thumbnail",
     "peterbecom.base",
     "peterbecom.plog",
