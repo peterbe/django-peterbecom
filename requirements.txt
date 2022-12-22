@@ -368,7 +368,6 @@ django==4.1.4 \
     #   dj-database-url
     #   django-jinja
     #   django-redis
-    #   django-semanticui-form
     #   mozilla-django-oidc
 django-jinja==2.10.2 \
     --hash=sha256:bfdfbb55c1f5a679d69ad575d550c4707d386634009152efe014089f3c4d1412 \
@@ -384,11 +383,6 @@ django-querycount==0.7.0 \
 django-redis==5.2.0 \
     --hash=sha256:1d037dc02b11ad7aa11f655d26dac3fb1af32630f61ef4428860a2e29ff92026 \
     --hash=sha256:8a99e5582c79f894168f5865c52bd921213253b7fd64d16733ae4591564465de
-    # via -r requirements.in
-django-semanticui-form==0.0.1 \
-    --hash=sha256:2a08d5fe4afadfe48ad8077092cfa1de2ecb14404358b6daad5fb47a4efaeb3a \
-    --hash=sha256:6d43a663ec45d8d125b4d55053318c6d74f15d2893fd890bc751fafd6fc15ab7 \
-    --hash=sha256:d3fe71ea4586b1bfb214f7b549321879cc4104bbf7e73f1d64f81a27322ef8c9
     # via -r requirements.in
 elasticsearch==7.17.8 \
     --hash=sha256:840adeb45a5ec9102a83f3cf481aae83a3775b75d6dd83a7310b04e44a5d0308 \

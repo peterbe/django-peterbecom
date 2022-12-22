@@ -1,12 +1,12 @@
 import textwrap
-from django_jinja import library
+
+from django.conf import settings
 from django.template.loader import render_to_string
 from django.utils.timesince import timesince as django_timesince
-from peterbecom.plog.models import BlogItem
-from django.conf import settings
-from django.template.loader import get_template
-from peterbecom.plog.models import BlogFile
+from django_jinja import library
 from sorl.thumbnail import get_thumbnail
+
+from peterbecom.plog.models import BlogFile, BlogItem
 
 
 @library.global_function
@@ -42,13 +42,6 @@ def line_indent(text, indent=" " * 4):
 @library.global_function
 def timesince(date, *args, **kwargs):
     return django_timesince(date, *args, **kwargs)
-
-
-@library.global_function
-def semanticuiform(form):
-    template = get_template("semanticui/form.html")
-    context = {"form": form}
-    return template.render(context)
 
 
 def get_photos(post, size):
