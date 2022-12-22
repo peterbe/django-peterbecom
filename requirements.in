@@ -59,7 +59,7 @@ requests-mock==1.10.0
 # Dev requirements
 # Not sure these belong in here but what the heck, it's not a huge overhead
 # to put these into production. At least now there's only one file.
-flake8==4.0.1
+flake8==6.0.0
 honcho==1.1.0
 pip-tools==6.12.1
 black==22.12.0
