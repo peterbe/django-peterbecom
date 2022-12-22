@@ -7,7 +7,6 @@ urlpatterns = staticfiles_urlpatterns()
 
 urlpatterns += [
     path("cdnthis/", include("peterbecom.cdnthis.urls", namespace="cdnthis")),
-    path("localvsxhr/", include("peterbecom.localvsxhr.urls", namespace="localvsxhr")),
     path("api/v0/", include("peterbecom.api.urls", namespace="api")),
     path("api/v1/", include("peterbecom.publicapi.urls", namespace="publicapi")),
     path("plog/", include("peterbecom.plog.urls")),
