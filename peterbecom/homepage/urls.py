@@ -1,12 +1,19 @@
+from django import http
 from django.urls import path, re_path
 from django.views.decorators.cache import cache_control
 from .feed import PlogFeed
 from . import views
 
 
+def rss_redirect(request, prefix=None):
+    return http.HttpResponseRedirect(request.build_absolute_uri()[:-1])
+
+
 urlpatterns = [
     path("", views.home, name="home"),
     path("p<int:page>", views.home, name="home_paged"),
+    # Because it's strangely a common URL
+    re_path(r"(.*?)/?rss\.xml/", rss_redirect),
     re_path(
         r"(.*?)/?rss\.xml$", cache_control(public=True, max_age=60 * 60 * 6)(PlogFeed())
     ),

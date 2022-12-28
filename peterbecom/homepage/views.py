@@ -234,8 +234,8 @@ def sitemap(request):
     blogitems = BlogItem.objects.filter(pub_date__lt=now, archived__isnull=True)
     latest_pub_date = blogitems.aggregate(pub_date=Max("pub_date"))["pub_date"]
     add("/", priority=1.0, changefreq="daily", lastmod=latest_pub_date)
-    add(reverse("about"), changefreq="weekly", priority=0.5)
-    add(reverse("contact"), changefreq="weekly", priority=0.5)
+    add("/about", changefreq="weekly", priority=0.5)
+    add("/contact", changefreq="weekly", priority=0.5)
 
     # TODO: Instead of looping over BlogItem, loop over
     # BlogItemTotalHits and use the join to build this list.
