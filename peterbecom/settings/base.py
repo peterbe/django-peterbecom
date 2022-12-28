@@ -149,7 +149,6 @@ _CONTEXT_PROCESSORS = (
     "django.template.context_processors.static",
     "django.template.context_processors.tz",
     "django.template.context_processors.request",
-    "peterbecom.homepage.context_processors.context",
 )
 
 TEMPLATES = [
