@@ -10,10 +10,7 @@ urlpatterns = [
     re_path(
         r"(.*?)/?rss\.xml$", cache_control(public=True, max_age=60 * 60 * 6)(PlogFeed())
     ),
-    path("search", views.search, name="search"),
     path("autocompete/v1", views.autocompete, name="autocompete"),
-    path("about", views.about, name="about"),
-    path("contact", views.contact, name="contact"),
     re_path(r"^oc-(?P<oc>.*)/p(?P<page>\d+)$", views.home, name="only_category_paged"),
     re_path(r"^oc-(?P<oc>.*)", views.home, name="only_category"),
     path("sitemap.xml", views.sitemap, name="sitemap"),
