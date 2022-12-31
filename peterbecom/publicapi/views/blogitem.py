@@ -57,26 +57,33 @@ def blogitem(request, oid):
     post["previous_post"] = post["next_post"] = None
 
     if blogitem.oid != "blogitem-040601-1":
-        try:
-            previous = blogitem.get_previous_by_pub_date(archived__isnull=True)
-        except BlogItem.DoesNotExist:
+
+        base_qs = BlogItem.objects.filter(archived__isnull=True).values(
+            "id", "oid", "title", "pub_date"
+        )
+        for previous in (
+            base_qs.filter(pub_date__lt=blogitem.pub_date)
+            .order_by("-pub_date")
+            .values("id", "oid", "title", "pub_date")[:1]
+        ):
+            break
+        else:
             previous = None
 
-        try:
-            next = blogitem.get_next_by_pub_date(
-                pub_date__lt=timezone.now(),
-                archived__isnull=True,
-            )
-        except BlogItem.DoesNotExist:
+        for next in base_qs.filter(
+            pub_date__lt=timezone.now(), pub_date__gt=blogitem.pub_date
+        ).order_by("pub_date")[:1]:
+            break
+        else:
             next = None
 
         exclude_related = []
         if previous:
             post["previous_post"] = serialize_related(previous)
-            exclude_related.append(previous.id)
+            exclude_related.append(previous["id"])
         if next:
             post["next_post"] = serialize_related(next)
-            exclude_related.append(next.id)
+            exclude_related.append(next["id"])
 
         related_by_category = get_related_posts_by_categories(
             blogitem, limit=5, exclude_ids=exclude_related
