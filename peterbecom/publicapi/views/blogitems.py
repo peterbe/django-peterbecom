@@ -18,12 +18,13 @@ def blogitems(request):
     _categories = {x["id"]: x["name"] for x in Category.objects.values("id", "name")}
 
     blogitem_categories = defaultdict(list)
-    for cat_item in BlogItem.categories.through.objects.all().values(
+    for (
+        blogitem_id,
+        category_id,
+    ) in BlogItem.categories.through.objects.all().values_list(
         "blogitem_id", "category_id"
     ):
-        blogitem_categories[cat_item["blogitem_id"]].append(
-            _categories[cat_item["category_id"]]
-        )
+        blogitem_categories[blogitem_id].append(_categories[category_id])
 
     approved_comments_count = {}
     blog_comments_count_qs = (

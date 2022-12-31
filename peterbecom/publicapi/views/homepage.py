@@ -76,10 +76,16 @@ def homepage_blogitems(request):
 
     context["posts"] = []
 
-    category_names = dict(Category.objects.all().values_list("id", "name"))
+    category_names = {x["id"]: x["name"] for x in Category.objects.values("id", "name")}
+
     categories = defaultdict(list)
-    for e in BlogItem.categories.through.objects.all():
-        categories[e.blogitem_id].append(category_names[e.category_id])
+    for (
+        blogitem_id,
+        category_id,
+    ) in BlogItem.categories.through.objects.all().values_list(
+        "blogitem_id", "category_id"
+    ):
+        categories[blogitem_id].append(category_names[category_id])
 
     def serialize_blogitem(blogitem):
         serialized = {
