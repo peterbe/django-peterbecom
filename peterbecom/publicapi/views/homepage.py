@@ -9,7 +9,12 @@ from django.views.decorators.cache import cache_page
 from peterbecom.homepage.utils import make_categories_q
 from peterbecom.plog.models import BlogComment, BlogItem, Category
 
-_global_oc_cache = {}
+
+def get_category_name_and_id(oc):
+    for name, id in Category.objects.filter(name__iexact=oc).values_list("name", "id"):
+        return (name, id)
+
+    return []
 
 
 @cache_page(10 if settings.DEBUG else 60 * 5, key_prefix="publicapi_cache_page")
@@ -28,16 +33,14 @@ def homepage_blogitems(request):
     if ocs:
         categories = []
         for oc in ocs:
-            try:
-                if _global_oc_cache.get(oc.lower()):
-                    category = _global_oc_cache[oc.lower()]
-                else:
-                    category = Category.objects.get(name__iexact=oc)
-                    _global_oc_cache[oc.lower()] = category
-                categories.append(category)
-                if category.name != oc:
-                    return http.HttpResponsePermanentRedirect(f"/oc-{category.name}")
-            except Category.DoesNotExist:
+            for name, id in Category.objects.filter(name__iexact=oc).values_list(
+                "name", "id"
+            ):
+                if name != oc:
+                    return http.HttpResponsePermanentRedirect(f"/oc-{name}")
+                categories.append(id)
+                break
+            else:
                 return http.HttpResponseBadRequest(f"invalid oc {oc!r}")
 
         cat_q = make_categories_q(categories)
