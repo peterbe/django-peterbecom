@@ -15,11 +15,14 @@ def blogitems(request):
     now = timezone.now()
     group_dates = []
 
-    _categories = dict((x.pk, x.name) for x in Category.objects.all())
+    _categories = {x["id"]: x["name"] for x in Category.objects.values("id", "name")}
+
     blogitem_categories = defaultdict(list)
-    for cat_item in BlogItem.categories.through.objects.all():
-        blogitem_categories[cat_item.blogitem_id].append(
-            _categories[cat_item.category_id]
+    for cat_item in BlogItem.categories.through.objects.all().values(
+        "blogitem_id", "category_id"
+    ):
+        blogitem_categories[cat_item["blogitem_id"]].append(
+            _categories[cat_item["category_id"]]
         )
 
     approved_comments_count = {}
