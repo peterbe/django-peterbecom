@@ -10479,12 +10479,13 @@ react-roughviz@0.1.10:
   dependencies:
     rough-viz "^1.0.6"
 
-react-router-dom@6.0.0-beta.8:
-  version "6.0.0-beta.8"
-  resolved "https://registry.yarnpkg.com/react-router-dom/-/react-router-dom-6.0.0-beta.8.tgz#911c2dcaa746b589fb2085cfe41404b808629a76"
-  integrity sha512-WyiIc6EakJDCo6rUmb7VjCtOpEvm8+4V8CiJdmFPud0lppeNf37TNhTnDQszDbP2y29wBUGb94BOFU2X93uILA==
+react-router-dom@6.6.1:
+  version "6.6.1"
+  resolved "https://registry.yarnpkg.com/react-router-dom/-/react-router-dom-6.6.1.tgz#1b96ec0b2cefa7319f1251383ea5b41295ee260d"
+  integrity sha512-u+8BKUtelStKbZD5UcY0NY90WOzktrkJJhyhNg7L0APn9t1qJNLowzrM9CHdpB6+rcPt6qQrlkIXsTvhuXP68g==
   dependencies:
-    react-router "6.0.0-beta.8"
+    "@remix-run/router" "1.2.1"
+    react-router "6.6.1"
 
 react-router@6.0.0-beta.8:
   version "6.0.0-beta.8"
