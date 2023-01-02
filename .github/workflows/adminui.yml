@@ -22,7 +22,7 @@ jobs:
           cache: 'yarn'
 
       - name: Cache node_modules
-        uses: actions/cache@v3.2.1
+        uses: actions/cache@v3.2.2
         id: cached-node_modules
         with:
           path: |
