@@ -44,7 +44,6 @@ geoip2==4.6.0
 keycdn==0.4.3
 django-querycount==0.7.0
 profanity==1.1
-amightygirl.paapi5-python-sdk==1.0.0
 py-avataaars==1.1.2
 mozilla-django-oidc==3.0.0
 
