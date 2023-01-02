@@ -23,7 +23,7 @@ urlpatterns = [
     path("sitemap.xml", views.sitemap, name="sitemap"),
     path("humans.txt", views.humans_txt, name="humans_txt"),
     re_path(r"^slowstatic/(?P<path>.*)", views.slow_static, name="slow_static"),
-    path("avatar.html", views.avatar_image_test_page, name="avatar_image_test_page"),
+    path("avatar.html", views.avatar_image_test_page),
     re_path(
         r"avatar\.(?P<seed>\w+)\.png",
         views.avatar_image,

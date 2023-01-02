@@ -613,10 +613,10 @@ def dynamic_page(request):
     return http.HttpResponse("Current time is: {}\n".format(timezone.now()))
 
 
-@cache_control(public=True, max_age=ONE_DAY)
+# NOTE: This is no longer linked to. Can delete in 2023.
+@cache_control(public=True, max_age=ONE_WEEK)
 def avatar_image_test_page(request):
-    context = {"page_title": "Avatar image test page"}
-    return render(request, "homepage/avatar-image.html", context)
+    return redirect("/plog/random-avatars-in-django-python")
 
 
 short_term_random_avatar = None
