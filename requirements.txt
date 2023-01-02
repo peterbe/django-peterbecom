@@ -963,9 +963,9 @@ pyopenssl==22.1.0 \
     --hash=sha256:7a83b7b272dd595222d672f5ce29aa030f1fb837630ef229f62e72e395ce8968 \
     --hash=sha256:b28437c9773bb6c6958628cf9c3bebe585de661dba6f63df17111966363dd15e
     # via josepy
-pyquery==1.4.3 \
-    --hash=sha256:1fc33b7699455ed25c75282bc8f80ace1ac078b0dda5a933dacbd8b1c1f83963 \
-    --hash=sha256:a388eefb6bc4a55350de0316fbd97cda999ae669b6743ae5b99102ba54f5aa72
+pyquery==2.0.0 \
+    --hash=sha256:8dfc9b4b7c5f877d619bbae74b1898d5743f6ca248cfd5d72b504dd614da312f \
+    --hash=sha256:963e8d4e90262ff6d8dec072ea97285dc374a2f69cad7776f4082abcf6a1d8ae
     # via -r requirements.in
 pytest==7.2.0 \
     --hash=sha256:892f933d339f068883b6fd5a459f03d85bfcb355e4981e146d2c7616c21fef71 \
