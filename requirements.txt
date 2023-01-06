@@ -372,8 +372,8 @@ django-pipeline==2.0.8 \
     --hash=sha256:26f1d344a7bf39bc92c9dc520093471d912de53abd7d22ac715e77d779a831c8 \
     --hash=sha256:56c299cec0e644e77d5f928f4cebfff804b919cc10ff5c0bfaa070ff57e8da44
     # via -r requirements.in
-django-querycount==0.7.0 \
-    --hash=sha256:8f5123d78716ff0704f2373e746a7200b8d8417798ce4a99bf2de87e3768f9ce
+django-querycount==0.8.3 \
+    --hash=sha256:0782484e8a1bd29498fa0195a67106e47cdcc98fafe80cebb1991964077cb694
     # via -r requirements.in
 django-redis==5.2.0 \
     --hash=sha256:1d037dc02b11ad7aa11f655d26dac3fb1af32630f61ef4428860a2e29ff92026 \
