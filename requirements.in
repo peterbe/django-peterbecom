@@ -42,7 +42,7 @@ brotlipy==0.7.0
 backoff==2.2.1
 geoip2==4.6.0
 keycdn==0.4.3
-django-querycount==0.7.0
+django-querycount==0.8.3
 profanity==1.1
 py-avataaars==1.1.2
 mozilla-django-oidc==3.0.0
