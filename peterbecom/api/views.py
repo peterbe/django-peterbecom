@@ -1119,6 +1119,8 @@ def blogitem_hits(request):
     context["all_hits"] = []
     category_scores = defaultdict(list)
     for record in query:
+        # Convert Decimal to float
+        record.score = float(record.score)
         context["all_hits"].append(
             {
                 "id": record.id,
