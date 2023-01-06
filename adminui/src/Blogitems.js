@@ -11,6 +11,7 @@ import {
 import useSWR from 'swr';
 
 import { DisplayDate, ShowServerError } from './Common';
+import { fetcher } from './fetcher';
 
 export default function Blogitems() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -28,13 +29,7 @@ export default function Blogitems() {
     return `${base}?${sp.toString()}`;
   }, [searchParams]);
 
-  const { data, error: serverError } = useSWR(apiURL, async (url) => {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`${response.status} on ${url}`);
-    }
-    return await response.json();
-  });
+  const { data, error: serverError } = useSWR(apiURL, fetcher);
 
   const loading = !data && !serverError;
   const orderBy = searchParams.get('orderBy');

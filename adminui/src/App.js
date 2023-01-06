@@ -1,5 +1,5 @@
 import React, { Suspense, useEffect, useState } from 'react';
-import { Route, Routes, Link, useParams } from 'react-router-dom';
+import { Route, Routes, Link, useParams, useLocation } from 'react-router-dom';
 
 import useSWR from 'swr';
 import 'semantic-ui-css/semantic.min.css';
@@ -316,7 +316,8 @@ function DropdownLink({ children, ...props }) {
   );
 }
 
-function NoMatch({ location }) {
+function NoMatch(stuff) {
+  const location = useLocation();
   return (
     <div>
       <h3>
