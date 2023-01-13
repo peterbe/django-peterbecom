@@ -74,7 +74,7 @@ def autocompete(request):
     return response
 
 
-@cache_control(max_age=settings.DEBUG and 60 or 60 * 60, public=True)
+@cache_control(max_age=settings.DEBUG and 60 or 60 * 60 * 12, public=True)
 def search(request):
     form = SearchForm(request.GET)
     if not form.is_valid():
