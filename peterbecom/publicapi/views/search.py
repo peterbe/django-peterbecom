@@ -5,6 +5,7 @@ from django import http
 from django.conf import settings
 from django.utils.cache import patch_cache_control
 from django.utils.html import strip_tags
+from django.views.decorators.cache import cache_control
 from elasticsearch_dsl import Q, query
 from elasticsearch_dsl.query import MultiMatch
 
@@ -73,6 +74,7 @@ def autocompete(request):
     return response
 
 
+@cache_control(max_age=settings.DEBUG and 60 or 60 * 60, public=True)
 def search(request):
     form = SearchForm(request.GET)
     if not form.is_valid():
