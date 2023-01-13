@@ -69,8 +69,8 @@ def test_homepage():
 def test_search():
     r = get("/search?q=python")
     assert r.status_code == 200
-    # assert re.findall(r"max-age=\d+", r.headers["cache-control"])
-    # assert "public" in r.headers["cache-control"]
+    assert re.findall(r"max-age=\d+", r.headers["cache-control"])
+    assert "public" in r.headers["cache-control"]
     doc = pyquery.PyQuery(r.text.strip())
     (header,) = doc("h1").items()
     print(header)
