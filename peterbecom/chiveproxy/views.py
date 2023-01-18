@@ -47,8 +47,9 @@ def api_cards(request):
         human_time = timesince(card.created).replace("\xa0", " ")
         age = (now - card.created).total_seconds()
         if age < 60:
-            human_time = "{} seconds ago".format(int(age))
-        human_time += " ago"
+            human_time = f"{int(age)} seconds ago"
+        else:
+            human_time += " ago"
         if "img" not in card.data:
             continue
 
@@ -108,8 +109,8 @@ def update_cards_without_pictures_periodically():
                 )
 
 
-def update_cards(limit=None):
-    for card in sorted(get_cards(limit=limit), key=lambda c: c["date"]):
+def update_cards(limit=None, debug=False):
+    for card in sorted(get_cards(limit=limit, debug=debug), key=lambda c: c["date"]):
         url = card.pop("url")
         if not Card.objects.filter(url=url).exists():
             key = f"get_card_failures:{url}"

@@ -9,12 +9,12 @@ class Command(BaseCommand):
             "Warning! This is run by a huey periodic task regularly already. "
             "Use the periodic task instead!"
         )
-        update_cards()
+        update_cards(debug=True)
 
         previous = None
         qs = Card.objects.all().order_by("-created")
 
-        for c in qs:
+        for c in qs[:10]:
             if c.data["text"] == previous:
                 print("DELETE", c.id, c.data["text"])
                 c.delete()
