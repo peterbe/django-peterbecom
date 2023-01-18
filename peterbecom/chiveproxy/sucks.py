@@ -13,9 +13,21 @@ def make_it_more_iso(datestr):
     return re.sub(r"\b(\d)\b", r"0\1", datestr)
 
 
-def get_cards(limit=None):
+def get_cards(limit=None, debug=False):
     base = "https://thechive.com/"
-    doc = pyquery.PyQuery(base)
+    html = puppeteer.suck(base)
+    assert html, base
+    assert html.strip().endswith("</html>"), (base, html)
+    doc = pyquery.PyQuery(html)
+
+    if debug:
+        for title in doc("title").items():
+            print("TITLE", title.text())
+            break
+        else:
+            print("no title!")
+        for element in doc("h1.card-title").items():
+            print("h1", element.text())
 
     count = 0
     for slot in doc("div.slot").items():
