@@ -1,6 +1,7 @@
 import re
 import time
 
+import meilisearch
 from django import http
 from django.conf import settings
 from django.utils.cache import patch_cache_control
@@ -75,6 +76,78 @@ def autocompete(request):
 
 
 @cache_control(max_age=settings.DEBUG and 60 or 60 * 60 * 12, public=True)
+def search_meilisearch(request):
+    form = SearchForm(request.GET)
+    if not form.is_valid():
+        return http.HttpResponseBadRequest(form.errors.as_json())
+
+    q = original_q = form.cleaned_data["q"]
+    debug = form.cleaned_data["debug"]
+    # boost_mode = form.cleaned_data["boost_mode"] or settings.DEFAULT_BOOST_MODE
+    # popularity_factor = (
+    #     form.cleaned_data["popularity_factor"] or settings.DEFAULT_POPULARITY_FACTOR
+    # )
+    non_stopwords_q = [x for x in q.split() if x.lower() not in STOPWORDS]
+    search_results = _meilisearch(q, debug_search=debug)
+    context = {
+        "q": q,
+        "debug": debug,
+        # "count_documents": 0,
+        "original_q": original_q,
+        "results": search_results,
+        "non_stopwords_q": non_stopwords_q,
+    }
+
+    return http.JsonResponse(context)
+
+
+def _meilisearch(q, debug_search=False, **kwargs):
+    t0 = time.time()
+    client = meilisearch.Client(settings.MEILISEARCH_URL)
+    res = client.index("blogitems").search(
+        q,
+        {
+            "attributesToHighlight": ["title", "text"],
+            "attributesToRetrieve": ["oid", "pub_date", "popularity"],
+            "hitsPerPage": LIMIT_BLOG_ITEMS,
+            "highlightPreTag": "<mark>",
+            "highlightPostTag": "</mark>",
+            # "showMatchesPosition": True,
+            "attributesToCrop": ["text"],
+            "cropLength": 30,
+        },
+    )
+    results = {"documents": []}
+    results["count_documents"] = res.get("totalHits") or res["estimatedTotalHits"]
+    results["took"] = res["processingTimeMs"]
+
+    print("TOOK:", results["took"], "MEILISEARCH")
+
+    for hit in res["hits"]:
+        from pprint import pprint
+
+        pprint(hit)
+        title = hit["_formatted"]["title"]
+        summary = hit["_formatted"]["text"]
+        document = {
+            "oid": hit["oid"],
+            "title": title,
+            "date": hit["pub_date"],
+            # "comment": False,
+            "popularity": hit["popularity"],
+            "summary": summary,
+            "score": 0.0,
+        }
+        results["documents"].append(document)
+
+    t2 = time.time()
+    results["count_documents_shown"] = len(results["documents"])
+    results["search_time"] = t2 - t0
+
+    return results
+
+
+@cache_control(max_age=settings.DEBUG and 6 or 60 * 60 * 12, public=True)
 def search(request):
     form = SearchForm(request.GET)
     if not form.is_valid():
@@ -87,12 +160,20 @@ def search(request):
         form.cleaned_data["popularity_factor"] or settings.DEFAULT_POPULARITY_FACTOR
     )
     non_stopwords_q = [x for x in q.split() if x.lower() not in STOPWORDS]
-    search_results = _search(q, popularity_factor, boost_mode, debug_search=debug)
+    if request.GET.get("meilisearch") == "true":
+        search_results = _meilisearch(
+            q,
+            popularity_factor=popularity_factor,
+            boost_mode=boost_mode,
+            debug_search=debug,
+        )
+    else:
+        search_results = _search(q, popularity_factor, boost_mode, debug_search=debug)
     context = {
         "q": q,
         "debug": debug,
         "original_q": original_q,
-        "count_documents": 0,
+        # "count_documents": 0,
         "results": search_results,
         "non_stopwords_q": non_stopwords_q,
     }
@@ -217,6 +298,7 @@ def _search(
     # print("TOOK", response.took)
     search_times.append(("blogitems", t1 - t0))
 
+    print("TOOK", response.took, "ELASTICSEARCH")
     for hit in response:
         result = hit.to_dict()
         try:

@@ -9,6 +9,7 @@ import uuid
 from collections import defaultdict
 
 import bleach
+import meilisearch
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.core.cache import cache
@@ -17,13 +18,14 @@ from django.db.models import Count
 from django.db.models.signals import post_save, pre_delete, pre_save
 from django.dispatch import receiver
 from django.urls import reverse
+from django.utils import timezone
 from elasticsearch.helpers import parallel_bulk
 from elasticsearch_dsl.connections import connections
 from sorl.thumbnail import ImageField
 
 from peterbecom.base.geo import ip_to_city
-from peterbecom.base.utils import send_pulse_message
 from peterbecom.base.search import es_retry
+from peterbecom.base.utils import send_pulse_message
 from peterbecom.plog.search import BlogCommentDoc, BlogItemDoc
 
 from . import utils
@@ -147,8 +149,8 @@ class BlogItem(models.Model):
 
     def _new_inbound_hashkey(self, length):
         def mk():
-            from string import lowercase, uppercase
             from random import choice
+            from string import lowercase, uppercase
 
             s = choice(list(uppercase))
             while len(s) < length:
@@ -231,6 +233,77 @@ class BlogItem(models.Model):
                 print(f"{count:,}")
         t1 = time.time()
         return count, t1 - t0
+
+    @classmethod
+    def index_all_blogitems_meilisearch(cls, ids_only=None, verbose=False, wait=False):
+        t0 = time.time()
+        iterator = cls.objects.filter(
+            pub_date__lt=timezone.now(), archived__isnull=True
+        )
+        if ids_only:
+            iterator = iterator.filter(id__in=ids_only)
+        category_names = dict((x.id, x.name) for x in Category.objects.all())
+        categories = defaultdict(list)
+        for e in BlogItem.categories.through.objects.all():
+            categories[e.blogitem_id].append(category_names[e.category_id])
+
+        synonyms = defaultdict(list)
+        with open(settings.SYNONYM_FILE_NAME) as f:
+            for line in f:
+                if not line.strip() or line.startswith("#"):
+                    continue
+                left, right = line.strip().split("=>")
+                left = [x.strip() for x in left.split(",") if x.strip()]
+                right = [x.strip() for x in right.split(",") if x.strip()]
+                for leading in left:
+                    for synonym in right:
+                        synonyms[leading].append(synonym)
+
+        # from pprint import pprint
+
+        # iterator = iterator.order_by("popularity")  # TEMP
+
+        def get_docs():
+            for doc in iterator.prefetch_related("categories").values():
+                cleaned = bleach.clean(doc["text_rendered"], strip=True, tags=[])
+                # print(f'{doc["popularity"] or 0.0:.3f} {doc["title"]}')
+                yield {
+                    "id": doc["id"],
+                    "oid": doc["oid"],
+                    "title": doc["title"],
+                    "text": cleaned,
+                    "popularity": doc["popularity"] or 0.0,
+                    "pub_date": doc["pub_date"].isoformat(),
+                    "categoies": categories[doc["id"]],
+                    # 'keywords'
+                }
+
+        client = meilisearch.Client(settings.MEILISEARCH_URL)
+        index = client.index("blogitems")
+        index.update_ranking_rules(
+            [
+                "exactness",
+                "popularity:desc",
+                "attribute",  # 'title' > 'text'
+                "words",
+                "typo",
+                "pub_date:desc",
+                "proximity",
+                "sort",
+            ]
+        )
+        index.update_synonyms(synonyms)
+        docs = list(get_docs())
+        count = len(docs)
+        queued = index.add_documents(docs)
+        t1a = time.time()
+        while wait and client.get_task(queued.task_uid)["status"] == "processing":
+            time.sleep(0.5)
+        t1 = time.time()
+        if verbose:
+            print(f"Finish in {t1 - t0:.1f}s but waited {t1 - t1a:.1f}s")
+
+        return (count, t1 - t0)
 
 
 class BlogItemTotalHits(models.Model):
@@ -417,6 +490,42 @@ class BlogComment(models.Model):
             if verbose and not count % report_every:
                 print(f"{count:,}")
         t1 = time.time()
+        return count, t1 - t0
+
+    @classmethod
+    def index_all_blogcomments_meilisearch(cls, verbose=False, wait=False):
+        t0 = time.time()
+        iterator = cls.objects.filter(approved=True).exclude(
+            blogitem__oid="blogitem-040601-1"
+        )
+
+        blogitem_popularities = {
+            x: y for x, y in BlogItem.objects.all().values_list("id", "popularity")
+        }
+
+        def get_docs():
+            for doc in iterator.values():
+                yield {
+                    "id": doc["id"],
+                    "oid": doc["oid"],
+                    "blogitem_id": doc["blogitem_id"],
+                    "add_date": doc["add_date"].isoformat(),
+                    "comment": doc["comment_rendered"] or doc["comment"],
+                    "popularity": blogitem_popularities.get(doc["blogitem_id"]) or 0.0,
+                }
+
+        client = meilisearch.Client(settings.MEILISEARCH_URL)
+        index = client.index("blogcomments")
+        docs = list(get_docs())
+        count = len(docs)
+        queued = index.add_documents(docs)
+        t1a = time.time()
+        while wait and client.get_task(queued.task_uid)["status"] == "processing":
+            time.sleep(0.5)
+        t1 = time.time()
+        if verbose:
+            print(f"Finish in {t1 - t0:.1f}s but waited {t1 - t1a:.1f}s")
+
         return count, t1 - t0
 
 

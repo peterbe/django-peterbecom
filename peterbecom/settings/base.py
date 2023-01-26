@@ -499,3 +499,5 @@ USE_ES_SYNONYM_FILE_NAME = config("USE_ES_SYNONYM_FILE_NAME", default=True, cast
 # This defines, how many days ago something in CatchallURLs is considered
 # too old and can be deleted.
 MIN_RARELY_SEEN_CATCHALL_DAYS = 30
+
+MEILISEARCH_URL = "http://localhost:7700"
