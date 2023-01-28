@@ -186,6 +186,7 @@ def _post_process_cached_html(filepath: Path, url, postprocessing, original_url)
 
 @periodic_task(crontab(minute="*"))
 def run_purge_cdn_urls():
+    CDNPurgeURL.purge_old()
     for i in range(3):
         queue = CDNPurgeURL.get()
         # The `timezone.now()` in the printed output message is to keep an eye
