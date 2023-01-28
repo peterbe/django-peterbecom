@@ -1,3 +1,4 @@
+import datetime
 import json
 import sys
 import traceback
@@ -206,6 +207,13 @@ class CDNPurgeURL(models.Model):
             cancelled__isnull=True, processed__isnull=True
         ).count()
         send_pulse_message({"cdn_purge_urls": count})
+
+    @classmethod
+    def purge_old(cls, hours=6):
+        ago = timezone.now() - datetime.timedelta(hours=hours)
+        count, _ = cls.objects.filter(created__lt=ago).delete()
+        if count:
+            print(f"Purged {count} old {cls.__name__} instances older than {ago}")
 
 
 class UserProfile(models.Model):
