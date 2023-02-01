@@ -4,7 +4,6 @@ from django import forms
 
 
 class CalendarDataForm(forms.Form):
-
     start = forms.DateTimeField()
     end = forms.DateTimeField()
 

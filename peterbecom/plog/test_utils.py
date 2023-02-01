@@ -48,7 +48,6 @@ def test_linkify_special_domains(settings, requestsmock):
 
 
 def test_linkify_only_valid_domains(requestsmock):
-
     requestsmock.head("http://foo.at", exc=ConnectionError)
 
     requestsmock.head(

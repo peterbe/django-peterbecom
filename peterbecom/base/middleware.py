@@ -29,7 +29,6 @@ class FSCacheMiddleware:
             raise MiddlewareNotUsed
 
     def __call__(self, request):
-
         fs_path = fscache.path_to_fs_path(request.path)
         if settings.DEBUG and fs_path.exists() and "nofscache" not in request.GET:
             # If you don't have Nginx available, do what Nginx does but

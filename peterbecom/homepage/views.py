@@ -623,7 +623,6 @@ short_term_random_avatar = None
 
 
 def avatar_image(request, seed=None):
-
     # If there's any query string in the URL that isn't recognized, 301 redirect
     # it away so it can't be cache bypassed.
     querystring_keys = [x for x in request.GET.keys() if x != "seed"]

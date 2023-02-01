@@ -7,7 +7,6 @@ from peterbecom.plog.models import SpamCommentPattern
 
 
 def contains_spam_url_patterns(text):
-
     html = bleach.clean(text)
 
     problems = []

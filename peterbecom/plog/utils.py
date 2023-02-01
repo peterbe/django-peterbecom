@@ -81,7 +81,6 @@ whitespace_start_regex = re.compile(r"^\n*(\s+)", re.M)
 
 
 def render_comment_text(text):
-
     html = bleach.clean(text, tags=[])
 
     def custom_nofollow_maker(attrs, new=False):
@@ -349,7 +348,6 @@ def get_comment_page(blogcomment):
 
 
 def rate_blog_comment(comment):
-
     result = {"good": {}, "bad": {}}
 
     MAX_LENGTH = 800

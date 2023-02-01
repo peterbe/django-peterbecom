@@ -38,7 +38,6 @@ class ISODateTimeField(DateTimeField):
 
 
 class BlogForm(forms.ModelForm):
-
     pub_date = ISODateTimeField()
     proper_keywords = forms.CharField()
 
