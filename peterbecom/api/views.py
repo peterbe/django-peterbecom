@@ -411,7 +411,6 @@ def postprocessings(request):
 
 
 def _postprocessing_statistics(request_GET):
-
     context = {"groups": []}
 
     base_qs = PostProcessing.objects.filter(duration__isnull=False)
@@ -513,7 +512,6 @@ def _postprocessing_records(request_GET, limit=10):
     records = []
 
     def serialize_record(each):
-
         return {
             "id": each.id,
             "url": each.url,
@@ -579,7 +577,6 @@ def _filter_postprocessing_queryset(qs, request_GET):
 
 @api_superuser_required
 def searchresults(request):
-
     context = {
         "statistics": _searchresults_statistics(request.GET),
         "records": _searchresults_records(request.GET),
@@ -589,7 +586,6 @@ def searchresults(request):
 
 
 def _searchresults_statistics(request_GET):
-
     context = {"groups": []}
 
     base_qs = SearchResult.objects.all()
@@ -1453,7 +1449,6 @@ def cdn_purge_urls_count(request):
 
 @api_superuser_required
 def spam_comment_patterns(request, id=None):
-
     if request.method == "DELETE":
         assert id
         SpamCommentPattern.objects.get(id=id).delete()

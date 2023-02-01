@@ -5,7 +5,6 @@ from peterbecom.base import models
 
 @pytest.mark.django_db
 def test_cdnpurgeurl_basics():
-
     models.CDNPurgeURL.add("/uri1")
     assert models.CDNPurgeURL.get() == ["/uri1"]
     models.CDNPurgeURL.add("/uri2")

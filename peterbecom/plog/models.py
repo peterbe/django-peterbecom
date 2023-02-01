@@ -206,7 +206,6 @@ class BlogItem(models.Model):
 
     @classmethod
     def index_all_blogitems(cls, ids_only=None, verbose=False):
-
         iterator = cls.objects.all()
         if ids_only:
             iterator = iterator.filter(id__in=ids_only)

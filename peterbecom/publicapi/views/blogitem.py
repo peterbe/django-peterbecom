@@ -57,7 +57,6 @@ def blogitem(request, oid):
     post["previous_post"] = post["next_post"] = None
 
     if blogitem.oid != "blogitem-040601-1":
-
         base_qs = BlogItem.objects.filter(archived__isnull=True).values(
             "id", "oid", "title", "pub_date"
         )

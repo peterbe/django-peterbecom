@@ -12,7 +12,6 @@ from peterbecom.api import tasks
 
 @pytest.mark.django_db
 def test_send_comment_reply_email_page_1():
-
     blogitem = BlogItem.objects.create(
         oid="myoid",
         title="TITLEX",

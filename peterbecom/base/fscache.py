@@ -155,7 +155,6 @@ def invalidate_too_old(
     root = settings.FSCACHE_ROOT
     t0 = time.time()
     for file in root.rglob("index.html"):
-
         if not file.stat().st_size:
             print(f"FSCACHE: Warning! {file} is empty!")
             continue
@@ -476,7 +475,6 @@ def clean_disfunctional_folders(verbose=False, revisit=False):
         #  * index.html
         # That's not good!
         if not index_html_file and metadata_files:
-
             # Delete all the metadata files and possibly trigger a revisit
             deleted.extend(metadata_files)
             [x.unlink() for x in metadata_files]

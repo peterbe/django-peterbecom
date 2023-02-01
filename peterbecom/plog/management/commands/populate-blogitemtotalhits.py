@@ -6,7 +6,6 @@ from peterbecom.plog.models import BlogItemTotalHits
 
 class Command(BaseCommand):
     def _handle(self, *args, **kwargs):
-
         t0 = time.time()
         count_records = BlogItemTotalHits.update_all()
         t1 = time.time()
