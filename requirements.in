@@ -48,7 +48,7 @@ py-avataaars==1.1.2
 mozilla-django-oidc==3.0.0
 
 # Testing (Should these be broken out?)
-mock==4.0.3
+mock==5.0.1
 pytest==7.2.1
 tomli==2.0.1
 pytest-django==4.5.2
