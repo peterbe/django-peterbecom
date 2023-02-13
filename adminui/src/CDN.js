@@ -14,7 +14,7 @@ import useSWR, { mutate } from 'swr';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-semantic-toasts';
 
-import { formatFileSize, DisplayDate, ShowServerError } from './Common';
+import { DisplayDate, ShowServerError } from './Common';
 import XCacheAnalyze from './XCacheAnalyze';
 
 async function basicFetch(url) {
@@ -242,45 +242,6 @@ function ProbeUrl() {
         </div>
       ) : null}
 
-      {probeResult && probeResult.fscache && (
-        <div style={{ textAlign: 'left' }}>
-          <h4>FSCache Files</h4>
-
-          {probeResult.fscache.exists ? (
-            <span>
-              <code>{probeResult.fscache.fspath}</code>{' '}
-              <Icon color="green" name="check" title="Exists!" />
-            </span>
-          ) : (
-            <span>
-              Does not exist
-              <Icon color="orange" name="dont" title="Doest not exist" />
-            </span>
-          )}
-          {probeResult.fscache.exists &&
-          probeResult.fscache.files_extended &&
-          probeResult.fscache.files_extended.length > 0 ? (
-            <table>
-              <tbody>
-                {probeResult.fscache.files_extended.map((p) => (
-                  <tr key={p.filepath}>
-                    <td>
-                      <code title={p.filepath}>{p.name}</code>
-                    </td>
-                    <td>{formatFileSize(p.size)}</td>
-                    <td>
-                      <DisplayDate date={new Date(p.mtime * 1000)} prefix="" />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <i>No other files</i>
-          )}
-        </div>
-      )}
-
       {probeResult &&
         probeResult.other_pages &&
         probeResult.other_pages.length && (
@@ -299,16 +260,7 @@ function ProbeUrl() {
                       }}
                     >
                       {page.url}
-                    </Link>{' '}
-                    {page.fspath_exists ? (
-                      <Icon color="green" name="check" title="Exists!" />
-                    ) : (
-                      <Icon
-                        color="orange"
-                        name="dont"
-                        title="Doest not exist"
-                      />
-                    )}
+                    </Link>
                   </li>
                 );
               })}

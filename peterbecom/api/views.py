@@ -6,7 +6,6 @@ import statistics
 import time
 from collections import defaultdict
 from functools import lru_cache, wraps
-from pathlib import Path
 from urllib.parse import urlparse
 
 import requests
@@ -32,7 +31,6 @@ from peterbecom.base.cdn import (
     keycdn_zone_check,
     purge_cdn_urls,
 )
-from peterbecom.base.fscache import invalidate_by_url, path_to_fs_path
 from peterbecom.base.geo import ip_to_city
 from peterbecom.base.models import (
     CDNPurgeURL,
@@ -1308,28 +1306,6 @@ def cdn_probe(request):
 
     context = {"absolute_url": absolute_url}
 
-    if settings.FSCACHE_ROOT:
-        fscache_path = path_to_fs_path(urlparse(absolute_url).path)
-        fscache_path_dir = os.path.dirname(fscache_path)
-        context["fscache"] = {
-            "fspath": str(fscache_path),
-            "exists": fscache_path.exists(),
-        }
-        if context["fscache"]["exists"]:
-            context["fscache"]["files"] = []  # XXX delete some day
-            context["fscache"]["files_extended"] = []
-            for file in Path(fscache_path_dir).iterdir():
-                if file.is_dir():
-                    continue
-                context["fscache"]["files_extended"].append(
-                    {
-                        "filepath": str(file),
-                        "name": file.name,
-                        "mtime": file.stat().st_mtime,
-                        "size": file.stat().st_size,
-                    }
-                )
-
     if blogitem and not re.findall(r"/p\d+$", absolute_url):
         comment_count = BlogComment.objects.filter(
             blogitem=blogitem, approved=True, parent__isnull=True
@@ -1340,12 +1316,9 @@ def cdn_probe(request):
             if page > settings.MAX_BLOGCOMMENT_PAGES:
                 break
             url = reverse("blog_post", args=[blogitem.oid, page])
-            fspath = path_to_fs_path(url)
             other_pages.append(
                 {
                     "url": base_url + url,
-                    "fspath": str(fspath),
-                    "fspath_exists": fspath.exists(),
                 }
             )
 
@@ -1383,12 +1356,6 @@ def cdn_purge(request):
         CDNPurgeURL.validate_urls(urls)
     except ValueError as exception:
         return http.HttpResponseBadRequest(str(exception))
-
-    if settings.FSCACHE_ROOT and request.POST.get("fscache"):
-        # Need to find FSCache files by URL
-        for url in urls:
-            deleted = invalidate_by_url(url)
-            context["deleted"].extend([str(x) for x in deleted])
 
     purged = purge_cdn_urls(urls)
     if purged is None:
