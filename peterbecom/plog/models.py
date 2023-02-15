@@ -25,6 +25,7 @@ from peterbecom.base.geo import ip_to_city
 from peterbecom.base.utils import send_pulse_message
 from peterbecom.base.search import es_retry
 from peterbecom.plog.search import BlogCommentDoc, BlogItemDoc
+from peterbecom.base.models import CDNPurgeURL
 
 from . import utils
 
@@ -558,7 +559,7 @@ def update_modify_date(sender, instance, **kwargs):
 
 @receiver(post_save, sender=BlogComment)
 @receiver(post_save, sender=BlogItem)
-def invalidate_fscache(sender, instance, **kwargs):
+def invalidate_cdn_urls(sender, instance, **kwargs):
     if kwargs["raw"]:
         return
     urls = []
@@ -583,10 +584,7 @@ def invalidate_fscache(sender, instance, **kwargs):
             urls.append(reverse("blog_post", args=[blogitem.oid]))
 
     if urls:
-        # Avoid circular imports
-        from peterbecom.base.fscache import invalidate_by_url_soon
-
-        invalidate_by_url_soon(urls)
+        CDNPurgeURL.add(urls)
 
 
 @receiver(models.signals.post_save, sender=BlogItem)
