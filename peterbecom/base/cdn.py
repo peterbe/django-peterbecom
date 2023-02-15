@@ -137,6 +137,12 @@ def purge_cdn_urls(urls, api=None):
                 f"ORIGINAL URLS: {urls!r}\tRESULT: {r}"
             )
 
+    # For local dev
+    if not settings.PURGE_URL and not settings.SEND_KEYCDN_PURGES:
+        all_results.extend([True] * len(urls))
+        all_all_urls.extend(urls)
+        CDNPurgeURL.succeeded(urls)
+
     return {"results": all_results, "all_urls": all_all_urls}
 
 
