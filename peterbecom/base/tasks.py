@@ -198,9 +198,7 @@ def run_purge_cdn_urls():
                 f"{queue} ({timezone.now()})"
             )
             try:
-                print("\tqueue:", queue)
                 results = purge_cdn_urls(queue)
-                print("\t\tresults:", results)
 
             except Exception as r:
                 # XXX Why doesn't this bubble up to stdout?!
