@@ -29,7 +29,6 @@ from peterbecom.base.cdn import (
     get_cdn_base_url,
     get_cdn_config,
     keycdn_zone_check,
-    purge_cdn_urls,
 )
 from peterbecom.base.geo import ip_to_city
 from peterbecom.base.models import (
@@ -1357,16 +1356,8 @@ def cdn_purge(request):
     except ValueError as exception:
         return http.HttpResponseBadRequest(str(exception))
 
-    purged = purge_cdn_urls(urls)
-    if purged is None:
-        context["purge"] = {
-            "error": (
-                "Got None from purge_cdn_urls() which probably means KeyCDN's "
-                "API is broken at the moment"
-            )
-        }
-    else:
-        context["purge"] = purged
+    CDNPurgeURL.add(urls)
+    context["purge"] = {"all_urls": urls, "results": [[u, "queued"] for u in urls]}
     return _response(context)
 
 
