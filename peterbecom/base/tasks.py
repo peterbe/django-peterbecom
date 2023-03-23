@@ -199,6 +199,7 @@ def run_purge_cdn_urls():
             )
             try:
                 results = purge_cdn_urls(queue)
+
             except Exception as r:
                 # XXX Why doesn't this bubble up to stdout?!
                 print("EXCEPTION in purge_cdn_urls:", r)
