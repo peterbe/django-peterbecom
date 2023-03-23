@@ -103,9 +103,13 @@ def homepage_blogitems(request):
         }
         return serialized
 
+    dedupe = set()
     for blogitem in blogitems.values(
         "id", "oid", "title", "pub_date", "text_rendered", "url", "disallow_comments"
     ):
+        if blogitem["oid"] in dedupe:
+            continue
+        dedupe.add(blogitem["oid"])
         context["posts"].append(serialize_blogitem(blogitem))
 
     return http.JsonResponse(context)
