@@ -26,7 +26,7 @@ elasticsearch-dsl==7.4.0
 ftfy==6.1.1
 python-dateutil==2.8.2
 zope.structuredtext==4.4
-redis==4.5.1
+redis==4.5.3
 dj-database-url==1.2.0
 python-decouple==3.7
 delegator.py==0.1.1
@@ -49,7 +49,7 @@ mozilla-django-oidc==3.0.0
 
 # Testing (Should these be broken out?)
 mock==5.0.1
-pytest==7.2.1
+pytest==7.2.2
 tomli==2.0.1
 pytest-django==4.5.2
 requests-mock==1.10.0
@@ -59,5 +59,5 @@ requests-mock==1.10.0
 # to put these into production. At least now there's only one file.
 flake8==6.0.0
 honcho==1.1.0
-pip-tools==6.12.2
+pip-tools==6.12.3
 black==23.1.0
