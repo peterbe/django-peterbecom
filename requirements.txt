@@ -854,9 +854,9 @@ pillow==9.4.0 \
     # via
     #   -r requirements.in
     #   cairosvg
-pip-tools==6.12.2 \
-    --hash=sha256:6a51f4fd67140d5e83703ebfa9610fb61398727151f56a1be02a972d062e4679 \
-    --hash=sha256:8b903696df4598b10d469026ef9995c5f9a874b416e88e7a214884ebe4a70245
+pip-tools==6.12.3 \
+    --hash=sha256:480d44fae6e09fad3f9bd3d0a7e8423088715d10477e8ef0663440db25e3114f \
+    --hash=sha256:8510420f46572b2e26c357541390593d9365eb6edd2d1e7505267910ecaec080
     # via -r requirements.in
 platformdirs==2.6.0 \
     --hash=sha256:1a89a12377800c81983db6be069ec068eee989748799b946cce2a6e80dcc54ca \
@@ -981,9 +981,9 @@ pyquery==2.0.0 \
     --hash=sha256:8dfc9b4b7c5f877d619bbae74b1898d5743f6ca248cfd5d72b504dd614da312f \
     --hash=sha256:963e8d4e90262ff6d8dec072ea97285dc374a2f69cad7776f4082abcf6a1d8ae
     # via -r requirements.in
-pytest==7.2.1 \
-    --hash=sha256:c7c6ca206e93355074ae32f7403e8ea12163b1163c976fee7d4d84027c162be5 \
-    --hash=sha256:d45e0952f3727241918b8fd0f376f5ff6b301cc0777c6f9a556935c92d8a7d42
+pytest==7.2.2 \
+    --hash=sha256:130328f552dcfac0b1cec75c12e3f005619dc5f874f0a06e8ff7263f0ee6225e \
+    --hash=sha256:c99ab0c73aceb050f68929bc93af19ab6db0558791c6a0715723abe9d0ade9d4
     # via
     #   -r requirements.in
     #   pytest-django
@@ -1005,9 +1005,9 @@ pytz==2022.7.1 \
     --hash=sha256:01a0681c4b9684a28304615eba55d1ab31ae00bf68ec157ec3708a8182dbbcd0 \
     --hash=sha256:78f4f37d8198e0627c5f1143240bb0206b8691d8d7ac6d78fee88b78733f8c4a
     # via -r requirements.in
-redis==4.5.1 \
-    --hash=sha256:1eec3741cda408d3a5f84b78d089c8b8d895f21b3b050988351e925faf202864 \
-    --hash=sha256:5deb072d26e67d2be1712603bfb7947ec3431fb0eec9c578994052e33035af6d
+redis==4.5.3 \
+    --hash=sha256:56732e156fe31801c4f43396bd3ca0c2a7f6f83d7936798531b9848d103381aa \
+    --hash=sha256:7df17a0a2b72a4c8895b462dd07616c51b1dcb48fdd7ecb7b6f4bf39ecb2e94e
     # via
     #   -r requirements.in
     #   django-redis
