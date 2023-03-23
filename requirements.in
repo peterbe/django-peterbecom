@@ -21,14 +21,14 @@ pygments-lexer-babylon==0.12.0
 optisorl==0.2.1
 pytz==2022.7.1
 django-jinja==2.10.2
-elasticsearch==7.17.8
-elasticsearch-dsl==7.4.0
+elasticsearch==7.17.9
+elasticsearch-dsl==7.4.1
 ftfy==6.1.1
 python-dateutil==2.8.2
 zope.structuredtext==4.4
 redis==4.5.3
 dj-database-url==1.2.0
-python-decouple==3.7
+python-decouple==3.8
 delegator.py==0.1.1
 ptyprocess==0.7.0
 ipaddress==1.0.23
