@@ -26,7 +26,7 @@ elasticsearch-dsl==7.4.1
 ftfy==6.1.1
 python-dateutil==2.8.2
 zope.structuredtext==4.4
-redis==4.5.3
+redis==4.5.4
 dj-database-url==1.2.0
 python-decouple==3.8
 delegator.py==0.1.1
