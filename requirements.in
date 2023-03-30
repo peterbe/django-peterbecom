@@ -60,4 +60,4 @@ requests-mock==1.10.0
 flake8==6.0.0
 honcho==1.1.0
 pip-tools==6.12.3
-black==23.1.0
+black==23.3.0
