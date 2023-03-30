@@ -19,7 +19,7 @@ pyquery==2.0.0
 xmltodict==0.13.0
 pygments-lexer-babylon==0.12.0
 optisorl==0.2.1
-pytz==2022.7.1
+pytz==2023.3
 django-jinja==2.10.2
 elasticsearch==7.17.9
 elasticsearch-dsl==7.4.1
