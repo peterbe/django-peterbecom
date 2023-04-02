@@ -33,7 +33,6 @@ const url = process.argv[2];
   }
   let exit = 0;
   if (response && response.ok()) {
-    await page.waitFor(2000);
     // await page.screenshot({ path: '/tmp/screenshot.png' });
     let html = await page.content();
     process.stdout.write(html);
