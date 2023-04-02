@@ -2,8 +2,6 @@ import os
 import signal
 import subprocess
 
-from peterbecom.base.utils import requests_retry_session
-
 
 class SubprocessError(Exception):
     """Happens when the subprocess fails"""
@@ -45,15 +43,6 @@ def subprocess_execute(command, timeout_seconds=30, shell=True):
 
 
 def suck(url, attempts=3):
-    r = requests_retry_session().get(
-        url,
-        headers={
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/113.0"
-        },
-    )
-    r.raise_for_status()
-    return r.text
-
     js_file = os.path.join(os.path.dirname(__file__), "puppeteer_sucks.js")
     command = 'node {} "{}"'.format(js_file, url)
 
