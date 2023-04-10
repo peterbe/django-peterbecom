@@ -44,11 +44,13 @@ def blogitem(request, oid):
                 "oid": post_object["oid"],
                 "title": post_object["title"],
                 "pub_date": post_object["pub_date"],
+                "categories": post_object.get("categories", []),
             }
         return {
             "oid": post_object.oid,
             "title": post_object.title,
             "pub_date": post_object.pub_date,
+            "categories": [x.name for x in post_object.categories.all()],
         }
 
     def serialize_related_objects(post_objects):
@@ -65,13 +67,25 @@ def blogitem(request, oid):
             .order_by("-pub_date")
             .values("id", "oid", "title", "pub_date")[:1]
         ):
+            previous["categories"] = list(
+                BlogItem.categories.through.objects.filter(
+                    blogitem__id=previous["id"]
+                ).values_list("category__name", flat=True)
+            )
             break
         else:
             previous = None
 
-        for next in base_qs.filter(
-            pub_date__lt=timezone.now(), pub_date__gt=blogitem.pub_date
-        ).order_by("pub_date")[:1]:
+        for next in (
+            base_qs.filter(pub_date__lt=timezone.now(), pub_date__gt=blogitem.pub_date)
+            .values("id", "oid", "title", "pub_date")
+            .order_by("pub_date")[:1]
+        ):
+            next["categories"] = list(
+                BlogItem.categories.through.objects.filter(
+                    blogitem__id=next["id"]
+                ).values_list("category__name", flat=True)
+            )
             break
         else:
             next = None
@@ -85,7 +99,7 @@ def blogitem(request, oid):
             exclude_related.append(next["id"])
 
         related_by_category = get_related_posts_by_categories(
-            blogitem, limit=5, exclude_ids=exclude_related
+            blogitem, limit=4, exclude_ids=exclude_related
         )
         post["related_by_category"] = []
         for related_by in related_by_category:
@@ -98,7 +112,7 @@ def blogitem(request, oid):
 
         related_by_keyword = list(
             get_related_posts_by_keyword(
-                blogitem, limit=5, exclude_ids=exclude_related
+                blogitem, limit=4, exclude_ids=exclude_related
             ).values("id", "oid", "title", "pub_date")
         )
         post["related_by_keyword"] = serialize_related_objects(related_by_keyword)
