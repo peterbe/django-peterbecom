@@ -5,7 +5,7 @@
 
 Django==4.1.7
 Jinja2==3.0.3
-Pygments==2.14.0
+Pygments==2.15.0
 Markdown==3.4.3
 sorl-thumbnail==12.9.0
 Pillow==9.5.0
@@ -49,7 +49,7 @@ mozilla-django-oidc==3.0.0
 
 # Testing (Should these be broken out?)
 mock==5.0.1
-pytest==7.2.2
+pytest==7.3.0
 tomli==2.0.1
 pytest-django==4.5.2
 requests-mock==1.10.0
