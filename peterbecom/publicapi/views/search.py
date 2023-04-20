@@ -1,7 +1,10 @@
 import re
 import time
+from functools import reduce
+from operator import or_
 
 from django import http
+from django.utils import timezone
 from django.conf import settings
 from django.utils.cache import patch_cache_control
 from django.utils.html import strip_tags
@@ -74,6 +77,154 @@ def autocompete(request):
     return response
 
 
+def autocomplete(request):
+    q = request.GET.get("q", "")
+    if q.endswith("/") and len(q) > 1:
+        q = q[:-1]
+    if not q:
+        return http.JsonResponse({"error": "Missing 'q'"}, status=400)
+    size = int(request.GET.get("n", 10))
+    result = _autocomplete([q], size, suggest=len(q) > 4)
+    if len(result["results"]) < size and result["suggestions"]:
+        print("Suggest", result["suggestions"])
+        suggestions = _autocomplete(
+            result["suggestions"], size - len(result["results"]), suggest=False
+        )
+        already = set(x["oid"] for x in result["results"])
+        additional = [x for x in suggestions["results"] if x["oid"] not in already]
+        result["results"].extend(additional[: size - len(result["results"])])
+        result["meta"]["found"] += len(additional)
+
+    # if len(result["results"]) < size:
+    #     print("Search on text too", repr(q))
+
+    response = http.JsonResponse(
+        {
+            "results": result["results"],
+            # "suggestions": suggestions,
+            "meta": result["meta"],
+        }
+    )
+    if len(q) < 5:
+        patch_cache_control(response, public=True, max_age=60 + 60 * (5 - len(q)))
+    return response
+
+
+def _autocomplete(terms, size, suggest=False):
+    assert terms
+    all_suggestions = []
+    search_query = BlogItemDoc.search(index=settings.ES_BLOG_ITEM_INDEX)
+    if suggest:
+        suggestion = search_query.suggest(
+            "suggestions", terms[0], term={"field": "title"}
+        )
+        response = suggestion.execute()
+        suggestions = response.suggest.suggestions
+        for suggestion in suggestions:
+            for option in suggestion.options:
+                all_suggestions.append(terms[0].replace(suggestion.text, option.text))
+
+    search_query.update_from_dict(
+        {"query": {"range": {"pub_date": {"lt": timezone.now()}}}}
+    )
+
+    qs = []
+
+    for term in terms:
+        is_multiword_query = " " in term or "-" in term
+        if is_multiword_query:
+            qs.append(
+                Q(
+                    "match_phrase_prefix",
+                    title={"query": term, "boost": 4},
+                )
+            )
+        qs.append(Q("match_bool_prefix", title={"query": term, "boost": 2}))
+        if suggest:
+            qs.append(
+                Q(
+                    "fuzzy",
+                    title={
+                        "value": term,
+                        "boost": 0.1,
+                        "fuzziness": "AUTO",
+                        "prefix_length": 2,
+                    },
+                )
+            )
+    query = reduce(or_, qs)
+
+    # from pprint import pprint
+
+    # pprint(query.to_dict())
+
+    search_query = search_query.query(query)
+
+    # search_query = search_query.sort("-pub_date", "_score")
+    search_query = _add_function_score(search_query, query)
+    search_query = search_query[:size]
+
+    search_query = search_query.highlight_options(
+        pre_tags=["<mark>"], post_tags=["</mark>"]
+    )
+    search_query = search_query.highlight(
+        "title",
+        fragment_size=200,
+        no_match_size=200,
+        number_of_fragments=3,
+        type="plain",
+    )
+    # from pprint import pprint
+
+    # pprint(search_query.to_dict())
+
+    response = search_query.execute()
+    results = []
+    for hit in response.hits:
+        title_highlights = _get_highlights(hit, "title")
+        # from pprint import pprint
+
+        # pprint(hit.meta.to_dict())
+        # print("title_highlights", title_highlights)
+        results.append(
+            {
+                "oid": hit.oid,
+                "title": title_highlights and title_highlights[0] or hit.title,
+                "date": hit.pub_date,
+            }
+        )
+
+    meta = {"found": response.hits.total.value, "took": response.took}
+
+    return {
+        "meta": meta,
+        "results": results,
+        "suggestions": all_suggestions,
+    }
+
+
+def _get_highlights(hit, key, massage=False):
+    highlights = []
+    try:
+        highlight = hit.meta.highlight
+        for fragment in getattr(highlight, key, []):
+            if massage:
+                highlights.append(_massage_fragment(fragment))
+            else:
+                highlights.append(_clean_fragment_html(fragment))
+    except AttributeError:
+        print(f"No highlight called {key!r}")
+        # Happens when there exists no highlights for this key.
+        # Most likely it's when no indexer was used to match on it.
+        # For example, if you...
+        #
+        #   Q("match", title={"query": query}) | Q("match", content={"query": query})
+        #
+        # But it never used the match on `content`.
+        pass
+    return highlights
+
+
 @cache_control(max_age=settings.DEBUG and 60 or 60 * 60 * 12, public=True)
 def search(request):
     form = SearchForm(request.GET)
@@ -87,7 +238,12 @@ def search(request):
         form.cleaned_data["popularity_factor"] or settings.DEFAULT_POPULARITY_FACTOR
     )
     non_stopwords_q = [x for x in q.split() if x.lower() not in STOPWORDS]
-    search_results = _search(q, popularity_factor, boost_mode, debug_search=debug)
+    search_results = _search(
+        q,
+        popularity_factor,
+        boost_mode,
+        debug_search=debug,
+    )
     context = {
         "q": q,
         "debug": debug,
@@ -179,20 +335,6 @@ def _search(
     popularity_factor = settings.DEFAULT_POPULARITY_FACTOR
     boost_mode = settings.DEFAULT_BOOST_MODE
 
-    # if debug_search:
-    #     context["debug_search_form"] = DebugSearchForm(
-    #         request.GET,
-    #         initial={
-    #             "popularity_factor": settings.DEFAULT_POPULARITY_FACTOR,
-    #             "boost_mode": settings.DEFAULT_BOOST_MODE,
-    #         },
-    #     )
-    #     if context["debug_search_form"].is_valid():
-    #         popularity_factor = context["debug_search_form"].cleaned_data[
-    #             "popularity_factor"
-    #         ]
-    #         boost_mode = context["debug_search_form"].cleaned_data["boost_mode"]
-
     assert isinstance(popularity_factor, float), repr(popularity_factor)
 
     search_query = _add_function_score(
@@ -214,7 +356,6 @@ def _search(
     t0 = time.time()
     response = search_query.execute()
     t1 = time.time()
-    # print("TOOK", response.took)
     search_times.append(("blogitems", t1 - t0))
 
     for hit in response:
@@ -233,7 +374,6 @@ def _search(
         summary = "<br>".join(texts)
         documents.append(
             {
-                # "url": reverse("blog_post", args=(result["oid"],)),
                 "oid": result["oid"],
                 "title": title,
                 "date": result["pub_date"],
