@@ -40,7 +40,7 @@ jobs:
         uses: Harmon758/postgresql-action@v1.0.0
         with:
           # Version of PostgreSQL to use
-          postgresql version: '11'
+          postgresql version: '12'
           postgresql db: peterbecom
           postgresql user: user
           postgresql password: secret
