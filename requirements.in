@@ -3,7 +3,7 @@
 #   pip-compile --generate-hashes requirements.in
 #   pip install -r requirements.txt
 
-Django==4.1.7
+Django==4.1.9
 Jinja2==3.0.3
 Pygments==2.15.1
 Markdown==3.4.3
