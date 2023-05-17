@@ -3,7 +3,7 @@
 #   pip-compile --generate-hashes requirements.in
 #   pip install -r requirements.txt
 
-Django==4.1.7
+Django==4.2.1
 Jinja2==3.0.3
 Pygments==2.15.1
 Markdown==3.4.3
@@ -13,7 +13,7 @@ cssmin==0.2.0
 cssselect==1.2.0
 requests==2.30.0
 lxml==4.9.2
-django-pipeline==2.0.9
+django-pipeline==2.1.0
 feedparser==6.0.10
 pyquery==2.0.0
 xmltodict==0.13.0
@@ -26,7 +26,7 @@ elasticsearch-dsl==7.4.1
 ftfy==6.1.1
 python-dateutil==2.8.2
 zope.structuredtext==4.4
-redis==4.5.4
+redis==4.5.5
 dj-database-url==1.3.0
 python-decouple==3.8
 delegator.py==0.1.1
@@ -48,7 +48,7 @@ py-avataaars==1.1.2
 mozilla-django-oidc==3.0.0
 
 # Testing (Should these be broken out?)
-mock==5.0.1
+mock==5.0.2
 pytest==7.3.1
 tomli==2.0.1
 pytest-django==4.5.2
