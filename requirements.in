@@ -3,17 +3,17 @@
 #   pip-compile --generate-hashes requirements.in
 #   pip install -r requirements.txt
 
-Django==4.1.7
+Django==4.2.1
 Jinja2==3.0.3
-Pygments==2.15.0
+Pygments==2.15.1
 Markdown==3.4.3
 sorl-thumbnail==12.9.0
 Pillow==9.5.0
 cssmin==0.2.0
 cssselect==1.2.0
-requests==2.28.2
+requests==2.31.0
 lxml==4.9.2
-django-pipeline==2.0.9
+django-pipeline==2.1.0
 feedparser==6.0.10
 pyquery==2.0.0
 xmltodict==0.13.0
@@ -26,21 +26,21 @@ elasticsearch-dsl==7.4.1
 ftfy==6.1.1
 python-dateutil==2.8.2
 zope.structuredtext==4.4
-redis==4.5.4
-dj-database-url==1.3.0
+redis==4.5.5
+dj-database-url==2.0.0
 python-decouple==3.8
 delegator.py==0.1.1
 ptyprocess==0.7.0
 ipaddress==1.0.23
 django-redis==5.2.0
-psycopg2-binary==2.9.5
+psycopg2-binary==2.9.6
 bleach==6.0.0
 rollbar==0.16.3
 zopfli==0.2.2
 huey==2.4.5
 brotlipy==0.7.0
 backoff==2.2.1
-geoip2==4.6.0
+geoip2==4.7.0
 keycdn==0.4.3
 django-querycount==0.8.3
 profanity==1.1
@@ -48,8 +48,8 @@ py-avataaars==1.1.2
 mozilla-django-oidc==3.0.0
 
 # Testing (Should these be broken out?)
-mock==5.0.1
-pytest==7.3.0
+mock==5.0.2
+pytest==7.3.1
 tomli==2.0.1
 pytest-django==4.5.2
 requests-mock==1.10.0
@@ -59,5 +59,5 @@ requests-mock==1.10.0
 # to put these into production. At least now there's only one file.
 flake8==6.0.0
 honcho==1.1.0
-pip-tools==6.12.3
+pip-tools==6.13.0
 black==23.3.0
