@@ -254,9 +254,9 @@ def sitemap(request):
     for count in blog_comments_count_qs:
         approved_comments_count[count["blogitem_id"]] = count["count"]
 
-    for blogitem in blogitems.order_by("-pub_date"):
-        age = (now - blogitem.modify_date).days
-        comment_count = approved_comments_count.get(blogitem.id, 0)
+    for blogitem in blogitems.order_by("-pub_date").values("id", "modify_date", "oid"):
+        age = (now - blogitem["modify_date"]).days
+        comment_count = approved_comments_count.get(blogitem["id"], 0)
         pages = comment_count // settings.MAX_RECENT_COMMENTS
         # if comment_count > settings.MAX_RECENT_COMMENTS:
         #     print("PAGES:", pages, blogitem.title)
@@ -273,10 +273,10 @@ def sitemap(request):
                 changefreq = None
 
             if page > 1:
-                url = reverse("blog_post", args=[blogitem.oid, page])
+                url = reverse("blog_post", args=[blogitem["oid"], page])
             else:
-                url = reverse("blog_post", args=[blogitem.oid])
-            add(url, lastmod=blogitem.modify_date, changefreq=changefreq)
+                url = reverse("blog_post", args=[blogitem["oid"]])
+            add(url, lastmod=blogitem["modify_date"], changefreq=changefreq)
 
     xml_output = b'<?xml version="1.0" encoding="utf-8"?>\n'
     xml_output += etree.tostring(root, pretty_print=True)
