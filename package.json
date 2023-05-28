@@ -17,7 +17,7 @@
     "uglify-js": "^3.17.4"
   },
   "devDependencies": {
-    "@babel/preset-env": "7.21.4"
+    "@babel/preset-env": "7.22.2"
   },
   "resolutions": {
     "braces": ">=2.3.1",
