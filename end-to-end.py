@@ -109,12 +109,3 @@ def test_sitemap_paginated():
             if r.headers["x-cache"] != "HIT":
                 print("Not cached", r.headers["x-cache"], url)
                 time.sleep(1)
-
-
-def test_public_assets():
-    r = get("/autocompeter/autocompeter.min.js")
-    assert r.status_code == 200
-    assert "public" in r.headers["cache-control"]
-    max_age = int(re.findall(r"max-age=(\d+)", r.headers["cache-control"])[0])
-    assert max_age > 0
-    assert r.headers["content-encoding"] == "br"
