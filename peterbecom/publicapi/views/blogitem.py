@@ -3,14 +3,28 @@ from collections import defaultdict
 
 from django.utils import timezone
 from django import http
+from django.core.cache import cache
 from django.conf import settings
-from django.views.decorators.cache import cache_page
 
 from peterbecom.plog.models import BlogComment, BlogItem
 
 
-@cache_page(10 if settings.DEBUG else 60 * 5, key_prefix="publicapi_cache_page")
 def blogitem(request, oid):
+    try:
+        page = int(request.GET.get("page") or 1)
+        if page <= 0:
+            raise ValueError()
+    except ValueError:
+        return http.HttpResponseBadRequest("invalid page")
+
+    cache_key = f"publicapi_blogitem_{oid}:{page}"
+    cached = cache.get(cache_key)
+    if cached:
+        print("CACHE HIT", cache_key)  # temporary
+        return http.JsonResponse(cached)
+
+    print("CACHE MISS", cache_key)  # temporar
+
     try:
         blogitem = BlogItem.objects.get(oid=oid)
     except BlogItem.DoesNotExist:
@@ -117,13 +131,6 @@ def blogitem(request, oid):
         )
         post["related_by_keyword"] = serialize_related_objects(related_by_keyword)
 
-    try:
-        page = int(request.GET.get("page") or 1)
-        if page <= 0:
-            raise ValueError()
-    except ValueError:
-        return http.HttpResponseBadRequest("invalid page")
-
     if page > settings.MAX_BLOGCOMMENT_PAGES:
         return http.HttpResponseNotFound("gone too far")
 
@@ -187,7 +194,9 @@ def blogitem(request, oid):
     if page > 1:
         comments["previous_page"] = page - 1
 
-    return http.JsonResponse({"post": post, "comments": comments})
+    context = {"post": post, "comments": comments}
+    cache.set(cache_key, context, 60 * 60)
+    return http.JsonResponse(context)
 
 
 def get_category_overlap(blogitem_base, blogitem):
