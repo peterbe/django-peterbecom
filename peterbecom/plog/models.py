@@ -528,6 +528,23 @@ def invalidate_latest_post_modify_date(sender, instance, **kwargs):
 
 @receiver(post_save, sender=BlogComment)
 @receiver(post_save, sender=BlogItem)
+def invalidate_publicapi_blogitem_by_oid(sender, instance, **kwargs):
+    if sender is BlogItem:
+        oid = instance.oid
+    elif sender is BlogComment:
+        oid = instance.blogitem.oid
+    else:
+        raise NotImplementedError(sender)
+
+    for i in range(1, 5):
+        cache_key = f"publicapi_blogitem_{oid}:{i}"
+        if cache.get(cache_key):
+            print(f"Purged publicapi cache key {cache_key!r}")
+        cache.delete(cache_key)
+
+
+@receiver(post_save, sender=BlogComment)
+@receiver(post_save, sender=BlogItem)
 def invalidate_latest_comment_add_date_by_oid(sender, instance, **kwargs):
     if sender is BlogItem:
         oid = instance.oid
