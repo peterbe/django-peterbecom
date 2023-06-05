@@ -17,6 +17,9 @@ def blogitem(request, oid):
     except ValueError:
         return http.HttpResponseBadRequest("invalid page")
 
+    if page > settings.MAX_BLOGCOMMENT_PAGES:
+        return http.HttpResponseNotFound("gone too far")
+
     cache_key = f"publicapi_blogitem_{oid}:{page}"
     cached = cache.get(cache_key)
     if cached:
@@ -130,9 +133,6 @@ def blogitem(request, oid):
             ).values("id", "oid", "title", "pub_date")
         )
         post["related_by_keyword"] = serialize_related_objects(related_by_keyword)
-
-    if page > settings.MAX_BLOGCOMMENT_PAGES:
-        return http.HttpResponseNotFound("gone too far")
 
     blogcomments = BlogComment.objects.filter(blogitem=blogitem, approved=True)
     only = (
