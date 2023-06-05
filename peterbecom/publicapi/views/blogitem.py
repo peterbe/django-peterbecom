@@ -195,7 +195,7 @@ def blogitem(request, oid):
         comments["previous_page"] = page - 1
 
     context = {"post": post, "comments": comments}
-    cache.set(cache_key, context, 60 * 60)
+    cache.set(cache_key, context, 60 * 60 * 12)
     return http.JsonResponse(context)
 
 
