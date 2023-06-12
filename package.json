@@ -12,7 +12,7 @@
     "@babel/core": "7.22.5",
     "csso-cli": "3.0.0",
     "html-minifier": "4.0.0",
-    "puppeteer": "19.8.2",
+    "puppeteer": "20.6.0",
     "uglify-js": "^3.17.4"
   },
   "devDependencies": {
