@@ -3,7 +3,7 @@
 #   pip-compile --generate-hashes requirements.in
 #   pip install -r requirements.txt
 
-Django==4.2.1
+Django==4.2.2
 Jinja2==3.0.3
 Pygments==2.15.1
 Markdown==3.4.3
@@ -49,10 +49,10 @@ mozilla-django-oidc==3.0.0
 
 # Testing (Should these be broken out?)
 mock==5.0.2
-pytest==7.3.1
+pytest==7.3.2
 tomli==2.0.1
 pytest-django==4.5.2
-requests-mock==1.10.0
+requests-mock==1.11.0
 
 # Dev requirements
 # Not sure these belong in here but what the heck, it's not a huge overhead
