@@ -64,13 +64,6 @@ PIPELINE_CSS = {
         ),
         "output_filename": "css/search.min.css",
     },
-    "chiveproxy": {
-        "source_filenames": (
-            # Depends on settings.STATICFILES_DIRS[0]
-            "css/halfmoon.min.css",
-        ),
-        "output_filename": "js/chiveproxy/halfmoon-variables.min.css",
-    },
 }
 
 
@@ -127,14 +120,6 @@ PIPELINE_JS = {
         "source_filenames": ("plog/js/calendar.js",),
         "output_filename": "js/calendar.min.js",
         "template_name": "custom_pipeline/js.html",
-    },
-    "chiveproxy": {
-        "source_filenames": (
-            # Depends on settings.STATICFILES_DIRS[0]
-            "js/halfmoon.min.js",
-        ),
-        "output_filename": "js/chiveproxy/chiveproxy.min.js",
-        "extra_context": {"defer": True},
     },
 }
 

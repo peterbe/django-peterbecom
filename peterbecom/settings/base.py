@@ -82,16 +82,6 @@ STATIC_ROOT = BASE_DIR / "static"
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = "/static/"
 
-# Additional locations of static files
-# STATICFILES_DIRS = (
-#     # Put strings here, like "/home/html/static" or "C:/www/django/static".
-#     # Always use forward slashes, even on Windows.
-#     # Don't forget to use absolute paths, not relative paths.
-#     path('static'),
-# )
-# Don't do the whole `node_modules` or it'll copy all of them!
-STATICFILES_DIRS = [BASE_DIR / "node_modules/halfmoon"]
-
 # STATICFILES_STORAGE = "pipeline.storage.PipelineCachedStorage"
 # STATICFILES_STORAGE = "peterbecom.storage.ZopfliPipelineCachedStorage"
 STATICFILES_STORAGE = "peterbecom.storage.ZopfliAndBrotliPipelineCachedStorage"
