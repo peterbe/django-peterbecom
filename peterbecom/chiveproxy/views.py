@@ -4,7 +4,7 @@ from django import http
 from django.conf import settings
 from django.core.cache import cache
 from django.db.models import Min
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.timesince import timesince
 from django.views.decorators.cache import cache_control
@@ -142,32 +142,3 @@ def api_card(request, pk):
             "pictures": card.data["pictures"],
         }
     )
-
-
-@cache_control(max_age=settings.DEBUG and 10 or 60 * 60 * 2, public=True)
-def home(request):
-    data = api_cards(request).data
-    cards = data["cards"]
-    search = data.get("search")
-
-    # This is what DjangoJSONEncoder does.
-    o = data["_oldest_card"]
-    r = o.isoformat()
-    if o.microsecond:
-        r = r[:23] + r[26:]
-    if r.endswith("+00:00"):
-        r = r[:-6] + "Z"
-
-    context = {
-        "cards": cards,
-        "search": search,
-        "oldest_card": r,
-    }
-    return render(request, "chiveproxy/home.html", context)
-
-
-@cache_control(max_age=settings.DEBUG and 10 or 60 * 60 * 24, public=True)
-def card(request, pk):
-    card = get_object_or_404(Card, pk=pk)
-    context = {"card": card, "pictures": card.data["pictures"]}
-    return render(request, "chiveproxy/card.html", context)
