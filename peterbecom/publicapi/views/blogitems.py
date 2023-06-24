@@ -9,7 +9,7 @@ from django.views.decorators.cache import cache_page
 from peterbecom.plog.models import BlogComment, BlogItem, Category
 
 
-@cache_page(10 if settings.DEBUG else 60 * 5, key_prefix="publicapi_cache_page")
+@cache_page(10 if settings.DEBUG else 60 * 60, key_prefix="publicapi_cache_page")
 def blogitems(request):
     groups = defaultdict(list)
     now = timezone.now()
@@ -28,7 +28,7 @@ def blogitems(request):
 
     approved_comments_count = {}
     blog_comments_count_qs = (
-        BlogComment.objects.filter(blogitem__pub_date__lt=now, approved=True)
+        BlogComment.objects.filter(approved=True)
         .values("blogitem_id")
         .annotate(count=Count("blogitem_id"))
     )
