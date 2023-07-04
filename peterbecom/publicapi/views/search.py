@@ -154,13 +154,8 @@ def _autocomplete(terms, size, suggest=False):
             )
     query = reduce(or_, qs)
 
-    # from pprint import pprint
-
-    # pprint(query.to_dict())
-
     search_query = search_query.query(query)
 
-    # search_query = search_query.sort("-pub_date", "_score")
     search_query = _add_function_score(search_query, query)
     search_query = search_query[:size]
 
@@ -174,18 +169,11 @@ def _autocomplete(terms, size, suggest=False):
         number_of_fragments=3,
         type="plain",
     )
-    # from pprint import pprint
-
-    # pprint(search_query.to_dict())
 
     response = search_query.execute()
     results = []
     for hit in response.hits:
         title_highlights = _get_highlights(hit, "title")
-        # from pprint import pprint
-
-        # pprint(hit.meta.to_dict())
-        # print("title_highlights", title_highlights)
         results.append(
             {
                 "oid": hit.oid,
@@ -343,10 +331,10 @@ def _search(
     )
 
     search_query = search_query.highlight(
-        "text", fragment_size=80, number_of_fragments=2  # , type="fvh"
+        "text", fragment_size=80, number_of_fragments=2, type="fvh"
     )
     search_query = search_query.highlight(
-        "title", fragment_size=120, number_of_fragments=1  # , type="fvh"
+        "title", fragment_size=120, number_of_fragments=1, type="fvh"
     )
 
     search_query = search_query[:LIMIT_BLOG_ITEMS]
@@ -400,7 +388,7 @@ def _search(
     search_query = search_query.query("match_phrase", comment=q)
 
     search_query = search_query.highlight(
-        "comment", fragment_size=80, number_of_fragments=2  # , type="fvh"
+        "comment", fragment_size=80, number_of_fragments=2, type="fvh"
     )
     search_query = search_query.highlight_options(
         pre_tags=["<mark>"], post_tags=["</mark>"]
