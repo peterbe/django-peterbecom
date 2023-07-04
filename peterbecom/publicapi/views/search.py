@@ -225,7 +225,7 @@ def _get_highlights(hit, key, massage=False):
     return highlights
 
 
-@cache_control(max_age=settings.DEBUG and 60 or 60 * 60 * 12, public=True)
+@cache_control(max_age=settings.DEBUG and 6 or 60 * 60 * 12, public=True)
 def search(request):
     form = SearchForm(request.GET)
     if not form.is_valid():
@@ -311,9 +311,6 @@ def _search(
     if len(search_terms) > max_search_terms:
         search_terms = search_terms[:max_search_terms]
 
-    # strategy = "match_phrase"
-    # if original_q:
-    #     strategy = "match"
     search_term_boosts = {}
     for i, (score, word) in enumerate(search_terms):
         # meaning the first search_term should be boosted most
@@ -346,10 +343,10 @@ def _search(
     )
 
     search_query = search_query.highlight(
-        "text", fragment_size=80, number_of_fragments=2, type="plain"
+        "text", fragment_size=80, number_of_fragments=2  # , type="fvh"
     )
     search_query = search_query.highlight(
-        "title", fragment_size=120, number_of_fragments=1, type="plain"
+        "title", fragment_size=120, number_of_fragments=1  # , type="fvh"
     )
 
     search_query = search_query[:LIMIT_BLOG_ITEMS]
@@ -403,7 +400,7 @@ def _search(
     search_query = search_query.query("match_phrase", comment=q)
 
     search_query = search_query.highlight(
-        "comment", fragment_size=80, number_of_fragments=2, type="plain"
+        "comment", fragment_size=80, number_of_fragments=2  # , type="fvh"
     )
     search_query = search_query.highlight_options(
         pre_tags=["<mark>"], post_tags=["</mark>"]

@@ -50,8 +50,10 @@ class BlogItemDoc(Document):
     oid = Keyword(required=True)
     # https://github.com/elastic/elasticsearch-dsl-py/blob/master/examples/search_as_you_type.py
     title_autocomplete = SearchAsYouType(max_shingle_size=3)
-    title = Text(required=True, analyzer=text_analyzer)
-    text = Text(analyzer=text_analyzer)
+    title = Text(
+        required=True, analyzer=text_analyzer, term_vector="with_positions_offsets"
+    )
+    text = Text(analyzer=text_analyzer, term_vector="with_positions_offsets")
     pub_date = Date()
     categories = Text(fields={"raw": Keyword()})
     keywords = Text(fields={"raw": Keyword()})
@@ -68,7 +70,7 @@ class BlogCommentDoc(Document):
     blogitem_id = Integer(required=True)
     approved = Boolean()
     add_date = Date()
-    comment = Text(analyzer=text_analyzer)
+    comment = Text(analyzer=text_analyzer, term_vector="with_positions_offsets")
     popularity = Float()
 
     class Index:
