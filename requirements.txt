@@ -1167,9 +1167,9 @@ zipp==3.11.0 \
     --hash=sha256:83a28fcb75844b5c0cdaf5aa4003c2d728c77e05f5aeabe8e95e56727005fbaa \
     --hash=sha256:a7a22e05929290a67401440b39690ae6563279bced5f314609d9d03798f56766
     # via importlib-metadata
-zope-structuredtext==4.4 \
-    --hash=sha256:c94f7b10d3151c816cd57138d4b5a4782f8e34d192ead3717cf2a1b7bcb8879f \
-    --hash=sha256:ca57712bcbe9d8cc7f168f9c40924ad819de58cc51bdc175b49b2bde6662c628
+zope-structuredtext==5.0 \
+    --hash=sha256:561c86389d122eb97a04832a062d53308b614c265435e00eef08b93e00576169 \
+    --hash=sha256:c627f997704edbc6aec9c1e88d7dacd48acc7eeeba3324bbf565cdbb1f3db682
     # via -r requirements.in
 zopfli==0.2.2 \
     --hash=sha256:00a66579f2e663cd7eabad71f5b114abf442f4816fdaf251b4b495aa9d016a67 \
