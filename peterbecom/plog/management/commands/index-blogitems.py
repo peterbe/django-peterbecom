@@ -3,10 +3,6 @@ from peterbecom.plog.models import BlogItem, BlogComment
 from peterbecom.plog.search import BlogItemDoc, BlogCommentDoc
 
 
-def _get_doc_type_name(model):
-    return model._meta.verbose_name.lower().replace(" ", "_")
-
-
 class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
