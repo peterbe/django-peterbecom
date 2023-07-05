@@ -17,6 +17,8 @@ from peterbecom.plog.models import BlogItem
 from peterbecom.plog.search import BlogCommentDoc, BlogItemDoc
 from peterbecom.publicapi.forms import SearchForm
 
+HIGHLIGHT_TYPE = "fvh"
+
 
 def autocompete(request):
     q = request.GET.get("q", "")
@@ -167,7 +169,7 @@ def _autocomplete(terms, size, suggest=False):
         fragment_size=200,
         no_match_size=200,
         number_of_fragments=3,
-        type="plain",
+        type=HIGHLIGHT_TYPE,
     )
 
     response = search_query.execute()
@@ -331,10 +333,10 @@ def _search(
     )
 
     search_query = search_query.highlight(
-        "text", fragment_size=80, number_of_fragments=2, type="fvh"
+        "text", fragment_size=80, number_of_fragments=2, type=HIGHLIGHT_TYPE
     )
     search_query = search_query.highlight(
-        "title", fragment_size=120, number_of_fragments=1, type="fvh"
+        "title", fragment_size=120, number_of_fragments=1, type=HIGHLIGHT_TYPE
     )
 
     search_query = search_query[:LIMIT_BLOG_ITEMS]
@@ -388,7 +390,7 @@ def _search(
     search_query = search_query.query("match_phrase", comment=q)
 
     search_query = search_query.highlight(
-        "comment", fragment_size=80, number_of_fragments=2, type="fvh"
+        "comment", fragment_size=80, number_of_fragments=2, type=HIGHLIGHT_TYPE
     )
     search_query = search_query.highlight_options(
         pre_tags=["<mark>"], post_tags=["</mark>"]
