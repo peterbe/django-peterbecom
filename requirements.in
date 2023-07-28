@@ -12,7 +12,7 @@ Pillow==9.5.0
 cssmin==0.2.0
 cssselect==1.2.0
 requests==2.31.0
-lxml==4.9.2
+lxml==4.9.3
 django-pipeline==2.1.0
 feedparser==6.0.10
 pyquery==2.0.0
@@ -48,7 +48,7 @@ py-avataaars==1.1.2
 mozilla-django-oidc==3.0.0
 
 # Testing (Should these be broken out?)
-mock==5.0.2
+mock==5.1.0
 pytest==7.4.0
 tomli==2.0.1
 pytest-django==4.5.2
@@ -60,4 +60,4 @@ requests-mock==1.11.0
 flake8==6.0.0
 honcho==1.1.0
 pip-tools==6.13.0
-black==23.3.0
+black==23.7.0
