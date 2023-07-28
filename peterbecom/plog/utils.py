@@ -217,6 +217,8 @@ def _get_lexer(codesyntax):
 
 
 _all_lexer_keys = list(LEXER_CLASSES.keys()) + list(LEXER_ALIASES.keys())
+# Longest first. Otherwise it might match on `js` instead of `jsx`.
+_all_lexer_keys.sort(key=lambda x: len(x), reverse=True)
 _codesyntax_regex = re.compile(f"```({'|'.join(_all_lexer_keys)})")
 _markdown_pre_regex = re.compile(r"(```(.*?)```)", re.M | re.DOTALL)
 
@@ -224,10 +226,13 @@ _markdown_pre_regex = re.compile(r"(```(.*?)```)", re.M | re.DOTALL)
 def markdown_to_html(text, codesyntax):
     def matcher(match):
         found = match.group()
+        if found.startswith("```jsx"):
+            print("FOUND", repr(found))
         try:
             codesyntax = _codesyntax_regex.findall(found)[0]
         except IndexError:
             codesyntax = None
+        print("CODESYNTAX", repr(codesyntax))
         found = _codesyntax_regex.sub("```", found)
         if codesyntax:
 
