@@ -26,8 +26,8 @@ def get_cards(limit=None, debug=False):
             break
         else:
             print("no title!")
-        for element in doc("h1.card-title").items():
-            print("h1", element.text())
+        # for element in doc("h1.card-title").items():
+        #     print("h1", element.text())
 
     count = 0
     for slot in doc("div.slot").items():
