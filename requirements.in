@@ -8,7 +8,7 @@ Jinja2==3.0.3
 Pygments==2.15.1
 Markdown==3.4.3
 sorl-thumbnail==12.9.0
-Pillow==9.5.0
+Pillow==10.0.0
 cssmin==0.2.0
 cssselect==1.2.0
 requests==2.31.0
