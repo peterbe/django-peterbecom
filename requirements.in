@@ -3,12 +3,12 @@
 #   pip-compile --generate-hashes requirements.in
 #   pip install -r requirements.txt
 
-Django==4.2.3
+Django==4.2.4
 Jinja2==3.0.3
-Pygments==2.15.1
-Markdown==3.4.3
+Pygments==2.16.1
+Markdown==3.4.4
 sorl-thumbnail==12.9.0
-Pillow==9.5.0
+Pillow==10.0.0
 cssmin==0.2.0
 cssselect==1.2.0
 requests==2.31.0
@@ -27,13 +27,13 @@ ftfy==6.1.1
 python-dateutil==2.8.2
 zope.structuredtext==5.0
 redis==4.6.0
-dj-database-url==2.0.0
+dj-database-url==2.1.0
 python-decouple==3.8
 delegator.py==0.1.1
 ptyprocess==0.7.0
 ipaddress==1.0.23
 django-redis==5.3.0
-psycopg2-binary==2.9.6
+psycopg2-binary==2.9.7
 bleach==6.0.0
 rollbar==0.16.3
 zopfli==0.2.2
@@ -57,7 +57,7 @@ requests-mock==1.11.0
 # Dev requirements
 # Not sure these belong in here but what the heck, it's not a huge overhead
 # to put these into production. At least now there's only one file.
-flake8==6.0.0
+flake8==6.1.0
 honcho==1.1.0
-pip-tools==6.13.0
+pip-tools==7.3.0
 black==23.7.0
