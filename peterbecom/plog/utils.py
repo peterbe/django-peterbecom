@@ -232,7 +232,6 @@ def markdown_to_html(text, codesyntax):
             codesyntax = _codesyntax_regex.findall(found)[0]
         except IndexError:
             codesyntax = None
-        print("CODESYNTAX", repr(codesyntax))
         found = _codesyntax_regex.sub("```", found)
         if codesyntax:
 
