@@ -23,7 +23,10 @@ def blogitem(request, oid):
     cache_key = f"publicapi_blogitem_{oid}:{page}"
     cached = cache.get(cache_key)
     if cached:
+        print(f"blogitem.CACHE-HIT {cache_key!r}")  # temporary
         return http.JsonResponse(cached)
+
+    print(f"blogitem.CACHE-MISS {cache_key!r}")  # temporary
 
     try:
         blogitem = BlogItem.objects.get(oid=oid)
