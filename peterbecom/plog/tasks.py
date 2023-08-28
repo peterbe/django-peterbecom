@@ -12,6 +12,7 @@ from peterbecom.plog.models import (
     BlogComment,
     BlogItemDailyHits,
     BlogItemDailyHitsExistingError,
+    BlogItemHit,
 )
 
 
@@ -48,3 +49,10 @@ def run_populate_blogitem_daily_hits():
         print(f"Rolled up {items_count:,} blogitems a total of {sum_count:,} hits")
     except BlogItemDailyHitsExistingError:
         print(f"Already rolled up for {date}")
+
+
+@periodic_task(crontab(hour="*", minute="8"))
+def delete_old_blogitemhits():
+    date = timezone.now() - datetime.timedelta(days=300)
+    deleted = BlogItemHit.objects.filter(add_date__lt=date).delete()[0]
+    print(f"Deleted {deleted:,} old BlogItemHit records older than {date}")
