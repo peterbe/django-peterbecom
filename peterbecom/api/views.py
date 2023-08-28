@@ -1092,8 +1092,8 @@ def blogitem_hits(request):
             """
             WITH counts AS (
                 SELECT
-                    blogitem_id, count(blogitem_id) AS count
-                    FROM plog_blogitemhit
+                    blogitem_id, sum(total_hits) AS count
+                    FROM plog_blogitemdailyhits
                     GROUP BY blogitem_id
             )
             SELECT
@@ -1125,7 +1125,7 @@ def blogitem_hits(request):
                 "popularity": record.popularity or 0.0,
                 "score": record.score,
                 "log10_score": score_to_popularity(record.score),
-                "_absolute_url": "/plog/{}".format(record.oid),
+                "_absolute_url": f"/plog/{record.oid}",
             }
         )
         for cat in categories[record.id]:
