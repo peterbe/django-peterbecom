@@ -51,7 +51,9 @@ def blog_post(request, oid, page=None):
 @csrf_exempt
 def blog_post_ping(request, oid, page=None):
     user_agent = request.headers.get("User-Agent", "")
-    remote_addr = request.META.get("REMOTE_ADDR")
+    remote_addr = request.headers.get("x-forwarded-for") or request.META.get(
+        "REMOTE_ADDR"
+    )
     if not utils.is_bot(ua=user_agent, ip=remote_addr):
         http_referer = request.GET.get("referrer", request.headers.get("Referer"))
         if http_referer:
