@@ -45,10 +45,6 @@ def run_populate_blogitem_daily_hits():
     date = timezone.now() - datetime.timedelta(days=1)
     try:
         sum_count, items_count = BlogItemDailyHits.rollup_date(date)
-        print(
-            "Rolled up {:,} blogitems a total of {:,} hits".format(
-                items_count, sum_count
-            )
-        )
+        print(f"Rolled up {items_count:,} blogitems a total of {sum_count:,} hits")
     except BlogItemDailyHitsExistingError:
-        print("Already rolled up for {}".format(date))
+        print(f"Already rolled up for {date}")
