@@ -42,9 +42,11 @@ def subprocess_execute(command, timeout_seconds=30, shell=True):
             raise
 
 
-def suck(url, attempts=3):
+def suck(url, attempts=3, debug=False):
     js_file = os.path.join(os.path.dirname(__file__), "puppeteer_sucks.js")
-    command = 'node {} "{}"'.format(js_file, url)
+    command = f'node {js_file} "{url}"'
+    if debug:
+        print("Command:", command)
 
     attempt = 0
     while True:

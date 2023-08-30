@@ -9,7 +9,19 @@ class Command(BaseCommand):
             "Warning! This is run by a huey periodic task regularly already. "
             "Use the periodic task instead!"
         )
-        update_cards(debug=True)
+        try:
+            update_cards(debug=True)
+        except Exception as e:
+            import sys
+            import traceback
+
+            print(" **** WARNING **** ")
+            etype, evalue, tb = sys.exc_info()
+            traceback.print_tb(tb)
+            print("type:", etype)
+            print("value:", evalue)
+            print()
+            raise e
 
         previous = None
         qs = Card.objects.all().order_by("-created")
