@@ -537,7 +537,7 @@ def invalidate_publicapi_blogitem_by_oid(sender, instance, **kwargs):
         raise NotImplementedError(sender)
 
     pages = settings.MAX_BLOGCOMMENT_PAGES if oid == "blogitem-040601-1" else 1
-    for i in range(1, pages):
+    for i in range(1, pages + 1):
         cache_key = f"publicapi_blogitem_{oid}:{i}"
         if cache.get(cache_key):
             print(f"Purged publicapi cache key {cache_key!r}")
