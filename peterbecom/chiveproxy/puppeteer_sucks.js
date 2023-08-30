@@ -12,6 +12,7 @@ const url = process.argv[2];
 
 (async (url) => {
   const browser = await puppeteer.launch({
+    headless: 'new',
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu'],
     // defaultViewport: {
     //   width: 1920,
