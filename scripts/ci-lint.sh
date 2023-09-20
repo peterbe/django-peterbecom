@@ -2,5 +2,5 @@
 
 set -e
 
-flake8 peterbecom
+ruff peterbecom
 black --check peterbecom
