@@ -1,2 +1,17 @@
 [tool.black]
 exclude = '(podcasttime|migrations|settings/local\.py)'
+
+[tool.ruff]
+exclude = [
+    'peterbecom/*/migrations/*',
+    'peterbecom/settings/__init__.py',
+    'peterbecom/settings/local.py',
+    'peterbecom/wsgi.py',
+]
+ignore = ['E501']
+line-length = 88
+select = [
+    'E',
+    'F',
+    'W',
+]
