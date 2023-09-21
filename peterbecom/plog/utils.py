@@ -6,6 +6,7 @@ import functools
 import hashlib
 import re
 from urllib.parse import urlencode, urlparse
+import subprocess
 from html import escape
 
 import bleach
@@ -162,13 +163,44 @@ def stx_to_html(text, codesyntax):
         lines = [re.sub(r"^\s", "", x) for x in lines]
         new_inner = "\n".join(lines)
         if lexer:
-            new_inner = highlight(new_inner, lexer, HtmlFormatter())
+            # new_inner = highlight(new_inner, lexer, HtmlFormatter())
+
+            new_inner = hylite_wrapper(new_inner, codesyntax)
+            # print("NEW INNER")
+            # print(new_inner)
+            # print("\n")
+
         # else:
         #     print("NO LEXER FOR......................................")
         #     print(new_inner)
         return new_inner
 
     return _regex.sub(match, rendered)
+
+
+def hylite_wrapper(code, language):
+    if not settings.HYLITE_DIRECTORY:
+        raise ImproperlyConfigured("settings.HYLITE_DIRECTORY not set")
+    command = settings.HYLITE_COMMAND.split()
+    command.extend(["--language", language, "--wrapped"])
+    process = subprocess.Popen(
+        command,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        cwd=settings.HYLITE_DIRECTORY,
+    )
+    process.stdin.write(code)
+    # process.stdin.close()
+    output, error = process.communicate()
+
+    # Check the return code to see if the command was successful
+    return_code = process.returncode
+    if return_code != 0:
+        raise Exception(error or output)
+
+    return output
 
 
 LEXER_CLASSES = {
@@ -200,6 +232,7 @@ LEXER_ALIASES = {
     "sh": "bash",
     "dockerfile": "docker",
     "ts": "typescript",
+    "shell": "bash",
 }
 for dest in LEXER_ALIASES.values():
     if dest not in LEXER_CLASSES:
@@ -236,9 +269,11 @@ def markdown_to_html(text, codesyntax):
         if codesyntax:
 
             def highlighter(m):
-                lexer = _get_lexer(codesyntax)
+                # lexer = _get_lexer(codesyntax)
                 code = m.group().replace("```", "")
-                return highlight(code, lexer, HtmlFormatter())
+                # highlighted = highlight(code, lexer, HtmlFormatter())
+                highlighted = hylite_wrapper(code, codesyntax)
+                return highlighted
 
             found = _markdown_pre_regex.sub(highlighter, found)
         else:
@@ -252,7 +287,6 @@ def markdown_to_html(text, codesyntax):
 
     text = _markdown_pre_regex.sub(matcher, text)
     html = markdown.markdown(gfm(text), extensions=["markdown.extensions.tables"])
-    html = html.replace("<table>", '<table class="ui celled table">')
     html = html.replace("<pre><span></span>", "<pre>")
 
     # Markdown leaves a strange whitespace before the end of the paragraph.
