@@ -17,10 +17,12 @@ import requests
 from profanity import profanity
 from requests.exceptions import ConnectionError
 import zope.structuredtext
-from pygments import highlight
+
+# from pygments import highlight
 from pygments import lexers
 from pygments.lexers.sql import SqlLexer
-from pygments.formatters import HtmlFormatter
+
+# from pygments.formatters import HtmlFormatter
 from pygmentslexerbabylon import BabylonLexer
 from bleach.linkifier import Linker
 
