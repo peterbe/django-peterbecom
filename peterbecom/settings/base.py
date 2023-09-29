@@ -489,5 +489,4 @@ USE_ES_SYNONYM_FILE_NAME = config("USE_ES_SYNONYM_FILE_NAME", default=True, cast
 # too old and can be deleted.
 MIN_RARELY_SEEN_CATCHALL_DAYS = 30
 
-HYLITE_DIRECTORY = None
-HYLITE_COMMAND = "bun run dist/index.js"
+HYLITE_COMMAND = "bunx hylite"
