@@ -181,8 +181,6 @@ def stx_to_html(text, codesyntax):
 
 
 def hylite_wrapper(code, language):
-    if not settings.HYLITE_DIRECTORY:
-        raise ImproperlyConfigured("settings.HYLITE_DIRECTORY not set")
     command = settings.HYLITE_COMMAND.split()
     command.extend(["--language", language, "--wrapped"])
     process = subprocess.Popen(
