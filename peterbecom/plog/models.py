@@ -107,7 +107,7 @@ class BlogItem(models.Model):
         if display_format == "structuredtext":
             text_rendered = utils.stx_to_html(text, codesyntax)
         else:
-            text_rendered = utils.markdown_to_html(text, codesyntax)
+            text_rendered = utils.markdown_to_html(text)
         if strict:
             bad = '<div class="highlight"></p>'
             if bad in text_rendered:

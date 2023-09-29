@@ -182,6 +182,7 @@ def hylite_wrapper(code, language):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
+        cwd=settings.HYLITE_DIRECTORY,
     )
     process.stdin.write(code)
     output, error = process.communicate()
@@ -247,11 +248,9 @@ _codesyntax_regex = re.compile(f"```({'|'.join(_all_lexer_keys)})")
 _markdown_pre_regex = re.compile(r"(```(.*?)```)", re.M | re.DOTALL)
 
 
-def markdown_to_html(text, codesyntax):
+def markdown_to_html(text):
     def matcher(match):
         found = match.group()
-        if found.startswith("```jsx"):
-            print("FOUND", repr(found))
         try:
             codesyntax = _codesyntax_regex.findall(found)[0]
         except IndexError:
@@ -260,9 +259,8 @@ def markdown_to_html(text, codesyntax):
         if codesyntax:
 
             def highlighter(m):
-                # lexer = _get_lexer(codesyntax)
                 code = m.group().replace("```", "")
-                # highlighted = highlight(code, lexer, HtmlFormatter())
+                print("in utils.py: CODESYNTAX", repr(codesyntax))
                 highlighted = hylite_wrapper(code, codesyntax)
                 return highlighted
 
