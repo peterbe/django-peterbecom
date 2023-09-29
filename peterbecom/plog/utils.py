@@ -256,7 +256,6 @@ def markdown_to_html(text):
 
             def highlighter(m):
                 code = m.group().replace("```", "")
-                print("in utils.py: CODESYNTAX", repr(codesyntax))
                 highlighted = hylite_wrapper(code, codesyntax)
                 return highlighted
 
