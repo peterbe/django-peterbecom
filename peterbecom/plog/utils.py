@@ -169,6 +169,8 @@ def stx_to_html(text, codesyntax):
 
 
 def hylite_wrapper(code, language):
+    aliases = {"emacslisp": "lisp"}
+    language = aliases.get(language) or language
     command = settings.HYLITE_COMMAND.split()
     assert language
     command.extend(["--language", language, "--wrapped"])
