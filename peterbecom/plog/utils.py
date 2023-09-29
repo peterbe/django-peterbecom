@@ -158,23 +158,15 @@ def stx_to_html(text, codesyntax):
     lexer = _get_lexer(codesyntax)
 
     def match(s):
-        outer, inner = s.groups()
+        _, inner = s.groups()
         new_inner = inner
         new_inner = new_inner.replace("&gt;", ">").replace("&lt;", "<")
         lines = new_inner.splitlines()
         lines = [re.sub(r"^\s", "", x) for x in lines]
         new_inner = "\n".join(lines)
         if lexer:
-            # new_inner = highlight(new_inner, lexer, HtmlFormatter())
+            new_inner = hylite_wrapper(new_inner, codesyntax or "shell")
 
-            new_inner = hylite_wrapper(new_inner, codesyntax)
-            # print("NEW INNER")
-            # print(new_inner)
-            # print("\n")
-
-        # else:
-        #     print("NO LEXER FOR......................................")
-        #     print(new_inner)
         return new_inner
 
     return _regex.sub(match, rendered)
@@ -182,6 +174,7 @@ def stx_to_html(text, codesyntax):
 
 def hylite_wrapper(code, language):
     command = settings.HYLITE_COMMAND.split()
+    assert language
     command.extend(["--language", language, "--wrapped"])
     process = subprocess.Popen(
         command,
@@ -189,10 +182,8 @@ def hylite_wrapper(code, language):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
-        cwd=settings.HYLITE_DIRECTORY,
     )
     process.stdin.write(code)
-    # process.stdin.close()
     output, error = process.communicate()
 
     # Check the return code to see if the command was successful
