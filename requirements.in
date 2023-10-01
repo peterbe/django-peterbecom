@@ -4,7 +4,7 @@
 #   pip install -r requirements.txt
 
 Django==4.2.5
-Jinja2==3.0.3
+Jinja2==3.1.2
 Pygments==2.16.1
 Markdown==3.4.4
 sorl-thumbnail==12.9.0
