@@ -239,10 +239,7 @@ def _get_lexer(codesyntax):
     return LEXER_CLASSES[key]()
 
 
-_all_lexer_keys = list(LEXER_CLASSES.keys()) + list(LEXER_ALIASES.keys())
-# Longest first. Otherwise it might match on `js` instead of `jsx`.
-_all_lexer_keys.sort(key=lambda x: len(x), reverse=True)
-_codesyntax_regex = re.compile(f"```({'|'.join(_all_lexer_keys)})")
+_codesyntax_regex = re.compile(r"```(\w+)")
 _markdown_pre_regex = re.compile(r"(```(.*?)```)", re.M | re.DOTALL)
 
 
