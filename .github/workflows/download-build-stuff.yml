@@ -13,7 +13,7 @@ jobs:
         run: echo "yes it was run because of a repository_dispatch"
 
       - name: Download artifact from build
-        uses: bettermarks/action-artifact-download@0.4.0
+        uses: bettermarks/action-artifact-download@0.5.0
         with:
           repo: peterbe/github-action-tricks
           token: ${{ secrets.GITHUB_TOKEN }}
