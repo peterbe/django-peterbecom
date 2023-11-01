@@ -7,7 +7,7 @@ Django==4.2.5
 Jinja2==3.0.3
 Pygments==2.16.1
 Markdown==3.4.4
-sorl-thumbnail==12.9.0
+sorl-thumbnail==12.10.0
 Pillow==10.0.1
 cssmin==0.2.0
 cssselect==1.2.0
