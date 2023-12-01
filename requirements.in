@@ -60,4 +60,4 @@ requests-mock==1.11.0
 honcho==1.1.0
 pip-tools==7.3.0
 black==23.9.1
-ruff==0.0.290
+ruff==0.1.6
