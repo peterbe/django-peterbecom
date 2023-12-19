@@ -629,9 +629,9 @@ lxml==4.9.4 \
     # via
     #   -r requirements.in
     #   pyquery
-markdown==3.4.4 \
-    --hash=sha256:225c6123522495d4119a90b3a3ba31a1e87a70369e03f14799ea9c0d7183a3d6 \
-    --hash=sha256:a4c1b65c0957b4bd9e7d86ddc7b3c9868fb9670660f6f99f6d1bca8954d5a941
+markdown==3.5.1 \
+    --hash=sha256:5874b47d4ee3f0b14d764324d2c94c03ea66bee56f2d929da9f2508d65e722dc \
+    --hash=sha256:b65d7beb248dc22f2e8a31fb706d93798093c308dc1aba295aedeb9d41a813bd
     # via -r requirements.in
 markupsafe==2.1.1 \
     --hash=sha256:0212a68688482dc52b2d45013df70d169f542b7394fc744c02a57374a4207003 \
@@ -952,6 +952,10 @@ pycparser==2.21 \
     --hash=sha256:8ee45429555515e1f6b185e78100aea234072576aa43ab53aefcae078162fca9 \
     --hash=sha256:e644fdec12f7872f86c58ff790da456218b10f863970249516d60a5eaca77206
     # via cffi
+pygments==2.17.2 \
+    --hash=sha256:b27c2826c47d0f3219f29554824c30c5e8945175d888647acd804ddd04af846c \
+    --hash=sha256:da46cec9fd2de5be3a8a784f434e4c4ab670b4ff54d605c4c2717e9d49c4c367
+    # via -r requirements.in
 pyopenssl==22.1.0 \
     --hash=sha256:7a83b7b272dd595222d672f5ce29aa030f1fb837630ef229f62e72e395ce8968 \
     --hash=sha256:b28437c9773bb6c6958628cf9c3bebe585de661dba6f63df17111966363dd15e
@@ -1004,9 +1008,9 @@ requests-mock==1.11.0 \
     --hash=sha256:ef10b572b489a5f28e09b708697208c4a3b2b89ef80a9f01584340ea357ec3c4 \
     --hash=sha256:f7fae383f228633f6bececebdab236c478ace2284d6292c6e7e2867b9ab74d15
     # via -r requirements.in
-rollbar==0.16.3 \
-    --hash=sha256:02313dfc60710ec736ab033d0f8c969d857a8b991cd67e0c1a91620e8a04ede2 \
-    --hash=sha256:f06e23b36d7d1b547f32f287da9367b9bf53319f611da0ec9e891859507ac94e
+rollbar==1.0.0 \
+    --hash=sha256:6347b7e49f22f0296fc287a6aea75d642cf64494d2ee127042a7a593c97df3af \
+    --hash=sha256:b7831cd8f2d2384e5922cdfb18897890c4ac4609fddfd2a821efe17b92cf1e58
     # via -r requirements.in
 ruff==0.1.8 \
     --hash=sha256:05ffe9dbd278965271252704eddb97b4384bf58b971054d517decfbf8c523f05 \
@@ -1038,10 +1042,9 @@ six==1.16.0 \
     #   elasticsearch-dsl
     #   python-dateutil
     #   requests-mock
-    #   rollbar
-sorl-thumbnail==12.9.0 \
-    --hash=sha256:0cbc2f52152e7f2266e3c2cb4ae5d83afd2e96fd5e1c42e5667362baaa3d2db3 \
-    --hash=sha256:ec586724bea7dc8c53561ce18335ea641fcd0e560d6387b2353a2afdd06705a4
+sorl-thumbnail==12.10.0 \
+    --hash=sha256:733eb2eee392d4a874f88fb3ed6f0572fa9c361b06e0411b83e435ba69c51f52 \
+    --hash=sha256:de95a49217fdfeced222fa3ceaa01d312ee2f8aad56ba34d6c70f2dee9a84938
     # via -r requirements.in
 sqlparse==0.4.4 \
     --hash=sha256:5430a4fe2ac7d0f93e66f1efc6e1338a41884b7ddf2a350cedd20ccc4d9d28f3 \

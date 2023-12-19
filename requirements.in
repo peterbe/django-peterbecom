@@ -6,8 +6,8 @@
 Django==4.2.8
 Jinja2==3.0.3
 Pygments==2.17.2
-Markdown==3.4.4
-sorl-thumbnail==12.9.0
+Markdown==3.5.1
+sorl-thumbnail==12.10.0
 Pillow==10.1.0
 cssmin==0.2.0
 cssselect==1.2.0
@@ -34,7 +34,7 @@ ipaddress==1.0.23
 django-redis==5.4.0
 psycopg2-binary==2.9.9
 bleach==6.1.0
-rollbar==0.16.3
+rollbar==1.0.0
 zopfli==0.2.3
 huey==2.5.0
 brotlipy==0.7.0
