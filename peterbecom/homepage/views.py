@@ -500,11 +500,6 @@ OLD_ALIASES = {
 }
 
 
-@cache_control(public=True, max_age=ONE_MONTH)
-def humans_txt(request):
-    return render(request, "homepage/humans.txt", content_type="text/plain")
-
-
 def huey_test(request):
     a = int(request.GET.get("a", 1))
     b = int(request.GET.get("b", 2))
