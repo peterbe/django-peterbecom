@@ -1,5 +1,5 @@
 [tool.black]
-exclude = '(podcasttime|migrations|settings/local\.py)'
+exclude = '(migrations|settings/local\.py)'
 
 [tool.ruff]
 exclude = [
