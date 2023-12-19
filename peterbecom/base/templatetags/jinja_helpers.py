@@ -16,10 +16,3 @@ def url(viewname, *args, **kwargs):
 @library.global_function
 def thousands(n):
     return format(n, ",")
-
-
-@library.global_function
-def json_print(*args, **kwargs):
-    dump = json.dumps(*args, **kwargs)
-    dump = dump.replace("</", "<\\/")  # so you can't escape with a </script>
-    return jinja2.Markup(dump)
