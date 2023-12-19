@@ -17,15 +17,12 @@ import requests
 from profanity import profanity
 from requests.exceptions import ConnectionError
 import zope.structuredtext
-from pygments import lexers
-from pygments.lexers.sql import SqlLexer
-from pygmentslexerbabylon import BabylonLexer
 from bleach.linkifier import Linker
 
 from django.conf import settings
 from django import http
 from django.core.validators import validate_email
-from django.core.exceptions import ImproperlyConfigured, ValidationError
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 from .gfm import gfm
 
@@ -151,8 +148,6 @@ def stx_to_html(text, codesyntax):
 
     _regex = re.compile(r"(<pre>(.*?)</pre>)", re.DOTALL)
 
-    lexer = _get_lexer(codesyntax)
-
     def match(s):
         _, inner = s.groups()
         new_inner = inner
@@ -160,8 +155,7 @@ def stx_to_html(text, codesyntax):
         lines = new_inner.splitlines()
         lines = [re.sub(r"^\s", "", x) for x in lines]
         new_inner = "\n".join(lines)
-        if lexer:
-            new_inner = hylite_wrapper(new_inner, codesyntax or "shell")
+        new_inner = hylite_wrapper(new_inner, codesyntax or "shell")
 
         return new_inner
 
@@ -191,52 +185,6 @@ def hylite_wrapper(code, language):
         raise Exception(error or output)
 
     return output
-
-
-LEXER_CLASSES = {
-    "js": lexers.JavascriptLexer,
-    "python": lexers.PythonLexer,
-    "json": lexers.JsonLexer,
-    "html": lexers.HtmlLexer,
-    "django": lexers.DjangoLexer,
-    "yaml": lexers.YamlLexer,
-    "css": lexers.CssLexer,
-    "bash": lexers.BashLexer,
-    "go": lexers.GoLexer,
-    "diff": lexers.DiffLexer,
-    "emacslisp": lexers.EmacsLispLexer,
-    "lisp": lexers.CommonLispLexer,
-    "rust": lexers.RustLexer,
-    "jsx": BabylonLexer,
-    "docker": lexers.DockerLexer,
-    "nginx": lexers.NginxConfLexer,
-    "typescript": lexers.TypeScriptLexer,
-    "sql": SqlLexer,
-}
-LEXER_ALIASES = {
-    "cpp": "js",
-    "javascript": "js",
-    "xml": "html",
-    "jinja": "django",
-    "yml": "yaml",
-    "sh": "bash",
-    "dockerfile": "docker",
-    "ts": "typescript",
-    "shell": "bash",
-}
-for dest in LEXER_ALIASES.values():
-    if dest not in LEXER_CLASSES:
-        raise ValueError(f"{dest!r} is not in LEXER_CLASSES")
-
-
-def _get_lexer(codesyntax):
-    if not codesyntax:
-        return lexers.TextLexer()
-    key = LEXER_ALIASES.get(codesyntax, codesyntax)
-    if key not in LEXER_CLASSES:
-        raise ImproperlyConfigured(f"{key!r} is not a recognized lexer key")
-
-    return LEXER_CLASSES[key]()
 
 
 _codesyntax_regex = re.compile(r"```(\w+)")

@@ -15,8 +15,6 @@ from django.core.cache import cache
 from django.db.models import Avg, Count, Max, Min, Q, Sum
 from django.db.models.functions import Trunc
 from django.shortcuts import get_object_or_404
-from django.template import Context
-from django.template.loader import get_template
 from django.middleware.csrf import get_token
 from django.urls import reverse
 from django.utils import timezone
@@ -286,9 +284,7 @@ def preview_by_data(data, request):
     post.url = form.cleaned_data["url"]
     post.pub_date = form.cleaned_data["pub_date"]
     post.categories = Category.objects.filter(pk__in=form.cleaned_data["categories"])
-    template = get_template("plog/_post.html")
-    context = Context({"post": post, "request": request})
-    return template.render(context)
+    return post.rendered
 
 
 def catch_all(request):

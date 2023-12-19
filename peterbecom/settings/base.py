@@ -300,10 +300,6 @@ PINGDOM_RUM_ID = None
 # Equally used when filtered by category.
 HOMEPAGE_BATCH_SIZE = 6
 
-# Because https://pypi.python.org/pypi/pygments-lexer-babylon isn't
-# particularly flexible. You can only set this via an environment variable.
-os.environ["PYGMENTS_NODE_COMMAND"] = "node"
-
 THUMBNAIL_BACKEND = "optisorl.backend.OptimizingThumbnailBackend"
 
 AUTH0_DOMAIN = "peterbecom.auth0.com"
