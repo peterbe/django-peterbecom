@@ -1,5 +1,3 @@
-import os
-
 from decouple import config
 from pathlib import Path
 import dj_database_url
@@ -299,10 +297,6 @@ PINGDOM_RUM_ID = None
 # Number of blog posts to show on the homepage, per page.
 # Equally used when filtered by category.
 HOMEPAGE_BATCH_SIZE = 6
-
-# Because https://pypi.python.org/pypi/pygments-lexer-babylon isn't
-# particularly flexible. You can only set this via an environment variable.
-os.environ["PYGMENTS_NODE_COMMAND"] = "node"
 
 THUMBNAIL_BACKEND = "optisorl.backend.OptimizingThumbnailBackend"
 

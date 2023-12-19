@@ -1,10 +1,10 @@
 import datetime
 
+import textwrap
 from django.utils import timezone
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.mail import send_mail
-from django.template import loader
 from huey import crontab
 from huey.contrib.djhuey import periodic_task, task
 
@@ -22,7 +22,7 @@ def send_new_comment_email(blogcomment_id):
     tos = [x[1] for x in settings.MANAGERS]
     from_ = ["%s <%s>" % x for x in settings.MANAGERS][0]
     body = _get_comment_body(blogcomment.blogitem, blogcomment)
-    subject = "Peterbe.com: New comment on '{}'".format(blogcomment.blogitem.title)
+    subject = f"Peterbe.com: New comment on {blogcomment.blogitem.title!r}"
     send_mail(subject, body, from_, tos)
 
 
@@ -31,14 +31,26 @@ def _get_comment_body(blogitem, blogcomment):
     if "peterbecom.local" in base_url:
         base_url = "http://localhost:4000"
     admin_url = base_url.replace("www.", "admin.")
-    template = loader.get_template("plog/comment_body.txt")
-    context = {
-        "post": blogitem,
-        "comment": blogcomment,
-        "base_url": base_url,
-        "admin_url": admin_url,
-    }
-    return template.render(context).strip()
+    absolute_url = f"{base_url}{blogitem.get_absolute_url()}#{blogcomment.oid}"
+    return f"""
+Post: {blogitem.title}
+{absolute_url}
+
+Name: {blogcomment.name}
+Email: {blogcomment.email}
+IP Address: {blogcomment.ip_address}
+User Agent: {blogcomment.user_agent}
+Comment:
+{line_indent(blogcomment.comment)}
+
+{admin_url}/plog/comments#search={blogcomment.oid}
+    """.strip()
+
+
+def line_indent(text, indent=" " * 4):
+    return "\n".join(
+        textwrap.wrap(text, initial_indent=indent, subsequent_indent=indent)
+    )
 
 
 @periodic_task(crontab(hour="*", minute="4"))
