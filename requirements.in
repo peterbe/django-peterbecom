@@ -34,7 +34,7 @@ ipaddress==1.0.23
 django-redis==5.4.0
 psycopg2-binary==2.9.9
 bleach==6.1.0
-rollbar==0.16.3
+rollbar==1.0.0
 zopfli==0.2.3
 huey==2.5.0
 brotlipy==0.7.0
