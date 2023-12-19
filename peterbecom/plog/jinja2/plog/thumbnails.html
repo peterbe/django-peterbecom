@@ -1,9 +1,0 @@
-<ul class="thumbnails">
-  {% for photo in photos %}
-  <li>
-    <a href="{{ url('blog_post', post.oid) }}#t{{ loop.index }}" class="thumbnail">
-       <img src="{{ photo.full_url }}" width="{{ photo.width }}" height="{{ photo.height }}" alt="{{ photo.title }}">
-    </a>
-  </li>
-  {% endfor %}
-</ul>

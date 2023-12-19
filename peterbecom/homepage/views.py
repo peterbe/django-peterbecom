@@ -319,10 +319,6 @@ def catchall(request, path):
         return http.HttpResponse("Not found", status=404)
     if path == "...":
         return redirect("/")
-    if path.startswith("podcasttime/podcasts/"):
-        return redirect(
-            "https://podcasttime.io/{}".format(path.replace("podcasttime/", ""))
-        )
     if path.startswith("cdn-2916.kxcdn.com/"):
         return redirect("https://" + path)
 
@@ -502,11 +498,6 @@ OLD_ALIASES = {
     "uninstall-LeakFinder": "blogitem-040308-1",
     "website-about-Shallots": "blogitem-040425-1",
 }
-
-
-@cache_control(public=True, max_age=ONE_MONTH)
-def humans_txt(request):
-    return render(request, "homepage/humans.txt", content_type="text/plain")
 
 
 def huey_test(request):
