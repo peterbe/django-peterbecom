@@ -4,7 +4,7 @@
 #   pip install -r requirements.txt
 
 Django==4.2.8
-Jinja2==3.0.3
+Jinja2==3.1.2
 Pygments==2.17.2
 Markdown==3.4.4
 sorl-thumbnail==12.9.0
@@ -20,7 +20,7 @@ xmltodict==0.13.0
 pygments-lexer-babylon==0.12.0
 optisorl==0.2.1
 pytz==2023.3.post1
-django-jinja==2.10.2
+django-jinja==2.11.0
 elasticsearch==7.17.9
 elasticsearch-dsl==7.4.1
 ftfy==6.1.3

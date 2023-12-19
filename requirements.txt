@@ -374,9 +374,9 @@ django==4.2.8 \
     #   django-jinja
     #   django-redis
     #   mozilla-django-oidc
-django-jinja==2.10.2 \
-    --hash=sha256:bfdfbb55c1f5a679d69ad575d550c4707d386634009152efe014089f3c4d1412 \
-    --hash=sha256:dd003ec1c95c0989eb28a538831bced62b1b61da551cb44a5dfd708fcf75589f
+django-jinja==2.11.0 \
+    --hash=sha256:47c06d3271e6b2f27d3596278af517bfe2e19c1eb36ae1c0b1cc302d7f0259af \
+    --hash=sha256:cc4c72246a6e346aa0574e0c56c3e534c1a20ef47b8476f05d7287781f69a0a9
     # via -r requirements.in
 django-pipeline==2.1.0 \
     --hash=sha256:36a6ce56fdf1d0811e4d51897f534acca35ebb35be699d9d0fd9970e634792a4 \
@@ -518,9 +518,9 @@ ipaddress==1.0.23 \
     --hash=sha256:6e0f4a39e66cb5bb9a137b00276a2eff74f93b71dcbdad6f10ff7df9d3557fcc \
     --hash=sha256:b7f8e0369580bb4a24d5ba1d7cc29660a4a6987763faf1d8a8046830e020e7e2
     # via -r requirements.in
-jinja2==3.0.3 \
-    --hash=sha256:077ce6014f7b40d03b47d1f1ca4b0fc8328a692bd284016f806ed0eaca390ad8 \
-    --hash=sha256:611bb273cd68f3b993fabdc4064fc858c5b47a973cb5aa7999ec1ba405c87cd7
+jinja2==3.1.2 \
+    --hash=sha256:31351a702a408a9e7595a8fc6150fc3f43bb6bf7e319770cbc0db9df9437e852 \
+    --hash=sha256:6088930bfe239f0e6710546ab9c19c9ef35e29792895fed6e6e31a023a182a61
     # via
     #   -r requirements.in
     #   django-jinja
