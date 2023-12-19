@@ -289,7 +289,6 @@ def cache_request(request, response):
             "/stats/",
             "/search",
             "/auth",
-            "/podcasttime",
             "/nodomain",
         )
         for s in not_starts:

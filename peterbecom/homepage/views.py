@@ -319,10 +319,6 @@ def catchall(request, path):
         return http.HttpResponse("Not found", status=404)
     if path == "...":
         return redirect("/")
-    if path.startswith("podcasttime/podcasts/"):
-        return redirect(
-            "https://podcasttime.io/{}".format(path.replace("podcasttime/", ""))
-        )
     if path.startswith("cdn-2916.kxcdn.com/"):
         return redirect("https://" + path)
 
