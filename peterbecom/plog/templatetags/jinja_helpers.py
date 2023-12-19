@@ -1,42 +1,9 @@
-import textwrap
-
 from django.conf import settings
-from django.template.loader import render_to_string
 from django.utils.timesince import timesince as django_timesince
 from django_jinja import library
 from sorl.thumbnail import get_thumbnail
 
-from peterbecom.plog.models import BlogFile, BlogItem
-
-
-@library.global_function
-def show_comments(parent, all_comments, depth=None):
-    if parent.__class__ == BlogItem:
-        parent = None
-    else:
-        parent = parent.pk
-    html = []
-    comments = all_comments[parent]
-    for comment in comments:
-        html.append(
-            render_to_string(
-                "plog/comment.html",
-                {
-                    "comment": comment,
-                    "all_comments": all_comments,
-                    "count_children": len(all_comments[comment.pk]),
-                    "depth": depth or 0,
-                },
-            )
-        )
-    return "\n".join(html)
-
-
-@library.global_function
-def line_indent(text, indent=" " * 4):
-    return "\n".join(
-        textwrap.wrap(text, initial_indent=indent, subsequent_indent=indent)
-    )
+from peterbecom.plog.models import BlogFile
 
 
 @library.global_function
