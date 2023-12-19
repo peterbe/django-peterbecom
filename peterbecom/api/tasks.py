@@ -1,9 +1,7 @@
-from django.template import loader
 from django.core.mail import send_mail
 from django.contrib.sites.models import Site
 from django.urls import reverse
-
-# from django.conf import settings
+import textwrap
 from huey.contrib.djhuey import task
 
 from peterbecom.plog.models import BlogComment
@@ -14,7 +12,7 @@ from peterbecom.plog.utils import get_comment_page
 def send_comment_reply_email(blogcomment_id):
     blogcomment = BlogComment.objects.get(id=blogcomment_id)
     if not blogcomment.approved:
-        print("Blog comment {!r} is no longer approved".format(blogcomment))
+        print(f"Blog comment {blogcomment!r} is no longer approved")
         return
 
     parent = blogcomment.parent
@@ -43,12 +41,25 @@ def _get_comment_reply_body(blogitem, blogcomment, parent):
         base_url = "http://" + domain
     else:
         base_url = "https://" + domain
-    template = loader.get_template("plog/comment_reply_body.txt")
-    context = {
-        "post": blogitem,
-        "comment": blogcomment,
-        "parent": parent,
-        "base_url": base_url,
-        "comment_url": comment_url,
-    }
-    return template.render(context).strip()
+    return f"""
+This is an automatic email notification from Peterbe.com
+On this page,
+{base_url}{comment_url}
+you wrote:
+
+{line_indent(parent.comment)}
+
+Now, {blogcomment.name if blogcomment.name else 'someone'} has replied with the following comment:
+
+{line_indent(blogcomment.comment)}
+
+To visit the page again or to respond, go to:
+{base_url}{comment_url}#{parent.oid}
+
+    """.strip()
+
+
+def line_indent(text, indent=" " * 4):
+    return "\n".join(
+        textwrap.wrap(text, initial_indent=indent, subsequent_indent=indent)
+    )
