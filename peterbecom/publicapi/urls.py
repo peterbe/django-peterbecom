@@ -29,6 +29,7 @@ urlpatterns = [
     # sans trailing /. Not loving this.
     path("autocompete", search.autocompete, name="autocompete"),
     path("autocomplete", search.autocomplete, name="autocomplete"),
+    path("typeahead", search.typeahead, name="typeahead"),
     re_path("search/?", search.search, name="search"),
     path("__hydro__", hydro.receive, name="hydro_receive"),
 ]

@@ -3,6 +3,7 @@ from elasticsearch_dsl import (
     Boolean,
     Date,
     Document,
+    Completion,
     Float,
     Integer,
     Keyword,
@@ -43,6 +44,11 @@ text_analyzer = analyzer(
     else ["lowercase", "stop", "snowball"],
     char_filter=["html_strip"],
 )
+search_term_analyzer = analyzer(
+    "search_term_analyzer",
+    tokenizer="standard",
+    filter=["lowercase", "snowball"],
+)
 
 
 class BlogItemDoc(Document):
@@ -50,6 +56,7 @@ class BlogItemDoc(Document):
     oid = Keyword(required=True)
     # https://github.com/elastic/elasticsearch-dsl-py/blob/master/examples/search_as_you_type.py
     title_autocomplete = SearchAsYouType(max_shingle_size=3)
+    # title_completion = Completion()
     title = Text(
         required=True, analyzer=text_analyzer, term_vector="with_positions_offsets"
     )
@@ -76,3 +83,16 @@ class BlogCommentDoc(Document):
     class Index:
         name = dj_settings.ES_BLOG_COMMENT_INDEX
         settings = dj_settings.ES_BLOG_COMMENT_INDEX_SETTINGS
+
+
+class SearchTermDoc(Document):
+    term = Text(
+        required=True,
+        analyzer=search_term_analyzer,
+        term_vector="with_positions_offsets",
+    )
+    popularity = Float()
+
+    class Index:
+        name = dj_settings.ES_SEARCH_TERM_INDEX
+        settings = dj_settings.ES_SEARCH_TERM_INDEX_SETTINGS

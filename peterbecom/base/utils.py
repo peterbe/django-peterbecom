@@ -4,6 +4,9 @@ import random
 from pathlib import Path
 from ipaddress import IPv4Address
 
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+
 import requests
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
@@ -112,3 +115,37 @@ def do_healthcheck():
     cache.set("foo", "bar", 1)
     assert cache.get("foo") == "bar", "cache not working"
     assert BlogItem.objects.all().count(), "Unable to count BlogItem objects"
+
+
+def generate_search_terms(title, max_words=4):
+    # import nltk
+    # nltk.download("stopwords")
+    # nltk.download("punkt")
+
+    # Tokenize the title into words
+    words = word_tokenize(title)
+
+    # Remove stopwords (common words that may not be informative)
+    stop_words = set(stopwords.words("english"))
+    filtered_words = [
+        word.lower()
+        for word in words
+        if word.isalnum() and word.lower() not in stop_words
+    ]
+
+    # Generate search terms by combining words
+    for i in range(len(filtered_words)):
+        for j in range(i + 1, len(filtered_words) + 1):
+            term = " ".join(filtered_words[i:j])
+            if term.isdigit():
+                continue
+            if j - i == max_words + 1:
+                break
+            # print([term, i, j])
+            # print(
+            #     [
+            #         len(term.split()),
+            #         j - i,
+            #     ]
+            # )
+            yield term

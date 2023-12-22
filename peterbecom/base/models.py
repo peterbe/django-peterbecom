@@ -105,6 +105,9 @@ class SearchResult(models.Model):
     keywords = models.JSONField(default=dict)
     created = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return f"{self.q!r} found {self.documents_found:,} in {self.search_time.total_seconds()*1000:.1f}ms"
+
 
 @receiver(post_save, sender=SearchResult)
 def send_search_result_pulse_message(sender, instance, **kwargs):
