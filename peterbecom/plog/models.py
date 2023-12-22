@@ -14,6 +14,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.core.cache import cache
 from django.db import models, transaction
 from django.db.models import Count
+from django.utils import timezone
 from django.db.models.signals import post_save, pre_delete, pre_save
 from django.dispatch import receiver
 from django.urls import reverse
@@ -22,9 +23,9 @@ from elasticsearch_dsl.connections import connections
 from sorl.thumbnail import ImageField
 
 from peterbecom.base.geo import ip_to_city
-from peterbecom.base.utils import send_pulse_message
+from peterbecom.base.utils import send_pulse_message, generate_search_terms
 from peterbecom.base.search import es_retry
-from peterbecom.plog.search import BlogCommentDoc, BlogItemDoc
+from peterbecom.plog.search import BlogCommentDoc, BlogItemDoc, SearchTermDoc
 from peterbecom.base.models import CDNPurgeURL
 
 from . import utils
@@ -181,8 +182,7 @@ class BlogItem(models.Model):
         else:
             categories = [x.name for x in self.categories.all()]
 
-        cleaned = bleach.clean(self.text_rendered, strip=True, tags=[])
-
+        cleaned = bleach.clean(self.text_rendered, strip=True, tags=[]).strip()
         doc = {
             "id": self.id,
             "oid": self.oid,
@@ -194,6 +194,7 @@ class BlogItem(models.Model):
             "categories": categories,
             "keywords": self.proper_keywords,
         }
+
         return doc
 
     def get_all_keywords(self):
@@ -207,7 +208,7 @@ class BlogItem(models.Model):
 
     @classmethod
     def index_all_blogitems(cls, ids_only=None, verbose=False):
-        iterator = cls.objects.all()
+        iterator = cls._get_indexing_queryset()
         if ids_only:
             iterator = iterator.filter(id__in=ids_only)
         category_names = dict((x.id, x.name) for x in Category.objects.all())
@@ -223,6 +224,43 @@ class BlogItem(models.Model):
             es,
             (m.to_search(all_categories=categories).to_dict(True) for m in iterator),
             index=settings.ES_BLOG_ITEM_INDEX,
+        ):
+            if not success:
+                print("NOT SUCCESS!", doc)
+            count += 1
+            if verbose and not count % report_every:
+                print(f"{count:,}")
+        t1 = time.time()
+        return count, t1 - t0
+
+    @classmethod
+    def _get_indexing_queryset(cls):
+        return cls.objects.filter(archived__isnull=True, pub_date__lt=timezone.now())
+
+    @classmethod
+    def index_all_search_terms(cls, ids_only=None, verbose=False):
+        query_set = cls._get_indexing_queryset()
+        if ids_only:
+            query_set = query_set.filter(id__in=ids_only)
+        t0 = time.time()
+        count = 0
+        search_terms = defaultdict(list)
+        for title, popularity in query_set.values_list("title", "popularity"):
+            count += 1
+            for search_term in generate_search_terms(title):
+                search_terms[search_term].append(popularity or 0.0)
+
+        def getter():
+            for term, popularities in search_terms.items():
+                yield SearchTermDoc(popularity=max(popularities), term=term)
+
+        es = connections.get_connection()
+        report_every = 100
+        count = 0
+        for success, doc in parallel_bulk(
+            es,
+            (m.to_dict(True) for m in getter()),
+            index=settings.ES_SEARCH_TERM_INDEX,
         ):
             if not success:
                 print("NOT SUCCESS!", doc)
@@ -400,7 +438,9 @@ class BlogComment(models.Model):
 
     @classmethod
     def index_all_blogcomments(cls, verbose=False):
-        iterator = cls.objects.all().select_related("blogitem")
+        iterator = cls.objects.filter(
+            blogitem__archived__isnull=True, blogitem__pub_date__lt=timezone.now()
+        ).select_related("blogitem")
 
         es = connections.get_connection()
         report_every = 1000

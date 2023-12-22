@@ -1,5 +1,6 @@
 import re
 import time
+import datetime
 from functools import reduce
 from operator import or_
 
@@ -14,8 +15,9 @@ from elasticsearch_dsl.query import MultiMatch
 
 from peterbecom.homepage.utils import STOPWORDS, split_search
 from peterbecom.plog.models import BlogItem
-from peterbecom.plog.search import BlogCommentDoc, BlogItemDoc
+from peterbecom.plog.search import BlogCommentDoc, BlogItemDoc, SearchTermDoc
 from peterbecom.publicapi.forms import SearchForm
+from peterbecom.base.models import SearchResult
 
 HIGHLIGHT_TYPE = "fvh"
 
@@ -126,9 +128,9 @@ def _autocomplete(terms, size, suggest=False):
             for option in suggestion.options:
                 all_suggestions.append(terms[0].replace(suggestion.text, option.text))
 
-    search_query.update_from_dict(
-        {"query": {"range": {"pub_date": {"lt": timezone.now()}}}}
-    )
+    # search_query.update_from_dict(
+    #     {"query": {"range": {"pub_date": {"lt": timezone.now()}}}}
+    # )
 
     qs = []
 
@@ -216,6 +218,251 @@ def _get_highlights(hit, key, massage=False):
 
 
 @cache_control(max_age=settings.DEBUG and 6 or 60 * 60 * 12, public=True)
+def typeahead(request):
+    q = request.GET.get("q", "")
+    if q.endswith("/") and len(q) > 1:
+        q = q[:-1]
+    if not q:
+        return http.JsonResponse({"error": "Missing 'q'"}, status=400)
+    size = int(request.GET.get("n", 10))
+    if size > 100:
+        return http.JsonResponse({"error": "'n' too big"}, status=400)
+
+    result = _typeahead([q], size)
+    response = http.JsonResponse(
+        {
+            "results": result["results"],
+            "meta": result["meta"],
+        }
+    )
+    if len(q) < 5:
+        patch_cache_control(response, public=True, max_age=60 + 60 * (5 - len(q)))
+    return response
+
+
+def _typeahead(terms, size, suggest=False):
+    assert terms
+    all_suggestions = []
+    # search_query = BlogItemDoc.search(index=settings.ES_BLOG_ITEM_INDEX)
+    search_query = SearchTermDoc.search(index=settings.ES_SEARCH_TERM_INDEX)
+    if suggest:
+        assert 0
+        suggestion = search_query.suggest(
+            "suggestions", terms[0], term={"field": "title"}
+        )
+        response = suggestion.execute()
+        suggestions = response.suggest.suggestions
+        for suggestion in suggestions:
+            for option in suggestion.options:
+                all_suggestions.append(terms[0].replace(suggestion.text, option.text))
+
+    # search_query.update_from_dict(
+    #     {"query": {"range": {"pub_date": {"lt": timezone.now()}}}}
+    # )
+
+    qs = []
+
+    assert isinstance(terms, list), type(terms)
+    for term in terms:
+        is_multiword_query = " " in term or "-" in term
+        if is_multiword_query:
+            qs.append(
+                Q(
+                    "match_phrase_prefix",
+                    term={"query": term, "boost": 4},
+                )
+            )
+        qs.append(Q("match_bool_prefix", term={"query": term, "boost": 2}))
+
+        # qs.append(
+        #     MultiMatch(
+        #         query=term,
+        #         type="bool_prefix",
+        #         fields=[
+        #             "title_autocomplete",
+        #             "title_autocomplete._2gram",
+        #             "title_autocomplete._3gram",
+        #         ],
+        #     )
+        # )
+        # if suggest:
+        #     qs.append(
+        #         Q(
+        #             "fuzzy",
+        #             title={
+        #                 "value": term,
+        #                 "boost": 0.1,
+        #                 "fuzziness": "AUTO",
+        #                 "prefix_length": 2,
+        #             },
+        #         )
+        #     )
+    query = reduce(or_, qs)
+
+    search_query = search_query.query(query)
+
+    search_query = _add_function_score(search_query, query)
+
+    search_query = search_query[:size]
+
+    search_query = search_query.highlight_options(
+        pre_tags=["<mark>"], post_tags=["</mark>"]
+    )
+    search_query = search_query.highlight(
+        "term",
+        # fragment_size=200,
+        # no_match_size=200,
+        number_of_fragments=1,
+        type=HIGHLIGHT_TYPE,
+    )
+    # from pprint import pprint
+
+    # pprint(search_query.to_dict())
+
+    response = search_query.execute()
+    results = []
+    for hit in response.hits:
+        # print(hit.to_dict())
+        highlights = _get_highlights(hit, "term")
+        print((hit.term, highlights))
+        results.append(
+            {
+                "term": hit.term,
+                "highlights": highlights,
+            }
+        )
+        # results.append(
+        #     {
+        #         "oid": hit.oid,
+        #         "title": title_highlights and title_highlights[0] or hit.title,
+        #         "date": hit.pub_date,
+        #     }
+        # )
+
+    meta = {"found": response.hits.total.value, "took": response.took}
+
+    return {
+        "meta": meta,
+        "results": results,
+        "suggestions": all_suggestions,
+    }
+
+
+# def _typeahead(q, size):
+#     search_query = SearchTermDoc.search(index=settings.ES_SEARCH_TERM_INDEX)
+#     is_multiword_query = " " in q or "-" in q
+#     if is_multiword_query:
+#         search_query = search_query.query(
+#             Q(
+#                 "match_phrase_prefix",
+#                 term={"query": q},
+#             )
+#         )
+#     else:
+#         search_query = search_query.query(
+#             MultiMatch(
+#                 query=q,
+#                 type="bool_prefix",
+#                 fields=["term", "term._2gram", "term._3gram"],
+#             )
+#         )
+
+#     search_query = search_query[:size]
+
+#     # search_query = search_query.highlight(
+#     #     "term",
+#     #     # fragment_size=200,
+#     #     # no_match_size=200,
+#     #     # number_of_fragments=1,
+#     #     type=HIGHLIGHT_TYPE,
+#     #     # type="unified",
+#     # )
+#     results = []
+#     response = search_query.execute()
+#     for hit in response.hits:
+#         results.append(
+#             {
+#                 # "term": term_highlights and term_highlights[0] or hit.term,
+#                 "term": hit.term,
+#                 "score": hit.meta.score
+#             }
+#         )
+
+
+# #     meta = {"found": response.hits.total.value, "took": response.took}
+# #     return {"results": results, "meta": meta}
+# def _typeahead(q, size):
+#     search_query = BlogItemDoc.search(index=settings.ES_BLOG_ITEM_INDEX)
+#     # is_multiword_query = " " in q or "-" in q
+#     # if is_multiword_query:
+#     #     search_query = search_query.query(
+#     #         Q(
+#     #             "match_phrase_prefix",
+#     #             term={"query": q},
+#     #         )
+#     #     )
+#     # else:
+#     #     search_query = search_query.query(
+#     #         MultiMatch(
+#     #             query=q,
+#     #             type="bool_prefix",
+#     #             fields=["term", "term._2gram", "term._3gram"],
+#     #         )
+#     #     )
+#     # search_query = search_query.suggest(
+#     #     "title_completions", q, completion={"field": "title_completion"}
+#     # )
+
+#     search_query = search_query[: size * 10]
+
+#     # search_query = search_query.highlight(
+#     #     "term",
+#     #     # fragment_size=200,
+#     #     # no_match_size=200,
+#     #     # number_of_fragments=1,
+#     #     type=HIGHLIGHT_TYPE,
+#     #     # type="unified",
+#     # )
+#     results = []
+#     from pprint import pprint
+
+#     pprint(search_query.to_dict())
+#     response = search_query.execute()
+#     # print(response.suggest.title_completions)
+#     terms = []
+#     for result in response.suggest.title_completions:
+#         print("Suggestions for %s:" % result.text)
+#         # from pprint import pprint
+
+#         # pprint(result.to_dict())
+#         for option in result.options:
+#             print("\t", dir(option))
+#             print("\t", (option.text, option._score))
+#             if option.text not in terms:
+#                 terms.append(option.text)
+#             # print("  %s (%r)" % (option.text, option.payload))
+#     # for hit in response.hits:
+#     #     results.append(
+#     #         {
+#     #             # "term": term_highlights and term_highlights[0] or hit.term,
+#     #             "term": hit.term,
+#     #             "score": hit.meta.score,
+#     #         }
+#     #     )
+#     for term in terms[:size]:
+#         results.append(
+#             {
+#                 "term": term,
+#             }
+#         )
+
+#     found = len(terms)
+
+#     meta = {"found": found, "took": response.took}
+#     return {"results": results, "meta": meta}
+
+
+@cache_control(max_age=settings.DEBUG and 6 or 60 * 60 * 12, public=True)
 def search(request):
     form = SearchForm(request.GET)
     if not form.is_valid():
@@ -243,7 +490,27 @@ def search(request):
         "non_stopwords_q": non_stopwords_q,
     }
 
+    _save_search_result(q, original_q, search_results)
+
     return http.JsonResponse(context)
+
+
+def _save_search_result(q, original_q, search_results):
+    recently = timezone.now() - datetime.timedelta(minutes=1)
+    recent_searches = SearchResult.objects.filter(q=q, created__gt=recently)
+    if recent_searches.exists():
+        print(f"Skipping recent search for {q!r}")
+        return
+
+    SearchResult.objects.create(
+        q=q,
+        original_q=original_q,
+        documents_found=search_results["count_documents"],
+        search_time=datetime.timedelta(seconds=search_results["search_time"]),
+        search_times=search_results["search_times"],
+        search_terms=[x[1] for x in search_results["search_terms"]],
+        keywords=search_results["keywords"],
+    )
 
 
 LIMIT_BLOG_ITEMS = 30
@@ -294,6 +561,8 @@ def _search(
         search_query = search_query.filter(
             "terms", categories=[keyword_search["category"]]
         )
+
+    context["keywords"] = keyword_search
 
     matcher = None
     search_terms.sort(reverse=True)
@@ -459,6 +728,7 @@ def _search(
     context["count_documents_shown"] = len(documents)
 
     context["search_time"] = sum(x[1] for x in search_times)
+    context["search_times"] = search_times
 
     return context
 
