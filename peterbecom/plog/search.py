@@ -3,7 +3,6 @@ from elasticsearch_dsl import (
     Boolean,
     Date,
     Document,
-    Completion,
     Float,
     Integer,
     Keyword,
