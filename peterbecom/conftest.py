@@ -35,11 +35,11 @@ def clear_cache():
     cache.clear()
 
 
-@pytest.fixture
-def tmpfscacheroot(settings):
-    with tempfile.TemporaryDirectory() as tmpdir:
-        settings.FSCACHE_ROOT = Path(tmpdir)
-        yield settings.FSCACHE_ROOT
+# @pytest.fixture
+# def tmpfscacheroot(settings):
+#     with tempfile.TemporaryDirectory() as tmpdir:
+#         settings.FSCACHE_ROOT = Path(tmpdir)
+#         yield settings.FSCACHE_ROOT
 
 
 @pytest.fixture
