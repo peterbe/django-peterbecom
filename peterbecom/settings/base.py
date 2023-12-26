@@ -270,12 +270,6 @@ AUTH0_SUCCESS_URL = "/?logged=in"
 AUTH_SIGNOUT_URL = "https://www.peterbe.com/?logged=out"
 
 
-# A path to where Nginx will look for files first
-FSCACHE_ROOT = None  # Path("peterbecom-static-content/_FSCACHE")
-
-CSSO_CLI_BINARY = path("node_modules/.bin/csso")
-
-
 # CSRF_FAILURE_VIEW = "peterbecom.base.views.csrf_failure"
 
 # ElasticSearch

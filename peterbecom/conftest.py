@@ -1,6 +1,3 @@
-import tempfile
-from pathlib import Path
-
 import mock
 import pytest
 import requests_mock
@@ -33,13 +30,6 @@ def force_elasticsearch_test_index(settings):
 @pytest.fixture(autouse=True)
 def clear_cache():
     cache.clear()
-
-
-@pytest.fixture
-def tmpfscacheroot(settings):
-    with tempfile.TemporaryDirectory() as tmpdir:
-        settings.FSCACHE_ROOT = Path(tmpdir)
-        yield settings.FSCACHE_ROOT
 
 
 @pytest.fixture

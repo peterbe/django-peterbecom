@@ -1,12 +1,8 @@
 import os
-import tempfile
-from pathlib import Path
 
 from django.http import Http404
 from peterbecom.settings import *  # noqa
 
-
-FSCACHE_ROOT = Path(tempfile.gettempdir()) / "test-peterbecom-fscache"
 
 ES_INDEX = "test_peterbecom"
 

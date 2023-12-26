@@ -4,28 +4,22 @@ import gzip
 import io
 import json
 import os
-import re
 import sys
 import time
 import traceback
 from io import StringIO
 from pathlib import Path
-from urllib.parse import urlparse
 
 from django.conf import settings
 from django.utils import timezone
 from huey import crontab
 from huey.contrib.djhuey import periodic_task, task
-from requests.exceptions import ReadTimeout
 
-from peterbecom.base import songsearch_autocomplete
 from peterbecom.base.cdn import purge_cdn_urls
-from peterbecom.base.decorators import lock_decorator
 from peterbecom.base.models import CDNPurgeURL, PostProcessing, CommandRun
 from peterbecom.base.utils import do_healthcheck
 from peterbecom.base.xcache_analyzer import get_x_cache
 from peterbecom.brotli_file import brotli_file
-from peterbecom.mincss_response import has_been_css_minified, mincss_html
 from peterbecom.minify_html import minify_html
 from peterbecom.zopfli_file import zopfli_file
 
@@ -56,131 +50,6 @@ def measure_post_process(func):
                 raise
 
     return inner
-
-
-@task()
-@measure_post_process
-def post_process_cached_html(
-    filepath: Path, url, postprocessing, _start_time=None, original_url=None
-):
-    if _start_time:
-        task_delay = time.time() - _start_time
-        postprocessing.notes.append(f"Taskdelay {task_delay:.2f}s")
-    # Sepearated from true work-horse below. This is so that the task will
-    # *always* fire immediately.
-    return _post_process_cached_html(filepath, url, postprocessing, original_url)
-
-
-@lock_decorator(key_maker=lambda *args, **kwargs: str(args[0]))
-def _post_process_cached_html(filepath: Path, url, postprocessing, original_url):
-    assert isinstance(filepath, Path), type(filepath)
-    if "\n" in url:
-        raise ValueError(f"URL can't have a linebreak in it ({url!r})")
-    if url.startswith("http://testserver"):
-        # do nothing. testing.
-        return
-    if not filepath.exists():
-        postprocessing.notes.append(f"{filepath} no longer exists")
-        return
-
-    attempts = 0
-    with open(filepath) as f:
-        html = f.read()
-
-    if has_been_css_minified(html):
-        # This function has a lock decorator on it. That essentially makes sure,
-        # if fired concurrently, at the same time'ish, by two threads, only one
-        # of them will run at a time. In serial. The second thread will still
-        # get to run. This check is to see if it's no point running now.
-        msg = f"HTML ({filepath}) already post processed"
-        postprocessing.notes.append(msg)
-        return
-
-    # Squeezing every little byte out of it!
-    # That page doesn't need the little minimalcss stats block.
-    # Otherwise, the default is to include it.
-    include_minimalcss_stats = "/plog/blogitem-040601-1" not in url
-
-    optimized_html = html
-    while True and not url.endswith("/awspa"):
-        t0 = time.perf_counter()
-        try:
-            print("CALLING mincss_html FOR", original_url or url)
-            optimized_html = mincss_html(
-                html,
-                original_url or url,
-                include_minimalcss_stats=include_minimalcss_stats,
-            )
-            t1 = time.perf_counter()
-            if optimized_html is None:
-                postprocessing.notes.append(
-                    "At attempt number {} the optimized HTML "
-                    "became None (Took {:.1f}s)".format(attempts + 1, t1 - t0)
-                )
-            else:
-                postprocessing.notes.append(
-                    "Took {:.1f}s mincss_html HTML from {} to {}".format(
-                        t1 - t0, len(html), len(optimized_html)
-                    )
-                )
-        except ReadTimeout as exception:
-            postprocessing.notes.append(f"Timeout on mincss_html() ({exception})")
-            optimized_html = None
-            # created = False
-
-        attempts += 1
-        if optimized_html is None:
-            postprocessing.notes.append(
-                f"WARNING! mincss_html returned None for {filepath} ({url})"
-            )
-            if attempts < 3:
-                print("Will try again!")
-                time.sleep(1)
-                continue
-            postprocessing.notes.append(f"Gave up after {attempts} attempts")
-            return
-
-        try:
-            filepath.rename(Path(str(filepath) + ".original"))
-        except FileNotFoundError:
-            postprocessing.notes.append(
-                f"Can't move to .original {filepath} no longer exists"
-            )
-            return
-        with open(filepath, "w") as f:
-            f.write(optimized_html)
-        print(f"mincss optimized {filepath}")
-        break
-
-    try:
-        (page,) = re.findall(r"/p(\d+)$", url)
-        page = int(page)
-    except ValueError:
-        page = 1
-
-    if "/plog/blogitem-040601-1" in url:
-        songsearch_autocomplete.insert(page=page)
-    else:
-        t0 = time.perf_counter()
-        minified_html = _minify_html(filepath, url)
-        t1 = time.perf_counter()
-        if not minified_html:
-            postprocessing.notes.append("Calling minify_html() failed")
-        postprocessing.notes.append(f"Took {t1 - t0:.1f}s to minify HTML")
-
-        t0 = time.perf_counter()
-        _zopfli_html(minified_html and minified_html or optimized_html, filepath, url)
-        t1 = time.perf_counter()
-        postprocessing.notes.append(f"Took {t1 - t0:.1f}s to Zopfli HTML")
-
-        t0 = time.perf_counter()
-        _brotli_html(minified_html and minified_html or optimized_html, filepath, url)
-        t1 = time.perf_counter()
-        postprocessing.notes.append("Took {:.1f}s to Brotli HTML".format(t1 - t0))
-
-    if "://" in url:
-        url = urlparse(url).path
-    CDNPurgeURL.add(url)
 
 
 @periodic_task(crontab(minute="*"))
