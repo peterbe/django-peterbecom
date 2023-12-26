@@ -3,9 +3,6 @@ from pathlib import Path
 import dj_database_url
 
 
-from .bundles import PIPELINE_CSS, PIPELINE_JS
-
-
 BASE_DIR = Path(__file__).parent.parent.parent
 
 
@@ -80,17 +77,11 @@ STATIC_ROOT = BASE_DIR / "static"
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = "/static/"
 
-# STATICFILES_STORAGE = "pipeline.storage.PipelineCachedStorage"
-# STATICFILES_STORAGE = "peterbecom.storage.ZopfliPipelineCachedStorage"
-STATICFILES_STORAGE = "peterbecom.storage.ZopfliAndBrotliPipelineCachedStorage"
-
 # List of finder classes that know how to find static files in
 # various locations.
 STATICFILES_FINDERS = (
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-    "peterbecom.finders.LeftoverPipelineFinder",
-    "pipeline.finders.PipelineFinder",
 )
 
 # Make this unique, and don't share it with anybody.
@@ -161,7 +152,6 @@ TEMPLATES = [
                 "django_jinja.builtins.extensions.CsrfExtension",
                 "django_jinja.builtins.extensions.StaticFilesExtension",
                 "django_jinja.builtins.extensions.DjangoFiltersExtension",
-                "pipeline.jinja2.PipelineExtension",
             ],
             "globals": {},
         },
@@ -191,7 +181,6 @@ INSTALLED_APPS = (
     "peterbecom.chiveproxy",
     "peterbecom.minimalcss",
     "peterbecom.bayes",
-    "pipeline",
     "django_jinja",
     "huey.contrib.djhuey",
 )
@@ -226,39 +215,11 @@ def JINJA_CONFIG():
             "jinja2.ext.do",
             "jinja2.ext.with_",
             "jinja2.ext.loopcontrols",
-            "pipeline.templatetags.ext.PipelineExtension",
         ],
         "finalize": lambda x: x if x is not None else "",
     }
     return config
 
-
-PIPELINE = {
-    "STYLESHEETS": PIPELINE_CSS,
-    "JAVASCRIPT": PIPELINE_JS,
-    "JS_COMPRESSOR": "pipeline.compressors.uglifyjs.UglifyJSCompressor",
-    "UGLIFYJS_BINARY": path("node_modules/.bin/uglifyjs"),
-    "UGLIFYJS_ARGUMENTS": "--mangle",
-    # 'CSS_COMPRESSOR': 'pipeline.compressors.NoopCompressor',
-    # 'CSSMIN_BINARY': path('node_modules/.bin/cssmin'),
-    # 'CSS_COMPRESSOR': 'pipeline.compressors.cssmin.CSSMinCompressor',
-    "CSSO_BINARY": path("node_modules/.bin/csso"),
-    "CSS_COMPRESSOR": "peterbecom.compressors.CSSOCompressor",
-    "DISABLE_WRAPPER": True,
-    # The pipeline.jinja2.PipelineExtension extension doesn't support
-    # automatically rendering any potentional compilation errors into
-    # the rendered HTML, so just let it raise plain python exceptions.
-    "SHOW_ERRORS_INLINE": False,
-    # If this is set to False, you have to run `collectstatic`
-    # each time. Otherwise set it to True and it will effectively
-    # run collectstatic for you on each and every request and
-    # pipeline jinja tag.
-    "PIPELINE_COLLECTOR_ENABLED": False,
-    # For those .es6 files.
-    "COMPILERS": ("pipeline.compilers.es6.ES6Compiler",),
-    # This is needed for consistency with Travis.
-    "BABEL_BINARY": path("node_modules/.bin/babel"),
-}
 
 # REDIS_URL = 'redis://redis:6379/0'
 REDIS_URL = config("REDIS_URL", "redis://localhost:6379/0")

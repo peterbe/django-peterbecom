@@ -37,9 +37,6 @@ ROLLBAR = {
 USE_ES_SYNONYM_FILE_NAME = False
 SETTINGS
 
-echo "Run collect static to collect all final static assets."
-./manage.py collectstatic --noinput
-
 # Make sure we're running Elasticsearch
 curl -v http://localhost:9200/
 

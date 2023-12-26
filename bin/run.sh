@@ -33,7 +33,6 @@ case $1 in
   web)
     # echo "STARTING WEB-DEV"
     #python manage.py clear-django-cache
-    python manage.py collectstatic --noinput
     python manage.py migrate --noinput
     # export PYTHONWARNINGS=d
     exec python manage.py runserver 0.0.0.0:8000
@@ -42,7 +41,6 @@ case $1 in
     exec python manage.py superuser "${@:2}"
     ;;
   test)
-    python manage.py collectstatic --noinput
     exec python ./manage.py test
     ;;
   bash)
