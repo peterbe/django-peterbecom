@@ -379,10 +379,6 @@ django-jinja==2.10.2 \
     --hash=sha256:bfdfbb55c1f5a679d69ad575d550c4707d386634009152efe014089f3c4d1412 \
     --hash=sha256:dd003ec1c95c0989eb28a538831bced62b1b61da551cb44a5dfd708fcf75589f
     # via -r requirements.in
-django-pipeline==2.1.0 \
-    --hash=sha256:36a6ce56fdf1d0811e4d51897f534acca35ebb35be699d9d0fd9970e634792a4 \
-    --hash=sha256:e91627faee22c4c65eb7d134ef53a9d97253c99e4dd914af8ea9c8c58c01de93
-    # via -r requirements.in
 django-querycount==0.8.3 \
     --hash=sha256:0782484e8a1bd29498fa0195a67106e47cdcc98fafe80cebb1991964077cb694
     # via -r requirements.in
