@@ -73,7 +73,21 @@ def test_search():
     assert "public" in r.headers["cache-control"]
     doc = pyquery.PyQuery(r.text.strip())
     (header,) = doc("h1").items()
-    print(header)
+    assert 'Searching for "python"' in header.text()
+
+
+def test_typehead():
+    r = get("/api/v1/typeahead?q=p")
+    assert r.status_code == 200
+    assert re.findall(r"max-age=\d+", r.headers["cache-control"])
+    assert "public" in r.headers["cache-control"]
+    meta = r.json()["meta"]
+    assert meta["found"] > 0
+    results = r.json()["results"]
+    assert len(results)
+    for result in results:
+        assert result["term"]
+        assert result["highlights"]
 
 
 def test_sitemap_paginated():
