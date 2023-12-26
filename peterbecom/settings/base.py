@@ -77,17 +77,11 @@ STATIC_ROOT = BASE_DIR / "static"
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = "/static/"
 
-# STATICFILES_STORAGE = "pipeline.storage.PipelineCachedStorage"
-# STATICFILES_STORAGE = "peterbecom.storage.ZopfliPipelineCachedStorage"
-# STATICFILES_STORAGE = "peterbecom.storage.ZopfliAndBrotliPipelineCachedStorage"
-
 # List of finder classes that know how to find static files in
 # various locations.
 STATICFILES_FINDERS = (
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-    # "peterbecom.finders.LeftoverPipelineFinder",
-    # "pipeline.finders.PipelineFinder",
 )
 
 # Make this unique, and don't share it with anybody.
@@ -158,7 +152,6 @@ TEMPLATES = [
                 "django_jinja.builtins.extensions.CsrfExtension",
                 "django_jinja.builtins.extensions.StaticFilesExtension",
                 "django_jinja.builtins.extensions.DjangoFiltersExtension",
-                # "pipeline.jinja2.PipelineExtension",
             ],
             "globals": {},
         },
@@ -188,7 +181,6 @@ INSTALLED_APPS = (
     "peterbecom.chiveproxy",
     "peterbecom.minimalcss",
     "peterbecom.bayes",
-    # "pipeline",
     "django_jinja",
     "huey.contrib.djhuey",
 )
@@ -223,7 +215,6 @@ def JINJA_CONFIG():
             "jinja2.ext.do",
             "jinja2.ext.with_",
             "jinja2.ext.loopcontrols",
-            # "pipeline.templatetags.ext.PipelineExtension",
         ],
         "finalize": lambda x: x if x is not None else "",
     }
