@@ -135,8 +135,7 @@ def _autocomplete(terms, size, suggest=False):
     qs = []
 
     for term in terms:
-        is_multiword_query = " " in term or "-" in term
-        if is_multiword_query:
+        if _is_multiword_query(term):
             qs.append(
                 Q(
                     "match_phrase_prefix",
@@ -249,8 +248,7 @@ def _typeahead(terms, size):
 
     assert isinstance(terms, list), type(terms)
     for term in terms:
-        is_multiword_query = " " in term or "-" in term
-        if is_multiword_query:
+        if _is_multiword_query(term):
             qs.append(
                 Q(
                     "match_phrase_prefix",
@@ -332,7 +330,7 @@ def _save_search_result(q, original_q, search_results):
     recently = timezone.now() - datetime.timedelta(minutes=1)
     recent_searches = SearchResult.objects.filter(q=q, created__gt=recently)
     if recent_searches.exists():
-        print(f"Skipping recent search for {q!r}")
+        print(f"Skip storing recent search for {q!r}")
         return
 
     SearchResult.objects.create(
@@ -341,7 +339,6 @@ def _save_search_result(q, original_q, search_results):
         documents_found=search_results["count_documents"],
         search_time=datetime.timedelta(seconds=search_results["search_time"]),
         search_times=search_results["search_times"],
-        search_terms=[x[1] for x in search_results["search_terms"]],
         keywords=search_results["keywords"],
     )
 
@@ -355,7 +352,6 @@ def _search(
     popularity_factor,
     boost_mode,
     debug_search=False,
-    strategy="match_phrase",
 ):
     documents = []
     search_times = []
@@ -364,24 +360,6 @@ def _search(
     if len(q) > 1:
         _keyword_keys = ("keyword", "keywords", "category", "categories")
         q, keyword_search = split_search(q, _keyword_keys)
-
-    search_terms = [(1.1, q)]
-    _search_terms = set([q])
-
-    doc_type_keys = ((BlogItemDoc, ("title", "text")), (BlogCommentDoc, ("comment",)))
-    for doc_type, keys in doc_type_keys:
-        suggester = doc_type.search()
-        for key in keys:
-            suggester = suggester.suggest("sugg", q, term={"field": key})
-        suggestions = suggester.execute()
-        for each in suggestions.suggest.sugg:
-            if each.options:
-                for option in each.options:
-                    if option.score >= 0.6:
-                        better = q.replace(each["text"], option["text"])
-                        if better not in _search_terms:
-                            search_terms.append((option["score"], better))
-                            _search_terms.add(better)
 
     search_query = BlogItemDoc.search(index=settings.ES_BLOG_ITEM_INDEX)
     search_query.update_from_dict({"query": {"range": {"pub_date": {"lt": "now"}}}})
@@ -398,28 +376,21 @@ def _search(
     context["keywords"] = keyword_search
 
     matcher = None
-    search_terms.sort(reverse=True)
-    max_search_terms = 5  # to not send too much stuff to ES
-    if len(search_terms) > max_search_terms:
-        search_terms = search_terms[:max_search_terms]
+    boost = 1 * 2
+    boost_title = 2 * boost
+    qs = []
+    if _is_multiword_query(q):
+        qs.append(Q("match_phrase", title={"query": q, "boost": boost_title * 3}))
+        qs.append(Q("match_phrase", text={"query": q, "boost": boost * 2}))
 
-    search_term_boosts = {}
-    for i, (score, word) in enumerate(search_terms):
-        # meaning the first search_term should be boosted most
-        j = len(search_terms) - i
-        boost = 1 * j * score
-        boost_title = 2 * boost
-        search_term_boosts[word] = (boost_title, boost)
-        match = Q(strategy, title={"query": word, "boost": boost_title}) | Q(
-            strategy, text={"query": word, "boost": boost}
-        )
-        if matcher is None:
-            matcher = match
-        else:
-            matcher |= match
+    qs.append(Q("match", title={"query": q, "boost": boost_title}))
+    qs.append(Q("match", text={"query": q, "boost": boost}))
+    if len(q) > 3:
+        qs.append(Q("fuzzy", title={"value": q, "boost": 0.2}))
+        if len(q) > 5:
+            qs.append(Q("fuzzy", text={"value": q, "boost": 0.1}))
 
-    context["search_terms"] = search_terms
-    context["search_term_boosts"] = search_term_boosts
+    matcher = reduce(or_, qs)
 
     popularity_factor = settings.DEFAULT_POPULARITY_FACTOR
     boost_mode = settings.DEFAULT_BOOST_MODE
@@ -442,6 +413,7 @@ def _search(
     )
 
     search_query = search_query[:LIMIT_BLOG_ITEMS]
+
     t0 = time.time()
     response = search_query.execute()
     t1 = time.time()
@@ -501,20 +473,9 @@ def _search(
     t0 = time.time()
     response = search_query.execute()
     t1 = time.time()
-    # print("TOOK", response.took)
     search_times.append(("blogcomments", t1 - t0))
 
     context["count_documents"] += response.hits.total.value
-
-    if strategy != "match" and not context["count_documents"] and " " in q:
-        # recurse
-        return _search(
-            q,
-            popularity_factor,
-            boost_mode,
-            debug_search=debug_search,
-            strategy="match",
-        )
 
     blogitem_lookups = set()
     for hit in response:
@@ -564,6 +525,10 @@ def _search(
     context["search_times"] = search_times
 
     return context
+
+
+def _is_multiword_query(query):
+    return " " in query or "-" in query
 
 
 def _add_function_score(
