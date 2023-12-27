@@ -243,8 +243,6 @@ def typeahead(request):
 def _typeahead(terms, size):
     assert terms
     all_suggestions = []
-    # search_query = BlogItemDoc.search(index=settings.ES_BLOG_ITEM_INDEX)
-    # search_query = SearchTermDoc.search(index=settings.ES_SEARCH_TERM_INDEX)
     search_query = SearchTermDoc.search(index=settings.ES_SEARCH_TERM_INDEX)
 
     qs = []
@@ -274,8 +272,6 @@ def _typeahead(terms, size):
     )
     search_query = search_query.highlight(
         "term",
-        # fragment_size=200,
-        # no_match_size=200,
         number_of_fragments=1,
         type=HIGHLIGHT_TYPE,
     )
@@ -297,120 +293,6 @@ def _typeahead(terms, size):
         "results": results,
         "suggestions": all_suggestions,
     }
-
-
-# def _typeahead(q, size):
-#     search_query = SearchTermDoc.search(index=settings.ES_SEARCH_TERM_INDEX)
-#     is_multiword_query = " " in q or "-" in q
-#     if is_multiword_query:
-#         search_query = search_query.query(
-#             Q(
-#                 "match_phrase_prefix",
-#                 term={"query": q},
-#             )
-#         )
-#     else:
-#         search_query = search_query.query(
-#             MultiMatch(
-#                 query=q,
-#                 type="bool_prefix",
-#                 fields=["term", "term._2gram", "term._3gram"],
-#             )
-#         )
-
-#     search_query = search_query[:size]
-
-#     # search_query = search_query.highlight(
-#     #     "term",
-#     #     # fragment_size=200,
-#     #     # no_match_size=200,
-#     #     # number_of_fragments=1,
-#     #     type=HIGHLIGHT_TYPE,
-#     #     # type="unified",
-#     # )
-#     results = []
-#     response = search_query.execute()
-#     for hit in response.hits:
-#         results.append(
-#             {
-#                 # "term": term_highlights and term_highlights[0] or hit.term,
-#                 "term": hit.term,
-#                 "score": hit.meta.score
-#             }
-#         )
-
-
-# #     meta = {"found": response.hits.total.value, "took": response.took}
-# #     return {"results": results, "meta": meta}
-# def _typeahead(q, size):
-#     search_query = BlogItemDoc.search(index=settings.ES_BLOG_ITEM_INDEX)
-#     # is_multiword_query = " " in q or "-" in q
-#     # if is_multiword_query:
-#     #     search_query = search_query.query(
-#     #         Q(
-#     #             "match_phrase_prefix",
-#     #             term={"query": q},
-#     #         )
-#     #     )
-#     # else:
-#     #     search_query = search_query.query(
-#     #         MultiMatch(
-#     #             query=q,
-#     #             type="bool_prefix",
-#     #             fields=["term", "term._2gram", "term._3gram"],
-#     #         )
-#     #     )
-#     # search_query = search_query.suggest(
-#     #     "title_completions", q, completion={"field": "title_completion"}
-#     # )
-
-#     search_query = search_query[: size * 10]
-
-#     # search_query = search_query.highlight(
-#     #     "term",
-#     #     # fragment_size=200,
-#     #     # no_match_size=200,
-#     #     # number_of_fragments=1,
-#     #     type=HIGHLIGHT_TYPE,
-#     #     # type="unified",
-#     # )
-#     results = []
-#     from pprint import pprint
-
-#     pprint(search_query.to_dict())
-#     response = search_query.execute()
-#     # print(response.suggest.title_completions)
-#     terms = []
-#     for result in response.suggest.title_completions:
-#         print("Suggestions for %s:" % result.text)
-#         # from pprint import pprint
-
-#         # pprint(result.to_dict())
-#         for option in result.options:
-#             print("\t", dir(option))
-#             print("\t", (option.text, option._score))
-#             if option.text not in terms:
-#                 terms.append(option.text)
-#             # print("  %s (%r)" % (option.text, option.payload))
-#     # for hit in response.hits:
-#     #     results.append(
-#     #         {
-#     #             # "term": term_highlights and term_highlights[0] or hit.term,
-#     #             "term": hit.term,
-#     #             "score": hit.meta.score,
-#     #         }
-#     #     )
-#     for term in terms[:size]:
-#         results.append(
-#             {
-#                 "term": term,
-#             }
-#         )
-
-#     found = len(terms)
-
-#     meta = {"found": found, "took": response.took}
-#     return {"results": results, "meta": meta}
 
 
 @cache_control(max_age=settings.DEBUG and 6 or 60 * 60 * 12, public=True)
