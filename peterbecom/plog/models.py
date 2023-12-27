@@ -25,7 +25,12 @@ from sorl.thumbnail import ImageField
 from peterbecom.base.geo import ip_to_city
 from peterbecom.base.utils import send_pulse_message, generate_search_terms
 from peterbecom.base.search import es_retry
-from peterbecom.plog.search import BlogCommentDoc, BlogItemDoc, SearchTermDoc
+from peterbecom.plog.search import (
+    BlogCommentDoc,
+    BlogItemDoc,
+    SearchTermDoc,
+    swap_alias,
+)
 from peterbecom.base.models import CDNPurgeURL
 
 from . import utils
@@ -220,16 +225,19 @@ class BlogItem(models.Model):
         report_every = 100
         count = 0
         t0 = time.time()
+        BlogItemDoc._index.create()
         for success, doc in parallel_bulk(
             es,
             (m.to_search(all_categories=categories).to_dict(True) for m in iterator),
-            index=settings.ES_BLOG_ITEM_INDEX,
         ):
             if not success:
                 print("NOT SUCCESS!", doc)
             count += 1
             if verbose and not count % report_every:
                 print(f"{count:,}")
+
+        swap_alias(es, BlogItemDoc._index._name, settings.ES_BLOG_ITEM_INDEX)
+
         t1 = time.time()
         return count, t1 - t0
 
@@ -238,10 +246,8 @@ class BlogItem(models.Model):
         return cls.objects.filter(archived__isnull=True, pub_date__lt=timezone.now())
 
     @classmethod
-    def index_all_search_terms(cls, ids_only=None, verbose=False):
+    def index_all_search_terms(cls, verbose=False):
         query_set = cls._get_indexing_queryset()
-        if ids_only:
-            query_set = query_set.filter(id__in=ids_only)
         t0 = time.time()
         count = 0
         search_terms = defaultdict(list)
@@ -257,16 +263,19 @@ class BlogItem(models.Model):
         es = connections.get_connection()
         report_every = 100
         count = 0
+        SearchTermDoc._index.create()
         for success, doc in parallel_bulk(
             es,
             (m.to_dict(True) for m in getter()),
-            index=settings.ES_SEARCH_TERM_INDEX,
         ):
             if not success:
                 print("NOT SUCCESS!", doc)
             count += 1
             if verbose and not count % report_every:
                 print(f"{count:,}")
+
+        swap_alias(es, SearchTermDoc._index._name, settings.ES_SEARCH_TERM_INDEX)
+
         t1 = time.time()
         return count, t1 - t0
 
@@ -446,16 +455,19 @@ class BlogComment(models.Model):
         report_every = 1000
         count = 0
         t0 = time.time()
+        BlogCommentDoc._index.create()
         for success, doc in parallel_bulk(
             es,
             (m.to_search().to_dict(True) for m in iterator),
-            index=settings.ES_BLOG_COMMENT_INDEX,
         ):
             if not success:
                 print("NOT SUCCESS!", doc)
             count += 1
             if verbose and not count % report_every:
                 print(f"{count:,}")
+
+        swap_alias(es, BlogCommentDoc._index._name, settings.ES_BLOG_COMMENT_INDEX)
+
         t1 = time.time()
         return count, t1 - t0
 

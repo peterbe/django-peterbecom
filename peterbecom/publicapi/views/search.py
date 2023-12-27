@@ -240,25 +240,12 @@ def typeahead(request):
     return response
 
 
-def _typeahead(terms, size, suggest=False):
+def _typeahead(terms, size):
     assert terms
     all_suggestions = []
     # search_query = BlogItemDoc.search(index=settings.ES_BLOG_ITEM_INDEX)
+    # search_query = SearchTermDoc.search(index=settings.ES_SEARCH_TERM_INDEX)
     search_query = SearchTermDoc.search(index=settings.ES_SEARCH_TERM_INDEX)
-    if suggest:
-        assert 0
-        suggestion = search_query.suggest(
-            "suggestions", terms[0], term={"field": "title"}
-        )
-        response = suggestion.execute()
-        suggestions = response.suggest.suggestions
-        for suggestion in suggestions:
-            for option in suggestion.options:
-                all_suggestions.append(terms[0].replace(suggestion.text, option.text))
-
-    # search_query.update_from_dict(
-    #     {"query": {"range": {"pub_date": {"lt": timezone.now()}}}}
-    # )
 
     qs = []
 
@@ -274,29 +261,6 @@ def _typeahead(terms, size, suggest=False):
             )
         qs.append(Q("match_bool_prefix", term={"query": term, "boost": 2}))
 
-        # qs.append(
-        #     MultiMatch(
-        #         query=term,
-        #         type="bool_prefix",
-        #         fields=[
-        #             "title_autocomplete",
-        #             "title_autocomplete._2gram",
-        #             "title_autocomplete._3gram",
-        #         ],
-        #     )
-        # )
-        # if suggest:
-        #     qs.append(
-        #         Q(
-        #             "fuzzy",
-        #             title={
-        #                 "value": term,
-        #                 "boost": 0.1,
-        #                 "fuzziness": "AUTO",
-        #                 "prefix_length": 2,
-        #             },
-        #         )
-        #     )
     query = reduce(or_, qs)
 
     search_query = search_query.query(query)
@@ -315,30 +279,17 @@ def _typeahead(terms, size, suggest=False):
         number_of_fragments=1,
         type=HIGHLIGHT_TYPE,
     )
-    # from pprint import pprint
-
-    # pprint(search_query.to_dict())
 
     response = search_query.execute()
     results = []
     for hit in response.hits:
-        # print(hit.to_dict())
         highlights = _get_highlights(hit, "term")
-        print((hit.term, highlights))
         results.append(
             {
                 "term": hit.term,
                 "highlights": highlights,
             }
         )
-        # results.append(
-        #     {
-        #         "oid": hit.oid,
-        #         "title": title_highlights and title_highlights[0] or hit.title,
-        #         "date": hit.pub_date,
-        #     }
-        # )
-
     meta = {"found": response.hits.total.value, "took": response.took}
 
     return {

@@ -1,4 +1,5 @@
 from django.conf import settings as dj_settings
+from django.utils import timezone
 from elasticsearch_dsl import (
     Boolean,
     Date,
@@ -50,12 +51,15 @@ search_term_analyzer = analyzer(
 )
 
 
+def timestamped(prefix):
+    return f"{prefix}_{timezone.now().strftime('%Y%m%d%H%M%S')}"
+
+
 class BlogItemDoc(Document):
     id = Keyword(required=True)
     oid = Keyword(required=True)
     # https://github.com/elastic/elasticsearch-dsl-py/blob/master/examples/search_as_you_type.py
     title_autocomplete = SearchAsYouType(max_shingle_size=3)
-    # title_completion = Completion()
     title = Text(
         required=True, analyzer=text_analyzer, term_vector="with_positions_offsets"
     )
@@ -66,7 +70,7 @@ class BlogItemDoc(Document):
     popularity = Float()
 
     class Index:
-        name = dj_settings.ES_BLOG_ITEM_INDEX
+        name = timestamped(dj_settings.ES_BLOG_ITEM_INDEX)
         settings = dj_settings.ES_BLOG_ITEM_INDEX_SETTINGS
 
 
@@ -80,7 +84,7 @@ class BlogCommentDoc(Document):
     popularity = Float()
 
     class Index:
-        name = dj_settings.ES_BLOG_COMMENT_INDEX
+        name = timestamped(dj_settings.ES_BLOG_COMMENT_INDEX)
         settings = dj_settings.ES_BLOG_COMMENT_INDEX_SETTINGS
 
 
@@ -91,7 +95,25 @@ class SearchTermDoc(Document):
         term_vector="with_positions_offsets",
     )
     popularity = Float()
+    foo_bar = Boolean()
 
     class Index:
-        name = dj_settings.ES_SEARCH_TERM_INDEX
+        name = timestamped(dj_settings.ES_SEARCH_TERM_INDEX)
         settings = dj_settings.ES_SEARCH_TERM_INDEX_SETTINGS
+
+
+def swap_alias(connection, index_name, alias):
+    assert index_name.startswith(alias + "_")
+    alias_updates = [
+        {
+            "add": {
+                "index": index_name,
+                "alias": alias,
+            }
+        }
+    ]
+    for name in connection.indices.get_alias():
+        if name.startswith(f"{alias}_"):
+            if name != index_name:
+                alias_updates.append({"remove_index": {"index": name}})
+    connection.indices.update_aliases(body={"actions": alias_updates})
