@@ -9,6 +9,7 @@ from huey import crontab
 from huey.contrib.djhuey import periodic_task, task
 
 from peterbecom.plog.models import (
+    BlogItem,
     BlogComment,
     BlogItemDailyHits,
     BlogItemDailyHitsExistingError,
@@ -68,3 +69,15 @@ def delete_old_blogitemhits():
     date = timezone.now() - datetime.timedelta(days=300)
     deleted = BlogItemHit.objects.filter(add_date__lt=date).delete()[0]
     print(f"Deleted {deleted:,} old BlogItemHit records older than {date}")
+
+
+@periodic_task(
+    # Every hour in local dev
+    crontab(hour="*", minute="0")
+    if settings.DEBUG
+    # Every day at midnight in production
+    else crontab(day_of_month="*", hour="0", minute="0")
+)
+def reindex_search_terms():
+    count, took = BlogItem.index_all_search_terms()
+    print(f"Indexed {count:,} search terms in {took:.1f} seconds")
