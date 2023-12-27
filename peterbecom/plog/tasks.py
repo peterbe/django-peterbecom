@@ -76,7 +76,7 @@ def delete_old_blogitemhits():
     crontab(hour="*", minute="0")
     if settings.DEBUG
     # Every day at midnight in production
-    else crontab(day_of_month="*", hour="0", minute="0")
+    else crontab(hour="0", minute="0")
 )
 def reindex_search_terms():
     count, took = BlogItem.index_all_search_terms()
