@@ -139,7 +139,7 @@ def blogitems(request):
 
 def _amend_blogitems_search(qs, search):
     if search:
-        is_regex = re.compile("is:\s*(archived|future|published|unpublished)")
+        is_regex = re.compile(r"is:\s*(archived|future|published|unpublished)")
         for found in is_regex.findall(search):
             if found == "archived":
                 qs = qs.filter(archived__isnull=False)
