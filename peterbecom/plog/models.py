@@ -663,6 +663,10 @@ def update_es(sender, instance, **kwargs):
     if sender is BlogComment:
         if not instance.approved:
             return
+    if sender is BlogItem:
+        if instance.archived or instance.pub_date > timezone.now():
+            return
+
     doc = instance.to_search()
     es_retry(doc.save)
 

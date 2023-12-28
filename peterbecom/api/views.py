@@ -139,6 +139,18 @@ def blogitems(request):
 
 def _amend_blogitems_search(qs, search):
     if search:
+        is_regex = re.compile("is:\s*(archived|future|published|unpublished)")
+        for found in is_regex.findall(search):
+            if found == "archived":
+                qs = qs.filter(archived__isnull=False)
+            elif found == "future":
+                qs = qs.filter(pub_date__gt=timezone.now())
+            elif found == "published":
+                qs = qs.filter(pub_date__lt=timezone.now())
+            elif found == "unpublished":
+                qs = qs.filter(pub_date__gt=timezone.now())
+            search = is_regex.sub("", search).strip()
+
         category_names = []
         cat_regex = re.compile(r"(cat:\s*([\w\s]+))")
         for found in cat_regex.findall(search):
