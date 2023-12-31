@@ -1,2 +1,0 @@
-uglifyjs autocomplete.js -c -m  > autocomplete.min.js
-cssmin < autocomplete.css > autocomplete.min.css
