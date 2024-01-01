@@ -19,7 +19,7 @@
     "react-scripts": "4.0.3",
     "react-semantic-toasts": "0.6.6",
     "semantic-ui-css": "2.5.0",
-    "semantic-ui-react": "2.1.4",
+    "semantic-ui-react": "2.1.5",
     "sockette": "2.0.6",
     "swr": "2.2.4",
     "web-vitals": "3.4.0"
