@@ -983,9 +983,9 @@ python-decouple==3.8 \
     --hash=sha256:ba6e2657d4f376ecc46f77a3a615e058d93ba5e465c01bbe57289bfb7cce680f \
     --hash=sha256:d0d45340815b25f4de59c974b855bb38d03151d81b037d9e3f463b0c9f8cbd66
     # via -r requirements.in
-pytz==2023.3.post1 \
-    --hash=sha256:7b4fddbeb94a1eba4b557da24f19fdf9db575192544270a9101d8509f9f43d7b \
-    --hash=sha256:ce42d816b81b68506614c11e8937d3aa9e41007ceb50bfdcb0749b921bf646c7
+pytz==2023.4 \
+    --hash=sha256:31d4583c4ed539cd037956140d695e42c033a19e984bfce9964a3f7d59bc2b40 \
+    --hash=sha256:f90ef520d95e7c46951105338d918664ebfd6f1d995bd7d153127ce90efafa6a
     # via -r requirements.in
 redis==5.0.1 \
     --hash=sha256:0dab495cd5753069d3bc650a0dde8a8f9edde16fc5691b689a566eda58100d0f \
