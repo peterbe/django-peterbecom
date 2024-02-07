@@ -3,7 +3,7 @@
 #   pip-compile --generate-hashes requirements.in
 #   pip install -r requirements.txt
 
-Django==4.2.8
+Django==4.2.10
 Jinja2==3.0.3
 Markdown==3.5.1
 sorl-thumbnail==12.10.0
