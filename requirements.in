@@ -42,7 +42,7 @@ keycdn==0.4.3
 django-querycount==0.8.3
 profanity==1.1
 py-avataaars==1.1.2
-mozilla-django-oidc==3.0.0
+mozilla-django-oidc==4.0.0
 nltk==3.8.1
 
 # Testing (Should these be broken out?)
