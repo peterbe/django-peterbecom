@@ -10,7 +10,7 @@
   "dependencies": {
     "@babel/cli": "7.23.9",
     "@babel/core": "7.23.9",
-    "puppeteer": "21.1.1"
+    "puppeteer": "22.0.0"
   },
   "devDependencies": {
     "@babel/preset-env": "7.23.9"
