@@ -8,10 +8,9 @@ exclude = [
     'peterbecom/settings/local.py',
     'peterbecom/wsgi.py',
 ]
-ignore = ['E501']
 line-length = 88
-select = [
-    'E',
-    'F',
-    'W',
-]
+
+[tool.ruff.lint]
+# Add the `line-too-long` rule to the enforced rule set.
+extend-ignore = ["E501"]
+extend-select = ["E", "F", "W"]

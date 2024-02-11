@@ -31,17 +31,21 @@ else:
 text_analyzer = analyzer(
     "text_analyzer",
     tokenizer="standard",
-    filter=["standard", "lowercase", "stop", synonym_tokenfilter, "snowball"]
-    if synonym_tokenfilter
-    else ["standard", "lowercase", "stop", "snowball"],
+    filter=(
+        ["standard", "lowercase", "stop", synonym_tokenfilter, "snowball"]
+        if synonym_tokenfilter
+        else ["standard", "lowercase", "stop", "snowball"]
+    ),
     char_filter=["html_strip"],
 )
 text_analyzer = analyzer(
     "text_analyzer",
     tokenizer="standard",
-    filter=["lowercase", "stop", synonym_tokenfilter, "snowball"]
-    if synonym_tokenfilter
-    else ["lowercase", "stop", "snowball"],
+    filter=(
+        ["lowercase", "stop", synonym_tokenfilter, "snowball"]
+        if synonym_tokenfilter
+        else ["lowercase", "stop", "snowball"]
+    ),
     char_filter=["html_strip"],
 )
 search_term_analyzer = analyzer(
