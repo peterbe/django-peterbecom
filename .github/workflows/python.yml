@@ -84,8 +84,7 @@ jobs:
           pip install -r requirements.txt --progress-bar off
 
       - name: Run Lints
-        run: |
-          ./scripts/ci-lint.sh
+        run: ruff check .
 
       - name: Run Tests
         run: |
