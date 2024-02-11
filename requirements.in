@@ -3,11 +3,11 @@
 #   pip-compile --generate-hashes requirements.in
 #   pip install -r requirements.txt
 
-Django==4.2.8
+Django==4.2.10
 Jinja2==3.0.3
-Markdown==3.5.1
+Markdown==3.5.2
 sorl-thumbnail==12.10.0
-Pillow==10.1.0
+Pillow==10.2.0
 cssmin==0.2.0
 cssselect==1.2.0
 requests==2.31.0
@@ -16,7 +16,7 @@ feedparser==6.0.11
 pyquery==2.0.0
 xmltodict==0.13.0
 optisorl==0.2.1
-pytz==2023.3.post1
+pytz==2024.1
 django-jinja==2.10.2
 elasticsearch==7.17.9
 elasticsearch-dsl==7.4.1
@@ -42,7 +42,7 @@ keycdn==0.4.3
 django-querycount==0.8.3
 profanity==1.1
 py-avataaars==1.1.2
-mozilla-django-oidc==3.0.0
+mozilla-django-oidc==4.0.0
 nltk==3.8.1
 
 # Testing (Should these be broken out?)
@@ -57,5 +57,4 @@ requests-mock==1.11.0
 # to put these into production. At least now there's only one file.
 honcho==1.1.0
 pip-tools==7.3.0
-black==23.12.1
-ruff==0.1.9
+ruff==0.2.1

@@ -27,9 +27,7 @@ def update_all(verbose=False, limit=1000, dry_run=False, reindex=False):
                 blogitem_id = b.id AND (NOW() - b.pub_date) > INTERVAL '1 day'
             ORDER BY score desc
             LIMIT {limit}
-        """.format(
-            limit=limit
-        )
+        """.format(limit=limit)
     )
 
     ids = []
