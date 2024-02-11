@@ -61,8 +61,7 @@ def minimize(request):
             error = None
         t1 = time.time()
         print(
-            "WARNING! "
-            "{} status code trying to minimize {}".format(r.status_code, url)
+            "WARNING! {} status code trying to minimize {}".format(r.status_code, url)
         )
 
         error = {"status_code": r.status_code, "error": error}

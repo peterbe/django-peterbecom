@@ -1,6 +1,3 @@
-[tool.black]
-exclude = '(migrations|settings/local\.py)'
-
 [tool.ruff]
 exclude = [
     'peterbecom/*/migrations/*',

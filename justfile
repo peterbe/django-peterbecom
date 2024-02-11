@@ -4,12 +4,13 @@
 dev:
     hivemind Procfile
 
+start: dev
+
 pretty:
-    black peterbecom
+    ruff format peterbecom
 
 lint: pretty
-    ruff peterbecom
-    black --check peterbecom
+    ruff check peterbecom
 
 format: pretty
 
