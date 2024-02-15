@@ -11,11 +11,18 @@ from django.utils.cache import patch_cache_control
 from django.utils.html import strip_tags
 from django.views.decorators.cache import cache_control
 from elasticsearch_dsl import Q, query
+from django.db.models import Q as DjangoQ
+
 from elasticsearch_dsl.query import MultiMatch
+from django.contrib.postgres.search import SearchQuery, SearchHeadline
 
 from peterbecom.homepage.utils import STOPWORDS, split_search
-from peterbecom.plog.models import BlogItem
-from peterbecom.plog.search import BlogCommentDoc, BlogItemDoc, SearchTermDoc
+from peterbecom.plog.models import BlogItem, BlogItemSearchTerm
+from peterbecom.plog.search import (
+    BlogCommentDoc,
+    BlogItemDoc,
+    SearchTermDoc,
+)
 from peterbecom.publicapi.forms import SearchForm
 from peterbecom.base.models import SearchResult
 
@@ -227,7 +234,15 @@ def typeahead(request):
     if size > 100:
         return http.JsonResponse({"error": "'n' too big"}, status=400)
 
-    result = _typeahead([q], size)
+    result_es = _typeahead_es([q], size)
+    result = _typeahead_pg(q, size)
+    print("RESULT ELASTIC")
+    from pprint import pprint
+
+    pprint(result_es)
+    print("RESULT PG")
+    pprint(result)
+    print("\n")
     response = http.JsonResponse(
         {
             "results": result["results"],
@@ -239,9 +254,9 @@ def typeahead(request):
     return response
 
 
-def _typeahead(terms, size):
+def _typeahead_es(terms, size):
     assert terms
-    all_suggestions = []
+    # all_suggestions = []
     search_query = SearchTermDoc.search(index=settings.ES_SEARCH_TERM_INDEX)
 
     qs = []
@@ -273,7 +288,7 @@ def _typeahead(terms, size):
         number_of_fragments=1,
         type=HIGHLIGHT_TYPE,
     )
-
+    t0 = time.time()
     response = search_query.execute()
     results = []
     for hit in response.hits:
@@ -284,12 +299,75 @@ def _typeahead(terms, size):
                 "highlights": highlights,
             }
         )
-    meta = {"found": response.hits.total.value, "took": response.took}
+    t1 = time.time()
+    meta = {"found": response.hits.total.value, "took": t1 - t0}
 
     return {
         "meta": meta,
         "results": results,
-        "suggestions": all_suggestions,
+        # "suggestions": all_suggestions,
+    }
+
+
+def _typeahead_pg(terms, size):
+    assert terms
+    search_query = SearchQuery(
+        _prepare_search_term(terms),
+        search_type="raw",
+        config="simple",
+    )
+    search_query_en = SearchQuery(
+        _prepare_search_term(terms),
+        search_type="raw",
+        config="english",
+    )
+    qs = BlogItemSearchTerm.objects.all()
+    qs = qs.annotate(
+        headline=SearchHeadline(
+            "search_term",
+            search_query,
+            start_sel="<mark>",
+            stop_sel="</mark>",
+            config="simple",
+        ),
+        headline_en=SearchHeadline(
+            "search_term",
+            search_query_en,
+            start_sel="<mark>",
+            stop_sel="</mark>",
+            config="english",
+        ),
+    )
+    qs = qs.order_by("-popularity")
+    qs = qs.filter(
+        DjangoQ(search_vector=search_query)
+        | DjangoQ(search_vector_en=search_query_en)
+        # search_vector=search_query
+        # DjangoQ(search_vector=search_query) | DjangoQ(search_vector_en=search_query_en)
+    )
+    results = []
+    t0 = time.time()
+    found = 0
+    for i, m in enumerate(
+        # qs.values("search_term", "popularity", "headline", "headline_en")[: size + 1]
+        qs.values("search_term", "popularity", "headline", "headline_en")[: size + 1]
+    ):
+        if i == size:
+            found = qs.count()
+            break
+        found = i + 1
+        headline = m["headline"]
+        if "<mark>" not in headline and "<mark>" in m["headline_en"]:
+            headline = m["headline_en"]
+        results.append({"term": m["search_term"], "highlights": [headline]})
+
+    assert len(results) <= size
+    t1 = time.time()
+
+    meta = {"found": found, "took": t1 - t0}
+    return {
+        "meta": meta,
+        "results": results,
     }
 
 
@@ -617,3 +695,24 @@ def _clean_fragment_html(fragment):
     _html_regex = re.compile(r"<.*?>")
     fragment = _html_regex.sub(replacer, fragment)
     return fragment.replace("</mark> <mark>", " ")
+
+
+def _prepare_search_term(term: str) -> str:
+    """Sanitize the input term for a search using postgres to_tsquery.
+
+    Cleans a search string to something acceptable for use with to_tsquery.
+    Appends ':*' so that partial matches will also be returned.
+
+    Args:
+        term: the search term to be cleaned and prepared
+
+    Returns:
+        the prepared search string
+    """
+
+    query = re.sub(r"[!\'()|&]", " ", term).strip()
+    if query:
+        query = re.sub(r"\s+", " & ", query)
+        query += ":*"
+
+    return query

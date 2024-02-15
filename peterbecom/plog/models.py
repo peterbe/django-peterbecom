@@ -21,6 +21,7 @@ from django.urls import reverse
 from elasticsearch.helpers import parallel_bulk
 from elasticsearch_dsl.connections import connections
 from sorl.thumbnail import ImageField
+from django.contrib.postgres.search import SearchVector, SearchVectorField
 
 from peterbecom.base.geo import ip_to_city
 from peterbecom.base.utils import send_pulse_message, generate_search_terms
@@ -245,39 +246,92 @@ class BlogItem(models.Model):
     def _get_indexing_queryset(cls):
         return cls.objects.filter(archived__isnull=True, pub_date__lt=timezone.now())
 
+    # @classmethod
+    # def index_all_search_terms(cls, verbose=False):
+    #     query_set = cls._get_indexing_queryset()
+    #     t0 = time.time()
+    #     count = 0
+    #     search_terms = defaultdict(list)
+    #     for title, popularity in query_set.values_list("title", "popularity"):
+    #         count += 1
+    #         for search_term in generate_search_terms(title):
+    #             search_terms[search_term].append(popularity or 0.0)
+
+    #     def getter():
+    #         for term, popularities in search_terms.items():
+    #             yield SearchTermDoc(popularity=max(popularities), term=term)
+
+    #     es = connections.get_connection()
+    #     report_every = 100
+    #     count = 0
+    #     SearchTermDoc._index.create()
+    #     for success, doc in parallel_bulk(
+    #         es,
+    #         (m.to_dict(True) for m in getter()),
+    #     ):
+    #         if not success:
+    #             print("NOT SUCCESS!", doc)
+    #         count += 1
+    #         if verbose and not count % report_every:
+    #             print(f"{count:,}")
+
+    #     swap_alias(es, SearchTermDoc._index._name, settings.ES_SEARCH_TERM_INDEX)
+
+    #     t1 = time.time()
+    #     return count, t1 - t0
+
     @classmethod
     def index_all_search_terms(cls, verbose=False):
         query_set = cls._get_indexing_queryset()
         t0 = time.time()
-        count = 0
         search_terms = defaultdict(list)
         for title, popularity in query_set.values_list("title", "popularity"):
-            count += 1
-            for search_term in generate_search_terms(title):
-                search_terms[search_term].append(popularity or 0.0)
-
-        def getter():
-            for term, popularities in search_terms.items():
-                yield SearchTermDoc(popularity=max(popularities), term=term)
-
-        es = connections.get_connection()
-        report_every = 100
-        count = 0
-        SearchTermDoc._index.create()
-        for success, doc in parallel_bulk(
-            es,
-            (m.to_dict(True) for m in getter()),
-        ):
-            if not success:
-                print("NOT SUCCESS!", doc)
-            count += 1
-            if verbose and not count % report_every:
-                print(f"{count:,}")
-
-        swap_alias(es, SearchTermDoc._index._name, settings.ES_SEARCH_TERM_INDEX)
-
+            for i, search_term in enumerate(generate_search_terms(title)):
+                p = popularity or 0.0
+                # The longer it is the lower the popularity score
+                length = len(search_term.split())
+                search_terms[search_term].append(p - max(0, p * 0.01 * length))
         t1 = time.time()
-        return count, t1 - t0
+
+        BlogItemSearchTerm.objects.all().delete()
+        bulk = []
+        for term, popularities in search_terms.items():
+            bulk.append(
+                BlogItemSearchTerm(
+                    search_term=term,
+                    # popularity=max(popularities),
+                    popularity=sum(popularities),
+                )
+            )
+        BlogItemSearchTerm.objects.bulk_create(bulk)
+        t2 = time.time()
+        BlogItemSearchTerm.objects.all().update(
+            # search_vector_en=SearchVector("search_term", config="english_nostop"),
+            # This is for matching on `a` and `is` and `testin` etc.
+            search_vector=SearchVector("search_term", config="simple"),
+            search_vector_en=SearchVector("search_term", config="english"),
+        )
+
+        t3 = time.time()
+
+        def ms(s):
+            return f"{s * 1000:.1f}ms"
+
+        print("Gathering search terms".ljust(30), ms(t1 - t0))
+        print("Bulk creating".ljust(30), ms(t2 - t1))
+        print("Search vector updating".ljust(30), ms(t3 - t2))
+        return len(bulk), t3 - t0
+
+
+class BlogItemSearchTerm(models.Model):
+    search_term = models.CharField(max_length=255, unique=True)
+    search_vector = SearchVectorField(null=True)
+    search_vector_en = SearchVectorField(null=True)
+    popularity = models.FloatField(default=0.0)
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.search_term!r} ({self.popularity})"
 
 
 class BlogItemTotalHits(models.Model):
