@@ -254,11 +254,16 @@ class BlogItem(models.Model):
         for title, popularity in query_set.values_list("title", "popularity"):
             count += 1
             for search_term in generate_search_terms(title):
-                search_terms[search_term].append(popularity or 0.0)
+                p = popularity or 0.0
+                # The longer it is the lower the popularity score
+                length = len(search_term.split())
+                adjusted_popularity = p - max(0, p * 0.01 * length)
+                search_terms[search_term].append(adjusted_popularity)
 
         def getter():
             for term, popularities in search_terms.items():
-                yield SearchTermDoc(popularity=max(popularities), term=term)
+                # yield SearchTermDoc(popularity=max(popularities), term=term)
+                yield SearchTermDoc(popularity=sum(popularities), term=term)
 
         es = connections.get_connection()
         report_every = 100
