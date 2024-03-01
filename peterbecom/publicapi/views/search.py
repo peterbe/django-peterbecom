@@ -256,6 +256,7 @@ def _typeahead(terms, size):
                 )
             )
         qs.append(Q("match_bool_prefix", term={"query": term, "boost": 2}))
+        qs.append(Q("fuzzy", term={"value": term, "boost": 0.1, "fuzziness": "AUTO"}))
 
     query = reduce(or_, qs)
 

@@ -141,11 +141,4 @@ def generate_search_terms(title, max_words=4):
                 continue
             if j - i == max_words + 1:
                 break
-            # print([term, i, j])
-            # print(
-            #     [
-            #         len(term.split()),
-            #         j - i,
-            #     ]
-            # )
             yield term
