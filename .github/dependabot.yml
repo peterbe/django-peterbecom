@@ -11,10 +11,6 @@ updates:
     interval: monthly
   open-pull-requests-limit: 20
 - package-ecosystem: npm
-  directory: "/adminui"
-  schedule:
-    interval: monthly
-- package-ecosystem: npm
   directory: "/minimalcss"
   schedule:
     interval: weekly
