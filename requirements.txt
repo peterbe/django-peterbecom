@@ -90,9 +90,9 @@ asgiref==3.6.0 \
     --hash=sha256:71e68008da809b957b7ee4b43dbccff33d1b23519fb8344e33f049897077afac \
     --hash=sha256:9567dfe7bd8d3c8c892227827c41cce860b368104c3431da67a0c5a65a949506
     # via django
-async-timeout==4.0.2 \
-    --hash=sha256:2163e1640ddb52b7a8c80d0a67a08587e5d245cc9c553a74a847056bc2976b15 \
-    --hash=sha256:8ca1e4fcf50d07413d66d1a5e416e42cfdf5851c981d679a09851a6853383b3c
+async-timeout==4.0.3 \
+    --hash=sha256:4640d96be84d82d02ed59ea2b7105a0f7b33abe8703703cd0ab0bf87c427522f \
+    --hash=sha256:7405140ff1230c310e51dc27b3145b9092d659ce68ff733fb0cefe3ee42be028
     # via
     #   aiohttp
     #   redis
@@ -936,9 +936,9 @@ pytz==2024.1 \
     --hash=sha256:2a29735ea9c18baf14b448846bde5a48030ed267578472d8955cd0e7443a9812 \
     --hash=sha256:328171f4e3623139da4983451950b28e95ac706e13f3f2630a879749e7a8b319
     # via -r requirements.in
-redis==5.0.1 \
-    --hash=sha256:0dab495cd5753069d3bc650a0dde8a8f9edde16fc5691b689a566eda58100d0f \
-    --hash=sha256:ed4802971884ae19d640775ba3b03aa2e7bd5e8fb8dfaed2decce4d0fc48391f
+redis==5.0.2 \
+    --hash=sha256:3f82cc80d350e93042c8e6e7a5d0596e4dd68715babffba79492733e1f367037 \
+    --hash=sha256:4caa8e1fcb6f3c0ef28dba99535101d80934b7d4cd541bbb47f4a3826ee472d1
     # via
     #   -r requirements.in
     #   django-redis
