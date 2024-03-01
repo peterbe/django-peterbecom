@@ -9,7 +9,7 @@
   "license": "MPL-2.0",
   "dependencies": {
     "@babel/cli": "7.23.9",
-    "@babel/core": "7.23.9",
+    "@babel/core": "7.24.0",
     "puppeteer": "21.1.1"
   },
   "devDependencies": {
