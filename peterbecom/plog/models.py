@@ -1,3 +1,4 @@
+import re
 import datetime
 import functools
 import hashlib
@@ -251,7 +252,9 @@ class BlogItem(models.Model):
         t0 = time.time()
         count = 0
         search_terms = defaultdict(list)
-        for title, popularity in query_set.values_list("title", "popularity"):
+        for title, popularity, keywords, text in query_set.values_list(
+            "title", "popularity", "proper_keywords", "text"
+        ):
             count += 1
             for search_term in generate_search_terms(title):
                 p = popularity or 0.0
@@ -259,6 +262,21 @@ class BlogItem(models.Model):
                 length = len(search_term.split())
                 adjusted_popularity = p - max(0, p * 0.01 * length)
                 search_terms[search_term].append(adjusted_popularity)
+
+            for keyword in keywords:
+                # Some keywords are NOT present in the title or text.
+                # That means if we suggested it and the user proceeds to search
+                # it might not find anything.
+                if re.findall(rf"\b{re.escape(keyword)}\b", text, re.I) or re.findall(
+                    rf"\b{re.escape(keyword)}\b", title, re.I
+                ):
+                    p = popularity or 0.0
+                    # Reduce it by 10% to make it ever so slightly less important
+                    # that the term as it's derived from a title.
+                    # A lot of keywords aren't actually present in the title,
+                    # so it could be negatively surprising if the word works but
+                    # only works because it's deep in the body.
+                    search_terms[keyword.lower()].append(max(0, p * 0.9))
 
         def getter():
             for term, popularities in search_terms.items():
