@@ -99,13 +99,9 @@ def autocomplete(request):
         result["results"].extend(additional[: size - len(result["results"])])
         result["meta"]["found"] += len(additional)
 
-    # if len(result["results"]) < size:
-    #     print("Search on text too", repr(q))
-
     response = http.JsonResponse(
         {
             "results": result["results"],
-            # "suggestions": suggestions,
             "meta": result["meta"],
         }
     )
@@ -127,10 +123,6 @@ def _autocomplete(terms, size, suggest=False):
         for suggestion in suggestions:
             for option in suggestion.options:
                 all_suggestions.append(terms[0].replace(suggestion.text, option.text))
-
-    # search_query.update_from_dict(
-    #     {"query": {"range": {"pub_date": {"lt": timezone.now()}}}}
-    # )
 
     qs = []
 
@@ -252,11 +244,14 @@ def _typeahead(terms, size):
             qs.append(
                 Q(
                     "match_phrase_prefix",
-                    term={"query": term, "boost": 4},
+                    term={"query": term, "boost": 10},
                 )
             )
-        qs.append(Q("match_bool_prefix", term={"query": term, "boost": 2}))
-        qs.append(Q("fuzzy", term={"value": term, "boost": 0.1, "fuzziness": "AUTO"}))
+        qs.append(Q("match_bool_prefix", term={"query": term, "boost": 5}))
+        if len(term) > 3:
+            qs.append(
+                Q("fuzzy", term={"value": term, "boost": 0.1, "fuzziness": "AUTO"})
+            )
 
     query = reduce(or_, qs)
 
