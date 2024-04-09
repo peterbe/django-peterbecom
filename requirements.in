@@ -50,7 +50,7 @@ mock==5.1.0
 pytest==8.1.1
 tomli==2.0.1
 pytest-django==4.8.0
-requests-mock==1.12.0
+requests-mock==1.12.1
 
 # Dev requirements
 # Not sure these belong in here but what the heck, it's not a huge overhead
