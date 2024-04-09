@@ -438,6 +438,7 @@ def _search(
                 "score": hit.meta.score,
                 "popularity": hit.popularity or 0.0,
                 "comment": False,
+                "categories": result.get("categories") or [],
             }
         )
 
