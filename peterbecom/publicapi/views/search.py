@@ -215,7 +215,7 @@ def typeahead(request):
         q = q[:-1]
     if not q:
         return http.JsonResponse({"error": "Missing 'q'"}, status=400)
-    size = int(request.GET.get("n", 10))
+    size = int(request.GET.get("n", 8))
     if size > 100:
         return http.JsonResponse({"error": "'n' too big"}, status=400)
 
