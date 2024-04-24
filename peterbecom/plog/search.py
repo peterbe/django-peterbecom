@@ -99,7 +99,6 @@ class SearchTermDoc(Document):
         term_vector="with_positions_offsets",
     )
     popularity = Float()
-    foo_bar = Boolean()
 
     class Index:
         name = timestamped(dj_settings.ES_SEARCH_TERM_INDEX)
