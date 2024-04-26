@@ -23,7 +23,7 @@ elasticsearch-dsl==7.4.1
 ftfy==6.2.0
 python-dateutil==2.9.0.post0
 zope.structuredtext==5.0
-redis==5.0.3
+redis==5.0.4
 dj-database-url==2.1.0
 python-decouple==3.8
 delegator.py==0.1.1
@@ -57,4 +57,4 @@ requests-mock==1.12.1
 # to put these into production. At least now there's only one file.
 honcho==1.1.0
 pip-tools==7.4.1
-ruff==0.3.5
+ruff==0.4.2
