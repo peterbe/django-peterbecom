@@ -98,7 +98,7 @@ MIDDLEWARE = (
     "peterbecom.base.middleware.NoNewlineRequestPaths",
     # Important that this is last
     "peterbecom.base.middleware.StatsMiddleware",
-    "querycount.middleware.QueryCountMiddleware",
+    # "querycount.middleware.QueryCountMiddleware",
 )
 
 ROOT_URLCONF = "peterbecom.urls"
