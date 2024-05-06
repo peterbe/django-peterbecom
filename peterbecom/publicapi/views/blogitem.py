@@ -26,8 +26,6 @@ def blogitem(request, oid):
         print(f"blogitem.CACHE-HIT {cache_key!r}")  # temporary
         return http.JsonResponse(cached)
 
-    print(f"blogitem.CACHE-MISS {cache_key!r}")  # temporary
-
     try:
         blogitem = BlogItem.objects.get(oid=oid)
     except BlogItem.DoesNotExist:
@@ -35,6 +33,8 @@ def blogitem(request, oid):
             blogitem = BlogItem.objects.get(oid__iexact=oid)
         except BlogItem.DoesNotExist:
             return http.HttpResponseNotFound(oid)
+
+    print(f"blogitem.CACHE-MISS {cache_key!r}")  # temporary
 
     future = timezone.now() + datetime.timedelta(days=10)
     if blogitem.pub_date > future:
