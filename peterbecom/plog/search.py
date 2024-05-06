@@ -104,6 +104,10 @@ class SearchTermDoc(Document):
         name = timestamped(dj_settings.ES_SEARCH_TERM_INDEX)
         settings = dj_settings.ES_SEARCH_TERM_INDEX_SETTINGS
 
+        @classmethod
+        def get_refreshed_name(cls):
+            return timestamped(dj_settings.ES_SEARCH_TERM_INDEX)
+
 
 def swap_alias(connection, index_name, alias):
     assert index_name.startswith(alias + "_")
