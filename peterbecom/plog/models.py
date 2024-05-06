@@ -286,6 +286,15 @@ class BlogItem(models.Model):
         es = connections.get_connection()
         report_every = 100
         count = 0
+        # This is necessary so that the `SarchTermDoc.Index.name` isn't
+        # what it was when the class was created, which was at startup time.
+        # Normally, operations that involve indexing is happened immediately
+        # after having started the Python process. But if this code is run
+        # multiple times, if we didn't refresh the name, we'd be trying to
+        # create the same index over and over and its name would be that
+        # which gets set when the code imports/loads the first time.
+        SearchTermDoc._index._name = SearchTermDoc.Index.get_refreshed_name()
+
         SearchTermDoc._index.create()
         for success, doc in parallel_bulk(
             es,

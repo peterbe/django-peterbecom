@@ -80,4 +80,4 @@ def delete_old_blogitemhits():
 )
 def reindex_search_terms():
     count, took = BlogItem.index_all_search_terms()
-    print(f"Indexed {count:,} search terms in {took:.1f} seconds")
+    print(f"Indexed {count:,} search terms in {took:.1f} seconds ({timezone.now()})")
