@@ -11,7 +11,7 @@ Pillow==10.3.0
 cssmin==0.2.0
 cssselect==1.2.0
 requests==2.31.0
-lxml==5.2.1
+lxml==5.2.2
 feedparser==6.0.11
 pyquery==2.0.0
 xmltodict==0.13.0
