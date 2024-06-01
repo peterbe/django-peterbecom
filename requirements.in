@@ -10,7 +10,7 @@ sorl-thumbnail==12.10.0
 Pillow==10.3.0
 cssmin==0.2.0
 cssselect==1.2.0
-requests==2.31.0
+requests==2.32.3
 lxml==5.2.1
 feedparser==6.0.11
 pyquery==2.0.0
