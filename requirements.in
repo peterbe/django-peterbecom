@@ -47,7 +47,7 @@ nltk==3.8.1
 
 # Testing (Should these be broken out?)
 mock==5.1.0
-pytest==8.2.0
+pytest==8.2.1
 tomli==2.0.1
 pytest-django==4.8.0
 requests-mock==1.12.1
