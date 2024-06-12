@@ -3,15 +3,15 @@
 #   pip-compile --generate-hashes requirements.in
 #   pip install -r requirements.txt
 
-Django==4.2.11
+Django==4.2.13
 Jinja2==3.0.3
 Markdown==3.6
 sorl-thumbnail==12.10.0
 Pillow==10.3.0
 cssmin==0.2.0
 cssselect==1.2.0
-requests==2.31.0
-lxml==5.2.1
+requests==2.32.3
+lxml==5.2.2
 feedparser==6.0.11
 pyquery==2.0.0
 xmltodict==0.13.0
@@ -23,8 +23,8 @@ elasticsearch-dsl==7.4.1
 ftfy==6.2.0
 python-dateutil==2.9.0.post0
 zope.structuredtext==5.0
-redis==5.0.4
-dj-database-url==2.1.0
+redis==5.0.5
+dj-database-url==2.2.0
 python-decouple==3.8
 delegator.py==0.1.1
 ptyprocess==0.7.0
@@ -34,7 +34,7 @@ psycopg2-binary==2.9.9
 bleach==6.1.0
 rollbar==1.0.0
 zopfli==0.2.3
-huey==2.5.0
+huey==2.5.1
 brotlipy==0.7.0
 backoff==2.2.1
 geoip2==4.7.0
@@ -47,7 +47,7 @@ nltk==3.8.1
 
 # Testing (Should these be broken out?)
 mock==5.1.0
-pytest==8.2.0
+pytest==8.2.2
 tomli==2.0.1
 pytest-django==4.8.0
 requests-mock==1.12.1
@@ -57,4 +57,4 @@ requests-mock==1.12.1
 # to put these into production. At least now there's only one file.
 honcho==1.1.0
 pip-tools==7.4.1
-ruff==0.4.2
+ruff==0.4.8
