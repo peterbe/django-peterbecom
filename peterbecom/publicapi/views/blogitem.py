@@ -1,4 +1,5 @@
 import datetime
+import math
 from collections import defaultdict
 
 from django.utils import timezone
@@ -181,9 +182,15 @@ def blogitem(request, oid):
     for comment in replies.values(*_values):
         all_comments[comment["parent_id"]].append(comment)
 
+    total_pages = 1
+    if isinstance(comments_truncated, int) and comments_truncated > 0:
+        total_pages = math.ceil(root_comments_count / comments_truncated)
+    total_pages = min(total_pages, settings.MAX_BLOGCOMMENT_PAGES)
+
     comments = {}
     comments["truncated"] = comments_truncated
     comments["count"] = count_comments
+    comments["total_pages"] = total_pages
     comments["tree"] = traverse_and_serialize_comments(all_comments)
 
     comments["next_page"] = comments["previous_page"] = None
@@ -195,7 +202,7 @@ def blogitem(request, oid):
         comments["previous_page"] = page - 1
 
     context = {"post": post, "comments": comments}
-    cache.set(cache_key, context, 60 * 60 * 12)
+    cache.set(cache_key, context, 10 if settings.DEBUG else 60 * 60 * 12)
     return http.JsonResponse(context)
 
 
