@@ -217,9 +217,12 @@ def typeahead(request):
         return http.JsonResponse({"error": "Missing 'q'"}, status=400)
     if len(q) > 75:  # Arbitrary limit
         return http.JsonResponse({"error": "Too long"}, status=400)
-    size = int(request.GET.get("n", 8))
-    if size > 20:  # Arbitrary limit
-        return http.JsonResponse({"error": "'n' too big"}, status=400)
+    try:
+        size = int(request.GET.get("n", 8))
+        if size > 20:  # Arbitrary limit
+            return http.JsonResponse({"error": "'n' too big"}, status=400)
+    except ValueError:
+        return http.JsonResponse({"error": "Invalid 'n'"}, status=400)
 
     result = _typeahead([q], size)
     response = http.JsonResponse(
