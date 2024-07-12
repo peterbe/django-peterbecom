@@ -230,3 +230,12 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return json.dumps(self.claims)
+
+
+class AnalyticsEvent(models.Model):
+    type = models.CharField(max_length=100)
+    uuid = models.CharField(max_length=400)
+    url = models.CharField(max_length=400)
+    created = models.DateTimeField(auto_now_add=True)
+    meta = models.JSONField(default=dict)
+    data = models.JSONField(default=dict)
