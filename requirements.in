@@ -3,7 +3,7 @@
 #   pip-compile --generate-hashes requirements.in
 #   pip install -r requirements.txt
 
-Django==4.2.13
+Django==4.2.14
 Jinja2==3.0.3
 Markdown==3.6
 sorl-thumbnail==12.10.0
@@ -57,4 +57,4 @@ requests-mock==1.12.1
 # to put these into production. At least now there's only one file.
 honcho==1.1.0
 pip-tools==7.4.1
-ruff==0.4.10
+ruff==0.5.1
