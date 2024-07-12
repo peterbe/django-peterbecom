@@ -23,7 +23,6 @@ def event(request):
         uuid=uuid,
         url=url,
     )
-    print("denormalized", denormalized)
     form = AnalyticsEventForm(denormalized)
     if not form.is_valid():
         return http.JsonResponse({"error": form.errors}, status=400)
@@ -45,4 +44,9 @@ class AnalyticsEventForm(forms.ModelForm):
         fields = (
             "type",
             "meta",
+            "data",
         )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["data"].required = False

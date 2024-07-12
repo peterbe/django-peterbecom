@@ -18,6 +18,33 @@ def test_post_event_happy_path(client):
                     "uuid": "1234",
                     "url": "https://example.com",
                 },
+                "data": {
+                    "key": "value",
+                },
+            }
+        ),
+        content_type="application/json",
+    )
+    assert response.status_code == 201
+    event = AnalyticsEvent.objects.get(
+        uuid="1234", url="https://example.com", type="some-thing"
+    )
+    assert event.created
+    assert event.data["key"] == "value"
+
+
+@pytest.mark.django_db
+def test_post_event_empty_default_data(client):
+    url = reverse("publicapi:events_event")
+    response = client.post(
+        url,
+        json.dumps(
+            {
+                "type": "some-thing",
+                "meta": {
+                    "uuid": "1234",
+                    "url": "https://example.com",
+                },
                 "data": {},
             }
         ),
