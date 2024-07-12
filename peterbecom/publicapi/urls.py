@@ -32,5 +32,5 @@ urlpatterns = [
     path("typeahead", search.typeahead, name="typeahead"),
     re_path("search/?", search.search, name="search"),
     path("__hydro__", hydro.receive, name="hydro_receive"),
-    path("events", events.events, name="events"),
+    path("events", events.event, name="events_event"),
 ]
