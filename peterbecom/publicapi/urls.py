@@ -1,6 +1,6 @@
 from django.urls import path, re_path
 
-from .views import comments, homepage, blogitem, blogitems, search, hydro
+from .views import comments, homepage, blogitem, blogitems, search, hydro, events
 
 
 app_name = "publicapi"
@@ -32,4 +32,5 @@ urlpatterns = [
     path("typeahead", search.typeahead, name="typeahead"),
     re_path("search/?", search.search, name="search"),
     path("__hydro__", hydro.receive, name="hydro_receive"),
+    path("events", events.events, name="events"),
 ]
