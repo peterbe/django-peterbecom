@@ -1,8 +1,9 @@
 import json
 
+import backoff
 from django import forms
 from django import http
-from django.conf import settings
+from django.db.utils import InterfaceError
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
@@ -28,10 +29,7 @@ def event(request):
     if not form.is_valid():
         return http.JsonResponse({"error": form.errors}, status=400)
 
-    if settings.DEBUG:
-        print("Received event", form.cleaned_data)
-
-    AnalyticsEvent.objects.create(
+    create_event(
         type=form.cleaned_data["type"],
         uuid=uuid,
         url=url,
@@ -40,6 +38,17 @@ def event(request):
     )
 
     return http.JsonResponse({"ok": True}, status=201)
+
+
+@backoff.on_exception(backoff.expo, InterfaceError, max_time=10)
+def create_event(type: str, uuid: str, url: str, meta: dict, data: dict):
+    AnalyticsEvent.objects.create(
+        type=type,
+        uuid=uuid,
+        url=url,
+        meta=meta,
+        data=data,
+    )
 
 
 class AnalyticsEventForm(forms.ModelForm):
