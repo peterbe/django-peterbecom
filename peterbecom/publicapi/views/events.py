@@ -2,6 +2,7 @@ import json
 
 from django import forms
 from django import http
+from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
@@ -26,6 +27,9 @@ def event(request):
     form = AnalyticsEventForm(denormalized)
     if not form.is_valid():
         return http.JsonResponse({"error": form.errors}, status=400)
+
+    if settings.DEBUG:
+        print("Received event", form.cleaned_data)
 
     AnalyticsEvent.objects.create(
         type=form.cleaned_data["type"],

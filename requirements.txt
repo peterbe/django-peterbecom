@@ -1153,10 +1153,16 @@ sorl-thumbnail==12.10.0 \
     --hash=sha256:733eb2eee392d4a874f88fb3ed6f0572fa9c361b06e0411b83e435ba69c51f52 \
     --hash=sha256:de95a49217fdfeced222fa3ceaa01d312ee2f8aad56ba34d6c70f2dee9a84938
     # via -r requirements.in
+sql-metadata==2.12.0 \
+    --hash=sha256:8c05d66c2e9fef05806eefa38c300f96cb9c6a65859dd701d780c965a2129343 \
+    --hash=sha256:c3003de934286d9b0abecff20752b2f6a01ca00cffde415363fcfa572ee063f4
+    # via -r requirements.in
 sqlparse==0.5.0 \
     --hash=sha256:714d0a4932c059d16189f58ef5411ec2287a4360f17cdd0edd2d09d4c5087c93 \
     --hash=sha256:c204494cd97479d0e39f28c93d46c0b2d5959c7b9ab904762ea6c7af211c8663
-    # via django
+    # via
+    #   django
+    #   sql-metadata
 tinycss2==1.2.1 \
     --hash=sha256:2b80a96d41e7c3914b8cda8bc7f705a4d9c49275616e886103dd839dfc847847 \
     --hash=sha256:8cff3a8f066c2ec677c06dbc7b45619804a6938478d9d73c284b29d14ecb0627

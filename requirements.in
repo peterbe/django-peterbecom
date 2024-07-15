@@ -44,6 +44,7 @@ profanity==1.1
 py-avataaars==1.1.2
 mozilla-django-oidc==4.0.1
 nltk==3.8.1
+sql_metadata==2.12.0
 
 # Testing (Should these be broken out?)
 mock==5.1.0
