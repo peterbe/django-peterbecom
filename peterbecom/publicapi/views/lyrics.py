@@ -33,8 +33,11 @@ def search(request):
     from pprint import pprint
 
     res = response.json()
-    pprint(res)
-    pprint(res["results"][0])
+    # pprint(res)
+    # import random
+
+    # print("RANDON RESULT....")
+    # pprint(random.sample(res["results"], 1))
     metadata["limit"] = res.get("limit")
     metadata["desperate"] = bool(res.get("desperate"))
     metadata["total"] = res.get("total")
@@ -66,6 +69,18 @@ def search(request):
                     if not image[key].startswith("http"):
                         image[key] = f"{settings.LYRICS_REMOTE}/{image[key]}"
 
+        # print("ARTIST:", result["artist"])
+        # result.pop('albums')
+        albums = []
+        for album in result.get("albums", []):
+            albums.append(
+                {
+                    "name": album["name"],
+                    "year": album.get("year"),
+                }
+            )
+        result["albums"] = albums
+        result["artist"] = {"name": result["artist"]["name"]}
         results.append(result)
 
     # if not settings.DEBUG:
@@ -97,5 +112,6 @@ def search(request):
     # results = []
     # metadata = {}
     context = {"results": results, "metadata": metadata}
+    print("METADATA", metadata)
 
     return http.JsonResponse(context)
