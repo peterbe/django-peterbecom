@@ -2,6 +2,7 @@ from django.urls import path, re_path
 
 
 from . import views
+from . import analytics
 
 
 app_name = "api"
@@ -70,5 +71,6 @@ urlpatterns = [
     path("whereami", views.whereami, name="whereami"),
     path("whoami", views.whoami, name="whoami"),
     path("__healthcheck__", views.healthcheck, name="healthcheck"),
+    path("analytics/query", analytics.query, name="analytics_query"),
     path("", views.catch_all, name="catch_all"),
 ]
