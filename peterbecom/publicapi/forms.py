@@ -38,20 +38,3 @@ class SearchForm(forms.Form):
     def clean_q(self):
         value = self.cleaned_data["q"]
         return value
-
-
-class LyricsSearchForm(forms.Form):
-    q = forms.CharField(max_length=80)
-    page = forms.IntegerField(required=False)
-
-    def clean_q(self):
-        value = self.cleaned_data["q"].strip()
-        if len(value) < 3:
-            raise forms.ValidationError("Query too short")
-        return value
-
-    def clean_page(self):
-        value = self.cleaned_data["page"]
-        if value and value < 1:
-            raise forms.ValidationError("Page must be 1 or higher")
-        return value
