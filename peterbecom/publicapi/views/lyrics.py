@@ -135,7 +135,7 @@ def song(request):
         ],
         "name": song_data["name"],
         "text_html": song_data["text_html"],
-        "year": song_data["year"],
+        "year": song_data.get("year"),
     }
 
     context = {
