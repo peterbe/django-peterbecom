@@ -440,3 +440,5 @@ MIN_RARELY_SEEN_CATCHALL_DAYS = 30
 
 HYLITE_DIRECTORY = None
 HYLITE_COMMAND = "bunx hylite"
+
+LYRICS_REMOTE = "https://songsear.ch"

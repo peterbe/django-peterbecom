@@ -9,9 +9,6 @@ on:
   pull_request:
     branches: [master]
 
-env:
-  LYRICS_REMOTE: https://lyrics.example.com
-
 jobs:
   build-and-test-django:
     runs-on: ubuntu-latest
