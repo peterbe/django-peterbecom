@@ -29,7 +29,6 @@ def search(request):
 
     remote_url = f"{settings.LYRICS_REMOTE}/api/search?{urlencode(sp)}"
     response = requests_retry_session().get(remote_url)
-    print((remote_url, response.status_code))
     if response.status_code != 200:
         if response.status_code == 400:
             return http.JsonResponse(response.json(), status=response.status_code)
