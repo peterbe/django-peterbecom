@@ -2,6 +2,7 @@ from urllib.parse import urlencode
 
 from django.conf import settings
 from django import forms
+from django.views.decorators.cache import cache_page
 from django.core.exceptions import ImproperlyConfigured
 from django import http
 from peterbecom.base.utils import requests_retry_session
@@ -10,6 +11,7 @@ if not settings.LYRICS_REMOTE:
     raise ImproperlyConfigured("LYRICS_REMOTE not set in settings")
 
 
+@cache_page(settings.DEBUG and 10 or 60 * 60, key_prefix="publicapi_cache_page")
 def search(request):
     form = LyricsSearchForm(request.GET)
     if not form.is_valid():
@@ -49,7 +51,9 @@ def search(request):
                 "url",
                 "thumbnail100",
             ):
-                if key in image:
+                if image.get(key):
+                    if "None" in image[key]:
+                        print("image[key]", image[key])
                     if not image[key].startswith("http"):
                         image[key] = f"{settings.LYRICS_REMOTE}/{image[key]}"
 
@@ -88,6 +92,7 @@ class LyricsSearchForm(forms.Form):
         return value
 
 
+@cache_page(settings.DEBUG and 10 or 60 * 60, key_prefix="publicapi_cache_page")
 def song(request):
     form = LyricsSongForm(request.GET)
     if not form.is_valid():
@@ -110,14 +115,11 @@ def song(request):
             "url",
             "thumbnail100",
         ):
-            if key in image:
+            if image.get(key):
+                if "None" in image[key]:
+                    print("image[key]", image[key])
                 if not image[key].startswith("http"):
                     image[key] = f"{settings.LYRICS_REMOTE}/{image[key]}"
-
-    from pprint import pprint
-
-    # Image URLs that contain `None` might all be busted. Consider filtering them out
-    pprint(image)
 
     song = {
         "image": image,
