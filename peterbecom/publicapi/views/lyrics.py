@@ -49,7 +49,6 @@ def search(request):
     metadata["total"] = res.get("total")
     metadata["search"] = res.get("search")
     for result in res["results"]:
-
         image = result.get("image")
         if image:
             for key in (
@@ -176,6 +175,7 @@ def feature_flag(request):
         return response
     value = request.COOKIES.get("local-lyrics-server")
     if value is not None:
+        print(f"LyricsFeatureFlag: cookie value is not None ({value!r})")
         return http.JsonResponse({"enabled": value == "true"})
 
     if value is None:
@@ -194,7 +194,7 @@ def feature_flag(request):
             enabled = False
             if country_code in ["US", "UK", "CA"]:
                 print(f"LyricsFeatureFlag: Right country ({country_code!r})")
-                if random.random() > 0.5:
+                if random.random() > 0.4:
                     print("LyricsFeatureFlag: Right luck!")
                     enabled = True
                 else:
@@ -210,5 +210,7 @@ def feature_flag(request):
                 httponly=True,
             )
             return response
+        else:
+            print(f"LyricsFeatureFlag: no ip_address ({ip_address!r})")
 
     return http.JsonResponse({"enabled": False})
