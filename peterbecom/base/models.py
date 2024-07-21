@@ -4,6 +4,8 @@ import sys
 import traceback
 from io import StringIO
 
+import backoff
+from django.db.utils import InterfaceError
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import ArrayField
@@ -239,3 +241,14 @@ class AnalyticsEvent(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     meta = models.JSONField(default=dict)
     data = models.JSONField(default=dict)
+
+
+@backoff.on_exception(backoff.expo, InterfaceError, max_time=10)
+def create_event(type: str, uuid: str, url: str, meta: dict, data: dict):
+    AnalyticsEvent.objects.create(
+        type=type,
+        uuid=uuid,
+        url=url,
+        meta=meta,
+        data=data,
+    )
