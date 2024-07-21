@@ -1,11 +1,14 @@
+import random
+import time
 from urllib.parse import urlencode
 
 from django.conf import settings
 from django import forms
-from django.views.decorators.cache import cache_page
+from django.views.decorators.cache import cache_page, never_cache
 from django.core.exceptions import ImproperlyConfigured
 from django import http
-from peterbecom.base.utils import requests_retry_session
+from peterbecom.base.utils import requests_retry_session, fake_ip_address
+from peterbecom.base.geo import ip_to_country_code
 
 if not settings.LYRICS_REMOTE:
     raise ImproperlyConfigured("LYRICS_REMOTE not set in settings")
@@ -158,3 +161,54 @@ class LyricsSongForm(forms.Form):
         except ValueError:
             raise forms.ValidationError("ID not valid")
         return value
+
+
+@never_cache
+def feature_flag(request):
+    if request.GET.get("force"):
+        response = http.JsonResponse({"enabled": True})
+        response.set_cookie(
+            "local-lyrics-server",
+            "true",
+            max_age=60 * 60 * 24 * 7,
+            httponly=True,
+        )
+        return response
+    value = request.COOKIES.get("local-lyrics-server")
+    if value is not None:
+        return http.JsonResponse({"enabled": value == "true"})
+
+    if value is None:
+        ip_address = request.headers.get("x-forwarded-for") or request.META.get(
+            "REMOTE_ADDR"
+        )
+        if (
+            ip_address == "127.0.0.1"
+            and settings.DEBUG
+            and request.get_host().endswith("127.0.0.1:8000")
+        ):
+            ip_address = fake_ip_address(str(time.time()))
+
+        if ip_address and ip_address != "127.0.0.1":
+            country_code = ip_to_country_code(ip_address)
+            enabled = False
+            if country_code in ["US", "UK"]:
+                print(f"LyricsFeatureFlag: Right country ({country_code!r})")
+                if random.random() > 0.7:
+                    print("LyricsFeatureFlag: Right luck!")
+                    enabled = True
+                else:
+                    print("LyricsFeatureFlag: Not the right luck ")
+            else:
+                print(f"LyricsFeatureFlag: Not right country code ({country_code!r})")
+
+            response = http.JsonResponse({"enabled": enabled})
+            response.set_cookie(
+                "local-lyrics-server",
+                enabled and "true" or "false",
+                max_age=enabled and 60 * 60 * 24 * 7 or 60 * 60 * 24,
+                httponly=True,
+            )
+            return response
+
+    return http.JsonResponse({"enabled": False})
