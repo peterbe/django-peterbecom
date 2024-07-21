@@ -50,7 +50,6 @@ def search(request):
     metadata["total"] = res.get("total")
     metadata["search"] = res.get("search")
     for result in res["results"]:
-
         image = result.get("image")
         if image:
             for key in (
