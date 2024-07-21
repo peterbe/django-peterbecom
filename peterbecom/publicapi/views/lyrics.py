@@ -9,7 +9,6 @@ from django.core.exceptions import ImproperlyConfigured
 from django import http
 from peterbecom.base.utils import requests_retry_session, fake_ip_address
 from peterbecom.base.geo import ip_to_country_code
-from peterbecom.base.models import create_event
 
 if not settings.LYRICS_REMOTE:
     raise ImproperlyConfigured("LYRICS_REMOTE not set in settings")
