@@ -41,6 +41,7 @@ urlpatterns = [
     path("typeahead", search.typeahead, name="typeahead"),
     path("lyrics/search", lyrics.search, name="lyrics_search"),
     path("lyrics/song", lyrics.song, name="lyrics_song"),
+    path("lyrics/featureflag", lyrics.feature_flag, name="lyrics_feature_flag"),
     re_path("search/?", search.search, name="search"),
     path("__hydro__", hydro.receive, name="hydro_receive"),
     path("events", events.event, name="events_event"),
