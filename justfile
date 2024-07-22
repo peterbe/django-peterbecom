@@ -4,6 +4,9 @@
 dev:
     hivemind Procfile
 
+dev-with-tunneling:
+    hivemind Procfile.tunneling
+
 start: dev
 
 pretty:
