@@ -192,9 +192,9 @@ def feature_flag(request):
         if ip_address and ip_address != "127.0.0.1":
             country_code = ip_to_country_code(ip_address)
             enabled = False
-            if country_code in ["US", "UK", "CA"]:
+            if country_code in ["US", "GB", "CA"]:
                 print(f"LyricsFeatureFlag: Right country ({country_code!r})")
-                if random.random() > 0.4:
+                if random.random() > 0.6:
                     print("LyricsFeatureFlag: Right luck!")
                     enabled = True
                 else:
