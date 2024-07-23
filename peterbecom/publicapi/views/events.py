@@ -21,6 +21,8 @@ def event(request):
 
     uuid = data.get("meta", {}).get("uuid")
     url = data.get("meta", {}).get("url")
+    if url and len(url) > 500:
+        url = url[: 500 - 3] + "..."
     denormalized = dict(
         data,
         uuid=uuid,
@@ -28,6 +30,7 @@ def event(request):
     )
     form = AnalyticsEventForm(denormalized)
     if not form.is_valid():
+        print("Analytics event form errors", form.errors)
         return http.JsonResponse({"error": form.errors}, status=400)
 
     meta = form.cleaned_data.get("meta")
@@ -43,8 +46,12 @@ def event(request):
     if ip_address:
         meta["ip_address"] = ip_address
 
+    url = form.cleaned_data["url"]
+    uuid = form.cleaned_data["uuid"]
+    type_ = form.cleaned_data["type"]
+
     create_event(
-        type=form.cleaned_data["type"],
+        type=type_,
         uuid=uuid,
         url=url,
         meta=meta,
@@ -58,6 +65,8 @@ class AnalyticsEventForm(forms.ModelForm):
     class Meta:
         model = AnalyticsEvent
         fields = (
+            "url",
+            "uuid",
             "type",
             "meta",
             "data",
