@@ -5,6 +5,7 @@ dev:
     hivemind Procfile
 
 dev-with-tunneling:
+    ./bin/wait-for-pg.sh --help
     hivemind Procfile.tunneling
 
 start: dev
