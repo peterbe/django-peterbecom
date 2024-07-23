@@ -1,4 +1,5 @@
 import json
+import uuid
 
 import pytest
 from django.urls import reverse
@@ -6,16 +7,21 @@ from django.urls import reverse
 from peterbecom.base.models import AnalyticsEvent
 
 
+def generate_random_uuid():
+    return str(uuid.uuid4())
+
+
 @pytest.mark.django_db
 def test_post_event_happy_path(client):
     url = reverse("publicapi:events_event")
+    uuid_ = generate_random_uuid()
     response = client.post(
         url,
         json.dumps(
             {
                 "type": "some-thing",
                 "meta": {
-                    "uuid": "1234",
+                    "uuid": uuid_,
                     "url": "https://example.com",
                 },
                 "data": {
@@ -27,7 +33,7 @@ def test_post_event_happy_path(client):
     )
     assert response.status_code == 201
     event = AnalyticsEvent.objects.get(
-        uuid="1234", url="https://example.com", type="some-thing"
+        uuid=uuid_, url="https://example.com", type="some-thing"
     )
     assert event.created
     assert event.data["key"] == "value"
@@ -36,13 +42,14 @@ def test_post_event_happy_path(client):
 @pytest.mark.django_db
 def test_post_event_empty_default_data(client):
     url = reverse("publicapi:events_event")
+    uuid_ = generate_random_uuid()
     response = client.post(
         url,
         json.dumps(
             {
                 "type": "some-thing",
                 "meta": {
-                    "uuid": "1234",
+                    "uuid": uuid_,
                     "url": "https://example.com",
                 },
                 "data": {},
@@ -52,7 +59,7 @@ def test_post_event_empty_default_data(client):
     )
     assert response.status_code == 201
     event = AnalyticsEvent.objects.get(
-        uuid="1234", url="https://example.com", type="some-thing"
+        uuid=uuid_, url="https://example.com", type="some-thing"
     )
     assert event.created
     assert event.data == {}
@@ -74,7 +81,7 @@ def test_post_event_missing_keys(client):
         json.dumps(
             {
                 "meta": {
-                    "uuid": "1234",
+                    "uuid": generate_random_uuid(),
                 }
             }
         ),
@@ -88,7 +95,7 @@ def test_post_event_missing_keys(client):
             {
                 "type": "",
                 "meta": {
-                    "uuid": "1234",
+                    "uuid": generate_random_uuid(),
                     "url": "https://example.com",
                 },
             }
