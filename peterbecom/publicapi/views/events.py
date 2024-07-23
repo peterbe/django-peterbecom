@@ -1,11 +1,14 @@
 import json
+import time
 
 from django import forms
 from django import http
+from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from peterbecom.base.models import AnalyticsEvent, create_event
+from peterbecom.base.utils import fake_ip_address
 
 
 @csrf_exempt
@@ -27,11 +30,24 @@ def event(request):
     if not form.is_valid():
         return http.JsonResponse({"error": form.errors}, status=400)
 
+    meta = form.cleaned_data.get("meta")
+    ip_address = request.headers.get("x-forwarded-for") or request.META.get(
+        "REMOTE_ADDR"
+    )
+    if (
+        ip_address == "127.0.0.1"
+        and settings.DEBUG
+        and request.get_host().endswith("127.0.0.1:8000")
+    ):
+        ip_address = fake_ip_address(str(time.time()))
+    if ip_address:
+        meta["ip_address"] = ip_address
+
     create_event(
         type=form.cleaned_data["type"],
         uuid=uuid,
         url=url,
-        meta=form.cleaned_data.get("meta"),
+        meta=meta,
         data=form.cleaned_data.get("data") or {},
     )
 

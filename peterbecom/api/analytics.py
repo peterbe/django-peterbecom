@@ -27,7 +27,6 @@ def api_superuser_required(view_func):
 @api_superuser_required
 def query(request):
     q = request.GET.get("query")
-    print("QUERY:", repr(q))
     try:
         parsed = Parser(q)
     except ValueError:
@@ -55,6 +54,11 @@ def query(request):
         try:
             cursor.execute(q)
         except ProgrammingError as e:
+            print("QUERY___________________________________")
+            print(q)
+            print("ERROR___________________________________")
+            print(e)
+
             error = f"Unable to execute SQL query.\n{e}"
             return http.JsonResponse({"error": error}, status=400)
         columns = [col[0] for col in cursor.description]
