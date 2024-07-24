@@ -1,5 +1,6 @@
 import random
 import time
+from json.decoder import JSONDecodeError
 from urllib.parse import urlencode
 
 from django.conf import settings
@@ -34,9 +35,21 @@ def search(request):
     response = requests_retry_session().get(remote_url)
     if response.status_code != 200:
         if response.status_code == 400:
-            return http.JsonResponse(response.json(), status=response.status_code)
+            try:
+                return http.JsonResponse(response.json(), status=response.status_code)
+            except JSONDecodeError:
+                print(
+                    "JSONDECODERROR",
+                    {"remote_url": remote_url, "response.text": response.text},
+                )
+                return http.JsonResponse(
+                    {"error": response.text}, status=response.status_code
+                )
         return http.JsonResponse(
-            {"error": "Unexpected proxy response code"}, status=response.status_code
+            {
+                "error": f"Unexpected proxy response code ({response.status_code}) on {remote_url}"
+            },
+            status=response.status_code,
         )
 
     results = []
