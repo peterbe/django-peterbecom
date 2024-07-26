@@ -141,6 +141,7 @@ def test_post_duplicate_event(client):
             "sid": generate_random_uuid(),
             "url": "https://example.com",
             "created": timezone.now().isoformat(),
+            "performance": {"nav": 123.4},
         },
         "data": {"pathname": "/value", "search": "foo"},
     }
@@ -153,6 +154,15 @@ def test_post_duplicate_event(client):
     assert AnalyticsEvent.objects.count() == 1
 
     payload["meta"]["created"] = (timezone.now() + timedelta(seconds=1)).isoformat()
+    response = client.post(
+        url,
+        json.dumps(payload),
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    assert AnalyticsEvent.objects.count() == 1
+
+    payload["meta"]["performance"]["nav"] = 987.1
     response = client.post(
         url,
         json.dumps(payload),
