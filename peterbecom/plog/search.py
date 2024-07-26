@@ -13,7 +13,6 @@ from elasticsearch_dsl import (
     token_filter,
 )
 
-
 # It's useful to be able to turn off synonyms in CI because there it's
 # not possible to place a synonyms file in the config directory of the
 # elasticsearch server because it's used as an GitHub Action that uses

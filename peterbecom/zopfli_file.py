@@ -13,9 +13,9 @@ def zopfli_file(filepath: Path, i=15):
 
 
 def benchmark(fp):
-    import time
-    import shutil
     import os
+    import shutil
+    import time
 
     orig_size = prev_size = os.stat(fp).st_size
     print("Original size:", orig_size)

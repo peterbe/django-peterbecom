@@ -2,9 +2,10 @@ import re
 
 from django.contrib.syndication.views import Feed
 from django.utils import timezone
-from peterbecom.plog.models import BlogItem
-from .utils import parse_ocs_to_categories, make_categories_q
 
+from peterbecom.plog.models import BlogItem
+
+from .utils import make_categories_q, parse_ocs_to_categories
 
 smart_static_urls = re.compile(r'src="//')
 

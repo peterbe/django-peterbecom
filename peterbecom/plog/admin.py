@@ -1,5 +1,5 @@
 from django.contrib import admin
-from models import BlogItem, BlogComment
+from models import BlogComment, BlogItem
 
 
 def truncate_text(text, characters):

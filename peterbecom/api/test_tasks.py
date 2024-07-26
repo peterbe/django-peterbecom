@@ -1,13 +1,13 @@
 import datetime
 
 import pytest
+from django.contrib.sites.models import Site
 from django.core import mail
 from django.urls import reverse
-from django.contrib.sites.models import Site
 from django.utils import timezone
 
-from peterbecom.plog.models import BlogItem, BlogComment
 from peterbecom.api import tasks
+from peterbecom.plog.models import BlogComment, BlogItem
 
 
 @pytest.mark.django_db

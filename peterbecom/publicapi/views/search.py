@@ -1,23 +1,23 @@
+import datetime
 import re
 import time
-import datetime
 from functools import reduce
 from operator import or_
 
 from django import http
-from django.utils import timezone
 from django.conf import settings
+from django.utils import timezone
 from django.utils.cache import patch_cache_control
 from django.utils.html import strip_tags
 from django.views.decorators.cache import cache_control
 from elasticsearch_dsl import Q, query
 from elasticsearch_dsl.query import MultiMatch
 
+from peterbecom.base.models import SearchResult
 from peterbecom.homepage.utils import STOPWORDS, split_search
 from peterbecom.plog.models import BlogItem
 from peterbecom.plog.search import BlogCommentDoc, BlogItemDoc, SearchTermDoc
 from peterbecom.publicapi.forms import SearchForm
-from peterbecom.base.models import SearchResult
 
 HIGHLIGHT_TYPE = "fvh"
 

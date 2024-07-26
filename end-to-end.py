@@ -5,9 +5,8 @@ from collections import defaultdict
 from urllib.parse import urlparse
 
 import pyquery
-import xmltodict
 import requests
-
+import xmltodict
 
 BASE_URL = os.environ.get("BASE_URL", "https://peterbecom.local")
 print("Testing against:", BASE_URL)

@@ -1,7 +1,7 @@
 import datetime
 
-from django.utils import timezone
 from django.conf import settings
+from django.utils import timezone
 from huey import crontab
 from huey.contrib.djhuey import periodic_task
 

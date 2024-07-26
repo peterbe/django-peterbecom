@@ -3,7 +3,6 @@ from django.urls import path, re_path
 
 from . import views
 
-
 urlpatterns = [
     path(r"", views.plog_index, name="plog_index"),
     path("prepare.json", views.prepare_json, name="prepare"),

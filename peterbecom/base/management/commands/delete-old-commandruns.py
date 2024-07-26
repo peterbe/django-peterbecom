@@ -2,8 +2,8 @@ import datetime
 
 from django.utils import timezone
 
-from peterbecom.base.models import CommandRun
 from peterbecom.base.basecommand import BaseCommand
+from peterbecom.base.models import CommandRun
 
 
 class Command(BaseCommand):

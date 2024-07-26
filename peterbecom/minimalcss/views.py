@@ -3,7 +3,6 @@ import time
 from urllib.parse import urlparse
 
 import requests
-
 from django import http
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt

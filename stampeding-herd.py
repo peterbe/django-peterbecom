@@ -1,9 +1,10 @@
-import random
+import concurrent.futures
 import os
+import random
 import time
 from collections import defaultdict
+
 import requests
-import concurrent.futures
 
 
 def _get_size(url):

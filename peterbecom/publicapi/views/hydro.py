@@ -1,8 +1,8 @@
 import random
 import time
 
-from django.conf import settings
 from django import http
+from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 
 

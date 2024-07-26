@@ -2,7 +2,7 @@ from django.core.cache import cache
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 
-from peterbecom.plog.models import BlogItem, Category, BlogComment
+from peterbecom.plog.models import BlogComment, BlogItem, Category
 
 
 def _reset_cache_page_decorations():

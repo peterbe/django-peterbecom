@@ -1,6 +1,6 @@
 from django.db import models
-from django.utils import timezone
 from django.db.models import F
+from django.utils import timezone
 
 
 class CatchallURL(models.Model):

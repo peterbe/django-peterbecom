@@ -1,13 +1,12 @@
 import copy
+import datetime
 import os
 import sys
 import time
 import traceback
 from io import StringIO
-import datetime
 
 import rollbar
-
 from django.conf import settings
 from django.core.management.base import BaseCommand as DjangoBaseCommand
 

@@ -1,14 +1,13 @@
 #!/usr/bin/env python
-import sys
 import json
 import random
-import time
 import statistics
+import sys
+import time
 from urllib.parse import urlparse
 
 import requests
 from pyquery import PyQuery
-
 
 DEFAULT_CYCLES = 1000
 DEFAULT_TOP_URLS = 200

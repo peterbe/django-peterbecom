@@ -4,10 +4,10 @@ from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
 
+from peterbecom.api.views import actually_approve_comment
 from peterbecom.base.basecommand import BaseCommand
 from peterbecom.plog.models import BlogComment
 from peterbecom.plog.utils import rate_blog_comment
-from peterbecom.api.views import actually_approve_comment
 
 
 class Command(BaseCommand):

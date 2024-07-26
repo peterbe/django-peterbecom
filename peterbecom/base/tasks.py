@@ -16,7 +16,7 @@ from huey import crontab
 from huey.contrib.djhuey import periodic_task, task
 
 from peterbecom.base.cdn import purge_cdn_urls
-from peterbecom.base.models import CDNPurgeURL, PostProcessing, CommandRun
+from peterbecom.base.models import CDNPurgeURL, CommandRun, PostProcessing
 from peterbecom.base.utils import do_healthcheck
 from peterbecom.base.xcache_analyzer import get_x_cache
 from peterbecom.brotli_file import brotli_file

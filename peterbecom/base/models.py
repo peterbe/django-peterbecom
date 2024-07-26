@@ -5,13 +5,13 @@ import traceback
 from io import StringIO
 
 import backoff
-from django.db.utils import InterfaceError
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import ArrayField
 from django.db import models, transaction
 from django.db.models import F
 from django.db.models.signals import post_save, pre_save
+from django.db.utils import InterfaceError
 from django.dispatch import receiver
 from django.utils import timezone
 

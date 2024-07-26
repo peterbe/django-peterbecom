@@ -1,6 +1,6 @@
 from peterbecom.base.basecommand import BaseCommand
-from peterbecom.chiveproxy.views import update_cards
 from peterbecom.chiveproxy.models import Card
+from peterbecom.chiveproxy.views import update_cards
 
 
 class Command(BaseCommand):

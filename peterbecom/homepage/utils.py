@@ -1,6 +1,8 @@
 import re
+
 from django import http
 from django.db.models import Q
+
 from peterbecom.plog.models import Category
 
 STOPWORDS = (
