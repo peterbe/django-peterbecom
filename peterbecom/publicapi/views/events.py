@@ -46,7 +46,7 @@ def event(request):
         uuid=uuid, type=type_, url=url, created__gt=recently
     )
     for k, v in meta.items():
-        if k in ("created",):
+        if k in ("created", "performance"):
             continue
         qs = qs.filter(**{f"meta__{k}": v})
 
