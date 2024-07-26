@@ -1,6 +1,7 @@
 import time
 import re
 from functools import wraps
+from collections import Counter
 
 from django.db import connection
 from django.db.utils import ProgrammingError
@@ -62,6 +63,18 @@ def query(request):
             error = f"Unable to execute SQL query.\n{e}"
             return http.JsonResponse({"error": error}, status=400)
         columns = [col[0] for col in cursor.description]
+        if len(set(columns)) != len(columns):
+            # E.g. ['?column?', '?column?']
+            # Turn that into ['?column?', '?column? (2)']
+            seen = Counter()
+            new_columns = []
+            for col in columns:
+                seen[col] += 1
+                if seen[col] > 1:
+                    new_columns.append(f"{col} ({seen[col]})")
+                else:
+                    new_columns.append(col)
+            columns = new_columns
         for row in cursor.fetchall():
             rows.append(dict(zip(columns, row)))
             count += 1
