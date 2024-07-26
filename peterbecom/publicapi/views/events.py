@@ -1,6 +1,8 @@
 import json
 import time
+from datetime import timedelta
 
+from django.utils import timezone
 from django import forms
 from django import http
 from django.conf import settings
@@ -34,6 +36,26 @@ def event(request):
         return http.JsonResponse({"error": form.errors}, status=400)
 
     meta = form.cleaned_data.get("meta")
+    url = form.cleaned_data["url"]
+    uuid = form.cleaned_data["uuid"]
+    type_ = form.cleaned_data["type"]
+    data = form.cleaned_data.get("data") or {}
+
+    recently = timezone.now() - timedelta(seconds=10)
+    qs = AnalyticsEvent.objects.filter(
+        uuid=uuid, type=type_, url=url, created__gt=recently
+    )
+    for k, v in meta.items():
+        if k in ("created",):
+            continue
+        qs = qs.filter(**{f"meta__{k}": v})
+
+    for k, v in data.items():
+        qs = qs.filter(**{f"data__{k}": v})
+
+    for _ in qs.order_by("-created"):
+        return http.JsonResponse({"ok": True}, status=200)
+
     ip_address = request.headers.get("x-forwarded-for") or request.META.get(
         "REMOTE_ADDR"
     )
@@ -46,16 +68,12 @@ def event(request):
     if ip_address:
         meta["ip_address"] = ip_address
 
-    url = form.cleaned_data["url"]
-    uuid = form.cleaned_data["uuid"]
-    type_ = form.cleaned_data["type"]
-
     create_event(
         type=type_,
         uuid=uuid,
         url=url,
         meta=meta,
-        data=form.cleaned_data.get("data") or {},
+        data=data,
     )
 
     return http.JsonResponse({"ok": True}, status=201)

@@ -1,5 +1,8 @@
 import json
 import uuid
+from datetime import timedelta
+
+from django.utils import timezone
 
 import pytest
 from django.urls import reverse
@@ -124,3 +127,45 @@ def test_post_event_with_get(client):
     url = reverse("publicapi:events_event")
     response = client.get(url)
     assert response.status_code == 405
+
+
+@pytest.mark.django_db
+def test_post_duplicate_event(client):
+    url = reverse("publicapi:events_event")
+    uuid_ = generate_random_uuid()
+
+    payload = {
+        "type": "some-thing",
+        "meta": {
+            "uuid": uuid_,
+            "sid": generate_random_uuid(),
+            "url": "https://example.com",
+            "created": timezone.now().isoformat(),
+        },
+        "data": {"pathname": "/value", "search": "foo"},
+    }
+    response = client.post(
+        url,
+        json.dumps(payload),
+        content_type="application/json",
+    )
+    assert response.status_code == 201
+    assert AnalyticsEvent.objects.count() == 1
+
+    payload["meta"]["created"] = (timezone.now() + timedelta(seconds=1)).isoformat()
+    response = client.post(
+        url,
+        json.dumps(payload),
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    assert AnalyticsEvent.objects.count() == 1
+
+    payload["data"]["pathname"] = "/different"
+    response = client.post(
+        url,
+        json.dumps(payload),
+        content_type="application/json",
+    )
+    assert response.status_code == 201
+    assert AnalyticsEvent.objects.count() == 2
