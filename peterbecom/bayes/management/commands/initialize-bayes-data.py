@@ -3,8 +3,8 @@ from io import BytesIO
 
 from django.core.management.base import BaseCommand
 
-from peterbecom.bayes.models import BayesData
 from peterbecom.bayes.guesser import Bayes, CustomTokenizer
+from peterbecom.bayes.models import BayesData
 
 
 class Command(BaseCommand):

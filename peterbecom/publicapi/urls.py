@@ -1,16 +1,15 @@
 from django.urls import path, re_path
 
 from .views import (
-    comments,
-    homepage,
     blogitem,
     blogitems,
-    search,
-    hydro,
+    comments,
     events,
+    homepage,
+    hydro,
     lyrics,
+    search,
 )
-
 
 app_name = "publicapi"
 

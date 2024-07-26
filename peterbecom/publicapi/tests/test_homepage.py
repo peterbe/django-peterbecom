@@ -1,8 +1,8 @@
 import datetime
-import pytest
 
-from django.utils import timezone
+import pytest
 from django.urls import reverse
+from django.utils import timezone
 
 from peterbecom.plog.models import BlogItem, Category
 

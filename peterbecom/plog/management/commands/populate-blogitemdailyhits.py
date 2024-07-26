@@ -1,8 +1,8 @@
-import time
 import datetime
+import time
 
+from django.db.models import Max, Min
 from django.utils import timezone
-from django.db.models import Min, Max
 
 from peterbecom.base.basecommand import BaseCommand
 from peterbecom.plog.models import BlogItemDailyHits, BlogItemDailyHitsExistingError

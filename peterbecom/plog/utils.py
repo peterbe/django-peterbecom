@@ -1,29 +1,29 @@
-import markdown
-import time
 import datetime
-import json
 import functools
 import hashlib
+import json
 import re
-from urllib.parse import urlencode, urlparse
 import subprocess
+import time
 from html import escape
+from urllib.parse import urlencode, urlparse
 
 import bleach
+import markdown
 import requests
+import zope.structuredtext
+from bleach.linkifier import Linker
+from django import http
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
+from django.utils import timezone
 
 # https://github.com/vzhou842/profanity-check is probably better but it requires
 # scikit-learn or whatever it's called.
 from profanity import profanity
 from requests.exceptions import ConnectionError
-import zope.structuredtext
-from bleach.linkifier import Linker
 
-from django.conf import settings
-from django import http
-from django.core.validators import validate_email
-from django.core.exceptions import ValidationError
-from django.utils import timezone
 from .gfm import gfm
 
 

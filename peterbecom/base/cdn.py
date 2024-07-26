@@ -1,6 +1,6 @@
 import inspect
-from urllib.parse import urlparse
 from itertools import islice
+from urllib.parse import urlparse
 
 import keycdn
 import requests

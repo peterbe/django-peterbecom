@@ -1,7 +1,6 @@
 from django import http
-from django.urls import path, include
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-
+from django.urls import include, path
 
 urlpatterns = staticfiles_urlpatterns()
 

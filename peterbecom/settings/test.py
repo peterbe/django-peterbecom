@@ -1,8 +1,8 @@
 import os
 
 from django.http import Http404
-from peterbecom.settings import *  # noqa
 
+from peterbecom.settings import *  # noqa
 
 ES_INDEX = "test_peterbecom"
 

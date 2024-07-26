@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from django.contrib.gis.geoip2 import GeoIP2, HAS_GEOIP2
+from django.contrib.gis.geoip2 import HAS_GEOIP2, GeoIP2
 from geoip2.errors import AddressNotFoundError
 
 assert HAS_GEOIP2

@@ -14,17 +14,16 @@ from django.conf import settings
 from django.core.cache import cache
 from django.db.models import Avg, Count, Max, Min, Q, Sum
 from django.db.models.functions import Trunc
-from django.shortcuts import get_object_or_404
+from django.db.utils import IntegrityError
 from django.middleware.csrf import get_token
+from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.timesince import timesince as django_timesince
 from django.views.decorators.cache import cache_control, never_cache
 from django.views.decorators.http import require_POST
 from requests.exceptions import ConnectionError
-from django.db.utils import IntegrityError
 from sorl.thumbnail import get_thumbnail
-
 
 from peterbecom.base.cdn import (
     get_cdn_base_url,
@@ -38,7 +37,7 @@ from peterbecom.base.models import (
     SearchResult,
     UserProfile,
 )
-from peterbecom.base.utils import fake_ip_address, do_healthcheck
+from peterbecom.base.utils import do_healthcheck, fake_ip_address
 from peterbecom.base.xcache_analyzer import get_x_cache
 from peterbecom.plog.models import (
     BlogComment,

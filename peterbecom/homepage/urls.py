@@ -1,8 +1,9 @@
 from django import http
 from django.urls import path, re_path
 from django.views.decorators.cache import cache_control
-from .feed import PlogFeed
+
 from . import views
+from .feed import PlogFeed
 
 
 def rss_redirect(request, prefix=None):

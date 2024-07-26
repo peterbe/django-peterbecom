@@ -2,10 +2,9 @@ import json
 import time
 from datetime import timedelta
 
-from django.utils import timezone
-from django import forms
-from django import http
+from django import forms, http
 from django.conf import settings
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 

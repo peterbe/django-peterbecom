@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from django.conf import settings
+
 from peterbecom.base.basecommand import BaseCommand
 
 

@@ -11,7 +11,8 @@ dev-with-tunneling:
 start: dev
 
 pretty:
-    ruff format peterbecom
+    # ruff format peterbecom
+    ruff check --fix peterbecom
 
 lint: pretty
     ruff check peterbecom

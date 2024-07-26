@@ -1,16 +1,15 @@
 import json
-import traceback
 import random
-from pathlib import Path
+import traceback
 from ipaddress import IPv4Address
-
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
+from pathlib import Path
 
 import requests
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django_redis import get_redis_connection
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
@@ -110,6 +109,7 @@ def fake_ip_address(seed):
 
 def do_healthcheck():
     from django.core.cache import cache
+
     from peterbecom.plog.models import BlogItem
 
     cache.set("foo", "bar", 1)

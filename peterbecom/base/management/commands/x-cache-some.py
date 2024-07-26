@@ -3,8 +3,8 @@ import os
 
 from django.conf import settings
 
-from peterbecom.base.xcache_analyzer import get_x_cache
 from peterbecom.base.basecommand import BaseCommand
+from peterbecom.base.xcache_analyzer import get_x_cache
 
 
 class Command(BaseCommand):

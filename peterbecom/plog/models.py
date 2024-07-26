@@ -1,9 +1,9 @@
-import re
 import datetime
 import functools
 import hashlib
 import os
 import random
+import re
 import time
 import unicodedata
 import uuid
@@ -15,24 +15,24 @@ from django.contrib.postgres.fields import ArrayField
 from django.core.cache import cache
 from django.db import models, transaction
 from django.db.models import Count
-from django.utils import timezone
 from django.db.models.signals import post_save, pre_delete, pre_save
 from django.dispatch import receiver
 from django.urls import reverse
+from django.utils import timezone
 from elasticsearch.helpers import parallel_bulk
 from elasticsearch_dsl.connections import connections
 from sorl.thumbnail import ImageField
 
 from peterbecom.base.geo import ip_to_city
-from peterbecom.base.utils import send_pulse_message, generate_search_terms
+from peterbecom.base.models import CDNPurgeURL
 from peterbecom.base.search import es_retry
+from peterbecom.base.utils import generate_search_terms, send_pulse_message
 from peterbecom.plog.search import (
     BlogCommentDoc,
     BlogItemDoc,
     SearchTermDoc,
     swap_alias,
 )
-from peterbecom.base.models import CDNPurgeURL
 
 from . import utils
 
@@ -155,8 +155,8 @@ class BlogItem(models.Model):
 
     def _new_inbound_hashkey(self, length):
         def mk():
-            from string import lowercase, uppercase
             from random import choice
+            from string import lowercase, uppercase
 
             s = choice(list(uppercase))
             while len(s) < length:

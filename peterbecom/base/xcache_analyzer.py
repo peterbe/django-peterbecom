@@ -1,9 +1,8 @@
 import concurrent.futures
 
 import requests
-from requests.exceptions import ReadTimeout
-
 from django.conf import settings
+from requests.exceptions import ReadTimeout
 
 
 def get_x_cache(url, no_brotli=False):

@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
-from peterbecom.plog.models import BlogItem, BlogComment
 
+from peterbecom.plog.models import BlogComment, BlogItem
 
 """
 TODO (Some day)

@@ -1,7 +1,8 @@
-from django.core.mail import send_mail
-from django.contrib.sites.models import Site
-from django.urls import reverse
 import textwrap
+
+from django.contrib.sites.models import Site
+from django.core.mail import send_mail
+from django.urls import reverse
 from huey.contrib.djhuey import task
 
 from peterbecom.plog.models import BlogComment

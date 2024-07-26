@@ -1,9 +1,9 @@
-import hashlib
 import functools
+import hashlib
 
 from django.core.cache import cache
-from django.utils.encoding import force_bytes
 from django.utils.cache import patch_cache_control
+from django.utils.encoding import force_bytes
 
 
 def lock_decorator(key_maker=None):

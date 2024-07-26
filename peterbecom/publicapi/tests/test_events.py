@@ -2,10 +2,9 @@ import json
 import uuid
 from datetime import timedelta
 
-from django.utils import timezone
-
 import pytest
 from django.urls import reverse
+from django.utils import timezone
 
 from peterbecom.base.models import AnalyticsEvent
 
