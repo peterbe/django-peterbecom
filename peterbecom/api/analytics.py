@@ -6,8 +6,8 @@ from functools import wraps
 
 from django import http
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db.utils import DataError, ProgrammingError
 from django.db import connection
+from django.db.utils import DataError, ProgrammingError
 from sql_metadata import Parser
 
 
