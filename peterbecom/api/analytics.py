@@ -2,11 +2,13 @@ import time
 import re
 from functools import wraps
 from collections import Counter
+import datetime
 
 from django.db import connection
 from django.db.utils import ProgrammingError
 from sql_metadata import Parser
 from django import http
+from django.core.serializers.json import DjangoJSONEncoder
 
 
 def api_superuser_required(view_func):
@@ -85,4 +87,13 @@ def query(request):
     print(repr(q), "Took:", round(t1 - t0, 2), "seconds")
     meta = {"took_seconds": t1 - t0, "count_rows": count, "maxed_rows": maxed_rows}
     error = None
-    return http.JsonResponse({"rows": rows, "meta": meta, "error": error})
+    return http.JsonResponse(
+        {"rows": rows, "meta": meta, "error": error}, encoder=CustomJSONEncoder
+    )
+
+
+class CustomJSONEncoder(DjangoJSONEncoder):
+    def default(self, o):
+        if isinstance(o, datetime.timedelta):
+            return str(o)
+        return super().default(o)
