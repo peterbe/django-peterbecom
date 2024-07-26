@@ -7,7 +7,7 @@ from functools import wraps
 from django import http
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import connection
-from django.db.utils import ProgrammingError
+from django.db.utils import DataError, ProgrammingError
 from sql_metadata import Parser
 
 
@@ -56,7 +56,7 @@ def query(request):
     with connection.cursor() as cursor:
         try:
             cursor.execute(q)
-        except ProgrammingError as e:
+        except (ProgrammingError, DataError) as e:
             print("QUERY___________________________________")
             print(q)
             print("ERROR___________________________________")
