@@ -1,4 +1,3 @@
-import random
 import time
 from json.decoder import JSONDecodeError
 from urllib.parse import urlencode
