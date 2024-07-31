@@ -39,12 +39,17 @@ def query(request):
         error = f"Only SELECT queries are allowed (not {parsed.query_type})"
         return http.JsonResponse({"error": error}, status=400)
 
+    only_valid = ("base_analyticsevent", "base_analyticsgeoevent")
     for table in parsed.tables:
-        if table == "analytics":
+        print("TABLE:", repr(table))
+        if table == "analytics_geo":
+            q = re.sub(r"\banalytics_geo\b", "base_analyticsgeoevent", q)
+
+        elif table == "analytics":
             q = re.sub(r"\banalytics\b", "base_analyticsevent", q)
 
-        elif table != "base_analyticsevent":
-            error = "Can only select on `base_analyticsevent` or `analytics`"
+        elif table not in only_valid:
+            error = f"{table!r} is not a valid table."
             return http.JsonResponse({"error": error}, status=400)
 
     rows = []
@@ -84,7 +89,7 @@ def query(request):
                 maxed_rows = True
                 break
     t1 = time.time()
-    print(repr(q), "Took:", round(t1 - t0, 2), "seconds")
+    print(f"[Took: {t1 - t0:.2f} seconds] {q!r}")
     meta = {"took_seconds": t1 - t0, "count_rows": count, "maxed_rows": maxed_rows}
     error = None
     return http.JsonResponse(
