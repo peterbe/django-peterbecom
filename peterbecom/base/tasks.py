@@ -15,6 +15,7 @@ from django.utils import timezone
 from huey import crontab
 from huey.contrib.djhuey import periodic_task, task
 
+from peterbecom.base.analytics_geo_events import create_analytics_geo_events
 from peterbecom.base.cdn import purge_cdn_urls
 from peterbecom.base.models import CDNPurgeURL, CommandRun, PostProcessing
 from peterbecom.base.utils import do_healthcheck
@@ -288,3 +289,8 @@ def health_check_to_disk():
 def delete_old_commandsruns():
     old = timezone.now() - datetime.timedelta(days=90)
     CommandRun.objects.filter(created__lt=old).delete()
+
+
+@periodic_task(crontab(hour="1", minute="2"))
+def create_analytics_geo_events_backfill():
+    create_analytics_geo_events(max=1000)
