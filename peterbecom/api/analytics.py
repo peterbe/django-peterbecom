@@ -41,7 +41,6 @@ def query(request):
 
     only_valid = ("base_analyticsevent", "base_analyticsgeoevent")
     for table in parsed.tables:
-        print("TABLE:", repr(table))
         if table == "analytics_geo":
             q = re.sub(r"\banalytics_geo\b", "base_analyticsgeoevent", q)
 

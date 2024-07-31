@@ -204,7 +204,7 @@ def feature_flag(request):
         if ip_address and ip_address != "127.0.0.1":
             country_code = ip_to_country_code(ip_address)
             enabled = False
-            if country_code in ["US", "GB", "CA", "DE", "PH"]:
+            if country_code in ["US", "GB", "CA", "DE", "PH", "FR", "IN"]:
                 print(f"LyricsFeatureFlag: Right country ({country_code!r})")
                 enabled = True
             else:
