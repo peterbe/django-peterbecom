@@ -243,6 +243,19 @@ class AnalyticsEvent(models.Model):
     data = models.JSONField(default=dict)
 
 
+class AnalyticsGeoEvent(models.Model):
+    event = models.OneToOneField(AnalyticsEvent, on_delete=models.CASCADE)
+    ip_address = models.GenericIPAddressField()
+    country_code = models.CharField(max_length=2, null=True)
+    region = models.CharField(max_length=10, null=True)
+    city = models.CharField(max_length=100, null=True)
+    country = models.CharField(max_length=100, null=True)
+    latitude = models.FloatField(null=True)
+    longitude = models.FloatField(null=True)
+    created = models.DateTimeField(auto_now_add=True)
+    lookup = models.JSONField(default=dict)
+
+
 @backoff.on_exception(backoff.expo, InterfaceError, max_time=10)
 def create_event(type: str, uuid: str, url: str, meta: dict, data: dict):
     AnalyticsEvent.objects.create(
