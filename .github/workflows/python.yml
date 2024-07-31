@@ -70,6 +70,10 @@ jobs:
         with:
           python-version: '3.8'
 
+      - name: Latest pip and setuptools
+        run: |
+          python -m pip install --upgrade pip setuptools wheel --progress-bar off
+
       - name: Cache pip
         uses: actions/cache@v4
         with:

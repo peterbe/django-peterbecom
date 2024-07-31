@@ -37,7 +37,7 @@ zopfli==0.2.3
 huey==2.5.1
 brotlipy==0.7.0
 backoff==2.2.1
-geoip2==4.7.0
+geoip2==4.8.0
 keycdn==0.4.3
 django-querycount==0.8.3
 profanity==1.1
@@ -58,4 +58,4 @@ requests-mock==1.12.1
 # to put these into production. At least now there's only one file.
 honcho==1.1.0
 pip-tools==7.4.1
-ruff==0.5.1
+ruff==0.5.5
