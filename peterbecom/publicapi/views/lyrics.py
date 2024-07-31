@@ -207,11 +207,6 @@ def feature_flag(request):
             if country_code in ["US", "GB", "CA", "DE", "PH"]:
                 print(f"LyricsFeatureFlag: Right country ({country_code!r})")
                 enabled = True
-                # if random.random() > 0.1:
-                #     print("LyricsFeatureFlag: Right luck!")
-                #     enabled = True
-                # else:
-                #     print("LyricsFeatureFlag: Not the right luck ")
             else:
                 print(f"LyricsFeatureFlag: Not right country code ({country_code!r})")
 
