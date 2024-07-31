@@ -22,6 +22,7 @@ from peterbecom.base.xcache_analyzer import get_x_cache
 from peterbecom.brotli_file import brotli_file
 from peterbecom.minify_html import minify_html
 from peterbecom.zopfli_file import zopfli_file
+from peterbecom.base.analytics_geo_events import create_analytics_geo_events
 
 
 def measure_post_process(func):
@@ -288,3 +289,8 @@ def health_check_to_disk():
 def delete_old_commandsruns():
     old = timezone.now() - datetime.timedelta(days=90)
     CommandRun.objects.filter(created__lt=old).delete()
+
+
+@periodic_task(crontab(hour="1", minute="2"))
+def create_analytics_geo_events_backfill():
+    create_analytics_geo_events(max=1000)

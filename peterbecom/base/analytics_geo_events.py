@@ -14,7 +14,6 @@ def create_analytics_geo_events(max=100):
         .exclude(meta__ip_address="127.0.0.1")
         .order_by("-created")
     )
-    print(qs.query)
 
     batch = []
     for event in qs[:max]:
