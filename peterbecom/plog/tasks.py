@@ -16,6 +16,8 @@ from peterbecom.plog.models import (
     BlogItemHit,
 )
 
+from .analytics_to_blogitem_hits import analytics_to_blogitem_hits_backfill
+
 
 @task()
 def send_new_comment_email(blogcomment_id):
@@ -81,3 +83,14 @@ def delete_old_blogitemhits():
 def reindex_search_terms():
     count, took = BlogItem.index_all_search_terms()
     print(f"Indexed {count:,} search terms in {took:.1f} seconds ({timezone.now()})")
+
+
+@periodic_task(
+    # Every minute in local dev
+    crontab(minute="*")
+    if settings.DEBUG
+    # Every hours in production
+    else crontab(hour="*", minute="0")
+)
+def analytics_events_to_blogitem_hits():
+    analytics_to_blogitem_hits_backfill()
