@@ -294,3 +294,8 @@ def delete_old_commandsruns():
 @periodic_task(crontab(hour="1", minute="2"))
 def create_analytics_geo_events_backfill():
     create_analytics_geo_events(max=1000)
+
+
+# @periodic_task(crontab(hour="1", minute="3"))
+# def create_analytics_referrer_events_backfill():
+#     create_analytics_referrer_events(max=1000)

@@ -11,11 +11,9 @@ from django.utils import timezone
 from django.views.decorators.cache import cache_control
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods, require_POST
-from huey.contrib.djhuey import task
 
 from peterbecom.base.utils import fake_ip_address
 
-from . import utils
 from .models import BlogComment, BlogItem, BlogItemHit
 from .spamprevention import (
     contains_spam_patterns,
@@ -47,47 +45,50 @@ def blog_post(request, oid, page=None):
     return http.HttpResponse("Deprecated")
 
 
+# Delete this method in late 2024
 @require_http_methods(["PUT"])
 @csrf_exempt
 def blog_post_ping(request, oid, page=None):
-    user_agent = request.headers.get("User-Agent", "")
-    remote_addr = request.headers.get("x-forwarded-for") or request.META.get(
-        "REMOTE_ADDR"
-    )
-    if not utils.is_bot(ua=user_agent, ip=remote_addr):
-        http_referer = request.GET.get("referrer", request.headers.get("Referer"))
-        if http_referer:
-            current_url = request.build_absolute_uri().split("/ping")[0]
-            if current_url == http_referer:
-                http_referer = None
-        increment_blogitem_hit(
-            oid,
-            remote_addr=remote_addr,
-            http_referer=http_referer,
-            page=page,
-        )
-    return http.JsonResponse({"ok": True})
+    # Return a 410 Gone once the CDN is properly purged
+    return http.JsonResponse({"deprecated": True})
+    # user_agent = request.headers.get("User-Agent", "")
+    # remote_addr = request.headers.get("x-forwarded-for") or request.META.get(
+    #     "REMOTE_ADDR"
+    # )
+    # if not utils.is_bot(ua=user_agent, ip=remote_addr):
+    #     http_referer = request.GET.get("referrer", request.headers.get("Referer"))
+    #     if http_referer:
+    #         current_url = request.build_absolute_uri().split("/ping")[0]
+    #         if current_url == http_referer:
+    #             http_referer = None
+    #     increment_blogitem_hit(
+    #         oid,
+    #         remote_addr=remote_addr,
+    #         http_referer=http_referer,
+    #         page=page,
+    #     )
+    # return http.JsonResponse({"ok": True})
 
 
-@task()
-def increment_blogitem_hit(
-    oid,
-    remote_addr=None,
-    http_referer=None,
-    page=None,
-):
-    if http_referer and len(http_referer) > 450:
-        http_referer = http_referer[: 450 - 3] + "..."
-    try:
-        blogitem_id = BlogItem.objects.values_list("id", flat=True).get(oid=oid)
-        BlogItemHit.objects.create(
-            blogitem_id=blogitem_id,
-            http_referer=http_referer,
-            remote_addr=remote_addr,
-            page=page,
-        )
-    except BlogItem.DoesNotExist:
-        print("Can't find BlogItem with oid {!r}".format(oid))
+# @task()
+# def increment_blogitem_hit(
+#     oid,
+#     remote_addr=None,
+#     http_referer=None,
+#     page=None,
+# ):
+#     if http_referer and len(http_referer) > 450:
+#         http_referer = http_referer[: 450 - 3] + "..."
+#     try:
+#         blogitem_id = BlogItem.objects.values_list("id", flat=True).get(oid=oid)
+#         BlogItemHit.objects.create(
+#             blogitem_id=blogitem_id,
+#             http_referer=http_referer,
+#             remote_addr=remote_addr,
+#             page=page,
+#         )
+#     except BlogItem.DoesNotExist:
+#         print("Can't find BlogItem with oid {!r}".format(oid))
 
 
 # legacy stuff

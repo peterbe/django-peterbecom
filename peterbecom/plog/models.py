@@ -393,6 +393,9 @@ class BlogItemHit(models.Model):
     http_referer = models.URLField(max_length=450, null=True)
     page = models.PositiveIntegerField(null=True)
 
+    def __str__(self):
+        return f"{self.blogitem.oid} on {self.add_date}"
+
 
 class BlogComment(models.Model):
     oid = models.CharField(max_length=100, db_index=True, unique=True)

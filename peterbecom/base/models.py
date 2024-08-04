@@ -256,6 +256,15 @@ class AnalyticsGeoEvent(models.Model):
     lookup = models.JSONField(default=dict)
 
 
+class AnalyticsEventReferrer(models.Model):
+    event = models.OneToOneField(AnalyticsEvent, on_delete=models.CASCADE)
+    referrer = models.URLField(max_length=500)
+    pathname = models.URLField(max_length=300)
+    search_engine = models.CharField(max_length=100, null=True)
+    search = models.CharField(max_length=300, null=True)
+    created = models.DateTimeField(auto_now_add=True)
+
+
 @backoff.on_exception(backoff.expo, InterfaceError, max_time=10)
 def create_event(type: str, uuid: str, url: str, meta: dict, data: dict):
     AnalyticsEvent.objects.create(
