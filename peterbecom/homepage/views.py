@@ -5,11 +5,12 @@ import random
 import re
 import time
 from pathlib import Path
+from urllib.parse import urlparse
 
 import py_avataaars
 from django import http
 from django.conf import settings
-from django.db.models import Count, Max
+from django.db.models import Max
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -24,8 +25,9 @@ from huey.contrib.djhuey import periodic_task, task
 from lxml import etree
 
 from peterbecom.base.decorators import lock_decorator, variable_cache_control
+from peterbecom.base.models import AnalyticsEvent
 from peterbecom.base.utils import get_base_url
-from peterbecom.plog.models import BlogComment, BlogItem
+from peterbecom.plog.models import BlogComment, BlogItem, BlogItemDailyHits
 from peterbecom.plog.search import BlogItemDoc
 
 from .models import CatchallURL
@@ -219,9 +221,15 @@ def sitemap(request):
     base_url = get_base_url(request)
     root = etree.Element("urlset", xmlns="http://www.sitemaps.org/schemas/sitemap/0.9")
 
+    added = set()
+
     def add(loc, lastmod=None, changefreq="monthly", priority=None):
-        url = etree.SubElement(root, "url")
         loc = base_url + loc
+        if loc in added:
+            return
+        added.add(loc)
+
+        url = etree.SubElement(root, "url")
         etree.SubElement(url, "loc").text = loc
         if lastmod:
             etree.SubElement(url, "lastmod").text = lastmod.strftime("%Y-%m-%d")
@@ -236,47 +244,86 @@ def sitemap(request):
     add("/", priority=1.0, changefreq="daily", lastmod=latest_pub_date)
     add("/about", changefreq="weekly", priority=0.5)
     add("/contact", changefreq="weekly", priority=0.5)
+    add("/plog/blogitem-040601-1", changefreq="daily", priority=1.0)  # exception
 
-    # TODO: Instead of looping over BlogItem, loop over
-    # BlogItemTotalHits and use the join to build this list.
-    # Then we can sort by a scoring function.
-    # This will only work once ALL blogitems have at least 1 hit.
-    blogitems = BlogItem.objects.filter(pub_date__lt=now, archived__isnull=True)
+    for page in range(2, settings.MAX_BLOGCOMMENT_PAGES + 1):
+        add(f"/plog/blogitem-040601-1/p{page}", changefreq="daily", priority=0.9)
 
-    approved_comments_count = {}
-    blog_comments_count_qs = (
-        BlogComment.objects.filter(
-            blogitem__pub_date__lt=now, approved=True, parent__isnull=True
+    # So when querying in various ways, we can skip some that are
+    # already added.
+    already_ids = set()
+
+    # All blog items with a recent comment
+    comments_qs = (
+        BlogComment.objects.filter(approved=True, blogitem__isnull=False)
+        .exclude(
+            # exception since it's handled (earlier) manually
+            blogitem__oid="blogitem-040601-1"
         )
-        .values("blogitem_id")
-        .annotate(count=Count("blogitem_id"))
+        .order_by("-modify_date")
     )
-    for count in blog_comments_count_qs:
-        approved_comments_count[count["blogitem_id"]] = count["count"]
+    for comment in comments_qs.select_related("blogitem").values(
+        "blogitem__id", "blogitem__oid", "modify_date"
+    )[:100]:
+        already_ids.add(comment["blogitem__id"])
+        add(
+            f"/plog/{comment['blogitem__oid']}",
+            lastmod=comment["modify_date"],
+            changefreq="daily",
+        )
 
-    for blogitem in blogitems.order_by("-pub_date").values("id", "modify_date", "oid"):
-        age = (now - blogitem["modify_date"]).days
-        comment_count = approved_comments_count.get(blogitem["id"], 0)
-        pages = comment_count // settings.MAX_RECENT_COMMENTS
-        # if comment_count > settings.MAX_RECENT_COMMENTS:
-        #     print("PAGES:", pages, blogitem.title)
-        for page in range(1, pages + 2):
-            if page > settings.MAX_BLOGCOMMENT_PAGES:
-                break
-            if age < 14:
-                changefreq = "daily"
-            elif age < 60:
-                changefreq = "weekly"
-            elif age < 100:
-                changefreq = "monthly"
-            else:
-                changefreq = None
+    # Most popular pages that haven't got recent comments
+    for days_back in range(2, 5):
+        popular_qs = (
+            BlogItemDailyHits.objects.exclude(blogitem__id__in=already_ids)
+            # This gives us the most popular, in recent days
+            .filter(
+                date__gt=timezone.now() - timezone.timedelta(days=days_back),
+            ).order_by("-total_hits")
+        )
+        for daily_hit in popular_qs.values(
+            "date",
+            "total_hits",
+            "blogitem__id",
+            "blogitem__oid",
+        )[:100]:
+            already_ids.add(daily_hit["blogitem__id"])
+            add(
+                f"/plog/{comment['blogitem__oid']}",
+                changefreq="weekly",
+            )
 
-            if page > 1:
-                url = reverse("blog_post", args=[blogitem["oid"], page])
-            else:
-                url = reverse("blog_post", args=[blogitem["oid"]])
-            add(url, lastmod=blogitem["modify_date"], changefreq=changefreq)
+    # Now for all the rest
+    blogitem_qs = (
+        BlogItem.objects.exclude(id__in=already_ids)
+        .filter(pub_date__lt=timezone.now())
+        .order_by("-pub_date")
+    )
+    for item in blogitem_qs.values("id", "oid", "pub_date")[:1000]:
+        already_ids.add(item["id"])
+        add(
+            f"/plog/{item['oid']}",
+            changefreq="monthly",
+            lastmod=item["pub_date"],
+        )
+
+    # (Temporary) add some recent songs
+    events_qs = AnalyticsEvent.objects.filter(
+        type="pageview",
+        url__startswith="https://www.peterbe.com/plog/blogitem-040601-1/song/",
+    ).order_by("-created")
+    for event in events_qs.values("url", "created")[:100]:
+        url_path = urlparse(event["url"]).path
+        add(url_path, lastmod=event["created"], changefreq="weekly")
+
+    # (Temporary) add some recent searches
+    events_qs = AnalyticsEvent.objects.filter(
+        type="pageview",
+        url__startswith="https://www.peterbe.com/plog/blogitem-040601-1/q/",
+    ).order_by("-created")
+    for event in events_qs.values("url", "created")[:100]:
+        url_path = urlparse(event["url"]).path
+        add(url_path, lastmod=event["created"], changefreq="weekly")
 
     xml_output = b'<?xml version="1.0" encoding="utf-8"?>\n'
     xml_output += etree.tostring(root, pretty_print=True)
