@@ -64,5 +64,6 @@ ruff==0.5.6
 # Necessary pins
 yarl==1.9.4
 multidict==6.0.5
+typing_extensions==4.12.2
 
 setuptools==72.1.0
