@@ -70,4 +70,4 @@ if __name__ == "__main__":
     args = sys.argv[1:]
     assert args
     url = args[0]
-    print(suck(url))
+    print(suck(url, debug=True))
