@@ -43,7 +43,7 @@ case $1 in
     #python manage.py clear-django-cache
     python manage.py migrate --noinput
     # export PYTHONWARNINGS=d
-    gunicorn server.wsgi -w ${WORKERS} -b 0.0.0.0:${PORT} --access-logfile=-
+    gunicorn wsgi -w ${WORKERS} -b 0.0.0.0:${PORT} --access-logfile=-
     # exec python manage.py runserver 0.0.0.0:8000
     ;;
   superuser)
