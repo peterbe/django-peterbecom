@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
+# default variables
+: "${PORT:=8000}"
+# How many Gunicorn workers should you use?
+# According to https://docs.gunicorn.org/en/stable/design.html#how-many-workers
+# the formula is simple: (2 x $num_cores) + 1
+# Leave it small if you have no way of knowing how many CPU cores you
+# have, otherwise apply the formula.
+: "${WORKERS:=2}"
 
 usage() {
   echo "usage: ./bin/run.sh web|web-dev|worker|test|bash|superuser"
@@ -35,7 +43,8 @@ case $1 in
     #python manage.py clear-django-cache
     python manage.py migrate --noinput
     # export PYTHONWARNINGS=d
-    exec python manage.py runserver 0.0.0.0:8000
+    gunicorn server.wsgi -w ${WORKERS} -b 0.0.0.0:${PORT} --access-logfile=-
+    # exec python manage.py runserver 0.0.0.0:8000
     ;;
   superuser)
     exec python manage.py superuser "${@:2}"
