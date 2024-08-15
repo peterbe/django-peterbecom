@@ -59,9 +59,14 @@ def submit_comment(request):
     if contains_spam_url_patterns(comment) or contains_spam_patterns(comment):
         return http.HttpResponseBadRequest("Looks too spammy")
 
-    ip_address = request.headers.get("x-forwarded-for") or request.META.get(
-        "REMOTE_ADDR"
+    ip_addresses = (
+        request.headers.get("x-forwarded-for") or request.META.get("REMOTE_ADDR") or ""
     )
+    # X-Forwarded-For might be a comma separated list of IP addresses
+    # coming from the CDN. The first is the client.
+    # https://www.keycdn.com/blog/x-forwarded-for-cdn
+    ip_address = [x.strip() for x in ip_addresses.split(",") if x.strip()][0]
+
     if ip_address == "127.0.0.1" and settings.FAKE_BLOG_COMMENT_IP_ADDRESS:
         ip_address = fake_ip_address(f"{name}{email}")
 
