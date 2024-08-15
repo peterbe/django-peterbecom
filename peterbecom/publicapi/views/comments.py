@@ -44,7 +44,9 @@ def preview_comment(request):
 def submit_comment(request):
     form = SubmitForm(request.POST)
     if not form.is_valid():
-        return http.HttpResponseBadRequest(form.errors.as_json())
+        # print("AS JSON:", repr(form.errors.as_json()))
+        # return http.JsonResponse(form.errors.as_json(), status=400)
+        return http.JsonResponse({"error": form.errors}, status=400)
 
     def make_cache_key(hash):
         return f"blog_comment_hash:{hash}"
