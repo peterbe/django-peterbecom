@@ -208,7 +208,11 @@ def feature_flag(request):
             ip_address = fake_ip_address(str(time.time()))
 
         if ip_address and ip_address != "127.0.0.1":
-            country_code = ip_to_country_code(ip_address)
+            # Used by pytest
+            if ip_address == "US.US.US.US":
+                country_code = "US"
+            else:
+                country_code = ip_to_country_code(ip_address)
             enabled = False
             if country_code in ["US", "GB", "CA", "DE", "PH", "FR", "IN"]:
                 print(f"LyricsFeatureFlag: Right country ({country_code!r})")
