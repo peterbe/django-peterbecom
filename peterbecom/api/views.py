@@ -1115,7 +1115,9 @@ def blogitem_hits(request):
                 blogitem_id = b.id AND (NOW() - b.pub_date) > INTERVAL '1 day'
             ORDER BY score desc
             LIMIT {limit}
-        """.format(limit=limit)
+        """.format(
+                limit=limit
+            )
         )
     else:
         query = BlogItem.objects.raw(
@@ -1135,7 +1137,9 @@ def blogitem_hits(request):
                 blogitem_id = b.id AND (NOW() - b.pub_date) > INTERVAL '1 day'
             ORDER BY score desc
             LIMIT {limit}
-        """.format(limit=limit)
+        """.format(
+                limit=limit
+            )
         )
     context["all_hits"] = []
     category_scores = defaultdict(list)
@@ -1644,9 +1648,13 @@ def whoami(request):
 
 @never_cache
 def whereami(request):
-    ip_address = request.headers.get("x-forwarded-for") or request.META.get(
+    ip_addresses = request.headers.get("x-forwarded-for") or request.META.get(
         "REMOTE_ADDR"
     )
+    # X-Forwarded-For might be a comma separated list of IP addresses
+    # coming from the CDN. The first is the client.
+    # https://www.keycdn.com/blog/x-forwarded-for-cdn
+    ip_address = [x.strip() for x in ip_addresses.split(",") if x.strip()][0]
     if not ip_address:
         return _response({"error": "No remote IP address"}, status=412)
     context = {}

@@ -191,9 +191,15 @@ def feature_flag(request):
         return http.JsonResponse({"enabled": value == "true"})
 
     if value is None:
-        ip_address = request.headers.get("x-forwarded-for") or request.META.get(
-            "REMOTE_ADDR"
+        ip_addresses = (
+            request.headers.get("x-forwarded-for")
+            or request.META.get("REMOTE_ADDR")
+            or ""
         )
+        # X-Forwarded-For might be a comma separated list of IP addresses
+        # coming from the CDN. The first is the client.
+        # https://www.keycdn.com/blog/x-forwarded-for-cdn
+        ip_address = [x.strip() for x in ip_addresses.split(",") if x.strip()][0]
         if (
             ip_address == "127.0.0.1"
             and settings.DEBUG
@@ -202,7 +208,11 @@ def feature_flag(request):
             ip_address = fake_ip_address(str(time.time()))
 
         if ip_address and ip_address != "127.0.0.1":
-            country_code = ip_to_country_code(ip_address)
+            # Used by pytest
+            if ip_address == "US.US.US.US":
+                country_code = "US"
+            else:
+                country_code = ip_to_country_code(ip_address)
             enabled = False
             if country_code in ["US", "GB", "CA", "DE", "PH", "FR", "IN"]:
                 print(f"LyricsFeatureFlag: Right country ({country_code!r})")
