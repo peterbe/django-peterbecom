@@ -38,8 +38,15 @@ wait_for() {
 
 
 case $1 in
+  web-dev)
+    echo "STARTING WEB-DEV"
+    #python manage.py clear-django-cache
+    python manage.py migrate --noinput
+    # export PYTHONWARNINGS=d
+    exec python manage.py runserver 0.0.0.0:8000
+    ;;
   web)
-    # echo "STARTING WEB-DEV"
+    echo "STARTING WEB (with gunicorn)"
     #python manage.py clear-django-cache
     python manage.py migrate --noinput
     # export PYTHONWARNINGS=d
@@ -51,6 +58,13 @@ case $1 in
     ;;
   test)
     exec python ./manage.py test
+    ;;
+  adminui)
+    cd adminui
+    node --version
+    fnm use `cat .node-version`
+    node --version
+    REACT_APP_WS_URL=ws://localhost:8080 REACT_APP_BASE_URL=http://localhost:3000 BROWSER=none PORT=4000 yarn start
     ;;
   bash)
     # echo "For high-speed test development, run: pip install pytest-watch"

@@ -117,7 +117,7 @@ LOGIN_REDIRECT_URL = "/?login=1"
 LOGOUT_REDIRECT_URL = "/?loggedout=1"
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = "peterbecom.wsgi.application"
+WSGI_APPLICATION = "wsgi.application"
 
 
 _CONTEXT_PROCESSORS = (
