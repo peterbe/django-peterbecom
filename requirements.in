@@ -8,7 +8,6 @@ Jinja2==3.0.3
 Markdown==3.6
 sorl-thumbnail==12.10.0
 Pillow==10.4.0
-cssmin==0.2.0
 cssselect==1.2.0
 requests==2.32.3
 lxml==5.2.2
@@ -20,7 +19,7 @@ pytz==2024.1
 django-jinja==2.10.2
 elasticsearch==7.17.9
 elasticsearch-dsl==7.4.1
-ftfy==6.2.0
+ftfy==6.2.3
 python-dateutil==2.9.0.post0
 zope.structuredtext==5.0
 redis==5.0.8
@@ -45,6 +44,7 @@ py-avataaars==1.1.2
 mozilla-django-oidc==4.0.1
 nltk==3.8.1
 sql_metadata==2.12.0
+gunicorn==23.0.0
 
 # Testing (Should these be broken out?)
 mock==5.1.0
@@ -58,4 +58,13 @@ requests-mock==1.12.1
 # to put these into production. At least now there's only one file.
 honcho==1.1.0
 pip-tools==7.4.1
-ruff==0.5.5
+ruff==0.5.6
+
+
+
+# Necessary pins
+yarl==1.9.4
+multidict==6.0.5
+typing_extensions==4.12.2
+
+setuptools==72.1.0

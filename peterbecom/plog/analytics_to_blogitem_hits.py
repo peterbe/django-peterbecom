@@ -41,12 +41,20 @@ def analytics_to_blogitem_hits_backfill():
         if not blogitem:
             print(f"WARNING: Invalid oid {oid!r}")
             continue
+
+        http_referer = event.meta.get("referrer") or None
+        if http_referer and len(http_referer) > 450:
+            print(
+                f"WARNING http_referer too long ({len(http_referer)}) {http_referer!r}"
+            )
+            http_referer = http_referer[:450]
+
         batch.append(
             BlogItemHit(
                 blogitem=blogitem,
                 add_date=event.created,
                 remote_addr=event.meta.get("ip_address"),
-                http_referer=event.meta.get("referrer") or None,
+                http_referer=http_referer,
                 page=page,
             )
         )

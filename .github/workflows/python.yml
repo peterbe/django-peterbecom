@@ -50,7 +50,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
         with:
-          node-version: '16'
+          node-version: '18'
           cache: 'yarn'
 
       - name: Cache node_modules
@@ -65,10 +65,10 @@ jobs:
         if: steps.cached-node_modules.outputs.cache-hit != 'true'
         run: yarn --frozen-lockfile
 
-      - name: Set up Python 3.8
+      - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
-          python-version: '3.8'
+          python-version: '3.12'
 
       - name: Latest pip and setuptools
         run: |
