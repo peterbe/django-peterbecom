@@ -21,7 +21,10 @@ class SubmitForm(forms.Form):
     def clean_parent(self):
         value = self.cleaned_data["parent"]
         if value:
-            return BlogComment.objects.get(oid=value)
+            try:
+                return BlogComment.objects.get(oid=value)
+            except BlogComment.DoesNotExist:
+                raise forms.ValidationError("parent comment does not exist")
 
     def clean_comment(self):
         return self.cleaned_data["comment"].strip()
