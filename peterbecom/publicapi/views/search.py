@@ -301,6 +301,7 @@ def search(request):
         return http.HttpResponseBadRequest(form.errors.as_json())
 
     q = original_q = form.cleaned_data["q"]
+    config = form.cleaned_data["_config"]
     debug = form.cleaned_data["debug"]
     boost_mode = form.cleaned_data["boost_mode"] or settings.DEFAULT_BOOST_MODE
     popularity_factor = (
@@ -312,6 +313,8 @@ def search(request):
         popularity_factor,
         boost_mode,
         debug_search=debug,
+        in_title_only=config.get("in_title"),
+        no_fuzzy=config.get("no_fuzzy"),
     )
     context = {
         "q": q,
@@ -320,6 +323,7 @@ def search(request):
         "count_documents": 0,
         "results": search_results,
         "non_stopwords_q": non_stopwords_q,
+        "config": config,
     }
 
     _save_search_result(q, original_q, search_results)
@@ -353,12 +357,15 @@ def _search(
     popularity_factor,
     boost_mode,
     debug_search=False,
+    in_title_only=False,
+    no_fuzzy=False,
 ):
     documents = []
     search_times = []
     context = {}
     keyword_search = {}
     if len(q) > 1:
+        # XXX Perhaps move this to SearchForm before the _search function.
         _keyword_keys = ("keyword", "keywords", "category", "categories")
         q, keyword_search = split_search(q, _keyword_keys)
 
@@ -382,13 +389,15 @@ def _search(
     qs = []
     if _is_multiword_query(q):
         qs.append(Q("match_phrase", title={"query": q, "boost": boost_title * 3}))
-        qs.append(Q("match_phrase", text={"query": q, "boost": boost * 2}))
+        if not in_title_only:
+            qs.append(Q("match_phrase", text={"query": q, "boost": boost * 2}))
 
     qs.append(Q("match", title={"query": q, "boost": boost_title}))
-    qs.append(Q("match", text={"query": q, "boost": boost}))
-    if len(q) > 3:
+    if not in_title_only:
+        qs.append(Q("match", text={"query": q, "boost": boost}))
+    if len(q) > 3 and not no_fuzzy:
         qs.append(Q("fuzzy", title={"value": q, "boost": 0.2}))
-        if len(q) > 5:
+        if len(q) > 5 and not in_title_only:
             qs.append(Q("fuzzy", text={"value": q, "boost": 0.1}))
 
     matcher = reduce(or_, qs)
@@ -406,9 +415,10 @@ def _search(
         pre_tags=["<mark>"], post_tags=["</mark>"]
     )
 
-    search_query = search_query.highlight(
-        "text", fragment_size=80, number_of_fragments=2, type=HIGHLIGHT_TYPE
-    )
+    if not in_title_only:
+        search_query = search_query.highlight(
+            "text", fragment_size=80, number_of_fragments=2, type=HIGHLIGHT_TYPE
+        )
     search_query = search_query.highlight(
         "title", fragment_size=120, number_of_fragments=1, type=HIGHLIGHT_TYPE
     )
@@ -460,65 +470,71 @@ def _search(
 
     context["count_documents"] = response.hits.total.value
 
-    # Now append the search results based on blog comments
-    search_query = BlogCommentDoc.search(index=settings.ES_BLOG_COMMENT_INDEX)
-    search_query = search_query.filter("term", approved=True)
-    search_query = search_query.query("match_phrase", comment=q)
+    if (
+        context["count_documents"] < 10
+        and not in_title_only
+        and not keyword_search.get("category")
+    ):
 
-    search_query = search_query.highlight(
-        "comment", fragment_size=80, number_of_fragments=2, type=HIGHLIGHT_TYPE
-    )
-    search_query = search_query.highlight_options(
-        pre_tags=["<mark>"], post_tags=["</mark>"]
-    )
-    search_query = search_query[:LIMIT_BLOG_COMMENTS]
-    t0 = time.time()
-    response = search_query.execute()
-    t1 = time.time()
-    search_times.append(("blogcomments", t1 - t0))
+        # Now append the search results based on blog comments
+        search_query = BlogCommentDoc.search(index=settings.ES_BLOG_COMMENT_INDEX)
+        search_query = search_query.filter("term", approved=True)
+        search_query = search_query.query("match_phrase", comment=q)
 
-    context["count_documents"] += response.hits.total.value
-
-    blogitem_lookups = set()
-    for hit in response:
-        result = hit.to_dict()
-        texts = []
-        try:
-            for fragment in hit.meta.highlight.comment:
-                texts.append(_massage_fragment(fragment))
-        except AttributeError:
-            texts.append(strip_tags(result["comment"])[:100] + "...")
-        summary = "<br>".join(texts)
-        blogitem_lookups.add(result["blogitem_id"])
-        documents.append(
-            {
-                "_id": result["blogitem_id"],
-                # "title": None,
-                "date": result["add_date"],
-                "summary": summary,
-                "score": hit.meta.score,
-                "comment_oid": result["oid"],
-                # "oid": result["oid"],
-            }
+        search_query = search_query.highlight(
+            "comment", fragment_size=80, number_of_fragments=2, type=HIGHLIGHT_TYPE
         )
+        search_query = search_query.highlight_options(
+            pre_tags=["<mark>"], post_tags=["</mark>"]
+        )
+        search_query = search_query[:LIMIT_BLOG_COMMENTS]
+        t0 = time.time()
+        response = search_query.execute()
+        t1 = time.time()
+        search_times.append(("blogcomments", t1 - t0))
 
-    if blogitem_lookups:
-        blogitems = {}
-        blogitem_qs = BlogItem.objects.filter(id__in=blogitem_lookups)
-        for blog_item in blogitem_qs.values("id", "title", "oid"):
-            blogitems[blog_item["id"]] = {
-                "title": (
-                    f"Comment on <i>{_clean_fragment_html(blog_item['title'])}</i>"
-                ),
-                "oid": blog_item["oid"],
-            }
-        for doc in documents:
-            _id = doc.pop("_id", None)
-            if _id:
-                doc["oid"] = blogitems[_id]["oid"]
-                doc["title"] = blogitems[_id]["title"]
-                # if doc["comment"]:
-                #     doc["url"] += "#{}".format(doc["oid"])
+        context["count_documents"] += response.hits.total.value
+
+        blogitem_lookups = set()
+        for hit in response:
+            result = hit.to_dict()
+            texts = []
+            try:
+                for fragment in hit.meta.highlight.comment:
+                    texts.append(_massage_fragment(fragment))
+            except AttributeError:
+                texts.append(strip_tags(result["comment"])[:100] + "...")
+            summary = "<br>".join(texts)
+            blogitem_lookups.add(result["blogitem_id"])
+            documents.append(
+                {
+                    "_id": result["blogitem_id"],
+                    # "title": None,
+                    "date": result["add_date"],
+                    "summary": summary,
+                    "score": hit.meta.score,
+                    "comment_oid": result["oid"],
+                    # "oid": result["oid"],
+                }
+            )
+
+        if blogitem_lookups:
+            blogitems = {}
+            blogitem_qs = BlogItem.objects.filter(id__in=blogitem_lookups)
+            for blog_item in blogitem_qs.values("id", "title", "oid"):
+                blogitems[blog_item["id"]] = {
+                    "title": (
+                        f"Comment on <i>{_clean_fragment_html(blog_item['title'])}</i>"
+                    ),
+                    "oid": blog_item["oid"],
+                }
+            for doc in documents:
+                _id = doc.pop("_id", None)
+                if _id:
+                    doc["oid"] = blogitems[_id]["oid"]
+                    doc["title"] = blogitems[_id]["title"]
+                    # if doc["comment"]:
+                    #     doc["url"] += "#{}".format(doc["oid"])
 
     context["documents"] = documents
     context["count_documents_shown"] = len(documents)
