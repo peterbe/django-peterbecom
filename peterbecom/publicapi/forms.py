@@ -1,3 +1,5 @@
+import re
+
 from django import forms
 
 from peterbecom.plog.models import BlogComment, BlogItem
@@ -40,4 +42,23 @@ class SearchForm(forms.Form):
 
     def clean_q(self):
         value = self.cleaned_data["q"]
+        value, config = extract_search_config(value)
+        if not value:
+            raise forms.ValidationError("No search terms left after extracting config")
+        self.cleaned_data["_config"] = config
         return value
+
+
+def extract_search_config(value):
+    config = {"in_title": False, "no_fuzzy": False}
+    in_title_regex = re.compile(r"\bin:\s?title\b")
+    if in_title_regex.search(value):
+        value = in_title_regex.sub("", value)
+        config["in_title"] = True
+
+    no_fuzzy_regex = re.compile(r"\bno:\s?fuzzy?\b")
+    if no_fuzzy_regex.search(value):
+        value = no_fuzzy_regex.sub("", value)
+        config["no_fuzzy"] = True
+
+    return value.strip(), config
