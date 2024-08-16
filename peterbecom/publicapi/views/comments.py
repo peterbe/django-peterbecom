@@ -37,7 +37,7 @@ def preview_comment(request):
         return http.HttpResponseBadRequest("too big")
 
     rendered = render_comment_text(comment)
-    return http.JsonResponse({"XXXcomment": rendered})
+    return http.JsonResponse({"comment": rendered})
 
 
 @require_POST

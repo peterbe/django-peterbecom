@@ -198,7 +198,7 @@ def test_submit_comment_edit(client):
 
 
 @pytest.mark.django_db
-def preview_comment(client):
+def test_preview_comment(client):
     url = reverse("publicapi:preview_comment")
 
     response = client.post(
@@ -224,7 +224,8 @@ def preview_comment(client):
         },
     )
     assert response.status_code == 200
-    assert (
-        response.json()["comment"]
-        == '<a href="http://example.com" rel="nofollow">example</a>'
+    data = response.json()
+    assert data["comment"] == (
+        '&lt;a href="<a href="http://example.com" '
+        'rel="nofollow">http://example.com</a>"&gt;example&lt;/a&gt;'
     )
