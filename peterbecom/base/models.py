@@ -256,10 +256,11 @@ class AnalyticsGeoEvent(models.Model):
     lookup = models.JSONField(default=dict)
 
 
-class AnalyticsEventReferrer(models.Model):
+class AnalyticsReferrerEvent(models.Model):
     event = models.OneToOneField(AnalyticsEvent, on_delete=models.CASCADE)
     referrer = models.URLField(max_length=500)
-    pathname = models.URLField(max_length=300)
+    pathname = models.URLField(max_length=300, null=True)
+    direct = models.BooleanField(default=False)
     search_engine = models.CharField(max_length=100, null=True)
     search = models.CharField(max_length=300, null=True)
     created = models.DateTimeField(auto_now_add=True)
