@@ -16,6 +16,7 @@ from huey import crontab
 from huey.contrib.djhuey import periodic_task, task
 
 from peterbecom.base.analytics_geo_events import create_analytics_geo_events
+from peterbecom.base.analytics_referrer_events import create_analytics_referrer_events
 from peterbecom.base.cdn import purge_cdn_urls
 from peterbecom.base.models import CDNPurgeURL, CommandRun, PostProcessing
 from peterbecom.base.utils import do_healthcheck
@@ -296,6 +297,6 @@ def create_analytics_geo_events_backfill():
     create_analytics_geo_events(max=1000)
 
 
-# @periodic_task(crontab(hour="1", minute="3"))
-# def create_analytics_referrer_events_backfill():
-#     create_analytics_referrer_events(max=1000)
+@periodic_task(crontab(hour="1", minute="3"))
+def create_analytics_referrer_events_backfill():
+    create_analytics_referrer_events(max=1000)
