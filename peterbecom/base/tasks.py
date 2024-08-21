@@ -1,16 +1,13 @@
 import datetime
 import functools
-import gzip
 import io
 import json
-import os
 import sys
 import time
 import traceback
 from io import StringIO
 from pathlib import Path
 
-from django.conf import settings
 from django.utils import timezone
 from huey import crontab
 from huey.contrib.djhuey import periodic_task, task
@@ -21,9 +18,6 @@ from peterbecom.base.cdn import purge_cdn_urls
 from peterbecom.base.models import CDNPurgeURL, CommandRun, PostProcessing
 from peterbecom.base.utils import do_healthcheck
 from peterbecom.base.xcache_analyzer import get_x_cache
-from peterbecom.brotli_file import brotli_file
-from peterbecom.minify_html import minify_html
-from peterbecom.zopfli_file import zopfli_file
 
 
 def measure_post_process(func):
