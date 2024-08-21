@@ -44,23 +44,25 @@ def referrer_to_referrer_event(event, referrer):
         else:
             search_engine = get_search_engine(parsed.netloc)
             if search_engine:
-                print(parsed)
-                raise NotImplementedError("TODO: Parse search query")
+                if parsed.query:
+                    query_params = parse_qs(parsed.query)
+                    if search_engine == "Google":
+                        search = query_params.get("q", [None])[0]
+                    elif search_engine == "Yandex":
+                        search = query_params.get("text", [None])[0]
+                    else:
+                        print(parsed)
+                        print("Query parsed:", query_params)
+                        raise NotImplementedError("TODO: Parse search query")
             else:
                 print("MUST BE DIFFERENT SITE", referrer)
     else:
         direct = True
 
-    # print(
-    #     dict(
-    #         event=event,
-    #         referrer=referrer,
-    #         pathname=pathname,
-    #         search_engine=search_engine,
-    #         search=search,
-    #         direct=direct,
-    #     )
-    # )
+    if len(referrer) > 500:
+        referrer = referrer[: 500 - 3] + "..."
+    if pathname and len(pathname) > 300:
+        pathname = pathname[: 300 - 3] + "..."
     return AnalyticsReferrerEvent(
         event=event,
         referrer=referrer,
@@ -77,5 +79,21 @@ def is_google(netloc):
 
 
 def get_search_engine(netloc):
-    for find in re.findall(r"\b(google|bing|yandex|yahoo)\.[a-z]{2,6}\b", netloc):
+    for find in re.findall(
+        r"\b(google|bing|yandex|yahoo|search\.brave|duckduckgo|ecosia)\.[a-z]{2,6}\b",
+        netloc,
+    ):
+        if find == "search.brave":
+            return "Brave"
         return find.capitalize()
+
+    if "google" in netloc:
+        # raise NotImplementedError(f"regex didn't work ({netloc!r})")
+        print(f"regex didn't work ({netloc!r}) ??")
+
+
+assert get_search_engine("www.google.com") == "Google"
+assert get_search_engine("www.google.co.uk") == "Google"
+assert get_search_engine("google.co.uk") == "Google"
+assert get_search_engine("google.com") == "Google"
+assert get_search_engine("search.brave.com") == "Brave"
