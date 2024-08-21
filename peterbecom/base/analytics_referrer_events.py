@@ -8,11 +8,14 @@ from peterbecom.base.models import AnalyticsEvent, AnalyticsReferrerEvent
 
 def create_analytics_referrer_events(max=100, min_hours_old=2):
     recently = timezone.now() - timezone.timedelta(hours=min_hours_old)
+    recent_ids = list(
+        AnalyticsReferrerEvent.objects.values_list("event_id", flat=True).order_by(
+            "-created"
+        )[: max * 2]
+    )
     qs = (
         AnalyticsEvent.objects.filter(created__gte=recently)
-        .exclude(
-            id__in=AnalyticsReferrerEvent.objects.values_list("event_id", flat=True)
-        )
+        .exclude(id__in=recent_ids)
         .filter(type="pageview")
         .filter(meta__referrer__isnull=False)
         .order_by("-created")
@@ -25,8 +28,12 @@ def create_analytics_referrer_events(max=100, min_hours_old=2):
         batch.append(referrer_event)
 
     if batch:
-        AnalyticsReferrerEvent.objects.bulk_create(batch)
-        print(f"Created {len(batch)} new AnalyticsReferrerEvent instances")
+        created = AnalyticsReferrerEvent.objects.bulk_create(
+            batch, ignore_conflicts=True
+        )
+        print(
+            f"Created {len(created)} (out of {len(batch)}) new AnalyticsReferrerEvent instances"
+        )
     else:
         print("No new analytics referrer events created")
 

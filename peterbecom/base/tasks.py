@@ -108,133 +108,6 @@ def post_process_after_cdn_purge(url):
         print("\n".join(out))
 
 
-def _minify_html(filepath: Path, url):
-    for _ in range(3):
-        try:
-            with open(filepath) as f:
-                html = f.read()
-            break
-        except FileNotFoundError:
-            # Try again in a second
-            time.sleep(1)
-    minified_html = minify_html(html)
-    if not minified_html:
-        print(f"Failed to minify_html({filepath!r}, {url!r}).")
-        with open("/tmp/minifying-trouble.log", "a") as f:
-            f.write(f"{timezone.now()}\t{filepath}\t{url}\n")
-        if settings.DEBUG:
-            raise Exception("Minifying HTML failed")
-        return
-    before = len(html)
-    before_gz = len(gzip.compress(html.encode("utf-8")))
-    after = len(minified_html)
-    after_gz = len(gzip.compress(minified_html.encode("utf-8")))
-    print(
-        "Minified before: {} bytes ({} gzipped), "
-        "After: {} bytes ({} gzipped), "
-        "Shaving {} bytes ({} gzipped)"
-        "".format(
-            format(before, ","),
-            format(before_gz, ","),
-            format(after, ","),
-            format(after_gz, ","),
-            format(before - after, ","),
-            format(before_gz - after_gz, ","),
-        )
-    )
-    with open(filepath, "w") as f:
-        f.write(minified_html)
-    print(f"HTML optimized {filepath}")
-    return minified_html
-
-
-def _zopfli_html(html, filepath: Path, url):
-    assert isinstance(filepath, Path)
-    for _ in range(5):
-        try:
-            original_ts = filepath.stat().st_mtime
-            original_size = filepath.stat().st_size
-        except FileNotFoundError:
-            # Try again in a second.
-            time.sleep(1)
-            continue
-        t0 = time.time()
-        new_filepath = zopfli_file(filepath)
-        t1 = time.time()
-        if new_filepath:
-            try:
-                new_size = new_filepath.stat().st_size
-            except FileNotFoundError:
-                # Race conditions probably
-                print(f"WARNING! {filepath} is now gone")
-                continue
-            if not new_size:
-                print(f"WARNING! {filepath} became 0 bytes after zopfli")
-                os.remove(new_filepath)
-                continue
-
-            if new_size > original_size:
-                print(f"WARNING! {filepath} became larger after zopfli")
-                # XXX delete it?
-
-            print(
-                "Generated {} ({} bytes, originally {} bytes) Took {:.2f}s".format(
-                    new_filepath,
-                    format(new_size, ","),
-                    format(original_size, ","),
-                    t1 - t0,
-                )
-            )
-            if original_ts != filepath.stat().st_mtime:
-                print(
-                    f"WARNING! The file {filepath} changed during the zopfli process."
-                )
-                continue
-            break
-
-
-def _brotli_html(html, filepath: Path, url):
-    assert isinstance(filepath, Path)
-    for _ in range(5):
-        try:
-            original_ts = filepath.stat().st_mtime
-            original_size = filepath.stat().st_size
-        except FileNotFoundError:
-            # Try again in a second.
-            time.sleep(1)
-            continue
-        t0 = time.time()
-        new_filepath = brotli_file(filepath)
-        t1 = time.time()
-        if new_filepath:
-            try:
-                new_size = new_filepath.stat().st_size
-            except FileNotFoundError:
-                # Race conditions probably
-                print(f"WARNING! {filepath} is now gone")
-                continue
-            if not new_size:
-                print(f"WARNING! {filepath} became 0 bytes after brotli")
-                os.remove(new_filepath)
-                continue
-            if new_size > original_size:
-                print(f"WARNING! {filepath} became larger after brotli")
-                # XXX delete it?
-
-            print(
-                "Generated {} ({} bytes, originally {} bytes) Took {:.2f}s".format(
-                    new_filepath,
-                    format(new_size, ","),
-                    format(original_size, ","),
-                    t1 - t0,
-                )
-            )
-            if original_ts != filepath.stat().st_mtime:
-                print("WARNING! The file {filepath} changed during the brotli process.")
-                continue
-            break
-
-
 @periodic_task(crontab(hour="*", minute="3"))
 def purge_old_cdnpurgeurls():
     old = timezone.now() - datetime.timedelta(days=90)
@@ -292,11 +165,19 @@ def delete_old_commandsruns():
     CommandRun.objects.filter(created__lt=old).delete()
 
 
-@periodic_task(crontab(hour="1", minute="2"))
+@periodic_task(crontab(minute="2"))
 def create_analytics_geo_events_backfill():
+    print(
+        "(Debugging Cron) Executing create_analytics_geo_events_backfill",
+        timezone.now(),
+    )
     create_analytics_geo_events(max=1000)
 
 
-@periodic_task(crontab(hour="1", minute="3"))
+@periodic_task(crontab(minute="3"))
 def create_analytics_referrer_events_backfill():
+    print(
+        "(Debugging Cron) Executing create_analytics_referrer_events_backfill",
+        timezone.now(),
+    )
     create_analytics_referrer_events(max=1000)
