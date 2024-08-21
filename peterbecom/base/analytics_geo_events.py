@@ -1,14 +1,15 @@
 from django.core.cache import cache
+from django.utils import timezone
 
 from peterbecom.base.geo import ip_to_city
 from peterbecom.base.models import AnalyticsEvent, AnalyticsGeoEvent
 
 
-def create_analytics_geo_events(max=100):
+def create_analytics_geo_events(max=100, min_hours_old=2):
+    recently = timezone.now() - timezone.timedelta(hours=min_hours_old)
     qs = (
-        AnalyticsEvent.objects.exclude(
-            id__in=AnalyticsGeoEvent.objects.values_list("event_id", flat=True)
-        )
+        AnalyticsEvent.objects.filter(created__gte=recently)
+        .exclude(id__in=AnalyticsGeoEvent.objects.values_list("event_id", flat=True))
         .filter(type="pageview")
         .filter(meta__ip_address__isnull=False)
         .exclude(meta__ip_address="127.0.0.1")
