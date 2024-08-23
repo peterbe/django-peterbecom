@@ -22,7 +22,7 @@ from django.utils import timezone
 # https://github.com/vzhou842/profanity-check is probably better but it requires
 # scikit-learn or whatever it's called.
 from profanity import profanity
-from requests.exceptions import ConnectionError
+from requests.exceptions import ConnectionError, ReadTimeout
 
 from .gfm import gfm
 
@@ -108,7 +108,7 @@ def render_comment_text(text):
             # valid domain at all.
             root_url = p.scheme + "://" + p.netloc
             try:
-                response = requests.head(root_url, timeout=5)
+                response = requests.head(root_url, timeout=10)
                 if response.status_code == 301:
                     redirect_p = urlparse(response.headers["location"])
                     # If the only difference is that it redirects to https instead
@@ -120,7 +120,7 @@ def render_comment_text(text):
                     ):
                         attrs[href_key] = href.replace("http://", "https://")
 
-            except ConnectionError:
+            except (ConnectionError, ReadTimeout):
                 return None
 
             rel_key = (None, "rel")
@@ -364,9 +364,9 @@ def rate_blog_comment(comment):
     for keyword in ("spell cast", "whatsapp", "+1("):
         if keyword in comment.comment.lower():
             if result["bad"].get("spam_keywords"):
-                result["bad"]["spam_keywords"] = (
-                    f"{keyword!r}, ${result['bad']['spam_keywords']}"
-                )
+                result["bad"][
+                    "spam_keywords"
+                ] = f"{keyword!r}, ${result['bad']['spam_keywords']}"
             else:
                 result["bad"]["spam_keywords"] = f"{keyword!r}"
 
