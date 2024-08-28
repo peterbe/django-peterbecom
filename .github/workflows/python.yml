@@ -74,6 +74,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip setuptools wheel --progress-bar off
 
+      - name: Download NLTK dependencies
+        run: python scripts/nltk-downloads.py
+
       - name: Cache pip
         uses: actions/cache@v4
         with:
