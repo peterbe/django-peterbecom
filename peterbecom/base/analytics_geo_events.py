@@ -1,14 +1,20 @@
 from django.core.cache import cache
+from django.utils import timezone
 
 from peterbecom.base.geo import ip_to_city
 from peterbecom.base.models import AnalyticsEvent, AnalyticsGeoEvent
 
 
-def create_analytics_geo_events(max=100):
+def create_analytics_geo_events(max=100, min_hours_old=2):
+    recent_ids = list(
+        AnalyticsGeoEvent.objects.values_list("event_id", flat=True).order_by(
+            "-created"
+        )[: max * 2]
+    )
+    recently = timezone.now() - timezone.timedelta(hours=min_hours_old)
     qs = (
-        AnalyticsEvent.objects.exclude(
-            id__in=AnalyticsGeoEvent.objects.values_list("event_id", flat=True)
-        )
+        AnalyticsEvent.objects.filter(created__gte=recently)
+        .exclude(id__in=recent_ids)
         .filter(type="pageview")
         .filter(meta__ip_address__isnull=False)
         .exclude(meta__ip_address="127.0.0.1")
@@ -29,8 +35,10 @@ def create_analytics_geo_events(max=100):
 
         batch.append(geo_event)
     if batch:
-        AnalyticsGeoEvent.objects.bulk_create(batch)
-        print(f"Created {len(batch)} new AnalyticsGeoEvent instances")
+        created = AnalyticsGeoEvent.objects.bulk_create(batch, ignore_conflicts=True)
+        print(
+            f"Created {len(created)} (out of {len(batch)}) new AnalyticsGeoEvent instances"
+        )
     else:
         print("No new analytics geo events created")
 
