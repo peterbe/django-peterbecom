@@ -1224,9 +1224,9 @@ sorl-thumbnail==12.10.0 \
     --hash=sha256:733eb2eee392d4a874f88fb3ed6f0572fa9c361b06e0411b83e435ba69c51f52 \
     --hash=sha256:de95a49217fdfeced222fa3ceaa01d312ee2f8aad56ba34d6c70f2dee9a84938
     # via -r requirements.in
-sql-metadata==2.12.0 \
-    --hash=sha256:8c05d66c2e9fef05806eefa38c300f96cb9c6a65859dd701d780c965a2129343 \
-    --hash=sha256:c3003de934286d9b0abecff20752b2f6a01ca00cffde415363fcfa572ee063f4
+sql-metadata==2.13.0 \
+    --hash=sha256:4ecb51ea6aa2a5b8a52b7633f09f22f99cc359d44153205156652cf01650012f \
+    --hash=sha256:7106ddbab9948ed57bcfdf5a63ea8bbcfc25ac1b6f47764295764cab40d2007e
     # via -r requirements.in
 sqlparse==0.5.0 \
     --hash=sha256:714d0a4932c059d16189f58ef5411ec2287a4360f17cdd0edd2d09d4c5087c93 \
