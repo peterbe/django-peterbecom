@@ -58,7 +58,7 @@ requests-mock==1.12.1
 # to put these into production. At least now there's only one file.
 honcho==1.1.0
 pip-tools==7.4.1
-ruff==0.5.6
+ruff==0.6.2
 
 
 
