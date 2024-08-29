@@ -43,7 +43,7 @@ profanity==1.1
 py-avataaars==1.1.2
 mozilla-django-oidc==4.0.1
 nltk==3.9.1
-sql_metadata==2.12.0
+sql_metadata==2.13.0
 gunicorn==23.0.0
 
 # Testing (Should these be broken out?)
