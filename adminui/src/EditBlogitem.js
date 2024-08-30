@@ -349,6 +349,7 @@ function slugify(s) {
     .replace(/\s+/gi, '-')
     .replace(/['?]/g, '')
     .replaceAll('/', '-')
+    .replaceAll('@', '')
     .toLowerCase();
 }
 
