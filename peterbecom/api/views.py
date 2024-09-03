@@ -151,10 +151,11 @@ def _amend_blogitems_search(qs, search):
             search = is_regex.sub("", search).strip()
 
         category_names = []
-        cat_regex = re.compile(r"(cat:\s*([\w\s]+))")
+        cat_regex = re.compile(r"((cat|category):\"?\s*([\w\s]+))\"?")
         for found in cat_regex.findall(search):
-            category_names.append(found[1])
+            category_names.append(found[2])
             search = cat_regex.sub("", search).strip().strip(",")
+
         if category_names:
             q = Q()
             for name in category_names:
