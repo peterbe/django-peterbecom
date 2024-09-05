@@ -262,7 +262,7 @@ def preview(request):
     except PreviewValidationError as exception:
         (form_errors,) = exception.args
         context = {"blogitem": {"errors": form_errors}}
-        return _response(context)
+        return _response(context, status=400)
     context = {"blogitem": {"html": html}}
     return _response(context)
 
