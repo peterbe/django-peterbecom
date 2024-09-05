@@ -12,7 +12,7 @@ cssselect==1.2.0
 requests==2.32.3
 lxml==5.2.2
 feedparser==6.0.11
-pyquery==2.0.0
+pyquery==2.0.1
 xmltodict==0.13.0
 optisorl==0.2.1
 pytz==2024.1
@@ -58,12 +58,12 @@ requests-mock==1.12.1
 # to put these into production. At least now there's only one file.
 honcho==1.1.0
 pip-tools==7.4.1
-ruff==0.6.2
+ruff==0.6.3
 
 
 
 # Necessary pins
-yarl==1.9.4
+yarl==1.9.7
 multidict==6.0.5
 typing_extensions==4.12.2
 
