@@ -174,16 +174,34 @@ def _amend_blogitems_search(qs, search):
 @api_superuser_required
 def blogitem(request, oid):
     item = get_object_or_404(BlogItem, oid=oid)
+
+    if request.method == "DELETE":
+        item.delete()
+        return _response({"deleted": True})
+
     if request.method == "POST":
-        data = json.loads(request.body.decode("utf-8"))
-        data["proper_keywords"] = data.pop("keywords")
-        form = EditBlogForm(data, instance=item)
-        if form.is_valid():
-            form.save()
+        try:
+            data = json.loads(request.body.decode("utf-8"))
+        except json.decoder.JSONDecodeError:
+            print(f"BODY: {request.body.decode("utf-8")!r}")
+            return _response({"error": "Invalid JSON"}, status=400)
+
+        if "toggle_archived" in data:
+            if item.archived:
+                item.archived = None
+            else:
+                item.archived = timezone.now()
+            item.save()
             item.refresh_from_db()
-            assert item._render(refresh=True)
         else:
-            return _response({"errors": form.errors}, status=400)
+            data["proper_keywords"] = data.pop("keywords")
+            form = EditBlogForm(data, instance=item)
+            if form.is_valid():
+                form.save()
+                item.refresh_from_db()
+                assert item._render(refresh=True)
+            else:
+                return _response({"errors": form.errors}, status=400)
 
     context = {
         "blogitem": {
@@ -253,12 +271,12 @@ class PreviewValidationError(Exception):
 
 
 @api_superuser_required
+@require_POST
 def preview(request):
-    assert request.method == "POST", request.method
     post_data = json.loads(request.body.decode("utf-8"))
     post_data["pub_date"] = timezone.now()
     try:
-        html = preview_by_data(post_data, request)
+        html = preview_by_data(post_data)
     except PreviewValidationError as exception:
         (form_errors,) = exception.args
         context = {"blogitem": {"errors": form_errors}}
@@ -267,7 +285,7 @@ def preview(request):
     return _response(context)
 
 
-def preview_by_data(data, request):
+def preview_by_data(data):
     post_data = {}
     for key, value in data.items():
         if value:
@@ -289,13 +307,10 @@ def preview_by_data(data, request):
             )
 
     post = MockPost()
-    post.title = form.cleaned_data["title"]
+    post.title = "Doesn't matter"
     post.text = form.cleaned_data["text"]
     post.display_format = form.cleaned_data["display_format"]
-    post.codesyntax = form.cleaned_data["codesyntax"]
-    post.url = form.cleaned_data["url"]
-    post.pub_date = form.cleaned_data["pub_date"]
-    post.categories = Category.objects.filter(pk__in=form.cleaned_data["categories"])
+    post.codesyntax = ""
     return post.rendered
 
 
