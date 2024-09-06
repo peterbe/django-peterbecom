@@ -110,8 +110,12 @@ class BlogForm(forms.ModelForm):
         return value
 
 
-class PreviewBlogForm(BlogForm):
+class PreviewBlogForm(forms.ModelForm):
     """Exclusively when previewing."""
+
+    class Meta:
+        fields = ("text", "display_format")
+        model = BlogItem
 
 
 class EditBlogForm(BlogForm):
