@@ -128,6 +128,15 @@ class BlogFileUpload(forms.ModelForm):
         exclude = ("add_date", "modify_date")
 
 
+class BlogFileForm(forms.ModelForm):
+    class Meta:
+        model = BlogFile
+        fields = (
+            "id",
+            "title",
+        )
+
+
 class BlogCommentBatchForm(forms.Form):
     comments = forms.ModelMultipleChoiceField(
         queryset=BlogComment.objects, to_field_name="oid"

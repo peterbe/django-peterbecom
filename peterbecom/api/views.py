@@ -53,6 +53,7 @@ from peterbecom.plog.utils import rate_blog_comment, valid_email  # move this so
 
 from .forms import (
     BlogCommentBatchForm,
+    BlogFileForm,
     BlogFileUpload,
     BlogitemRealtimeHitsForm,
     CommentCountsIntervalForm,
@@ -376,21 +377,37 @@ def images(request, oid):
     context = {"images": _post_thumbnails(blogitem)}
 
     if request.method == "POST":
-        form = BlogFileUpload(
-            dict(
-                request.POST, blogitem=blogitem.id, title=request.POST.get("title", "")
-            ),
-            request.FILES,
-        )
-        if form.is_valid():
-            instance = form.save()
-            return _response({"id": instance.id})
-        return _response({"errors": form.errors}, status=400)
+        if request.POST.get('_update'):
+            form = BlogFileForm(request.POST)
+            if form.is_valid():
+                blog_file = BlogFile.objects.get(
+                    blogitem=blogitem,
+                    # Strange that you can't use form.cleaned_data for 'id' here.
+                    id=request.POST["id"]
+                    )
+                blog_file.title = form.cleaned_data["title"]
+                blog_file.save()
+                return _response({"ok": True})
+            return _response({"errors": form.errors}, status=400)
+        else:
+            form = BlogFileUpload(
+                dict(
+                    request.POST, blogitem=blogitem.id, title=request.POST.get("title", "")
+                ),
+                request.FILES,
+            )
+            if form.is_valid():
+                instance = form.save()
+                return _response({"id": instance.id})
+            return _response({"errors": form.errors}, status=400)
     elif request.method == "DELETE":
         blogfile = get_object_or_404(BlogFile, blogitem=blogitem, id=request.GET["id"])
         blogfile.delete()
         return _response({"deleted": True})
-    return _response(context)
+    elif request.method == "GET":
+        return _response(context)
+
+    return  _response({"error": "Wrong method"}, status=405)
 
 
 def _post_thumbnails(blogitem):
@@ -403,7 +420,7 @@ def _post_thumbnails(blogitem):
             continue
         full_im = thumbnail(blogfile.file, "2000x2000", upscale=False, quality=100)
         full_url = full_im.url
-        image = {"full_url": full_url, "full_size": full_im.size}
+        image = {"id": blogfile.id, "full_url": full_url, "full_size": full_im.size}
         formats = (
             ("small", "120x120"),
             ("big", "230x230"),
