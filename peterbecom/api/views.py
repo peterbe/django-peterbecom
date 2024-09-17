@@ -139,6 +139,14 @@ def blogitems(request):
 
 def _amend_blogitems_search(qs, search):
     if search:
+        no_summary_regex = re.compile(r'\b(no|has):\s?summary\b')
+        for find in no_summary_regex.findall(search):
+            search = no_summary_regex.sub("", search).strip()
+            if find == "has":
+                qs = qs.exclude(summary='')
+            elif find == 'no':
+                qs = qs.filter(summary='')
+
         is_regex = re.compile(r"is:\s*(archived|future|published|unpublished)")
         for found in is_regex.findall(search):
             if found == "archived":
@@ -169,6 +177,7 @@ def _amend_blogitems_search(qs, search):
 
     if search:
         qs = qs.filter(Q(title__icontains=search) | Q(oid__icontains=search))
+
     return qs
 
 
