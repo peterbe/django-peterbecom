@@ -140,13 +140,13 @@ def blogitems(request):
 
 def _amend_blogitems_search(qs, search):
     if search:
-        no_summary_regex = re.compile(r'\b(no|has):\s?summary\b')
+        no_summary_regex = re.compile(r"\b(no|has):\s?summary\b")
         for find in no_summary_regex.findall(search):
             search = no_summary_regex.sub("", search).strip()
             if find == "has":
-                qs = qs.exclude(summary='')
-            elif find == 'no':
-                qs = qs.filter(summary='')
+                qs = qs.exclude(summary="")
+            elif find == "no":
+                qs = qs.filter(summary="")
 
         is_regex = re.compile(r"is:\s*(archived|future|published|unpublished)")
         for found in is_regex.findall(search):
@@ -387,14 +387,14 @@ def images(request, oid):
     context = {"images": _post_thumbnails(blogitem)}
 
     if request.method == "POST":
-        if request.POST.get('_update'):
+        if request.POST.get("_update"):
             form = BlogFileForm(request.POST)
             if form.is_valid():
                 blog_file = BlogFile.objects.get(
                     blogitem=blogitem,
                     # Strange that you can't use form.cleaned_data for 'id' here.
-                    id=request.POST["id"]
-                    )
+                    id=request.POST["id"],
+                )
                 blog_file.title = form.cleaned_data["title"]
                 blog_file.save()
                 return _response({"ok": True})
@@ -402,7 +402,9 @@ def images(request, oid):
         else:
             form = BlogFileUpload(
                 dict(
-                    request.POST, blogitem=blogitem.id, title=request.POST.get("title", "")
+                    request.POST,
+                    blogitem=blogitem.id,
+                    title=request.POST.get("title", ""),
                 ),
                 request.FILES,
             )
@@ -417,7 +419,7 @@ def images(request, oid):
     elif request.method == "GET":
         return _response(context)
 
-    return  _response({"error": "Wrong method"}, status=405)
+    return _response({"error": "Wrong method"}, status=405)
 
 
 def _post_thumbnails(blogitem):
@@ -1158,9 +1160,7 @@ def blogitem_hits(request):
                 blogitem_id = b.id AND (NOW() - b.pub_date) > INTERVAL '1 day'
             ORDER BY score desc
             LIMIT {limit}
-        """.format(
-                limit=limit
-            )
+        """.format(limit=limit)
         )
     else:
         query = BlogItem.objects.raw(
@@ -1180,9 +1180,7 @@ def blogitem_hits(request):
                 blogitem_id = b.id AND (NOW() - b.pub_date) > INTERVAL '1 day'
             ORDER BY score desc
             LIMIT {limit}
-        """.format(
-                limit=limit
-            )
+        """.format(limit=limit)
         )
     context["all_hits"] = []
     category_scores = defaultdict(list)
@@ -1688,13 +1686,14 @@ def whoami(request):
     return _response(context)
 
 
-ttl_cache = TTLCache(maxsize=10,ttl=60)
+ttl_cache = TTLCache(maxsize=10, ttl=60)
+
 
 @cached(cache=ttl_cache)
 def _get_picture_url(user):
-    for user_profile in UserProfile.objects.filter(user=user).values('claims'):
-        if user_profile['claims'].get("picture"):
-            return user_profile['claims']["picture"]
+    for user_profile in UserProfile.objects.filter(user=user).values("claims"):
+        if user_profile["claims"].get("picture"):
+            return user_profile["claims"]["picture"]
         break
 
 

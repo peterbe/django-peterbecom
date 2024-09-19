@@ -475,7 +475,6 @@ def _search(
         and not in_title_only
         and not keyword_search.get("category")
     ):
-
         # Now append the search results based on blog comments
         search_query = BlogCommentDoc.search(index=settings.ES_BLOG_COMMENT_INDEX)
         search_query = search_query.filter("term", approved=True)
