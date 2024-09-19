@@ -9,6 +9,7 @@ from functools import lru_cache, wraps
 from urllib.parse import urlparse
 
 import requests
+from cachetools import TTLCache, cached
 from django import http
 from django.conf import settings
 from django.core.cache import cache
@@ -24,7 +25,6 @@ from django.views.decorators.cache import cache_control, never_cache
 from django.views.decorators.http import require_POST
 from requests.exceptions import ConnectionError
 from sorl.thumbnail import get_thumbnail
-from cachetools import TTLCache, cached
 
 from peterbecom.base.cdn import (
     get_cdn_base_url,
@@ -1688,7 +1688,7 @@ def whoami(request):
     return _response(context)
 
 
-ttl_cache = TTLCache(maxsize=10, ttl=60)
+ttl_cache = TTLCache(maxsize=10,ttl=60)
 
 @cached(cache=ttl_cache)
 def _get_picture_url(user):
