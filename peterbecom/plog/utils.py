@@ -364,9 +364,9 @@ def rate_blog_comment(comment):
     for keyword in ("spell cast", "whatsapp", "+1("):
         if keyword in comment.comment.lower():
             if result["bad"].get("spam_keywords"):
-                result["bad"][
-                    "spam_keywords"
-                ] = f"{keyword!r}, ${result['bad']['spam_keywords']}"
+                result["bad"]["spam_keywords"] = (
+                    f"{keyword!r}, ${result['bad']['spam_keywords']}"
+                )
             else:
                 result["bad"]["spam_keywords"] = f"{keyword!r}"
 

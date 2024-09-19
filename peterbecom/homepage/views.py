@@ -279,7 +279,8 @@ def sitemap(request):
             # This gives us the most popular, in recent days
             .filter(
                 date__gt=timezone.now() - timezone.timedelta(days=days_back),
-            ).order_by("-total_hits")
+            )
+            .order_by("-total_hits")
         )
         for daily_hit in popular_qs.values(
             "date",
