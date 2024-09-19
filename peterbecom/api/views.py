@@ -24,6 +24,7 @@ from django.views.decorators.cache import cache_control, never_cache
 from django.views.decorators.http import require_POST
 from requests.exceptions import ConnectionError
 from sorl.thumbnail import get_thumbnail
+from cachetools import TTLCache, cached
 
 from peterbecom.base.cdn import (
     get_cdn_base_url,
@@ -1681,11 +1682,20 @@ def whoami(request):
             "is_superuser": request.user.is_superuser,
             "csrfmiddlewaretoken": get_token(request),
         }
-        for user_profile in UserProfile.objects.filter(user=request.user):
-            if user_profile.claims.get("picture"):
-                context["user"]["picture_url"] = user_profile.claims["picture"]
-            break
+        picture_url = _get_picture_url(request.user)
+        if picture_url:
+            context["user"]["picture_url"] = picture_url
     return _response(context)
+
+
+ttl_cache = TTLCache(maxsize=10, ttl=60)
+
+@cached(cache=ttl_cache)
+def _get_picture_url(user):
+    for user_profile in UserProfile.objects.filter(user=user).values('claims'):
+        if user_profile['claims'].get("picture"):
+            return user_profile['claims']["picture"]
+        break
 
 
 @never_cache
