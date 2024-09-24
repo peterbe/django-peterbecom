@@ -6,16 +6,16 @@
 Django==4.2.15
 Jinja2==3.0.3
 Markdown==3.7
-sorl-thumbnail==12.10.0
+sorl-thumbnail==12.11.0
 Pillow==10.4.0
 cssselect==1.2.0
 requests==2.32.3
-lxml==5.2.2
+lxml==5.3.0
 feedparser==6.0.11
 pyquery==2.0.1
 xmltodict==0.13.0
 optisorl==0.2.1
-pytz==2024.1
+pytz==2024.2
 django-jinja==2.10.2
 elasticsearch==7.17.9
 elasticsearch-dsl==7.4.1
@@ -49,9 +49,9 @@ cachetools==5.5.0
 
 # Testing (Should these be broken out?)
 mock==5.1.0
-pytest==8.3.2
+pytest==8.3.3
 tomli==2.0.1
-pytest-django==4.8.0
+pytest-django==4.9.0
 requests-mock==1.12.1
 
 # Dev requirements
@@ -59,13 +59,13 @@ requests-mock==1.12.1
 # to put these into production. At least now there's only one file.
 honcho==1.1.0
 pip-tools==7.4.1
-ruff==0.6.3
+ruff==0.6.7
 
 
 
 # Necessary pins
 yarl==1.9.7
-multidict==6.0.5
+multidict==6.1.0
 typing_extensions==4.12.2
 
 setuptools==72.1.0
