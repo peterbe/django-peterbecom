@@ -5,6 +5,8 @@ from decouple import config
 
 BASE_DIR = Path(__file__).parent.parent.parent
 
+JSON_SCHEMAS_DIR = BASE_DIR / "peterbecom" / "json-schemas"
+
 
 def path(*x):
     # Use str() here because Python 3.5's open() builtin can't take a PosixPath.
@@ -442,3 +444,6 @@ HYLITE_DIRECTORY = None
 HYLITE_COMMAND = "bunx hylite"
 
 LYRICS_REMOTE = "https://songsear.ch"
+
+# This gets overwritten by settings/test.py set up by pytest
+RUNNING_TESTS = False

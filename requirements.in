@@ -46,6 +46,7 @@ nltk==3.9.1
 sql_metadata==2.13.0
 gunicorn==23.0.0
 cachetools==5.5.0
+jsonschema==4.23.0
 
 # Testing (Should these be broken out?)
 mock==5.1.0

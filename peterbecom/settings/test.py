@@ -43,3 +43,5 @@ TRASH_COMMENT_COMBINATIONS = []
 
 # Because ideally no WebSocket should be listening when running tests.
 SEND_PULSE_MESSAGES = False
+
+RUNNING_TESTS = True
