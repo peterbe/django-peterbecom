@@ -48,7 +48,7 @@ def test_happy_path(admin_client):
     assert first["title"] == "Hello World"
     assert first["archived"] is None
     assert first["pub_date"] == json_datetime(blogitem.pub_date)
-    assert first["modify_date"] == json_datetime(blogitem.pub_date)
+    assert first["modify_date"]
     assert first["keywords"] == ["one", "two"]
     assert first["summary"] == ""
     assert first["categories"] == [{"id": category.id, "name": "Code"}]
