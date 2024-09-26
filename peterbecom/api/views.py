@@ -285,7 +285,7 @@ def blogitem(request, oid):
             "archived": item.archived,
         }
     }
-    return _response(context)
+    return _response(context, schema="api.v0.blogitem")
 
 
 def categories(request):
