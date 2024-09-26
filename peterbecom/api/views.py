@@ -13,6 +13,7 @@ from cachetools import TTLCache, cached
 from django import http
 from django.conf import settings
 from django.core.cache import cache
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Avg, Count, Max, Min, Q, Sum
 from django.db.models.functions import Trunc
 from django.db.utils import IntegrityError
@@ -23,6 +24,7 @@ from django.utils import timezone
 from django.utils.timesince import timesince as django_timesince
 from django.views.decorators.cache import cache_control, never_cache
 from django.views.decorators.http import require_POST
+from jsonschema import validate
 from requests.exceptions import ConnectionError
 from sorl.thumbnail import get_thumbnail
 
@@ -87,7 +89,44 @@ def api_superuser_required(view_func):
     return inner
 
 
-def _response(context, status=200, safe=False):
+def _response(context, status=200, safe=False, schema=None):
+    if schema and (settings.DEBUG or settings.RUNNING_TESTS):
+        name = settings.JSON_SCHEMAS_DIR / f"{schema}.json"
+        try:
+            serialized = json.dumps(context, cls=DjangoJSONEncoder)
+            with open(name) as f:
+                schema_object = json.load(f)
+            validate(instance=json.loads(serialized), schema=schema_object)
+        except FileNotFoundError:
+            print(f"The JSON Schema file that it expected to exist as: {name}")
+            try:
+                print(
+                    "Create this new file and make it reflect the following preview..."
+                )
+                print("_" * 80)
+                print(json.dumps(context, cls=DjangoJSONEncoder, indent=2)[:1000])
+                print("_" * 80)
+            except Exception:
+                print("** Couldn't print JSON preview **")
+            return http.HttpResponse(
+                "Bad JSON Schema file. See server output for details.",
+                content_type="text/plain",
+                status=500,
+            )
+        except json.decoder.JSONDecodeError as exception:
+            print(f"The JSON Schema file ({name}) is not valid JSON:")
+            try:
+                print("_" * 80)
+                print(exception)
+                print("_" * 80)
+            except Exception:
+                print("** Couldn't JSON decode error **")
+            return http.HttpResponse(
+                "Bad JSON Schema file. See server output for details.",
+                content_type="text/plain",
+                status=500,
+            )
+
     return http.JsonResponse(context, status=status, safe=safe)
 
 
@@ -95,7 +134,17 @@ def _response(context, status=200, safe=False):
 def blogitems(request):
     if request.method == "POST":
         data = json.loads(request.body.decode("utf-8"))
-        data["proper_keywords"] = data.pop("keywords")
+        try:
+            data["proper_keywords"] = data.pop("keywords")
+        except KeyError:
+            return _response(
+                {
+                    "errors": {
+                        "keywords": ["This field is required."],
+                    }
+                },
+                status=400,
+            )
         form = EditBlogForm(data)
         if form.is_valid():
             item = form.save()
@@ -135,7 +184,7 @@ def blogitems(request):
     for item in items[n:m]:
         context["blogitems"].append(_serialize_blogitem(item))
     context["count"] = items.count()
-    return _response(context)
+    return _response(context, schema="api.v0.blogitems")
 
 
 def _amend_blogitems_search(qs, search):
@@ -236,7 +285,7 @@ def blogitem(request, oid):
             "archived": item.archived,
         }
     }
-    return _response(context)
+    return _response(context, schema="api.v0.blogitem")
 
 
 def categories(request):

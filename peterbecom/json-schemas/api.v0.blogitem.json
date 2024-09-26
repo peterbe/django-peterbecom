@@ -1,0 +1,106 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "blogitem": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "oid": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "pub_date": {
+          "type": "string"
+        },
+        "categories": {
+          "type": "array",
+          "items": [
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": ["id", "name"]
+            }
+          ]
+        },
+        "url": {
+          "type": ["string", "null"]
+        },
+        "keywords": {
+          "type": "array",
+          "items": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "modify_date": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "archived": {
+          "type": ["string", "null"]
+        },
+        "_absolute_url": {
+          "type": "string"
+        },
+        "_published": {
+          "type": "boolean"
+        },
+        "codesyntax": {
+          "type": "string"
+        },
+        "open_graph_image": {
+            "type": ["string", "null"]
+        },
+        "display_format": {
+            "type": "string"
+        },
+        "disallow_comments": {
+            "type": "boolean"
+        },
+        "hide_comments": {
+            "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "oid",
+        "title",
+        "text",
+        "pub_date",
+        "categories",
+        "keywords",
+        "_absolute_url",
+        "_published",
+        "codesyntax",
+        "open_graph_image",
+        "display_format",
+        "disallow_comments",
+        "hide_comments"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": ["blogitem"],
+  "additionalProperties": false
+}

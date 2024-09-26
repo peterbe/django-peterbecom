@@ -1,0 +1,81 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "blogitems": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "oid": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "pub_date": {
+            "type": "string"
+          },
+          "categories": {
+            "type": "array",
+            "items": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": ["id", "name"]
+              }
+            ]
+          },
+          "keywords": {
+            "type": "array",
+            "items": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "_is_published": {
+            "type": "boolean"
+          },
+          "modify_date": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "archived": {
+            "type": ["string", "null"]
+          }
+        },
+        "required": [
+          "id",
+          "oid",
+          "title",
+          "pub_date",
+          "categories",
+          "keywords",
+          "_is_published"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "count": {
+      "type": "integer"
+    }
+  },
+  "required": ["blogitems", "count"],
+  "additionalProperties": false
+}
