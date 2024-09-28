@@ -58,6 +58,9 @@
           },
           "archived": {
             "type": ["string", "null"]
+          },
+          "has_split": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -67,7 +70,8 @@
           "pub_date",
           "categories",
           "keywords",
-          "_is_published"
+          "_is_published",
+          "has_split"
         ],
         "additionalProperties": false
       }

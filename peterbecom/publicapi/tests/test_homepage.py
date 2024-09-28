@@ -93,3 +93,35 @@ def test_homepage_blogitems_happy_path(client, settings):
     assert response.status_code == 200
     data = response.json()
     assert len(data["posts"]) == 2
+
+
+@pytest.mark.django_db
+def test_homepage_blogitems_split_html(client):
+    blogitem1 = BlogItem.objects.create(
+        oid="hello-world",
+        title="Hello World",
+        text="Hello *world*\n<!--split-->Second part",
+        pub_date=timezone.now(),
+        proper_keywords=["one", "two"],
+    )
+    assert "<p>Hello <em>world</em></p>" in blogitem1.rendered
+    assert "<p>Second part</p>" in blogitem1.rendered
+
+    blogitem2 = BlogItem.objects.create(
+        oid="foo-bar",
+        title="Foo Bar",
+        text="Fuuu _bar_",
+        pub_date=timezone.now() - timezone.timedelta(days=1),
+        proper_keywords=["three"],
+    )
+    assert blogitem2.rendered == "<p>Fuuu <em>bar</em></p>"
+
+    url = reverse("publicapi:homepage_blogitems")
+    response = client.get(url)
+    assert response.status_code == 200
+    data = response.json()
+    first, second = data["posts"]
+    assert first["oid"] == "hello-world"
+    assert second["oid"] == "foo-bar"
+    assert first["split"] == len("<p>Second part</p>")
+    assert second["split"] is None
