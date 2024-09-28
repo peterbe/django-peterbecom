@@ -19,11 +19,11 @@ def test_search_empty(client):
     url = reverse("publicapi:search")
     response = client.get(url)
     assert response.status_code == 400
-    response = client.get(url, {"q": "foobar"})
+    response = client.get(url, {"q": "bla bla bla"})
     assert response.status_code == 200
     data = response.json()
-    assert data["q"] == "foobar"
-    assert data["original_q"] == "foobar"
+    assert data["q"] == "bla bla bla"
+    assert data["original_q"] == "bla bla bla"
     assert data["results"]["count_documents"] == 0
     assert data["results"]["count_documents_shown"] == 0
     assert data["results"]["documents"] == []
@@ -35,7 +35,7 @@ def test_autocomplete_empty(client):
     url = reverse("publicapi:autocomplete")
     response = client.get(url)
     assert response.status_code == 400
-    response = client.get(url, {"q": "foobar"})
+    response = client.get(url, {"q": "blablabl"})
     assert response.status_code == 200
     data = response.json()
     assert data["meta"]["found"] == 0
