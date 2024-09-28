@@ -437,7 +437,7 @@ def images(request, oid):
         blogfile.delete()
         return json_response({"deleted": True})
     elif request.method == "GET":
-        return json_response(context)
+        return json_response(context, schema="api.v0.images")
 
     return json_response({"error": "Wrong method"}, status=405)
 
