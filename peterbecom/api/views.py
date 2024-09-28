@@ -13,7 +13,6 @@ from cachetools import TTLCache, cached
 from django import http
 from django.conf import settings
 from django.core.cache import cache
-from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Avg, Count, Max, Min, Q, Sum
 from django.db.models.functions import Trunc
 from django.db.utils import IntegrityError
@@ -24,7 +23,6 @@ from django.utils import timezone
 from django.utils.timesince import timesince as django_timesince
 from django.views.decorators.cache import cache_control, never_cache
 from django.views.decorators.http import require_POST
-from jsonschema import validate
 from requests.exceptions import ConnectionError
 from sorl.thumbnail import get_thumbnail
 
@@ -40,7 +38,7 @@ from peterbecom.base.models import (
     SearchResult,
     UserProfile,
 )
-from peterbecom.base.utils import do_healthcheck, fake_ip_address
+from peterbecom.base.utils import do_healthcheck, fake_ip_address, json_response
 from peterbecom.base.xcache_analyzer import get_x_cache
 from peterbecom.plog.models import (
     BlogComment,
@@ -89,47 +87,6 @@ def api_superuser_required(view_func):
     return inner
 
 
-def _response(context, status=200, safe=False, schema=None):
-    if schema and (settings.DEBUG or settings.RUNNING_TESTS):
-        name = settings.JSON_SCHEMAS_DIR / f"{schema}.json"
-        try:
-            serialized = json.dumps(context, cls=DjangoJSONEncoder)
-            with open(name) as f:
-                schema_object = json.load(f)
-            validate(instance=json.loads(serialized), schema=schema_object)
-        except FileNotFoundError:
-            print(f"The JSON Schema file that it expected to exist as: {name}")
-            try:
-                print(
-                    "Create this new file and make it reflect the following preview..."
-                )
-                print("_" * 80)
-                print(json.dumps(context, cls=DjangoJSONEncoder, indent=2)[:1000])
-                print("_" * 80)
-            except Exception:
-                print("** Couldn't print JSON preview **")
-            return http.HttpResponse(
-                "Bad JSON Schema file. See server output for details.",
-                content_type="text/plain",
-                status=500,
-            )
-        except json.decoder.JSONDecodeError as exception:
-            print(f"The JSON Schema file ({name}) is not valid JSON:")
-            try:
-                print("_" * 80)
-                print(exception)
-                print("_" * 80)
-            except Exception:
-                print("** Couldn't JSON decode error **")
-            return http.HttpResponse(
-                "Bad JSON Schema file. See server output for details.",
-                content_type="text/plain",
-                status=500,
-            )
-
-    return http.JsonResponse(context, status=status, safe=safe)
-
-
 @api_superuser_required
 def blogitems(request):
     if request.method == "POST":
@@ -137,7 +94,7 @@ def blogitems(request):
         try:
             data["proper_keywords"] = data.pop("keywords")
         except KeyError:
-            return _response(
+            return json_response(
                 {
                     "errors": {
                         "keywords": ["This field is required."],
@@ -150,9 +107,9 @@ def blogitems(request):
             item = form.save()
             assert item._render(refresh=True)
             context = {"blogitem": {"id": item.id, "oid": item.oid}}
-            return _response(context, status=201)
+            return json_response(context, status=201)
         else:
-            return _response({"errors": form.errors}, status=400)
+            return json_response({"errors": form.errors}, status=400)
 
     def _serialize_blogitem(item):
         has_split = "<!--split-->" in item.text
@@ -186,7 +143,7 @@ def blogitems(request):
     for item in items[n:m]:
         context["blogitems"].append(_serialize_blogitem(item))
     context["count"] = items.count()
-    return _response(context, schema="api.v0.blogitems")
+    return json_response(context, schema="api.v0.blogitems")
 
 
 def _amend_blogitems_search(qs, search):
@@ -247,14 +204,14 @@ def blogitem(request, oid):
 
     if request.method == "DELETE":
         item.delete()
-        return _response({"deleted": True})
+        return json_response({"deleted": True})
 
     if request.method == "POST":
         try:
             data = json.loads(request.body.decode("utf-8"))
         except json.decoder.JSONDecodeError:
             print(f"BODY: {request.body.decode("utf-8")!r}")
-            return _response({"error": "Invalid JSON"}, status=400)
+            return json_response({"error": "Invalid JSON"}, status=400)
 
         if "toggle_archived" in data:
             if item.archived:
@@ -271,7 +228,7 @@ def blogitem(request, oid):
                 item.refresh_from_db()
                 assert item._render(refresh=True)
             else:
-                return _response({"errors": form.errors}, status=400)
+                return json_response({"errors": form.errors}, status=400)
 
     context = {
         "blogitem": {
@@ -295,7 +252,7 @@ def blogitem(request, oid):
             "archived": item.archived,
         }
     }
-    return _response(context, schema="api.v0.blogitem")
+    return json_response(context, schema="api.v0.blogitem")
 
 
 def categories(request):
@@ -333,7 +290,7 @@ def categories(request):
             categories.append(category)
 
     context = {"categories": categories}
-    return _response(context)
+    return json_response(context)
 
 
 class PreviewValidationError(Exception):
@@ -350,9 +307,9 @@ def preview(request):
     except PreviewValidationError as exception:
         (form_errors,) = exception.args
         context = {"blogitem": {"errors": form_errors}}
-        return _response(context, status=400)
+        return json_response(context, status=400)
     context = {"blogitem": {"html": html}}
-    return _response(context)
+    return json_response(context)
 
 
 def preview_by_data(data):
@@ -391,7 +348,7 @@ def split_to_html_split(html):
 def catch_all(request):
     if settings.DEBUG:
         raise http.Http404(request.path)
-    return _response({"error": request.path}, status=404)
+    return json_response({"error": request.path}, status=404)
 
 
 @api_superuser_required
@@ -437,10 +394,10 @@ def open_graph_image(request, oid):
         else:
             blogitem.open_graph_image = src
         blogitem.save()
-        return _response({"ok": True})
+        return json_response({"ok": True})
 
     context["images"] = options
-    return _response(context)
+    return json_response(context)
 
 
 @api_superuser_required
@@ -460,8 +417,8 @@ def images(request, oid):
                 )
                 blog_file.title = form.cleaned_data["title"]
                 blog_file.save()
-                return _response({"ok": True})
-            return _response({"errors": form.errors}, status=400)
+                return json_response({"ok": True})
+            return json_response({"errors": form.errors}, status=400)
         else:
             form = BlogFileUpload(
                 dict(
@@ -473,16 +430,16 @@ def images(request, oid):
             )
             if form.is_valid():
                 instance = form.save()
-                return _response({"id": instance.id})
-            return _response({"errors": form.errors}, status=400)
+                return json_response({"id": instance.id})
+            return json_response({"errors": form.errors}, status=400)
     elif request.method == "DELETE":
         blogfile = get_object_or_404(BlogFile, blogitem=blogitem, id=request.GET["id"])
         blogfile.delete()
-        return _response({"deleted": True})
+        return json_response({"deleted": True})
     elif request.method == "GET":
-        return _response(context)
+        return json_response(context)
 
-    return _response({"error": "Wrong method"}, status=405)
+    return json_response({"error": "Wrong method"}, status=405)
 
 
 def _post_thumbnails(blogitem):
@@ -544,7 +501,7 @@ def postprocessings(request):
         "statistics": _postprocessing_statistics(request.GET),
         "records": _postprocessing_records(request.GET),
     }
-    return _response(context)
+    return json_response(context)
 
 
 def _postprocessing_statistics(request_GET):
@@ -719,7 +676,7 @@ def searchresults(request):
         "records": _searchresults_records(request.GET),
     }
 
-    return _response(context)
+    return json_response(context)
 
 
 def _searchresults_statistics(request_GET):
@@ -859,9 +816,9 @@ def blogcomments(request):
                 "email": item.email,
                 "_clues": rate_blog_comment(item),
             }
-            return _response(context, status=200)
+            return json_response(context, status=200)
         else:
-            return _response({"errors": form.errors}, status=400)
+            return json_response({"errors": form.errors}, status=400)
 
     all_ids = set()
 
@@ -1059,13 +1016,13 @@ def blogcomments(request):
     # countries = sorted(countries_map.values(), key=lambda x: x["count"], reverse=True)
     # context["countries"] = countries
 
-    return _response(context)
+    return json_response(context)
 
 
 @api_superuser_required
 def comment_auto_approved_records(request):
     context = {"records": _get_auto_approve_good_comments_records()}
-    return _response(context)
+    return json_response(context)
 
 
 def _get_auto_approve_good_comments_records():
@@ -1114,10 +1071,10 @@ def blogcomments_batch(request, action):
             elif action == "delete":
                 context["deleted"].append(comment.oid)
                 comment.delete()
-        return _response(context, status=200)
+        return json_response(context, status=200)
     else:
         print("ERRORS", form.errors)
-        return _response({"errors": form.errors}, status=400)
+        return json_response({"errors": form.errors}, status=400)
 
 
 def actually_approve_comment(blogcomment, auto_approved=False):
@@ -1156,7 +1113,7 @@ def geocomments(request):
             }
         )
 
-    return _response(
+    return json_response(
         {"comments": comments, "google_maps_api_key": settings.GOOGLE_MAPS_API_KEY}
     )
 
@@ -1166,7 +1123,7 @@ def comment_counts(request):
     form = CommentCountsIntervalForm(data=request.GET, initial={"days": 28})
 
     if not form.is_valid():
-        return _response(form.errors.get_json_data(), status=400)
+        return json_response(form.errors.get_json_data(), status=400)
     start = form.cleaned_data["start"]
     end = form.cleaned_data["end"]
     qs = BlogComment.objects.filter(
@@ -1183,7 +1140,7 @@ def comment_counts(request):
     for aggregate in aggregates:
         dates.append({"date": aggregate["day"].date(), "count": aggregate["count"]})
 
-    return _response({"dates": dates})
+    return json_response({"dates": dates})
 
 
 @api_superuser_required
@@ -1281,7 +1238,7 @@ def blogitem_hits(request):
         )
     context["summed_category_scores"] = summed_category_scores
 
-    return _response(context)
+    return json_response(context)
 
 
 @api_superuser_required
@@ -1291,7 +1248,7 @@ def blogitem_realtimehits(request):
     qs = BlogItemHit.objects.all().order_by("-add_date").select_related("blogitem")
     form = BlogitemRealtimeHitsForm(request.GET)
     if not form.is_valid():
-        return _response({"errors": form.errors}, status=400)
+        return json_response({"errors": form.errors}, status=400)
 
     if form.cleaned_data["since"]:
         qs = qs.filter(add_date__gt=form.cleaned_data["since"])
@@ -1344,7 +1301,7 @@ def blogitem_realtimehits(request):
             x["add_date"] for x in context["hits"]
         ).isoformat()
 
-    return _response(context)
+    return json_response(context)
 
 
 @api_superuser_required
@@ -1385,7 +1342,7 @@ def hits(request, oid):
                 {"key": key, "label": label, "value": count + last_1_day}
             )
 
-    return _response(context)
+    return json_response(context)
 
 
 @api_superuser_required
@@ -1396,7 +1353,7 @@ def cdn_config(request):
         context["data"] = r["data"]
     else:
         context["error"] = "KeyCDN Zone Check currently failing"
-    return _response(context)
+    return json_response(context)
 
 
 @require_POST
@@ -1432,12 +1389,12 @@ def cdn_probe(request):
             try:
                 blogitem = BlogItem.objects.get(title__istartswith=url)
             except BlogItem.DoesNotExist:
-                return _response({"error": "OID not found"}, status=400)
+                return json_response({"error": "OID not found"}, status=400)
 
         absolute_url = get_cdn_base_url()
         absolute_url += reverse("blog_post", args=[blogitem.oid])
     else:
-        return _response({"error": "Invalid search"}, status=400)
+        return json_response({"error": "Invalid search"}, status=400)
 
     context = {"absolute_url": absolute_url}
 
@@ -1473,7 +1430,7 @@ def cdn_probe(request):
     # Do a http2 GET too when requests3 or hyper has a new release
     # See https://github.com/Lukasa/hyper/issues/364
     context["http_2"] = {}
-    return _response(context)
+    return json_response(context)
 
 
 @require_POST
@@ -1494,13 +1451,13 @@ def cdn_purge(request):
 
     CDNPurgeURL.add(urls)
     context["purge"] = {"all_urls": urls, "results": [[u, "queued"] for u in urls]}
-    return _response(context)
+    return json_response(context)
 
 
 @api_superuser_required
 def cdn_check(request):
     checked = keycdn_zone_check(refresh=True)
-    return _response({"checked": checked})
+    return json_response({"checked": checked})
 
 
 @api_superuser_required
@@ -1533,12 +1490,12 @@ def cdn_purge_urls(request):
             }
         )
 
-    return _response({"queued": queued, "recent": recent})
+    return json_response({"queued": queued, "recent": recent})
 
 
 def cdn_purge_urls_count(request):
     qs = CDNPurgeURL.objects.filter(processed__isnull=True, cancelled__isnull=True)
-    return _response({"purge_urls": {"count": qs.count()}})
+    return json_response({"purge_urls": {"count": qs.count()}})
 
 
 @api_superuser_required
@@ -1553,7 +1510,7 @@ def spam_comment_patterns(request, id=None):
         if form.is_valid():
             form.save()
         else:
-            return _response({"errors": form.errors}, status=400)
+            return json_response({"errors": form.errors}, status=400)
 
     patterns = []
     qs = SpamCommentPattern.objects.all()
@@ -1570,7 +1527,7 @@ def spam_comment_patterns(request, id=None):
             }
         )
     context = {"patterns": patterns}
-    return _response(context)
+    return json_response(context)
 
 
 @cache_control(max_age=60, public=True)
@@ -1711,7 +1668,7 @@ def lyrics_page_healthcheck(request):
             state = "ERROR"
         health.append({"health": state, "url": url, "errors": errors, "took": took})
     context = {"health": health}
-    return _response(context)
+    return json_response(context)
 
 
 @require_POST
@@ -1728,7 +1685,7 @@ def xcache_analyze(request):
         # Not really a huge problem
         return http.HttpResponseServerError("ConnectionError")
 
-    return _response({"xcache": results})
+    return json_response({"xcache": results})
 
 
 @never_cache
@@ -1746,7 +1703,7 @@ def whoami(request):
         picture_url = _get_picture_url(request.user)
         if picture_url:
             context["user"]["picture_url"] = picture_url
-    return _response(context)
+    return json_response(context)
 
 
 ttl_cache = TTLCache(maxsize=10, ttl=60)
@@ -1770,14 +1727,14 @@ def whereami(request):
     # https://www.keycdn.com/blog/x-forwarded-for-cdn
     ip_address = [x.strip() for x in ip_addresses.split(",") if x.strip()][0]
     if not ip_address:
-        return _response({"error": "No remote IP address"}, status=412)
+        return json_response({"error": "No remote IP address"}, status=412)
     context = {}
     if ip_address == "127.0.0.1" and request.get_host().endswith("peterbecom.local"):
         ip_address = fake_ip_address(str(time.time()))
         context["faked_ip_address"] = True
     context["ip_address"] = ip_address
     context["geo"] = ip_to_city(ip_address)
-    return _response(context)
+    return json_response(context)
 
 
 @never_cache

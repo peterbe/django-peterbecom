@@ -5,9 +5,11 @@ from ipaddress import IPv4Address
 from pathlib import Path
 
 import requests
+from django import http
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django_redis import get_redis_connection
+from jsonschema import validate
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from requests.adapters import HTTPAdapter
@@ -142,3 +144,44 @@ def generate_search_terms(title, max_words=4):
             if j - i == max_words + 1:
                 break
             yield term
+
+
+def json_response(context, status=200, safe=False, schema=None):
+    if schema and (settings.DEBUG or settings.RUNNING_TESTS):
+        name = settings.JSON_SCHEMAS_DIR / f"{schema}.json"
+        try:
+            serialized = json.dumps(context, cls=DjangoJSONEncoder)
+            with open(name) as f:
+                schema_object = json.load(f)
+            validate(instance=json.loads(serialized), schema=schema_object)
+        except FileNotFoundError:
+            print(f"The JSON Schema file that it expected to exist as: {name}")
+            try:
+                print(
+                    "Create this new file and make it reflect the following preview..."
+                )
+                print("_" * 80)
+                print(json.dumps(context, cls=DjangoJSONEncoder, indent=2)[:1000])
+                print("_" * 80)
+            except Exception:
+                print("** Couldn't print JSON preview **")
+            return http.HttpResponse(
+                "Bad JSON Schema file. See server output for details.",
+                content_type="text/plain",
+                status=500,
+            )
+        except json.decoder.JSONDecodeError as exception:
+            print(f"The JSON Schema file ({name}) is not valid JSON:")
+            try:
+                print("_" * 80)
+                print(exception)
+                print("_" * 80)
+            except Exception:
+                print("** Couldn't JSON decode error **")
+            return http.HttpResponse(
+                "Bad JSON Schema file. See server output for details.",
+                content_type="text/plain",
+                status=500,
+            )
+
+    return http.JsonResponse(context, status=status, safe=safe)

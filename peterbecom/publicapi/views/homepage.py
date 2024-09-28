@@ -6,6 +6,7 @@ from django.db.models import Count
 from django.utils import timezone
 from django.views.decorators.cache import cache_page
 
+from peterbecom.base.utils import json_response
 from peterbecom.homepage.utils import make_categories_q
 from peterbecom.plog.models import BlogComment, BlogItem, Category
 
@@ -127,4 +128,4 @@ def homepage_blogitems(request):
         dedupe.add(blogitem["oid"])
         context["posts"].append(serialize_blogitem(blogitem))
 
-    return http.JsonResponse(context)
+    return json_response(context)
