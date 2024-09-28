@@ -49,7 +49,15 @@ def homepage_blogitems(request):
     if request.method == "HEAD":
         return http.HttpResponse("")
 
-    batch_size = settings.HOMEPAGE_BATCH_SIZE
+    try:
+        batch_size = int(request.GET.get("size") or settings.HOMEPAGE_BATCH_SIZE)
+        if batch_size > 20:
+            raise ValueError("size must be less than 20")
+        if batch_size <= 0:
+            raise ValueError("size must be more than 0")
+    except ValueError as exception:
+        return http.HttpResponseBadRequest(str(exception))
+
     page = page - 1
     n, m = page * batch_size, (page + 1) * batch_size
     max_count = qs.count()

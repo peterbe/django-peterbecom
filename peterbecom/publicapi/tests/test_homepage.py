@@ -78,3 +78,18 @@ def test_homepage_blogitems_happy_path(client, settings):
     data = response.json()
     assert data["next_page"] is None
     assert data["previous_page"] == 2
+
+    # Now with varying `size` parameter
+    response = client.get(url, {"size": "100"})
+    assert response.status_code == 400
+    response = client.get(url, {"size": "0"})
+    assert response.status_code == 400
+    response = client.get(url, {"size": "-3"})
+    assert response.status_code == 400
+    response = client.get(url, {"size": "notanumber"})
+    assert response.status_code == 400
+
+    response = client.get(url, {"size": "2"})
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data["posts"]) == 2
