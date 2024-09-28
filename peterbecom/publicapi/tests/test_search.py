@@ -7,10 +7,10 @@ def test_autocompete_search_empty(client):
     url = reverse("publicapi:autocompete")
     response = client.get(url)
     assert response.status_code == 400
-    response = client.get(url, {"q": "foo"})
+    response = client.get(url, {"q": "fxx"})
     assert response.status_code == 200
     data = response.json()
-    assert data["terms"] == ["foo"]
+    assert data["terms"] == ["fxx"]
     assert data["results"] == []
 
 
