@@ -22,7 +22,7 @@ elasticsearch-dsl==7.4.1
 ftfy==6.2.3
 python-dateutil==2.9.0.post0
 zope.structuredtext==5.0
-redis==5.0.8
+redis==5.1.0
 dj-database-url==2.2.0
 python-decouple==3.8
 delegator.py==0.1.1
@@ -33,7 +33,7 @@ psycopg2-binary==2.9.9
 bleach==6.1.0
 rollbar==1.0.0
 zopfli==0.2.3
-huey==2.5.1
+huey==2.5.2
 brotlipy==0.7.0
 backoff==2.2.1
 geoip2==4.8.0
@@ -60,12 +60,12 @@ requests-mock==1.12.1
 # to put these into production. At least now there's only one file.
 honcho==1.1.0
 pip-tools==7.4.1
-ruff==0.6.7
+ruff==0.6.8
 
 
 
 # Necessary pins
-yarl==1.9.7
+yarl==1.13.1
 multidict==6.1.0
 typing_extensions==4.12.2
 
