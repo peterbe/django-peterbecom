@@ -155,6 +155,7 @@ def blogitems(request):
             return _response({"errors": form.errors}, status=400)
 
     def _serialize_blogitem(item):
+        has_split = "<!--split-->" in item.text
         return {
             "id": item.id,
             "oid": item.oid,
@@ -166,6 +167,7 @@ def blogitems(request):
             "keywords": item.proper_keywords,
             "summary": item.summary,
             "archived": item.archived,
+            "has_split": has_split,
         }
 
     page = int(request.GET.get("page", 1))
@@ -196,6 +198,14 @@ def _amend_blogitems_search(qs, search):
                 qs = qs.exclude(summary="")
             elif find == "no":
                 qs = qs.filter(summary="")
+
+        no_split_regex = re.compile(r"\b(no|has):\s?split\b")
+        for find in no_split_regex.findall(search):
+            search = no_split_regex.sub("", search).strip()
+            if find == "has":
+                qs = qs.filter(text__contains="<!--split-->")
+            elif find == "no":
+                qs = qs.exclude(text__contains="<!--split-->")
 
         is_regex = re.compile(r"is:\s*(archived|future|published|unpublished)")
         for found in is_regex.findall(search):
@@ -336,7 +346,7 @@ def preview(request):
     post_data = json.loads(request.body.decode("utf-8"))
     post_data["pub_date"] = timezone.now()
     try:
-        html = preview_by_data(post_data)
+        html = split_to_html_split(preview_by_data(post_data))
     except PreviewValidationError as exception:
         (form_errors,) = exception.args
         context = {"blogitem": {"errors": form_errors}}
@@ -372,6 +382,10 @@ def preview_by_data(data):
     post.display_format = form.cleaned_data["display_format"]
     post.codesyntax = ""
     return post.rendered
+
+
+def split_to_html_split(html):
+    return html.replace("<!--split-->", '<p class="preview-html-split">split</p>')
 
 
 def catch_all(request):

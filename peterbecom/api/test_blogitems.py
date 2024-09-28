@@ -52,6 +52,45 @@ def test_happy_path(admin_client):
     assert first["keywords"] == ["one", "two"]
     assert first["summary"] == ""
     assert first["categories"] == [{"id": category.id, "name": "Code"}]
+    assert not first["has_split"]
+
+
+def test_search_by_split(admin_client):
+    blogitem1 = BlogItem.objects.create(
+        oid="hello-world",
+        title="Hello World",
+        text="Hello *world*\n<!--split-->Second part",
+        pub_date=timezone.now(),
+        proper_keywords=["one", "two"],
+    )
+    blogitem2 = BlogItem.objects.create(
+        oid="foo-bar",
+        title="Foo Bar",
+        text="Fuuu bar",
+        pub_date=timezone.now() - timezone.timedelta(days=1),
+        proper_keywords=["three"],
+    )
+    url = reverse("api:blogitems")
+    response = admin_client.get(url, {"order": "pub_date"})
+    assert response.status_code == 200
+    assert response.json()["count"] == 2
+    (first, second) = response.json()["blogitems"]
+    assert first["id"] == blogitem1.id
+    assert second["id"] == blogitem2.id
+
+    # Has
+    response = admin_client.get(url, {"order": "pub_date", "search": "has:split"})
+    assert response.status_code == 200
+    assert response.json()["count"] == 1
+    (first,) = response.json()["blogitems"]
+    assert first["id"] == blogitem1.id
+
+    # Has not
+    response = admin_client.get(url, {"order": "pub_date", "search": "no:split"})
+    assert response.status_code == 200
+    assert response.json()["count"] == 1
+    (first,) = response.json()["blogitems"]
+    assert first["id"] == blogitem2.id
 
 
 def test_create_blogitem(admin_client):

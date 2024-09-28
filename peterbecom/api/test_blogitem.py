@@ -29,6 +29,25 @@ def test_preview_blogitem_happy_path(admin_client):
     assert response.status_code == 200
 
 
+def test_split_stands_out(admin_client):
+    url = reverse("api:preview")
+    response = admin_client.post(
+        url,
+        json.dumps(
+            {
+                "text": "Hello *world*\n<!--split-->\nSecond part",
+                "display_format": "markdown",
+            }
+        ),
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    split_html = '<p class="preview-html-split">split</p>'
+    before, after = response.json()["blogitem"]["html"].split(split_html)
+    assert before.strip() == "<p>Hello <em>world</em></p>"
+    assert after.strip() == "<p>Second part</p>"
+
+
 def test_preview_blogitem_validation_error(admin_client):
     url = reverse("api:preview")
     response = admin_client.post(
@@ -79,7 +98,7 @@ def test_happy_path_blogitem(admin_client):
         pub_date=timezone.now(),
         proper_keywords=["one", "two"],
         display_format="markdown",
-        text="Hello *world*",
+        text="Hello *world*\n<!--split-->Second part",
     )
     category = Category.objects.create(name="Code")
     blogitem.categories.add(category)

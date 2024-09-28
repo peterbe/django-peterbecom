@@ -1,4 +1,5 @@
 import datetime
+import re
 
 from django import forms
 from django.db.models import Count
@@ -108,6 +109,14 @@ class BlogForm(forms.ModelForm):
         if filter_.exists():
             raise forms.ValidationError("OID already in use")
         return value
+
+    def clean_text(self):
+        text = self.cleaned_data["text"]
+        if re.findall(r"<!--\s*split\s*-->", text) and "<!--split-->" not in text:
+            raise forms.ValidationError(
+                "You have a <!-- split --> but not a <!--split-->"
+            )
+        return text.strip()
 
 
 class PreviewBlogForm(forms.ModelForm):

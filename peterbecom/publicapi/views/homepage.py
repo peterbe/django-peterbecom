@@ -99,15 +99,22 @@ def homepage_blogitems(request):
         categories[blogitem_id].append(category_names[category_id])
 
     def serialize_blogitem(blogitem):
+        html_split = blogitem["text_rendered"].split("<!--split-->")
+        if len(html_split) == 1:
+            html, split = html_split[0], None
+        else:
+            html, split = html_split[0], len(html_split[1].strip())
+
         serialized = {
             "oid": blogitem["oid"],
             "title": blogitem["title"],
             "pub_date": blogitem["pub_date"],
             "comments": approved_comments_count.get(blogitem["id"]) or 0,
             "categories": categories[blogitem["id"]],
-            "html": blogitem["text_rendered"],
+            "html": html,
             "url": blogitem["url"],
             "disallow_comments": blogitem["disallow_comments"],
+            "split": split,
         }
         return serialized
 
