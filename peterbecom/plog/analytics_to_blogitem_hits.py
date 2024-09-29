@@ -49,11 +49,14 @@ def analytics_to_blogitem_hits_backfill():
             )
             http_referer = http_referer[:450]
 
+        ip_address = event.meta.get("ip_address")
+        if ip_address:
+            ip_address = ip_address.split(",")[0]
         batch.append(
             BlogItemHit(
                 blogitem=blogitem,
                 add_date=event.created,
-                remote_addr=event.meta.get("ip_address"),
+                remote_addr=ip_address,
                 http_referer=http_referer,
                 page=page,
             )
