@@ -25,6 +25,8 @@ def create_analytics_geo_events(max=100, min_hours_old=2):
     for event in qs[:max]:
         cache_key = f"geo_event_failed_{event.id}"
         ip_address = event.meta["ip_address"]
+        if ip_address:
+            ip_address = ip_address.split(",")[0]
         if cache.get(cache_key):
             print(f"{ip_address} already prior failed")
             continue
