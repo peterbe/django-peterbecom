@@ -259,7 +259,7 @@ PINGDOM_RUM_ID = None
 
 # Number of blog posts to show on the homepage, per page.
 # Equally used when filtered by category.
-HOMEPAGE_BATCH_SIZE = 6
+HOMEPAGE_BATCH_SIZE = 10
 
 THUMBNAIL_BACKEND = "optisorl.backend.OptimizingThumbnailBackend"
 
