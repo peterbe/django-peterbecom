@@ -1,10 +1,10 @@
+import hashlib
 import json
 import time
-from datetime import timedelta
 
 from django import forms, http
 from django.conf import settings
-from django.utils import timezone
+from django.core.cache import cache
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
@@ -40,19 +40,7 @@ def event(request):
     type_ = form.cleaned_data["type"]
     data = form.cleaned_data.get("data") or {}
 
-    recently = timezone.now() - timedelta(seconds=10)
-    qs = AnalyticsEvent.objects.filter(
-        uuid=uuid, type=type_, url=url, created__gt=recently
-    )
-    for k, v in meta.items():
-        if k in ("created", "performance"):
-            continue
-        qs = qs.filter(**{f"meta__{k}": v})
-
-    for k, v in data.items():
-        qs = qs.filter(**{f"data__{k}": v})
-
-    if qs.exists():
+    if exists(uuid, type_, url, meta, data):
         return http.JsonResponse({"ok": True}, status=200)
 
     ip_address = request.headers.get("x-forwarded-for") or request.META.get(
@@ -76,6 +64,29 @@ def event(request):
     )
 
     return http.JsonResponse({"ok": True}, status=201)
+
+
+def exists(uuid: str, type_: str, url: str, meta: dict, data: dict, ttl_seconds=10):
+    hash = _make_hash(uuid, type_, url, meta, data)
+    cache_key = f"event-exits-{hash}"
+    if cache.get(cache_key):
+        return True
+    cache.set(cache_key, True, ttl_seconds)
+    return False
+
+
+def _make_hash(uuid: str, type_: str, url: str, meta: dict, data: dict):
+    h = hashlib.md5()
+    h.update(str(uuid).encode())
+    h.update(type_.encode())
+    h.update(url.encode())
+    for k, v in meta.items():
+        if k in ("created", "performance"):
+            continue
+        h.update(f"{k}{v}".encode())
+    for k, v in data.items():
+        h.update(f"{k}{v}".encode())
+    return h.hexdigest()
 
 
 class AnalyticsEventForm(forms.ModelForm):
