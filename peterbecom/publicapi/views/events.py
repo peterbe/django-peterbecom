@@ -52,7 +52,7 @@ def event(request):
     for k, v in data.items():
         qs = qs.filter(**{f"data__{k}": v})
 
-    for _ in qs.order_by("-created"):
+    if qs.exists():
         return http.JsonResponse({"ok": True}, status=200)
 
     ip_address = request.headers.get("x-forwarded-for") or request.META.get(
