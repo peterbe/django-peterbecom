@@ -17,7 +17,7 @@ xmltodict==0.13.0
 optisorl==0.2.1
 pytz==2024.2
 django-jinja==2.10.2
-elasticsearch==7.17.9
+elasticsearch==7.17.12
 elasticsearch-dsl==7.4.1
 ftfy==6.2.3
 python-dateutil==2.9.0.post0
