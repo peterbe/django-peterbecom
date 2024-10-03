@@ -11,3 +11,13 @@ line-length = 88
 # Add the `line-too-long` rule to the enforced rule set.
 extend-ignore = ["E501"]
 extend-select = ["E", "F", "W", "I"]
+
+[project]
+name = "django-peterbecom"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "django==4.2.15",
+]
