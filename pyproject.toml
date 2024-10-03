@@ -12,6 +12,9 @@ line-length = 88
 extend-ignore = ["E501"]
 extend-select = ["E", "F", "W", "I"]
 
+[tool.uv]
+dev-dependencies = []
+
 [project]
 name = "django-peterbecom"
 version = "0.1.0"
@@ -21,4 +24,5 @@ requires-python = ">=3.12"
 dependencies = [
     "django==4.2.15",
     "nltk==3.9.1",
+    "pytest-django>=4.9.0",
 ]
