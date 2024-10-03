@@ -62,6 +62,7 @@ dependencies = [
     "python-decouple==3.8",
     "pytz==2024.2",
     "redis==5.1.0",
+    "requests-mock==1.12.1",
     "requests==2.32.3",
     "rollbar==1.0.0",
     "ruff>=0.6.8",
