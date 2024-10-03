@@ -20,4 +20,5 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "django==4.2.15",
+    "nltk==3.9.1",
 ]
