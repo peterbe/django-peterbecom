@@ -13,7 +13,9 @@ extend-ignore = ["E501"]
 extend-select = ["E", "F", "W", "I"]
 
 [tool.uv]
-dev-dependencies = []
+dev-dependencies = [
+    "hivemind>=1.1.10.post2",
+]
 
 [project]
 name = "django-peterbecom"
@@ -61,6 +63,7 @@ dependencies = [
     "redis==5.1.0",
     "requests==2.32.3",
     "rollbar==1.0.0",
+    "ruff>=0.6.8",
     "sorl-thumbnail==12.11.0",
     "sql-metadata==2.13.0",
     "xmltodict==0.13.0",
