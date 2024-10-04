@@ -69,4 +69,4 @@ yarl==1.13.1
 multidict==6.1.0
 typing_extensions==4.12.2
 
-setuptools==72.1.0
+setuptools==75.1.0
