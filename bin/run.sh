@@ -11,7 +11,7 @@ set -eo pipefail
 : "${WORKERS:=2}"
 
 usage() {
-  echo "usage: ./bin/run.sh web|web-dev|worker|test|bash|superuser"
+  echo "usage: ./bin/run.sh web|web-dev|worker|test|bash|huey"
   exit 1
 }
 
@@ -30,17 +30,23 @@ wait_for() {
 
 [ $# -lt 1 ] && usage
 
-# Only wait for backend services in development
-# http://stackoverflow.com/a/13864829
-# For example, bin/test.sh sets 'DEVELOPMENT' to something
-# [ ! -z ${DEVELOPMENT+check} ] && wait_for db 5432 && wait_for elasticsearch 9200 && wait_for redis 6379
-# [ ! -z ${DEVELOPMENT+check} ] && wait_for db 5432 && wait_for elasticsearch 9200 && wait_for redis 6379
+setup_python() {
+  source .venv/bin/activate
+
+  # Needed for importing cairocffi
+  export DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib
+
+  # python -c 'import django; print(django.get_version())'
+  # python -c 'import sys; print(sys.base_prefix)'
+  # python -c 'import cairocffi; print(cairocffi.version)'
+
+}
 
 
 case $1 in
   web-dev)
     echo "STARTING WEB-DEV"
-    #python manage.py clear-django-cache
+    setup_python
     python manage.py migrate --noinput
     # export PYTHONWARNINGS=d
     exec python manage.py runserver 0.0.0.0:8000
@@ -48,16 +54,19 @@ case $1 in
   web)
     echo "STARTING WEB (with gunicorn)"
     #python manage.py clear-django-cache
+    setup_python
     python manage.py migrate --noinput
     # export PYTHONWARNINGS=d
     gunicorn wsgi -w ${WORKERS} -b 0.0.0.0:${PORT} --access-logfile=-
     # exec python manage.py runserver 0.0.0.0:8000
     ;;
-  superuser)
-    exec python manage.py superuser "${@:2}"
-    ;;
   test)
+    setup_python
     exec python ./manage.py test
+    ;;
+  huey)
+    setup_python
+    python manage.py run_huey --flush-locks --huey-verbose
     ;;
   adminui)
     cd adminui

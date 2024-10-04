@@ -3,9 +3,9 @@
 
 elasticsearch: ssh django@68.183.151.74 -L 9200:localhost:9200 -N
 pg: ssh django@68.183.151.74 -L 6432:localhost:5432 -N
-web: ./bin/wait-for-pg.sh && source tunneling.sh &&   ./bin/run.sh web-dev
+web: ./bin/wait-for-pg.sh && source tunneling.sh &&  ./bin/run.sh web-dev
 # minimalcss: cd minimalcss && PORT=5555 yarn run start
-huey: ./bin/wait-for-pg.sh && ./bin/huey-isnt-running.sh && source tunneling.sh && ./manage.py run_huey --flush-locks --huey-verbose
+huey: ./bin/wait-for-pg.sh && ./bin/huey-isnt-running.sh && source tunneling.sh && ./bin/run.sh huey
 #adminui: cd adminui && fnm use `cat .node-version` && node --version && REACT_APP_WS_URL=ws://localhost:8080 REACT_APP_BASE_URL=http://localhost:3000 BROWSER=none PORT=4000 yarn start
 adminui: ./bin/run.sh adminui
 pulse: cd pulse && yarn run dev
