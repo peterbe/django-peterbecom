@@ -35,7 +35,7 @@ dependencies = [
     "django-redis==5.4.0",
     "django==4.2.15",
     "elasticsearch-dsl==7.4.1",
-    "elasticsearch==7.17.9",
+    "elasticsearch==8.15.1",
     "feedparser==6.0.11",
     "ftfy==6.2.3",
     "geoip2==4.8.0",
