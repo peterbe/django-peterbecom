@@ -242,6 +242,16 @@ class AnalyticsEvent(models.Model):
     meta = models.JSONField(default=dict)
     data = models.JSONField(default=dict)
 
+    class Meta:
+        verbose_name = "Analytics event"
+        indexes = [
+            models.Index(
+                fields=["created"],
+                name="%(app_label)s_%(class)s_created",
+                condition=models.Q(type="pageview"),
+            ),
+        ]
+
 
 class AnalyticsGeoEvent(models.Model):
     event = models.OneToOneField(AnalyticsEvent, on_delete=models.CASCADE)
