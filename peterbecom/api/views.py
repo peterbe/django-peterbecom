@@ -858,7 +858,6 @@ def blogcomments(request):
                 return i + 1
         else:
             return None
-        return 1
 
     def _serialize_comment(item, blogitem=None):
         all_ids.add(item.id)
@@ -929,7 +928,7 @@ def blogcomments(request):
         base_qs = base_qs.filter(auto_approved=True)
 
     search = request.GET.get("search", "").lower().strip()
-    blogitem_regex = re.compile(r"blogitem:([^\s]+)")
+    blogitem_regex = re.compile(r"(blogitem|oid):([^\s]+)")
     if search and blogitem_regex.findall(search):
         (blogitem_oid,) = blogitem_regex.findall(search)
         not_blogitem = False
@@ -942,6 +941,10 @@ def blogcomments(request):
             base_qs = base_qs.exclude(blogitem=search_blogitem)
         else:
             base_qs = base_qs.filter(blogitem=search_blogitem)
+    elif get_local_url_oid(search):
+        base_qs = base_qs.filter(blogitem__oid=get_local_url_oid(search))
+        search = ""
+
     if search:
         base_qs = base_qs.filter(
             Q(comment__icontains=search) | Q(oid=search) | Q(blogitem__oid=search)
@@ -992,31 +995,21 @@ def blogcomments(request):
     context["comments"].sort(key=lambda c: c["max_add_date"], reverse=True)
     context["oldest"] = oldest
 
-    # countries_map = {}
-
-    # def gather_all_countries(comments):
-    #     for comment in comments:
-    #         if comment.get("location"):
-    #             country = comment["location"]["country_name"]
-    #             if not country:
-    #                 continue
-    #             if country not in countries_map:
-    #                 assert comment["location"]["country_code"], comment
-    #                 countries_map[country] = {
-    #                     "count": 0,
-    #                     "name": country,
-    #                     "country_code": comment["location"]["country_code"],
-    #                 }
-    #             countries_map[country]["count"] += 1
-    #         if comment.get("replies"):
-    #             gather_all_countries(comment["replies"])
-
-    # gather_all_countries(context["comments"])
-
-    # countries = sorted(countries_map.values(), key=lambda x: x["count"], reverse=True)
-    # context["countries"] = countries
-
     return json_response(context)
+
+
+def get_local_url_oid(search):
+    if not search:
+        return
+
+    if search.startswith("/plog/") and " " not in search:
+        return search.split("/plog/")[1].split("?")[0].split("#")[0]
+
+    if search.startswith("https://www.peterbe.com/plog/") or search.startswith(
+        "http://localhost:3000/plog/"
+    ):
+        parsed = urlparse(search)
+        return parsed.path.split("/plog/")[1]
 
 
 @api_superuser_required
