@@ -2,6 +2,7 @@ import datetime
 import re
 
 from django import forms
+from django.core.validators import EmailValidator
 from django.db.models import Count
 from django.forms.fields import ChoiceField, DateTimeField
 from django.forms.widgets import Textarea
@@ -156,6 +157,17 @@ class EditBlogCommentForm(forms.ModelForm):
     class Meta:
         model = BlogComment
         fields = ("comment", "name", "email")
+
+    def clean_email(self):
+        email = self.cleaned_data["email"]
+        if not email:
+            return email
+        validator = EmailValidator()
+        try:
+            validator(email)
+        except forms.ValidationError:
+            raise forms.ValidationError("Invalid email address")
+        return email
 
 
 class BlogitemRealtimeHitsForm(forms.Form):
