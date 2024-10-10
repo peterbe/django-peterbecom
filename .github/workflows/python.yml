@@ -72,7 +72,7 @@ jobs:
           cache-dependency-glob: "uv.lock"
 
       - name: Set up Python
-        run: uv python install
+        run: uv python install 3.12
 
       - name: Install the project
         run: uv sync --all-extras --dev
