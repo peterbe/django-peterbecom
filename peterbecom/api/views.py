@@ -929,30 +929,37 @@ def blogcomments(request):
 
     search = request.GET.get("search", "").lower().strip()
     blogitem_regex = re.compile(r"(blogitem|oid):([^\s]+)")
-    if search and blogitem_regex.findall(search):
-        (blogitem_oid,) = blogitem_regex.findall(search)
-        not_blogitem = False
-        if blogitem_oid.startswith("!"):
-            not_blogitem = True
-            blogitem_oid = blogitem_oid[1:]
-        search = blogitem_regex.sub("", search).strip()
-        search_blogitem = BlogItem.objects.get(oid=blogitem_oid)
-        if not_blogitem:
-            base_qs = base_qs.exclude(blogitem=search_blogitem)
-        else:
-            base_qs = base_qs.filter(blogitem=search_blogitem)
-    elif get_local_url_oid(search):
-        base_qs = base_qs.filter(blogitem__oid=get_local_url_oid(search))
-        search = ""
+    if search:
+        for _, blogitem_oid in blogitem_regex.findall(search):
+            not_blogitem = False
+            if blogitem_oid.startswith("!"):
+                not_blogitem = True
+                blogitem_oid = blogitem_oid[1:]
+            for search_blogitem in BlogItem.objects.filter(oid=blogitem_oid):
+                if not_blogitem:
+                    base_qs = base_qs.exclude(blogitem=search_blogitem)
+                else:
+                    base_qs = base_qs.filter(blogitem=search_blogitem)
+                search = blogitem_regex.sub("", search).strip()
+
+        for term in search.split():
+            blogitem_oid = get_local_url_oid(term)
+            print(("TERM", term, "LOCAL_URL", blogitem_oid))
+            if blogitem_oid:
+                for search_blogitem in BlogItem.objects.filter(oid=blogitem_oid):
+                    base_qs = base_qs.filter(blogitem=search_blogitem)
+                search = search.replace(term, "")
+
+        search = search.strip()
 
     if search:
         base_qs = base_qs.filter(
             Q(comment__icontains=search) | Q(oid=search) | Q(blogitem__oid=search)
         )
-
-    # Hide old farts
-    long_time_ago = timezone.now() - datetime.timedelta(days=30 * 12)
-    base_qs = base_qs.exclude(add_date__lt=long_time_ago)
+    else:
+        # Hide old farts
+        long_time_ago = timezone.now() - datetime.timedelta(days=30 * 12)
+        base_qs = base_qs.exclude(add_date__lt=long_time_ago)
 
     # Latest root comments...
     items = base_qs.filter(parent__isnull=True)
@@ -960,7 +967,7 @@ def blogcomments(request):
     items = items.select_related("blogitem")
     context = {"comments": [], "count": base_qs.count()}
     oldest = timezone.now()
-    for item in items.select_related("blogitem")[:batch_size]:
+    for item in items[:batch_size]:
         if item.add_date < oldest:
             oldest = item.add_date
         context["comments"].append(_serialize_comment(item, blogitem=item.blogitem))
