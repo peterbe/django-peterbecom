@@ -19,7 +19,7 @@ pytz==2024.2
 django-jinja==2.10.2
 elasticsearch==7.17.9
 elasticsearch-dsl==7.4.1
-ftfy==6.2.3
+ftfy==6.3.0
 python-dateutil==2.9.0.post0
 zope.structuredtext==5.0
 redis==5.1.0

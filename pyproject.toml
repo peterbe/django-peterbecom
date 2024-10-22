@@ -37,7 +37,7 @@ dependencies = [
     "elasticsearch-dsl==7.4.1",
     "elasticsearch==7.17.9",
     "feedparser==6.0.11",
-    "ftfy==6.2.3",
+    "ftfy==6.3.0",
     "geoip2==4.8.0",
     "gunicorn==23.0.0",
     "huey==2.5.2",
