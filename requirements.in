@@ -58,7 +58,7 @@ requests-mock==1.12.1
 # Dev requirements
 # Not sure these belong in here but what the heck, it's not a huge overhead
 # to put these into production. At least now there's only one file.
-honcho==1.1.0
+honcho==2.0.0
 pip-tools==7.4.1
 ruff==0.6.8
 
