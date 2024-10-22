@@ -53,7 +53,7 @@ dependencies = [
     "optisorl==0.2.1",
     "pillow==10.4.0",
     "profanity==1.1",
-    "psycopg2-binary==2.9.9",
+    "psycopg2-binary==2.9.10",
     "ptyprocess==0.7.0",
     "py-avataaars==1.1.2",
     "pyquery==2.0.1",

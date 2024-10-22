@@ -29,7 +29,7 @@ delegator.py==0.1.1
 ptyprocess==0.7.0
 ipaddress==1.0.23
 django-redis==5.4.0
-psycopg2-binary==2.9.9
+psycopg2-binary==2.9.10
 bleach==6.1.0
 rollbar==1.0.0
 zopfli==0.2.3
