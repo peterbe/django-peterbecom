@@ -53,6 +53,7 @@ from peterbecom.plog.popularity import score_to_popularity
 from peterbecom.plog.utils import rate_blog_comment, valid_email  # move this some day
 
 from .forms import (
+    BlogCommentBatchBothForm,
     BlogCommentBatchForm,
     BlogFileForm,
     BlogFileUpload,
@@ -1054,27 +1055,46 @@ def _get_auto_approve_good_comments_records():
 @require_POST
 @api_superuser_required
 def blogcomments_batch(request, action):
-    assert action in ("delete", "approve")
+    assert action in ("delete", "approve", "both")
+
     data = json.loads(request.body.decode("utf-8"))
-    data["comments"] = data.pop("oids")
-    form = BlogCommentBatchForm(data)
-    if form.is_valid():
-        context = {"approved": [], "deleted": []}
-        # Important to always approve the (potential) parents before the children.
-        for comment in form.cleaned_data["comments"].order_by("add_date"):
-            if action == "approve":
+    if action == "both":  # v2
+        form = BlogCommentBatchBothForm(data)
+        if form.is_valid():
+            context = {"approved": [], "deleted": []}
+            # Important to always approve the (potential) parents before the children.
+            for comment in form.cleaned_data["approve"].order_by("add_date"):
                 # This if statement is to protect against possible
                 # double submissions from the client.
                 if not comment.approved:
                     actually_approve_comment(comment)
                     context["approved"].append(comment.oid)
-            elif action == "delete":
+            for comment in form.cleaned_data["delete"]:
                 context["deleted"].append(comment.oid)
                 comment.delete()
-        return json_response(context, status=200)
+            return json_response(context, status=200)
+        else:
+            return json_response({"errors": form.errors}, status=400)
     else:
-        print("ERRORS", form.errors)
-        return json_response({"errors": form.errors}, status=400)
+        data["comments"] = data.pop("oids")
+        form = BlogCommentBatchForm(data)
+        if form.is_valid():
+            context = {"approved": [], "deleted": []}
+            # Important to always approve the (potential) parents before the children.
+            for comment in form.cleaned_data["comments"].order_by("add_date"):
+                if action == "approve":
+                    # This if statement is to protect against possible
+                    # double submissions from the client.
+                    if not comment.approved:
+                        actually_approve_comment(comment)
+                        context["approved"].append(comment.oid)
+                elif action == "delete":
+                    context["deleted"].append(comment.oid)
+                    comment.delete()
+            return json_response(context, status=200)
+        else:
+            print("ERRORS", form.errors)
+            return json_response({"errors": form.errors}, status=400)
 
 
 def actually_approve_comment(blogcomment, auto_approved=False):

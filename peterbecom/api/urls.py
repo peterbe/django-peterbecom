@@ -35,7 +35,7 @@ urlpatterns = [
     ),
     path("plog/comments/", views.blogcomments, name="blogcomments"),
     re_path(
-        r"^plog/comments/(?P<action>approve|delete)/$",
+        r"^plog/comments/(?P<action>approve|delete|both)/$",
         views.blogcomments_batch,
         name="blogcomments_batch",
     ),

@@ -1,3 +1,5 @@
+import json
+
 from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
 from django.utils import timezone
@@ -204,3 +206,90 @@ def test_search_by_blogitem(admin_client):
     assert response.json()["count"] == 1
     found = [x["id"] for x in response.json()["comments"]]
     assert found == [blogcomment1.id]
+
+
+def test_batch_submit_auth(client):
+    url = reverse("api:blogcomments_batch", args=["both"])
+    response = client.get(url)
+    assert response.status_code == 403
+
+
+def test_batch_submit(admin_client):
+    url = reverse("api:blogcomments_batch", args=["both"])
+    response = admin_client.get(url)
+    assert response.status_code == 405
+
+    response = admin_client.post(
+        url,
+        json.dumps(
+            {
+                "approve": [],
+                "delete": [],
+            }
+        ),
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+    assert response.json()["errors"]
+
+    response = admin_client.post(
+        url,
+        json.dumps(
+            {
+                "approve": ["madeup"],
+                "delete": ["doesnotexist"],
+            }
+        ),
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+    assert response.json()["errors"]["approve"]
+    assert response.json()["errors"]["delete"]
+
+    blogitem = BlogItem.objects.create(
+        oid="hello-world",
+        title="Hello World",
+        pub_date=timezone.now(),
+        proper_keywords=["one", "two"],
+    )
+    blogcomment1 = BlogComment.objects.create(
+        oid="abc123",
+        blogitem=blogitem,
+        parent=None,
+        approved=False,
+        auto_approved=False,
+        comment="Bla <bla>",
+        email="",
+        name="John Doe",
+    )
+    blogcomment2 = BlogComment.objects.create(
+        oid="xyz123",
+        blogitem=blogitem,
+        parent=None,
+        approved=False,
+        auto_approved=False,
+        comment="Fubar!",
+        name="",
+        email="",
+        add_date=timezone.now() - timezone.timedelta(days=1),
+        modify_date=timezone.now() - timezone.timedelta(days=1),
+    )
+
+    response = admin_client.post(
+        url,
+        json.dumps(
+            {
+                "approve": [blogcomment1.oid],
+                "delete": [blogcomment2.oid],
+            }
+        ),
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    assert response.json()["approved"] == [blogcomment1.oid]
+    assert response.json()["deleted"] == [blogcomment2.oid]
+
+    blogcomment1.refresh_from_db()
+    assert blogcomment1.approved
+
+    assert not BlogComment.objects.filter(oid=blogcomment2.oid).exists()
