@@ -153,6 +153,21 @@ class BlogCommentBatchForm(forms.Form):
     )
 
 
+class BlogCommentBatchBothForm(forms.Form):
+    approve = forms.ModelMultipleChoiceField(
+        queryset=BlogComment.objects, to_field_name="oid", required=False
+    )
+    delete = forms.ModelMultipleChoiceField(
+        queryset=BlogComment.objects, to_field_name="oid", required=False
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if not cleaned_data.get("approve") and not cleaned_data.get("delete"):
+            raise forms.ValidationError("Either approve or delete is required")
+        return cleaned_data
+
+
 class EditBlogCommentForm(forms.ModelForm):
     class Meta:
         model = BlogComment
