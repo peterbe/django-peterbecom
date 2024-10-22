@@ -51,7 +51,7 @@ jsonschema==4.23.0
 # Testing (Should these be broken out?)
 mock==5.1.0
 pytest==8.3.3
-tomli==2.0.1
+tomli==2.0.2
 pytest-django==4.9.0
 requests-mock==1.12.1
 
