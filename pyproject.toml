@@ -33,7 +33,7 @@ dependencies = [
     "django-jinja==2.10.2",
     "django-querycount==0.8.3",
     "django-redis==5.4.0",
-    "django==4.2.15",
+    "django==4.2.16",
     "elasticsearch-dsl==7.4.1",
     "elasticsearch==7.17.9",
     "feedparser==6.0.11",
