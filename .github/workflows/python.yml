@@ -87,6 +87,16 @@ jobs:
           # say "nothing to commit, working tree clean".
           git diff --exit-code
 
+      - name: Fix the uv.lock
+        if: ${{ failure() && github.event_name != 'pull_request' && (github.actor != 'dependabot[bot]' || github.actor != 'peterbe') }}
+        run: |
+
+          git diff --exit-code || uv sync
+          git status
+          git add uv.lock
+          git commit -m "Update uv.lock"
+          git push
+
       - name: Install system dependencies
         run: sudo apt-get install pngquant
 
