@@ -9,6 +9,10 @@ on:
   pull_request:
     branches: [master]
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   build-and-test-django:
     runs-on: ubuntu-latest
@@ -66,10 +70,15 @@ jobs:
         run: yarn --frozen-lockfile
 
       - name: Install uv
+        id: setup-uv
         uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
+
+      - name: Celebrate uv cache hit
+        if: steps.setup-uv.outputs.cache-hit == 'true'
+        run: echo "Cache was restored"
 
       - name: Set up Python
         run: uv python install 3.12.7
@@ -88,14 +97,20 @@ jobs:
           git diff --exit-code
 
       - name: Fix the uv.lock
-        if: ${{ failure() && github.event_name != 'pull_request' && (github.actor != 'dependabot[bot]' || github.actor != 'peterbe') }}
+        # if: ${{ failure() && github.event_name != 'pull_request' && (github.actor != 'dependabot[bot]' || github.actor != 'peterbe') }}
+        if: ${{ failure() }}
         run: |
+
+          # Update the uv.lock for them
+
+          echo "DEBUG EVENT NAME: ${{ github.event_name }}"
+          echo "DEBUG ACTOR: ${{ github.actor }}"
 
           git diff --exit-code || uv sync
           git status
           git add uv.lock
           git commit -m "Update uv.lock"
-          git push
+          git push origin ${{ github.head_ref || github.ref_name}}
 
       - name: Install system dependencies
         run: sudo apt-get install pngquant
