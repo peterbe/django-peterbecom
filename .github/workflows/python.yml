@@ -119,6 +119,9 @@ jobs:
           echo ""
           echo "CURRENT BRANCH NAME:"
           git branch
+          git fetch origin
+
+          echo "TRYING TO CHECK OUT: ${{ github.head_ref || github.ref_name}}"
           git checkout ${{ github.head_ref || github.ref_name}}
           echo "NEW CURRENT BRANCH NAME:"
           git branch
