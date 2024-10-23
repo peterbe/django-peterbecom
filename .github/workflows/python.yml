@@ -106,10 +106,25 @@ jobs:
           echo "DEBUG EVENT NAME: ${{ github.event_name }}"
           echo "DEBUG ACTOR: ${{ github.actor }}"
 
+          echo "--------------------------------------------------------------------"
+          echo ""
+
           git diff --exit-code || uv sync
+
+          echo "--------------------------------------------------------------------"
+          echo ""
+
           git status
+          git branch
           git add uv.lock
           git commit -m "Update uv.lock"
+
+          echo "--------------------------------------------------------------------"
+          echo ""
+
+          git config --global user.name "peterbe"
+          git config --global user.email "77750099+docs-bot@users.noreply.github.com"
+
           git push origin ${{ github.head_ref || github.ref_name}}
 
       - name: Install system dependencies
