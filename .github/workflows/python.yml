@@ -70,10 +70,15 @@ jobs:
         run: yarn --frozen-lockfile
 
       - name: Install uv
+        id: setup-uv
         uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
+
+      - name: Celebrate uv cache hit
+        if: steps.setup-uv.outputs.cache-hit == 'true'
+        run: echo "Cache was restored"
 
       - name: Set up Python
         run: uv python install 3.12.7
