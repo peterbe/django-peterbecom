@@ -102,6 +102,7 @@ jobs:
         run: |
 
           # Update the uv.lock for them
+          set -e
 
           echo "DEBUG EVENT NAME: ${{ github.event_name }}"
           echo "DEBUG ACTOR: ${{ github.actor }}"
@@ -115,12 +116,22 @@ jobs:
           echo ""
 
           git status
+          echo ""
+          echo "CURRENT BRANCH NAME:"
           git branch
+          git checkout ${{ github.head_ref || github.ref_name}}
+          echo "NEW CURRENT BRANCH NAME:"
+          git branch
+
           git add uv.lock
-          git commit -m "Update uv.lock"
 
           echo "--------------------------------------------------------------------"
           echo ""
+
+          echo "COMMIT:_____________________________________________________________"
+          git commit -m "Update uv.lock"
+
+          echo "PUSH:_______________________________________________________________"
 
           git config --global user.name "peterbe"
           git config --global user.email "peterbe@users.noreply.github.com"
