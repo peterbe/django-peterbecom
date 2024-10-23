@@ -68,6 +68,12 @@ def test_happy_path(admin_client):
     assert first["user_agent"] is None
     assert first["user_other_comments_count"] == 1
 
+    # Just the count
+    response = admin_client.get(url, {"count": "true"})
+    assert response.status_code == 200
+    assert response.json()["count"] == 1
+    assert not response.json().get("comments")
+
 
 def test_replies(admin_client):
     blogitem = BlogItem.objects.create(

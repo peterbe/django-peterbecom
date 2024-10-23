@@ -821,6 +821,8 @@ def blogcomments(request):
         else:
             return json_response({"errors": form.errors}, status=400)
 
+    count_only = request.GET.get("count") in ("true", "only")
+
     all_ids = set()
 
     all_parent_ids = set()
@@ -968,40 +970,40 @@ def blogcomments(request):
     items = items.select_related("blogitem")
     context = {"comments": [], "count": base_qs.count()}
     oldest = timezone.now()
-    for item in items[:batch_size]:
-        if item.add_date < oldest:
-            oldest = item.add_date
-        context["comments"].append(_serialize_comment(item, blogitem=item.blogitem))
+    if not count_only:
+        for item in items[:batch_size]:
+            if item.add_date < oldest:
+                oldest = item.add_date
+            context["comments"].append(_serialize_comment(item, blogitem=item.blogitem))
 
-    comment_cache = {}
-    for comment in (
-        BlogComment.objects.all()
-        .select_related("blogitem")
-        .order_by("-add_date")[:1000]
-    ):
-        comment_cache[comment.id] = comment
+        comment_cache = {}
+        for comment in (
+            BlogComment.objects.all()
+            .select_related("blogitem")
+            .order_by("-add_date")[:1000]
+        ):
+            comment_cache[comment.id] = comment
 
-    def get_parent(comment):
-        if comment.parent_id:
-            if comment.parent_id not in comment_cache:
-                comment_cache[comment.parent_id] = comment.parent
-            return comment_cache[comment.parent_id]
+        def get_parent(comment):
+            if comment.parent_id:
+                if comment.parent_id not in comment_cache:
+                    comment_cache[comment.parent_id] = comment.parent
+                return comment_cache[comment.parent_id]
 
-    # Latest not-root comments that haven't been included yet...
-    new_replies = base_qs.filter(parent__isnull=False).exclude(id__in=all_ids)
-    for comment in new_replies.order_by("-add_date")[:batch_size]:
-        if comment.add_date < oldest:
-            oldest = comment.add_date
-        if comment.id in all_ids:
-            continue
-        while comment.parent_id:
-            comment = get_parent(comment)
-        context["comments"].append(
-            _serialize_comment(comment, blogitem=comment.blogitem)
-        )
-
-    context["comments"].sort(key=lambda c: c["max_add_date"], reverse=True)
-    context["oldest"] = oldest
+        # Latest not-root comments that haven't been included yet...
+        new_replies = base_qs.filter(parent__isnull=False).exclude(id__in=all_ids)
+        for comment in new_replies.order_by("-add_date")[:batch_size]:
+            if comment.add_date < oldest:
+                oldest = comment.add_date
+            if comment.id in all_ids:
+                continue
+            while comment.parent_id:
+                comment = get_parent(comment)
+            context["comments"].append(
+                _serialize_comment(comment, blogitem=comment.blogitem)
+            )
+        context["comments"].sort(key=lambda c: c["max_add_date"], reverse=True)
+        context["oldest"] = oldest
 
     return json_response(context)
 
