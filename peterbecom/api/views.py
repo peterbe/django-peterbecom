@@ -1,4 +1,5 @@
 import datetime
+import hashlib
 import json
 import os
 import re
@@ -6,7 +7,7 @@ import statistics
 import time
 from collections import defaultdict
 from functools import lru_cache, wraps
-from urllib.parse import urlparse
+from urllib.parse import urlencode, urlparse
 
 import requests
 from cachetools import TTLCache, cached
@@ -862,6 +863,18 @@ def blogcomments(request):
         else:
             return None
 
+    def get_gravatar_url(item):
+        seed = (
+            hashlib.sha256(item.email.lower().encode("utf-8")).hexdigest()
+            if item.email
+            else item.oid
+        )
+        default = f"https://www.peterbe.com/avatar.{seed}.png"
+        if item.email:
+            sp = {"d": default, "s": "35"}
+            return f"https://www.gravatar.com/avatar/{seed}?{urlencode(sp)}"
+        return default
+
     def _serialize_comment(item, blogitem=None):
         all_ids.add(item.id)
         geo_lookup = item.geo_lookup
@@ -886,6 +899,7 @@ def blogcomments(request):
             "location": geo_lookup,
             "_clues": not item.approved and rate_blog_comment(item) or None,
             "replies": [],
+            "gravatar_url": get_gravatar_url(item),
         }
         page = get_comment_page(item)
         record["page"] = page

@@ -63,6 +63,7 @@ def test_happy_path(admin_client):
     assert first["page"] == 1
     assert first["comment"] == "Bla <bla>"
     assert first["rendered"] == "Bla &lt;bla&gt;"
+    assert first["gravatar_url"] == "https://www.peterbe.com/avatar.abc123.png"
 
     assert first["replies"] == []
     assert first["user_agent"] is None
@@ -73,6 +74,18 @@ def test_happy_path(admin_client):
     assert response.status_code == 200
     assert response.json()["count"] == 1
     assert not response.json().get("comments")
+
+    blogcomment.email = "something@example.com"
+    blogcomment.save()
+    response = admin_client.get(url)
+    assert response.status_code == 200
+    assert response.json()["count"] == 1
+    (first,) = response.json()["comments"]
+    assert first["gravatar_url"] == (
+        "https://www.gravatar.com/avatar/324da19863556eb0d9e5fad9fc20eefe1cb227fc3a06"
+        "8505ee584254e16a4fbe?d=https%3A%2F%2Fwww.peterbe.com%2Favatar.324da19863556e"
+        "b0d9e5fad9fc20eefe1cb227fc3a068505ee584254e16a4fbe.png&s=35"
+    )
 
 
 def test_replies(admin_client):
