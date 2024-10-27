@@ -141,6 +141,11 @@ jobs:
 
           git push origin ${{ github.head_ref || github.ref_name}}
 
+      - name: Inspect virtual env
+        run: |
+          echo "SIZE OF .venv:"
+          du -sh .venv
+
       - name: Install system dependencies
         run: sudo apt-get install pngquant
 
