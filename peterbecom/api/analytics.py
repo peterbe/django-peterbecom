@@ -52,7 +52,7 @@ def query(request):
             return http.JsonResponse({"error": error}, status=400)
 
     rows = []
-    t0 = time.time()
+    t0 = time
 
     count = 0
     MAX_ROWS = 1_000
