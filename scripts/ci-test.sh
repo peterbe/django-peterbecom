@@ -40,4 +40,5 @@ SETTINGS
 # Make sure we're running Elasticsearch
 curl -v http://localhost:9200/
 
-uv run pytest peterbecom --cov=peterbecom --cov-report xml:coverage.xml
+# uv run pytest peterbecom
+./bin/run.sh test

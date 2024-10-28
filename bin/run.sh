@@ -62,7 +62,11 @@ case $1 in
     ;;
   test)
     setup_python
-    exec python ./manage.py test
+    pytest
+    ;;
+  test-with-coverage)
+    setup_python
+    pytest --cov=peterbecom --cov-report=html
     ;;
   huey)
     setup_python

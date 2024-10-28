@@ -158,4 +158,3 @@ jobs:
       - name: Run Tests
         run: |
           ./scripts/ci-test.sh
-          ls -lh coverage.xml
