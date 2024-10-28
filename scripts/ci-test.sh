@@ -40,4 +40,4 @@ SETTINGS
 # Make sure we're running Elasticsearch
 curl -v http://localhost:9200/
 
-./bin/run.sh test-with-coverage-xml
+./bin/run.sh test
