@@ -78,7 +78,8 @@ def test_happy_path(admin_client):
         url,
         {
             "query": """
-                    SELECT created, data->'foo' as foo
+                    SELECT data->'foo', created, data->'nonexist',
+                      now() - created as delta
                     FROM analytics where type = 'pageview'
             """
         },
@@ -88,5 +89,7 @@ def test_happy_path(admin_client):
 
     assert not data["error"]
     (first,) = data["rows"]
+    assert first["?column?"]
+    assert first["?column? (2)"] is None
+    assert first["delta"]
     assert first["created"]
-    assert first["foo"]
