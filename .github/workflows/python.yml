@@ -131,13 +131,13 @@ jobs:
           echo "--------------------------------------------------------------------"
           echo ""
 
+          git config --global user.name "peterbe"
+          git config --global user.email "peterbe@users.noreply.github.com"
+
           echo "COMMIT:_____________________________________________________________"
           git commit -m "Update uv.lock"
 
           echo "PUSH:_______________________________________________________________"
-
-          git config --global user.name "peterbe"
-          git config --global user.email "peterbe@users.noreply.github.com"
 
           git push origin ${{ github.head_ref || github.ref_name}}
 
