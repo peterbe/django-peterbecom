@@ -27,7 +27,7 @@ dependencies = [
     "cachetools==5.5.0",
     "cssselect==1.2.0",
     "delegator-py==0.1.1",
-    "dj-database-url==2.2.0",
+    "dj-database-url==2.3.0",
     "django-jinja==2.10.2",
     "django-querycount==0.8.3",
     "django-redis==5.4.0",
