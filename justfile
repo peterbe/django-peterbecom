@@ -27,4 +27,8 @@ install:
     pip install -r requirements.txt
 
 test:
-    pytest
+    ./bin/run.sh test
+
+test-with-coverage:
+    ./bin/run.sh test-with-coverage
+    open htmlcov/index.html
