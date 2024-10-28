@@ -74,7 +74,7 @@ jobs:
         uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
-          cache-dependency-glob: "uv.lock"
+          cache-dependency-glob: 'uv.lock'
 
       - name: Celebrate uv cache hit
         if: steps.setup-uv.outputs.cache-hit == 'true'
@@ -158,3 +158,10 @@ jobs:
       - name: Run Tests
         run: |
           ./scripts/ci-test.sh
+          ls -lh coverage.xml
+
+      - name: Get Cover
+        uses: orgoro/coverage@3f13a558c5af7376496aa4848bf0224aead366ac # v3.2
+        with:
+          coverageFile: coverage.xml
+          token: ${{ secrets.GITHUB_TOKEN }}

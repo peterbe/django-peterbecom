@@ -68,6 +68,10 @@ case $1 in
     setup_python
     pytest --cov=peterbecom --cov-report=html
     ;;
+  test-with-coverage-xml)
+    setup_python
+    pytest --cov=peterbecom --cov-report=xml:coverage.xml
+    ;;
   huey)
     setup_python
     python manage.py run_huey --flush-locks --huey-verbose

@@ -40,5 +40,4 @@ SETTINGS
 # Make sure we're running Elasticsearch
 curl -v http://localhost:9200/
 
-# uv run pytest peterbecom
-./bin/run.sh test
+./bin/run.sh test-with-coverage-xml
