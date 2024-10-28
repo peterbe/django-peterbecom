@@ -30,13 +30,16 @@ def api_superuser_required(view_func):
 @api_superuser_required
 def query(request):
     q = request.GET.get("query")
+    if not q:
+        return http.JsonResponse({"error": "missing 'query'"}, status=400)
     try:
         parsed = Parser(q)
+        if parsed.query_type != "SELECT":
+            error = f"Only SELECT queries are allowed (not {parsed.query_type})"
+            return http.JsonResponse({"error": error}, status=400)
+
     except ValueError:
         error = f"Query can not be parsed: {q!r}"
-        return http.JsonResponse({"error": error}, status=400)
-    if parsed.query_type != "SELECT":
-        error = f"Only SELECT queries are allowed (not {parsed.query_type})"
         return http.JsonResponse({"error": error}, status=400)
 
     only_valid = ("base_analyticsevent", "base_analyticsgeoevent")
