@@ -52,6 +52,18 @@ def test_bad_request(admin_client):
     response = admin_client.get(url, {"query": "select count(*) from plog_blogitem"})
     assert response.status_code == 400
 
+    response = admin_client.get(
+        url,
+        {
+            "query": """
+                    SELECT count(*) FROM analytics where x = 'y'
+            """
+        },
+    )
+    assert response.status_code == 400
+    data = response.json()
+    assert data["error"]
+
 
 def test_happy_path(admin_client):
     AnalyticsEvent.objects.create(
