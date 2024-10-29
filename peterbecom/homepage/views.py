@@ -4,7 +4,6 @@ import os
 import random
 import re
 import time
-from pathlib import Path
 from urllib.parse import urlparse
 
 import py_avataaars
@@ -18,17 +17,14 @@ from django.utils.cache import patch_cache_control
 from django.views import static
 from django.views.decorators.cache import cache_control, never_cache
 from django_redis import get_redis_connection
-from elasticsearch_dsl import query
-from elasticsearch_dsl.query import MultiMatch
 from huey import crontab
 from huey.contrib.djhuey import periodic_task, task
 from lxml import etree
 
-from peterbecom.base.decorators import lock_decorator, variable_cache_control
+from peterbecom.base.decorators import lock_decorator
 from peterbecom.base.models import AnalyticsEvent
 from peterbecom.base.utils import get_base_url
 from peterbecom.plog.models import BlogComment, BlogItem, BlogItemDailyHits
-from peterbecom.plog.search import BlogItemDoc
 
 from .models import CatchallURL
 
@@ -42,178 +38,8 @@ ONE_WEEK = ONE_DAY * 7
 ONE_MONTH = ONE_WEEK * 4
 
 
-def _home_cache_max_age(request, oc=None, page=1):
-    max_age = ONE_HOUR
-    if oc:
-        max_age *= 10
-    if page:
-        try:
-            if int(page) > 1:
-                max_age *= 2
-        except ValueError:
-            return 0
-
-    # Add some jitter to avoid all pages to expire at the same time
-    # if the cache is ever reset.
-    p = random.randint(0, 25) / 100
-    max_age += int(max_age * p)
-
-    return max_age
-
-
-@variable_cache_control(public=True, max_age=_home_cache_max_age)
 def home(request, oc=None, page=1):
     return http.HttpResponse("deprecated. Use next\n")
-
-
-_uppercase = set("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-_html_regex = re.compile(r"<.*?>")
-
-
-def htmlify_text(text, newline_to_br=True, allow=()):
-    allow_ = []
-    for each in allow:
-        allow_.append("<{}>".format(each))
-        allow_.append("</{}>".format(each))
-
-    def replacer(match):
-        group = match.group()
-        if group in allow_:
-            # let it be
-            return group
-        return ""
-
-    html = _html_regex.sub(replacer, text)
-    if newline_to_br:
-        html = html.replace("\n", "<br/>")
-    return html
-
-
-def massage_fragment(text, max_length=300):
-    while len(text) > max_length:
-        split = text.split()
-        d_left = text.find("<mark>")
-        d_right = len(text) - text.rfind("</mark>")
-        if d_left > d_right:
-            # there's more non-<mark> on the left
-            split = split[1:]
-        else:
-            split = split[:-1]
-        text = " ".join(split)
-    text = text.strip()
-    if not text.endswith("."):
-        text += "…"
-    text = text.lstrip(", ")
-    text = text.lstrip(". ")
-    if text[0] not in _uppercase:
-        text = "…" + text
-    text = htmlify_text(text, newline_to_br=False, allow=("mark",))
-    text = text.replace("</mark> <mark>", " ")
-    return text
-
-
-def clean_fragment_html(fragment):
-    def replacer(match):
-        group = match.group()
-        if group in ("<mark>", "</mark>"):
-            return group
-        return ""
-
-    fragment = _html_regex.sub(replacer, fragment)
-    return fragment.replace("</mark> <mark>", " ")
-
-
-def autocompete(request):
-    q = request.GET.get("q", "")
-    if not q:
-        return http.JsonResponse({"error": "Missing 'q'"}, status=400)
-    size = int(request.GET.get("n", 10))
-    terms = [q]
-    search_query = BlogItemDoc.search()
-    if len(q) > 2:
-        suggestion = search_query.suggest("suggestions", q, term={"field": "title"})
-        response = suggestion.execute()
-        suggestions = response.suggest.suggestions
-        for suggestion in suggestions:
-            for option in suggestion.options:
-                terms.append(q.replace(suggestion.text, option.text))
-    # print("TERMS:", terms)
-
-    search_query.update_from_dict({"query": {"range": {"pub_date": {"lt": "now"}}}})
-
-    query = MultiMatch(
-        query=terms[0],
-        type="bool_prefix",
-        fields=[
-            "title_autocomplete",
-            "title_autocomplete._2gram",
-            "title_autocomplete._3gram",
-        ],
-    )
-
-    for term in terms[1:]:
-        query |= MultiMatch(
-            query=term,
-            type="bool_prefix",
-            fields=[
-                "title_autocomplete",
-                "title_autocomplete._2gram",
-                # Commented out because sometimes the `terms[:1]` are a little bit
-                # too wild.
-                # What might be a better idea is to make 2 ES queries. One with
-                # `term[0]` and if that yields less than $batch_size, we make
-                # another query with the `terms[1:]` and append the results.
-                # "title_autocomplete._3gram",
-            ],
-        )
-
-    search_query = search_query.query(query)
-
-    # search_query = search_query.sort("-pub_date", "_score")
-    search_query = _add_function_score(search_query, query)
-    search_query = search_query[:size]
-    response = search_query.execute()
-    results = []
-    for hit in response.hits:
-        results.append([reverse("blog_post", args=(hit.oid,)), hit.title])
-
-    response = http.JsonResponse({"results": results, "terms": terms})
-    if len(q) < 5:
-        patch_cache_control(response, public=True, max_age=60 + 60 * (5 - len(q)))
-    return response
-
-
-def _add_function_score(
-    search_query,
-    matcher,
-    popularity_factor=settings.DEFAULT_POPULARITY_FACTOR,
-    boost_mode=settings.DEFAULT_BOOST_MODE,
-):
-    # If you don't do any popularity sorting at all, the _score is entirely based
-    # in the scoring that Elasticsearch gives which is a function of the boosting
-    # between title and text and a function of how much the words appear and stuff.
-    # A great score would be something like 10.0.
-    if not popularity_factor:
-        return search_query.query(matcher)
-
-    # XXX Might be worth playing with a custom scoring function that uses
-    # `score + popularity * factor` so that documents with a tiny popularity
-    # doesn't completely ruin the total score.
-    return search_query.query(
-        "function_score",
-        query=matcher,
-        functions=[
-            query.SF(
-                "field_value_factor",
-                field="popularity",
-                factor=popularity_factor,
-                # You can't sort on fields if they have nulls in them, so this
-                # "fills in the blanks" by assigning nulls to be 0.0.
-                missing=0.0,
-            )
-        ],
-        boost_mode=boost_mode,
-    )
 
 
 @cache_control(public=True, max_age=ONE_WEEK)
@@ -290,7 +116,7 @@ def sitemap(request):
         )[:100]:
             already_ids.add(daily_hit["blogitem__id"])
             add(
-                f"/plog/{comment['blogitem__oid']}",
+                f"/plog/{daily_hit['blogitem__oid']}",
                 changefreq="weekly",
             )
 
@@ -624,30 +450,6 @@ def sample_huey_task_with_orm(a, b, crash=None, output_filepath=None, sleep=0):
         return result
 
 
-def slow_static(request, path):
-    """Return a static asset but do it slowly. This makes it possible to pretend
-    that all other assets, except one or two, is being really slow to serve.
-
-    To use this, you might want to use Nginx. E.g. a config like this:
-
-        location = /static/css/lyrics.min.65f02713ff34.css {
-             rewrite (.*) /slowstatic$1;
-             proxy_http_version 1.1;
-             proxy_set_header Host $http_host;
-             proxy_pass http://127.0.0.1:8000;
-             break;
-       }
-
-    """
-    if not path.startswith("static/"):
-        return http.HttpResponseBadRequest("Doesn't start with static/")
-    p = Path(settings.STATIC_ROOT) / Path(path.replace("static/", ""))
-    if not p.is_file():
-        return http.HttpResponseNotFound(path)
-    time.sleep(2)
-    return http.HttpResponse(p.read_bytes(), content_type="text/css")
-
-
 def dynamic_page(request):
     return http.HttpResponse("Current time is: {}\n".format(timezone.now()))
 
@@ -666,7 +468,7 @@ def avatar_image(request, seed=None):
     # it away so it can't be cache bypassed.
     querystring_keys = [x for x in request.GET.keys() if x != "seed"]
     if querystring_keys:
-        return redirect(reverse("avatar_image_seed", args=("random",)))
+        return redirect(reverse("homepage:avatar_image_seed", args=("random",)))
 
     if not seed:
         seed = request.GET.get("seed") or "random"
@@ -730,18 +532,19 @@ def fill_random_avatars_redis_list():
 
 def fill_random_avatars_redis_list_filled():
     key = REDIS_RANDOM_AVATARS_LIST_KEY
+
     count = redis_client.llen(key)
     print(f"# random avatars in Redis: {count} ({timezone.now()})")
-    if count >= 1000:
+    if count >= settings.NUMBER_AVATARS_PREMADE:
         return
 
     # Because of how Huey works, make sure you import this here
     # within the function. Weird but necessary.
     import xml.etree.ElementTree as ET
 
-    while redis_client.llen(key) < 1000:
+    while redis_client.llen(key) < settings.NUMBER_AVATARS_PREMADE:
         random_avatars = []
-        for _ in range(100):
+        for _ in range(int(settings.NUMBER_AVATARS_PREMADE / 10)):
             try:
                 random_avatars.append(get_random_avatar())
             except ET.ParseError:

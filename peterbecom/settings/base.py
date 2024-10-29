@@ -447,3 +447,5 @@ LYRICS_REMOTE = "https://songsear.ch"
 
 # This gets overwritten by settings/test.py set up by pytest
 RUNNING_TESTS = False
+
+NUMBER_AVATARS_PREMADE = 1000
