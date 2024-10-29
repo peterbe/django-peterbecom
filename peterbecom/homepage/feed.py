@@ -27,7 +27,9 @@ class PlogFeed(Feed):
     def items(self, categories):
         qs = BlogItem.objects.filter(pub_date__lt=timezone.now())
         if categories:
-            qs = qs.filter(make_categories_q(categories))
+            cat_q = make_categories_q(categories)
+            qs = qs.filter(cat_q)
+
         return qs.order_by("-pub_date")[:10]
 
     def item_title(self, item):

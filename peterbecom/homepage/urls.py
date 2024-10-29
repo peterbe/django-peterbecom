@@ -10,19 +10,21 @@ def rss_redirect(request, prefix=None):
     return http.HttpResponseRedirect(request.build_absolute_uri()[:-1])
 
 
+app_name = "homepage"
+
 urlpatterns = [
     path("", views.home, name="home"),
     path("p<int:page>", views.home, name="home_paged"),
     # Because it's strangely a common URL
-    re_path(r"(.*?)/?rss\.xml/", rss_redirect),
+    re_path(r"(.*?)/?rss\.xml/", rss_redirect, name="rss_redirect"),
     re_path(
-        r"(.*?)/?rss\.xml$", cache_control(public=True, max_age=60 * 60 * 6)(PlogFeed())
+        r"(.*?)/?rss\.xml$",
+        cache_control(public=True, max_age=60 * 60 * 6)(PlogFeed()),
+        name="rss",
     ),
-    path("autocompete/v1", views.autocompete, name="autocompete"),
     re_path(r"^oc-(?P<oc>.*)/p(?P<page>\d+)$", views.home, name="only_category_paged"),
     re_path(r"^oc-(?P<oc>.*)", views.home, name="only_category"),
     path("sitemap.xml", views.sitemap, name="sitemap"),
-    re_path(r"^slowstatic/(?P<path>.*)", views.slow_static, name="slow_static"),
     path("avatar.html", views.avatar_image_test_page),
     re_path(
         r"avatar\.(?P<seed>\w+)\.png",
