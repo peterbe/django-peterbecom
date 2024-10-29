@@ -3,7 +3,6 @@ from itertools import islice
 from urllib.parse import urlparse
 
 import keycdn
-import requests
 from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
@@ -55,22 +54,6 @@ def get_cdn_config(api=None):
 def purge_cdn_urls(urls, api=None):
     all_all_urls = []
     all_results = []
-    if settings.PURGE_URL:
-        payload = {
-            "pathnames": urls,
-        }
-        headers = {}
-        if settings.PURGE_SECRET:
-            headers["Authorization"] = f"Bearer {settings.PURGE_SECRET}"
-        r = requests.post(settings.PURGE_URL, json=payload, headers=headers)
-        if r.status_code == 200:
-            print("PURGE RESULT:", r.json())
-            all_results.append(True)
-            CDNPurgeURL.succeeded(urls)
-        else:
-            print("PURGE FAILURE:", r)
-            CDNPurgeURL.failed(urls)
-
     if settings.SEND_KEYCDN_PURGES:
         if not keycdn_zone_check():
             print("WARNING! Unable to use KeyCDN API at the moment :(")
