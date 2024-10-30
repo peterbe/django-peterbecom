@@ -1,4 +1,5 @@
 import json
+
 import pytest
 from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
