@@ -55,6 +55,97 @@ def test_happy_path(admin_client):
     assert not first["has_split"]
 
 
+def test_search_blogitems(admin_client):
+    blogitem1 = BlogItem.objects.create(
+        oid="foo-bar",
+        title="Foo Bar",
+        pub_date=timezone.now(),
+        proper_keywords=["one", "two"],
+        text="Some *text*",
+        summary="Short",
+    )
+    category1 = Category.objects.create(name="Food")
+    blogitem1.categories.add(category1)
+
+    blogitem2 = BlogItem.objects.create(
+        oid="hello-world",
+        title="Hello World",
+        pub_date=timezone.now() + timezone.timedelta(days=1),
+        proper_keywords=["one", "two"],
+        text="Some *text*",
+    )
+    category2 = Category.objects.create(name="Code")
+    blogitem2.categories.add(category2)
+    url = reverse("api:blogitems")
+
+    response = admin_client.get(url, {"search": ""})
+    assert response.status_code == 200
+    found = response.json()["blogitems"]
+    assert [x["id"] for x in found] == [blogitem2.id, blogitem1.id]
+
+    response = admin_client.get(url, {"search": "has:summary"})
+    assert response.status_code == 200
+    found = response.json()["blogitems"]
+    assert [x["id"] for x in found] == [blogitem1.id]
+
+    response = admin_client.get(url, {"search": "no:summary"})
+    assert response.status_code == 200
+    found = response.json()["blogitems"]
+    assert [x["id"] for x in found] == [blogitem2.id]
+
+    response = admin_client.get(url, {"search": "is:published"})
+    assert response.status_code == 200
+    found = response.json()["blogitems"]
+    assert [x["id"] for x in found] == [blogitem1.id]
+
+    response = admin_client.get(url, {"search": "is:future"})
+    assert response.status_code == 200
+    found = response.json()["blogitems"]
+    assert [x["id"] for x in found] == [blogitem2.id]
+
+    response = admin_client.get(url, {"search": "cat: Food"})
+    assert response.status_code == 200
+    found = response.json()["blogitems"]
+    assert [x["id"] for x in found] == [blogitem1.id]
+    assert found[0]["categories"] == [{"id": category1.id, "name": "Food"}]
+
+
+def test_show_all_blogitems(admin_client):
+    blogitem1 = BlogItem.objects.create(
+        oid="foo-bar",
+        title="Foo Bar",
+        pub_date=timezone.now(),
+        proper_keywords=["one", "two"],
+        text="Some *text*",
+        summary="Short",
+    )
+    blogitem2 = BlogItem.objects.create(
+        oid="hello-world",
+        title="Hello World",
+        pub_date=timezone.now() + timezone.timedelta(days=1),
+        proper_keywords=["one", "two"],
+        text="Some *text*",
+    )
+    url = reverse("api:blogitems")
+    response = admin_client.get(url, {"show": "all"})
+    assert response.status_code == 200
+    assert response.json()["count"] == 2
+    found = response.json()["blogitems"]
+
+    assert len(found) == 2
+    mapped = {x["id"]: x for x in found}
+    assert mapped[blogitem1.id] == {
+        "oid": "foo-bar",
+        "title": "Foo Bar",
+        "id": blogitem1.id,
+    }
+    assert mapped[blogitem2.id] == {
+        "oid": "hello-world",
+        "title": "Hello World",
+        "id": blogitem2.id,
+    }
+
+
 def test_search_by_split(admin_client):
     blogitem1 = BlogItem.objects.create(
         oid="hello-world",

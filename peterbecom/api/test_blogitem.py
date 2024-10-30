@@ -1,5 +1,5 @@
 import json
-
+import pytest
 from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
 from django.utils import timezone
@@ -122,3 +122,114 @@ def test_happy_path_blogitem(admin_client):
     assert first["url"] is None
     assert first["id"] == blogitem.id
     assert first["summary"] == ""
+
+
+def test_delete_blogitem(admin_client):
+    BlogItem.objects.create(
+        oid="hello-world",
+        title="Hello World",
+        pub_date=timezone.now(),
+        proper_keywords=["one", "two"],
+        display_format="markdown",
+        text="Hello *world*\n<!--split-->Second part",
+    )
+    url = reverse("api:blogitem", args=["hello-world"])
+    response = admin_client.delete(url)
+    assert response.status_code == 200
+    assert not BlogItem.objects.filter(oid="hello-world").exists()
+
+
+@pytest.mark.django_db
+def test_blogitem_auth(client):
+    BlogItem.objects.create(
+        oid="hello-world",
+        title="Hello World",
+        pub_date=timezone.now(),
+        proper_keywords=["one", "two"],
+        text="Hello *world*\n<!--split-->Second part",
+    )
+    url = reverse("api:blogitem", args=["hello-world"])
+    response = client.get(url)
+    assert response.status_code == 403
+
+
+@pytest.mark.django_db
+def test_toggle_archived_blogitem(admin_client):
+    blogitem = BlogItem.objects.create(
+        oid="hello-world",
+        title="Hello World",
+        pub_date=timezone.now(),
+        proper_keywords=["one", "two"],
+        display_format="markdown",
+        text="Hello *world*\n<!--split-->Second part",
+    )
+    url = reverse("api:blogitem", args=["hello-world"])
+    response = admin_client.post(
+        url,
+        json.dumps({"toggle_archived": True}),
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    assert response.json()["blogitem"]["archived"]
+    blogitem.refresh_from_db()
+    assert blogitem.archived
+
+    response = admin_client.post(
+        url,
+        json.dumps({"toggle_archived": True}),
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    assert not response.json()["blogitem"]["archived"]
+    blogitem.refresh_from_db()
+    assert not blogitem.archived
+
+
+@pytest.mark.django_db
+def test_edit_blogitem(admin_client):
+    blogitem = BlogItem.objects.create(
+        oid="hello-world",
+        title="Hello World",
+        pub_date=timezone.now(),
+        proper_keywords=["one", "two"],
+        display_format="markdown",
+        text="Hello *world*\n<!--split-->Second part",
+    )
+    url = reverse("api:blogitem", args=["hello-world"])
+    response = admin_client.post(
+        url,
+        json.dumps(
+            {
+                "title": "New title",
+                "oid": "new-oid",
+                "summary": "New summary",
+                "keywords": ["three ", " four "],
+            }
+        ),
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+    assert response.json()["errors"]["text"]
+    assert response.json()["errors"]["pub_date"]
+    assert response.json()["errors"]["categories"]
+
+    cat1 = Category.objects.create(name="Code")
+    response = admin_client.post(
+        url,
+        json.dumps(
+            {
+                "title": "New title",
+                "oid": "new-oid",
+                "summary": "New summary",
+                "keywords": "three \n four ",  # ["three ", " four "],
+                "pub_date": json_datetime(timezone.now()),
+                "categories": [cat1.id],
+                "text": "Hello *world*\n<!--split-->Second part",
+                "display_format": "markdown",
+            }
+        ),
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    blogitem.refresh_from_db()
+    assert blogitem.proper_keywords == ["three", "four"]

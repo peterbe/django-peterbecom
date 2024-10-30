@@ -129,18 +129,30 @@ def blogitems(request):
             "has_split": has_split,
         }
 
-    page = int(request.GET.get("page", 1))
-    batch_size = int(request.GET.get("batch_size", 25))
     search = request.GET.get("search", "").lower().strip()
     items = BlogItem.objects.all()
 
     order_by = request.GET.get("order", "modify_date")
     assert order_by in ("modify_date", "pub_date"), order_by
-    items = items.order_by("-" + order_by)
     items = _amend_blogitems_search(items, search)
 
+    context = {"blogitems": [], "count": items.count()}
+
+    if request.GET.get("show") == "all":
+        for id, oid, title in items.values_list("id", "oid", "title"):
+            context["blogitems"].append(
+                {
+                    "id": id,
+                    "oid": oid,
+                    "title": title,
+                }
+            )
+        return json_response(context, schema="api.v0.blogitems-all")
+
+    items = items.order_by("-" + order_by)
     items = items.prefetch_related("categories")
-    context = {"blogitems": []}
+    batch_size = int(request.GET.get("batch_size", 25))
+    page = int(request.GET.get("page", 1))
     n, m = ((page - 1) * batch_size, page * batch_size)
     for item in items[n:m]:
         context["blogitems"].append(_serialize_blogitem(item))
@@ -1216,7 +1228,9 @@ def blogitem_hits(request):
                 blogitem_id = b.id AND (NOW() - b.pub_date) > INTERVAL '1 day'
             ORDER BY score desc
             LIMIT {limit}
-        """.format(limit=limit)
+        """.format(
+                limit=limit
+            )
         )
     else:
         query = BlogItem.objects.raw(
@@ -1236,7 +1250,9 @@ def blogitem_hits(request):
                 blogitem_id = b.id AND (NOW() - b.pub_date) > INTERVAL '1 day'
             ORDER BY score desc
             LIMIT {limit}
-        """.format(limit=limit)
+        """.format(
+                limit=limit
+            )
         )
     context["all_hits"] = []
     category_scores = defaultdict(list)
