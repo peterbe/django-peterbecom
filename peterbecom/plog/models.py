@@ -732,3 +732,11 @@ class SpamCommentPattern(models.Model):
                 self.is_url_pattern and " (url pattern)" or "",
             )
         ).strip()
+
+
+class SpamCommentSignature(models.Model):
+    name = models.CharField(max_length=300, null=True)
+    email = models.CharField(max_length=300, null=True)
+    kills = models.PositiveIntegerField(default=0)
+    add_date = models.DateTimeField(auto_now_add=True)
+    modify_date = models.DateTimeField(auto_now=True)
