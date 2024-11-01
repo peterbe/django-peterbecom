@@ -1,6 +1,6 @@
 from django.urls import path, re_path
 
-from . import analytics, views
+from . import analytics, spam, views
 
 app_name = "api"
 
@@ -69,5 +69,6 @@ urlpatterns = [
     path("whoami", views.whoami, name="whoami"),
     path("__healthcheck__", views.healthcheck, name="healthcheck"),
     path("analytics/query", analytics.query, name="analytics_query"),
+    path("spam/signatures", spam.signatures, name="spam_signatures"),
     path("", views.catch_all, name="catch_all"),
 ]

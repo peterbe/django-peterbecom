@@ -222,3 +222,22 @@ class CommentCountsIntervalForm(forms.Form):
             days=cleaned_data["days"]
         )
         return cleaned_data
+
+
+class SpamCommentSignatureForm(forms.Form):
+    name = forms.CharField(required=False)
+    name_null = forms.BooleanField(required=False)
+    email = forms.CharField(required=False)
+    email_null = forms.BooleanField(required=False)
+
+    def clean(self):
+        cleaned_data = super(SpamCommentSignatureForm, self).clean()
+
+        if not cleaned_data.get("name") and not cleaned_data.get("email"):
+            raise forms.ValidationError("Either name or email is required")
+        if (not cleaned_data.get("name") and not cleaned_data.get("name_null")) or (
+            not cleaned_data.get("email") and not cleaned_data.get("email_null")
+        ):
+            raise forms.ValidationError("Must be null")
+
+        return cleaned_data
