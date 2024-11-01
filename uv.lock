@@ -440,7 +440,7 @@ requires-dist = [
     { name = "rollbar", specifier = "==1.0.0" },
     { name = "ruff", specifier = "==0.7.1" },
     { name = "sorl-thumbnail", specifier = "==12.11.0" },
-    { name = "sql-metadata", specifier = "==2.13.0" },
+    { name = "sql-metadata", specifier = "==2.14.0" },
     { name = "tomli", specifier = "==2.0.2" },
     { name = "xmltodict", specifier = "==0.14.2" },
     { name = "zope-structuredtext", specifier = "==5.0" },
@@ -1194,14 +1194,14 @@ wheels = [
 
 [[package]]
 name = "sql-metadata"
-version = "2.13.0"
+version = "2.14.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "sqlparse" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/7f/d3/8e0291baca953591a1321cbd6ce4aee1c8ab23f36f00ef1fca1ce1425754/sql_metadata-2.13.0.tar.gz", hash = "sha256:4ecb51ea6aa2a5b8a52b7633f09f22f99cc359d44153205156652cf01650012f", size = 22370 }
+sdist = { url = "https://files.pythonhosted.org/packages/e9/49/034e4514e9b6ebff02336f1f7878ae247a0774a002fd61e11ba504f80032/sql_metadata-2.14.0.tar.gz", hash = "sha256:5d9cc947620827daadda3b3315fa1d57732175ddd958a070b7d03ecdaaa42f75", size = 22429 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0c/9c/77c58374f26d350201e90372d095646a9284777d13295be085467a7bed65/sql_metadata-2.13.0-py3-none-any.whl", hash = "sha256:7106ddbab9948ed57bcfdf5a63ea8bbcfc25ac1b6f47764295764cab40d2007e", size = 22317 },
+    { url = "https://files.pythonhosted.org/packages/b8/d3/752ee77faf57e42b288041c357cfc859459858dd673512d9f868b34a2120/sql_metadata-2.14.0-py3-none-any.whl", hash = "sha256:8e26b84066153eea581586d341f3b1ffd7dda7fd41b1827ee1579a6520889b3e", size = 22372 },
 ]
 
 [[package]]
