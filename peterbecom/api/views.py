@@ -365,7 +365,6 @@ def catch_all(request):
     return json_response({"error": request.path}, status=404)
 
 
-@api_superuser_required
 def open_graph_image(request, oid):
     blogitem = get_object_or_404(BlogItem, oid=oid)
 
@@ -447,6 +446,7 @@ def images(request, oid):
                 return json_response({"id": instance.id})
             return json_response({"errors": form.errors}, status=400)
     elif request.method == "DELETE":
+        print("request.GET:", request.GET)
         blogfile = get_object_or_404(BlogFile, blogitem=blogitem, id=request.GET["id"])
         blogfile.delete()
         return json_response({"deleted": True})
