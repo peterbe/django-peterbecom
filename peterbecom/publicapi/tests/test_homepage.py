@@ -4,7 +4,7 @@ import pytest
 from django.urls import reverse
 from django.utils import timezone
 
-from peterbecom.plog.models import BlogItem, Category
+from peterbecom.plog.models import BlogComment, BlogItem, Category
 
 
 @pytest.mark.django_db
@@ -125,3 +125,60 @@ def test_homepage_blogitems_split_html(client):
     assert second["oid"] == "foo-bar"
     assert first["split"] == len("<p>Second part</p>")
     assert second["split"] is None
+
+
+@pytest.mark.django_db
+def test_misc_requests(client):
+    blogitem = BlogItem.objects.create(
+        oid="hello-world",
+        title="Hello World",
+        text="Hello *world*\n<!--split-->Second part",
+        pub_date=timezone.now() - datetime.timedelta(days=1),
+        proper_keywords=["one", "two"],
+    )
+    blogitem.categories.add(Category.objects.create(name="Category"))
+
+    blogitem2 = BlogItem.objects.create(
+        oid="foo-bar",
+        title="Foo Bar",
+        text="Foo *bar*",
+        pub_date=timezone.now(),
+        proper_keywords=["one", "two"],
+    )
+    blogitem2.categories.add(Category.objects.create(name="Foodware"))
+
+    BlogComment.objects.create(
+        blogitem=blogitem, oid="123", name="Peter", comment="Hi", approved=True
+    )
+    BlogComment.objects.create(
+        blogitem=blogitem2, oid="xyz", name="Stranger", comment="Uh?", approved=False
+    )
+
+    url = reverse("publicapi:homepage_blogitems")
+    response = client.get(url)
+    assert response.status_code == 200
+    posts = response.json()["posts"]
+    # because they're sorted by pub_date, the order is predictable
+    first, second = posts
+    assert first["comments"] == 0
+    assert second["comments"] == 1
+
+    url = reverse("publicapi:homepage_blogitems")
+    response = client.get(url, {"oc": "one"})
+    assert response.status_code == 400
+
+    response = client.get(url, {"oc": "cateGory"})
+    assert response.status_code == 301
+
+    response = client.get(url, {"oc": "Category"})
+    assert response.status_code == 200
+    posts = response.json()["posts"]
+    oids = [x["oid"] for x in posts]
+    assert "hello-world" in oids
+    assert "foo-bar" not in oids
+
+    # HEAD is always empty
+    response = client.head(url)
+    assert response.status_code == 200
+    payload = response.content.decode("utf-8")
+    assert payload == ""
