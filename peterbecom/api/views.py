@@ -1557,6 +1557,7 @@ def spam_comment_patterns(request, id=None):
         form = SpamCommentPatternForm(data)
         if form.is_valid():
             form.save()
+            return json_response({"ok": True})
         else:
             return json_response({"errors": form.errors}, status=400)
 

@@ -14,14 +14,10 @@ urlpatterns = [
     ),
     path(
         "plog/spam/patterns",
-        views.spam_comment_patterns,
-        name="spam_comment_patterns",
+        spam.patterns,
+        name="spam_patterns",
     ),
-    path(
-        "plog/spam/patterns/<int:id>",
-        views.spam_comment_patterns,
-        name="spam_comment_patterns",
-    ),
+    path("plog/spam/signatures", spam.signatures, name="spam_signatures"),
     path("plog/comments/geo/", views.geocomments, name="geocomments"),
     path(
         "plog/comments/counts/",
@@ -69,6 +65,5 @@ urlpatterns = [
     path("whoami", views.whoami, name="whoami"),
     path("__healthcheck__", views.healthcheck, name="healthcheck"),
     path("analytics/query", analytics.query, name="analytics_query"),
-    path("spam/signatures", spam.signatures, name="spam_signatures"),
     path("", views.catch_all, name="catch_all"),
 ]
