@@ -140,6 +140,8 @@ def prepare_json(request):
 @ensure_csrf_cookie
 @require_POST
 def preview_json(request):
+    raise Exception("deprecated")
+
     comment = request.POST.get("comment", "").strip()
     name = request.POST.get("name", "").strip()
     email = request.POST.get("email", "").strip()
@@ -161,6 +163,8 @@ def preview_json(request):
 @require_POST
 @transaction.atomic
 def submit_json(request, oid):
+    raise Exception("deprecated")
+
     post = get_object_or_404(BlogItem, oid=oid, archived__isnull=True)
     if post.disallow_comments:
         return http.HttpResponseBadRequest("No comments please")

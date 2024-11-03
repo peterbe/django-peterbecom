@@ -72,9 +72,7 @@ def submit_comment(request):
 
     user_agent = request.headers.get("User-Agent")
 
-    if is_trash_commenter(
-        name=name, email=email, ip_address=ip_address, user_agent=user_agent
-    ):
+    if is_trash_commenter(name=name, email=email):
         return http.JsonResponse({"trash": True}, status=400)
 
     search = {"comment": comment}
