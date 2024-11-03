@@ -316,6 +316,42 @@ def test_submit_comment_edit(client):
 
 
 @pytest.mark.django_db
+def test_submit_comment_twice(client):
+    url = reverse("publicapi:submit_comment")
+    blogitem = BlogItem.objects.create(
+        oid="oid",
+        title="Title",
+        text="*Text*",
+        text_rendered=BlogItem.render("*Text*", "markdown", ""),
+        display_format="markdown",
+        summary="Summary",
+        pub_date=timezone.now(),
+    )
+
+    response = client.post(
+        url,
+        {
+            "oid": blogitem.oid,
+            "comment": "Foo",
+            "name": "John Doe",
+        },
+    )
+    assert response.status_code == 200
+    BlogComment.objects.filter(blogitem=blogitem).count() == 1
+
+    response = client.post(
+        url,
+        {
+            "oid": blogitem.oid,
+            "comment": "Foo",
+            "name": "John Doe",
+        },
+    )
+    assert response.status_code == 200
+    BlogComment.objects.filter(blogitem=blogitem).count() == 1  # still!
+
+
+@pytest.mark.django_db
 def test_preview_comment(client):
     url = reverse("publicapi:preview_comment")
 
@@ -347,3 +383,11 @@ def test_preview_comment(client):
         '&lt;a href="<a href="http://example.com" '
         'rel="nofollow">http://example.com</a>"&gt;example&lt;/a&gt;'
     )
+
+
+@pytest.mark.django_db
+def test_prepare_comment(client):
+    url = reverse("publicapi:prepare_comment")
+    response = client.get(url)
+    assert response.status_code == 200
+    assert response.json()["csrfmiddlewaretoken"]

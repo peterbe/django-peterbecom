@@ -24,7 +24,6 @@ def blogitem(request, oid):
     cache_key = f"publicapi_blogitem_{oid}:{page}"
     cached = cache.get(cache_key)
     if cached:
-        print(f"blogitem.CACHE-HIT {cache_key!r}")  # temporary
         return http.JsonResponse(cached)
 
     try:
@@ -34,8 +33,6 @@ def blogitem(request, oid):
             blogitem = BlogItem.objects.get(oid__iexact=oid)
         except BlogItem.DoesNotExist:
             return http.HttpResponseNotFound(oid)
-
-    print(f"blogitem.CACHE-MISS {cache_key!r}")  # temporary
 
     future = timezone.now() + datetime.timedelta(days=10)
     if blogitem.pub_date > future:
