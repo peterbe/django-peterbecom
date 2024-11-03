@@ -2,7 +2,12 @@ import pytest
 from django.urls import reverse
 from django.utils import timezone
 
-from peterbecom.plog.models import BlogComment, BlogItem
+from peterbecom.plog.models import (
+    BlogComment,
+    BlogItem,
+    SpamCommentPattern,
+    SpamCommentSignature,
+)
 
 
 @pytest.mark.django_db
@@ -64,6 +69,119 @@ def test_submit_comment_x_forward_for(client):
 
     blog_comment = BlogComment.objects.get(blogitem=blogitem, oid=data["oid"])
     assert blog_comment.ip_address == "2601:201:8a7e:38e0:79f6:4326:ff50:23b3"
+
+
+@pytest.mark.django_db
+def test_spamy_comment(client):
+    url = reverse("publicapi:submit_comment")
+    blogitem = BlogItem.objects.create(
+        oid="oid",
+        title="Title",
+        text="*Text*",
+        text_rendered=BlogItem.render("*Text*", "markdown", ""),
+        display_format="markdown",
+        summary="Summary",
+        pub_date=timezone.now(),
+    )
+    pattern = SpamCommentPattern.objects.create(
+        is_url_pattern=True,
+        pattern="example.com",
+    )
+    response = client.post(
+        url,
+        {"oid": blogitem.oid, "comment": "Comment text http://example.com"},
+    )
+    assert response.status_code == 400
+    assert response.content.decode("utf-8") == "Looks too spammy"
+    pattern.refresh_from_db()
+    assert pattern.kills == 1
+
+    pattern = SpamCommentPattern.objects.create(
+        pattern="skype",
+    )
+    response = client.post(
+        url,
+        {"oid": blogitem.oid, "comment": "Don't mention skype"},
+    )
+    assert response.status_code == 400
+    assert response.content.decode("utf-8") == "Looks too spammy"
+    pattern.refresh_from_db()
+    assert pattern.kills == 1
+
+
+@pytest.mark.django_db
+def test_trash_commenter(client):
+    url = reverse("publicapi:submit_comment")
+    blogitem = BlogItem.objects.create(
+        oid="oid",
+        title="Title",
+        text="*Text*",
+        text_rendered=BlogItem.render("*Text*", "markdown", ""),
+        display_format="markdown",
+        summary="Summary",
+        pub_date=timezone.now(),
+    )
+    signature = SpamCommentSignature.objects.create(
+        name="John Doe", email="john@example.com"
+    )
+    response = client.post(
+        url,
+        {
+            "oid": blogitem.oid,
+            "comment": "Comment text",
+            "name": "John Doe",
+            "email": "john@example.com",
+        },
+    )
+    assert response.status_code == 400
+    assert response.json()["trash"]
+    signature.refresh_from_db()
+    assert signature.kills == 1
+
+    signature.name = None
+    signature.save()
+    response = client.post(
+        url,
+        {
+            "oid": blogitem.oid,
+            "comment": "Comment text",
+            "name": "Whatever",
+            "email": "john@example.com",
+        },
+    )
+    assert response.status_code == 400
+    assert response.json()["trash"]
+    signature.refresh_from_db()
+    assert signature.kills == 2
+
+    signature.email = None
+    signature.name = "John Doe"
+    signature.save()
+    response = client.post(
+        url,
+        {
+            "oid": blogitem.oid,
+            "comment": "Comment text",
+            "name": "John Doe",
+            "email": "",
+        },
+    )
+    assert response.status_code == 400
+    assert response.json()["trash"]
+    signature.refresh_from_db()
+    assert signature.kills == 3
+
+    signature.delete()
+    response = client.post(
+        url,
+        {
+            "oid": blogitem.oid,
+            "comment": "Comment text",
+            "name": "John Doe",
+            "email": "john@example.com",
+        },
+    )
+    assert response.status_code == 200
 
 
 @pytest.mark.django_db

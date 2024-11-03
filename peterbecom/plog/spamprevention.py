@@ -1,9 +1,17 @@
 import re
 
 import bleach
-from django.conf import settings
+from django.db.models import F
 
-from peterbecom.plog.models import SpamCommentPattern
+from peterbecom.plog.models import SpamCommentPattern, SpamCommentSignature
+
+
+def increment_pattern(id: int):
+    SpamCommentPattern.objects.filter(id=id).update(kills=F("kills") + 1)
+
+
+def increment_signature(id: int):
+    SpamCommentSignature.objects.filter(id=id).update(kills=F("kills") + 1)
 
 
 def contains_spam_url_patterns(text):
@@ -11,10 +19,9 @@ def contains_spam_url_patterns(text):
 
     problems = []
 
-    qs = SpamCommentPattern.objects.filter(is_url_pattern=True).values_list(
-        "pattern", flat=True
-    )
-    regex = re.compile(r"|".join([re.escape(x) for x in qs]))
+    qs = SpamCommentPattern.objects.filter(is_url_pattern=True).values("pattern", "id")
+    patterns_map = {x["pattern"]: x["id"] for x in qs}
+    regex = re.compile(r"|".join([re.escape(x) for x in patterns_map.keys()]))
 
     def scrutinize_link(attrs, new, **kwargs):
         href_key = (None, "href")
@@ -32,38 +39,35 @@ def contains_spam_url_patterns(text):
             # Bail if it's not a HTTP URL, such as ssh:// or ftp://
             return
 
-        found = regex.findall(href)
-        if found:
+        for found in regex.findall(href):
             problems.append(found)
+            increment_pattern(patterns_map[found])
 
     bleach.linkify(html, callbacks=[scrutinize_link])
     return bool(problems)
 
 
 def contains_spam_patterns(text):
-    qs = SpamCommentPattern.objects.filter(
-        is_url_pattern=False, is_regex=False
-    ).values_list("pattern", flat=True)
+    qs = SpamCommentPattern.objects.filter(is_url_pattern=False, is_regex=False).values(
+        "pattern", "id"
+    )
     for pattern in qs:
-        if pattern in text:
+        if pattern["pattern"] in text:
+            increment_pattern(pattern["id"])
             return True
     return False
 
 
-def is_trash_commenter(**params):
-    def match(pattern, value):
-        if hasattr(pattern, "search"):
-            # It's a regex!
-            return bool(pattern.search(value))
-        return value == pattern
+def is_trash_commenter(name, email):
+    for signature in SpamCommentSignature.objects.all().values("id", "name", "email"):
+        if signature["name"] is not None and name is not None:
+            if signature["name"] == name:
+                increment_signature(signature["id"])
+                return True
 
-    for combo in settings.TRASH_COMMENT_COMBINATIONS:
-        assert combo
-        assert None not in combo.values()
-
-        # We can only check on things that are in params.
-        common_keys = set(combo) & set([k for k, v in params.items() if v is not None])
-        if common_keys and all(match(combo[k], params[k]) for k in common_keys):
-            return True
+        if signature["email"] is not None and email is not None:
+            if signature["email"] == email:
+                increment_signature(signature["id"])
+                return True
 
     return False
