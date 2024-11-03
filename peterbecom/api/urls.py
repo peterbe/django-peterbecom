@@ -1,6 +1,6 @@
 from django.urls import path, re_path
 
-from . import analytics, spam, views
+from . import analytics, classification, spam, views
 
 app_name = "api"
 
@@ -19,6 +19,11 @@ urlpatterns = [
     ),
     path("plog/spam/signatures", spam.signatures, name="spam_signatures"),
     path("plog/comments/geo/", views.geocomments, name="geocomments"),
+    path(
+        "plog/comments/<str:oid>/classify/",
+        classification.comment_classify,
+        name="comment_classify",
+    ),
     path(
         "plog/comments/counts/",
         views.comment_counts,

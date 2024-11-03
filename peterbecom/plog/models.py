@@ -740,3 +740,15 @@ class SpamCommentSignature(models.Model):
     kills = models.PositiveIntegerField(default=0)
     add_date = models.DateTimeField(auto_now_add=True)
     modify_date = models.DateTimeField(auto_now=True)
+
+
+class BlogCommentClassification(models.Model):
+    blogcomment = models.OneToOneField(BlogComment, on_delete=models.CASCADE)
+    text = models.TextField()
+    classification = models.CharField(max_length=100)
+    add_date = models.DateTimeField(auto_now_add=True)
+    modify_date = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        truncated = f"{self.text[:80]}..." if len(self.text) > 80 else self.text
+        return f"{self.classification!r} on {truncated!r}"
