@@ -12,6 +12,7 @@ from django.utils.dateparse import parse_datetime
 
 from peterbecom.plog.models import (
     BlogComment,
+    BlogCommentClassification,
     BlogFile,
     BlogItem,
     Category,
@@ -241,3 +242,13 @@ class SpamCommentSignatureForm(forms.Form):
             raise forms.ValidationError("Must be null")
 
         return cleaned_data
+
+
+class BlogCommentClassificationForm(forms.ModelForm):
+    class Meta:
+        model = BlogCommentClassification
+        fields = ("text", "classification")
+
+    def clean_classification(self):
+        value = self.cleaned_data["classification"]
+        return value.lower()
