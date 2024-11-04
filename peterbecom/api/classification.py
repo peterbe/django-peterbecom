@@ -1,13 +1,12 @@
 import json
 
-from django.views.decorators.http import require_http_methods
+from django.db.models import Count
 
 from peterbecom.api.forms import BlogCommentClassificationForm
 from peterbecom.base.utils import json_response
 from peterbecom.plog.models import BlogComment, BlogCommentClassification
 
 
-@require_http_methods(["DELETE", "POST"])
 def comment_classify(request, oid):
     try:
         blogcomment = BlogComment.objects.get(oid=oid)
@@ -49,4 +48,22 @@ def comment_classify(request, oid):
         else:
             return json_response({"errors": form.errors}, status=400)
 
-    raise Exception("Should never get here")
+    context = {"classification": None, "choices": []}
+
+    for obj in BlogCommentClassification.objects.filter(blogcomment=blogcomment):
+        context["classification"] = {
+            "id": obj.id,
+            "classification": obj.classification,
+            "text": obj.text,
+            "add_date": obj.add_date,
+            "modify_date": obj.modify_date,
+        }
+
+    for x in (
+        BlogCommentClassification.objects.values("classification")
+        .order_by("classification")
+        .annotate(count=Count("classification"))
+    ):
+        context["choices"].append({"value": x["classification"], "count": x["count"]})
+
+    return json_response(context)

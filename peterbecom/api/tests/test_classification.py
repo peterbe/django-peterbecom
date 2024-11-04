@@ -51,7 +51,8 @@ def test_happy_path(admin_client):
 
     url = reverse("api:comment_classify", args=(blogcomment.oid,))
     response = admin_client.get(url)
-    assert response.status_code == 405
+    assert response.status_code == 200
+    assert response.json() == {"classification": None, "choices": []}
     response = admin_client.post(url)
     assert response.status_code == 400
 
@@ -83,6 +84,18 @@ def test_happy_path(admin_client):
     assert response.status_code == 200
     assert response.json()["ok"] is True
     assert BlogCommentClassification.objects.all().count() == 1
+
+    response = admin_client.get(url)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["choices"] == [
+        {"count": 1, "value": "spam"},
+    ]
+    assert data["classification"]["id"]
+    assert data["classification"]["text"]
+    assert data["classification"]["add_date"]
+    assert data["classification"]["modify_date"]
+    assert data["classification"]["classification"] == "spam"
 
     (classification,) = BlogCommentClassification.objects.all()
 
