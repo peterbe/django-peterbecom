@@ -915,12 +915,6 @@ def blogcomments(request):
             "gravatar_url": get_gravatar_url(item),
             "classification": None,
         }
-        # try:
-        #     record["classification"] = {
-        #         "classification": item.blogcommentclassification.classification,
-        #     }
-        # except ObjectDoesNotExist:
-        #     pass
 
         page = get_comment_page(item)
         record["page"] = page
