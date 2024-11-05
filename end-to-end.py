@@ -57,7 +57,7 @@ def test_homepage():
     assert r.status_code == 200
     assert re.findall(r"max-age=\d+", r.headers["cache-control"])
     assert "public" in r.headers["cache-control"]
-    assert "bxr" in r.request.headers["accept-encoding"], (
+    assert "br" in r.request.headers["accept-encoding"], (
         "requests wasn't sending Brotli as an accept-encoding. "
         "This usually means the 'Brotli' package isn't installed."
     )
