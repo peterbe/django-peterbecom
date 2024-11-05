@@ -43,6 +43,7 @@ from peterbecom.base.utils import do_healthcheck, fake_ip_address, json_response
 from peterbecom.base.xcache_analyzer import get_x_cache
 from peterbecom.plog.models import (
     BlogComment,
+    BlogCommentClassification,
     BlogFile,
     BlogItem,
     BlogItemDailyHits,
@@ -912,7 +913,9 @@ def blogcomments(request):
             "_clues": not item.approved and rate_blog_comment(item) or None,
             "replies": [],
             "gravatar_url": get_gravatar_url(item),
+            "classification": None,
         }
+
         page = get_comment_page(item)
         record["page"] = page
         if page is not None and page > 1:
@@ -1030,6 +1033,31 @@ def blogcomments(request):
             )
         context["comments"].sort(key=lambda c: c["max_add_date"], reverse=True)
         context["oldest"] = oldest
+
+    def get_comment_ids(comments):
+        all_comment_ids = []
+        for comment in comments:
+            all_comment_ids.append(comment["id"])
+            all_comment_ids.extend(get_comment_ids(comment["replies"]))
+        return all_comment_ids
+
+    classifications = {}
+    ids = get_comment_ids(context["comments"])
+    if ids:
+        for id, classification in BlogCommentClassification.objects.filter(
+            blogcomment__id__in=ids
+        ).values_list("blogcomment__id", "classification"):
+            classifications[id] = {
+                "classification": classification,
+            }
+
+        def decorate_classifications(comments):
+            for comment in comments:
+                if comment["id"] in classifications:
+                    comment["classification"] = classifications[comment["id"]]
+                decorate_classifications(comment["replies"])
+
+        decorate_classifications(context["comments"])
 
     return json_response(context)
 
