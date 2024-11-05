@@ -23,7 +23,7 @@ readme = "README.md"
 requires-python = "==3.12.7"
 dependencies = [
     "backoff==2.2.1",
-    "bleach==6.1.0",
+    "bleach==6.2.0",
     "brotli>=1.1.0",
     "cachetools==5.5.0",
     "cssselect==1.2.0",
