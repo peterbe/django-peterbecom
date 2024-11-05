@@ -62,7 +62,7 @@ dependencies = [
     "python-dateutil==2.9.0.post0",
     "python-decouple==3.8",
     "pytz==2024.2",
-    "redis==5.1.1",
+    "redis==5.2.0",
     "requests-mock==1.12.1",
     "requests==2.32.3",
     "rollbar==1.0.0",
