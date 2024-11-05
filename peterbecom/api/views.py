@@ -888,6 +888,18 @@ def blogcomments(request):
             return f"https://www.gravatar.com/avatar/{seed}?{urlencode(sp)}"
         return default
 
+    def _serialize_location(geo_lookup):
+        # This is based on knowing what the DisplayLocation component
+        # in the admin UI needs.
+        if geo_lookup:
+            print('geo_lookup["time_zone"]', repr(geo_lookup["time_zone"]))
+            return {
+                "country_code": geo_lookup["country_code"],
+                "city": geo_lookup["city"],
+                "country_name": geo_lookup["country_name"],
+            }
+        return geo_lookup
+
     def _serialize_comment(item, blogitem=None):
         all_ids.add(item.id)
         geo_lookup = item.geo_lookup
@@ -909,7 +921,7 @@ def blogcomments(request):
             "name": item.name,
             "email": item.email,
             "user_agent": item.user_agent,
-            "location": geo_lookup,
+            "location": _serialize_location(geo_lookup),
             "_clues": not item.approved and rate_blog_comment(item) or None,
             "replies": [],
             "gravatar_url": get_gravatar_url(item),

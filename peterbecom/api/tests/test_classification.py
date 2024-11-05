@@ -105,3 +105,29 @@ def test_happy_path(admin_client):
     response = admin_client.delete(f"{url}?id={classification.id}")
     assert response.status_code == 200
     assert BlogCommentClassification.objects.all().count() == 0
+
+
+def test_delete_blog_comment_keep_classification(admin_client):
+    blogitem = BlogItem.objects.create(
+        oid="hello-world",
+        title="Hello World",
+        pub_date=timezone.now(),
+        proper_keywords=["one", "two"],
+    )
+    blogcomment = BlogComment.objects.create(
+        oid="abc123",
+        blogitem=blogitem,
+        parent=None,
+        approved=False,
+        auto_approved=False,
+        comment="Bla <bla>",
+        name="John Doe",
+        email="",
+    )
+    classification = BlogCommentClassification.objects.create(
+        blogcomment=blogcomment,
+        classification="spam",
+    )
+    blogcomment.delete()
+    classification.refresh_from_db()
+    assert classification.blogcomment is None
