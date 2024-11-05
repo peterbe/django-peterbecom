@@ -892,7 +892,6 @@ def blogcomments(request):
         # This is based on knowing what the DisplayLocation component
         # in the admin UI needs.
         if geo_lookup:
-            print('geo_lookup["time_zone"]', repr(geo_lookup["time_zone"]))
             return {
                 "country_code": geo_lookup["country_code"],
                 "city": geo_lookup["city"],
