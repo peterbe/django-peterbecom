@@ -743,7 +743,9 @@ class SpamCommentSignature(models.Model):
 
 
 class BlogCommentClassification(models.Model):
-    blogcomment = models.OneToOneField(BlogComment, on_delete=models.CASCADE)
+    blogcomment = models.OneToOneField(
+        BlogComment, null=True, on_delete=models.SET_NULL
+    )
     text = models.TextField()
     classification = models.CharField(max_length=100)
     add_date = models.DateTimeField(auto_now_add=True)

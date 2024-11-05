@@ -57,11 +57,14 @@ def test_homepage():
     assert r.status_code == 200
     assert re.findall(r"max-age=\d+", r.headers["cache-control"])
     assert "public" in r.headers["cache-control"]
+    assert "br" in r.request.headers["accept-encoding"], (
+        "requests wasn't sending Brotli as an accept-encoding. "
+        "This usually means the 'Brotli' package isn't installed."
+    )
     assert r.headers["content-encoding"] == "br"
     assert r.headers["content-type"].lower() == "text/html; charset=utf-8".lower()
     if BASE_URL == "https://www.peterbe.com":
         assert r.headers["Strict-Transport-Security"]
-    # print(r.headers.items())
     assert r.headers["x-cache"]
 
 
