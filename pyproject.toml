@@ -66,7 +66,7 @@ dependencies = [
     "requests-mock==1.12.1",
     "requests==2.32.3",
     "rollbar==1.0.0",
-    "ruff==0.7.1",
+    "ruff==0.7.2",
     "sorl-thumbnail==12.11.0",
     "sql-metadata==2.14.0",
     "tomli==2.0.2",
