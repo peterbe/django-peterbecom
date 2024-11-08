@@ -60,6 +60,7 @@ from .forms import (
     BlogFileForm,
     BlogFileUpload,
     BlogitemRealtimeHitsForm,
+    CategoryForm,
     CommentCountsIntervalForm,
     EditBlogCommentForm,
     EditBlogForm,
@@ -271,10 +272,35 @@ def blogitem(request, oid):
 
 
 def categories(request):
+    if request.method == "DELETE":
+        id = request.GET["id"]
+        category = get_object_or_404(Category, id=id)
+        category.delete()
+        return json_response({"ok": True}, status=200)
+
+    if request.method == "POST":
+        data = json.loads(request.body.decode("utf-8"))
+        if "category" in data and not data["category"]:
+            data.pop("category")
+        form = CategoryForm(data)
+        if form.is_valid():
+            if form.cleaned_data["category"]:
+                form.cleaned_data["category"].name = form.cleaned_data["name"]
+                form.cleaned_data["category"].save()
+            else:
+                Category.objects.create(name=form.cleaned_data["name"])
+            return json_response({"ok": True}, status=201)
+        else:
+            return json_response({"errors": form.errors}, status=400)
+
     # Prepare all the names and IDs
     all_categories = {}
     for id, name in Category.objects.all().values_list("id", "name"):
-        all_categories[id] = {"name": name, "count": 0, "id": id}
+        all_categories[id] = {
+            "name": name,
+            "count": 0,
+            "id": id,
+        }
 
     # Gather each categories usage count
     qs = (
