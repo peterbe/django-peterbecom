@@ -252,3 +252,8 @@ class BlogCommentClassificationForm(forms.ModelForm):
     def clean_classification(self):
         value = self.cleaned_data["classification"]
         return value.lower()
+
+
+class CategoryForm(forms.Form):
+    name = forms.CharField(required=True)
+    category = forms.ModelChoiceField(queryset=Category.objects.all(), required=False)
