@@ -158,7 +158,6 @@ class CDNPurgeURL(models.Model):
                 url__in=urls, cancelled__isnull=True, processed__isnull=True
             ).update(cancelled=timezone.now())
             cls.objects.bulk_create([cls(url=url) for url in urls])
-        cls.pulse_about_queue_count()
 
     @classmethod
     def get(cls, max_urls=None):
@@ -179,7 +178,6 @@ class CDNPurgeURL(models.Model):
             urls = [urls]
         cls.validate_urls(urls)
         cls.objects.filter(url__in=urls).update(processed=timezone.now())
-        cls.pulse_about_queue_count()
 
     @classmethod
     def failed(cls, urls):
@@ -200,18 +198,9 @@ class CDNPurgeURL(models.Model):
     def validate_urls(cls, urls):
         for url in urls:
             if "://" in url and url.startswith("http"):
-                raise ValueError(
-                    "Only add pathnames, not absolute URLs ({!r})".format(url)
-                )
+                raise ValueError(f"Only add pathnames, not absolute URLs ({url!r})")
             if not url.startswith("/"):
-                raise ValueError("{} doesn't start with /".format(url))
-
-    @classmethod
-    def pulse_about_queue_count(cls):
-        count = cls.objects.filter(
-            cancelled__isnull=True, processed__isnull=True
-        ).count()
-        send_pulse_message({"cdn_purge_urls": count})
+                raise ValueError(f"{url} doesn't start with /")
 
     @classmethod
     def purge_old(cls, hours=6):
