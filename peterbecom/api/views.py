@@ -1469,10 +1469,9 @@ def cdn_config(request):
     return json_response(context)
 
 
-@require_POST
 @api_superuser_required
 def cdn_probe(request):
-    url = request.POST["url"].strip()
+    url = request.GET.get("url").strip()
     blogitem = None
 
     base_url = "http"
@@ -1540,9 +1539,6 @@ def cdn_probe(request):
         context["http_1"]["x_cache"] = r.headers.get("x-cache")
         context["http_1"]["headers"] = dict(r.headers)
 
-    # Do a http2 GET too when requests3 or hyper has a new release
-    # See https://github.com/Lukasa/hyper/issues/364
-    context["http_2"] = {}
     return json_response(context)
 
 
