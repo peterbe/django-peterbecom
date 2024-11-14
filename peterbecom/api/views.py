@@ -1471,6 +1471,8 @@ def cdn_config(request):
 
 @api_superuser_required
 def cdn_probe(request):
+    if not request.GET.get("url"):
+        return json_response({"error": "No 'url'"}, status=400)
     url = request.GET.get("url").strip()
     blogitem = None
 

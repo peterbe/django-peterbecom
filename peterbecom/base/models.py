@@ -198,11 +198,9 @@ class CDNPurgeURL(models.Model):
     def validate_urls(cls, urls):
         for url in urls:
             if "://" in url and url.startswith("http"):
-                raise ValueError(
-                    "Only add pathnames, not absolute URLs ({!r})".format(url)
-                )
+                raise ValueError(f"Only add pathnames, not absolute URLs ({url!r})")
             if not url.startswith("/"):
-                raise ValueError("{} doesn't start with /".format(url))
+                raise ValueError(f"{url} doesn't start with /")
 
     @classmethod
     def purge_old(cls, hours=6):
