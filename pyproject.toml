@@ -68,7 +68,7 @@ dependencies = [
     "rollbar==1.0.0",
     "ruff==0.7.4",
     "sorl-thumbnail==12.11.0",
-    "sql-metadata==2.14.0",
+    "sql-metadata==2.15.0",
     "tomli==2.1.0",
     "xmltodict==0.14.2",
     "zope-structuredtext==5.0",
