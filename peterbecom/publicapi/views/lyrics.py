@@ -22,13 +22,10 @@ def search(request):
 
     q = form.cleaned_data["q"]
     page = form.cleaned_data.get("page") or 1
-    # desperate = form.cleaned_data.get("desperate") or False
 
     sp = {"q": q}
     if page != 1:
         sp["page"] = page
-    # if desperate:
-    #     sp["desperate"] = "true"
 
     remote_url = f"{settings.LYRICS_REMOTE}/api/search?{urlencode(sp)}"
     response = requests_retry_session().get(remote_url)
@@ -54,7 +51,14 @@ def search(request):
     results = []
     metadata = {}
 
-    res = response.json()
+    try:
+        res = response.json()
+    except JSONDecodeError:
+        print(f"WARNING: JSONDecodeError ({remote_url})", response.text)
+        return http.JsonResponse(
+            {"error": "Unexpected non-JSON error"},
+            status=response.status_code,
+        )
 
     metadata["limit"] = res.get("limit")
     metadata["desperate"] = bool(res.get("desperate"))
