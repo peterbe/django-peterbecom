@@ -9,7 +9,7 @@ usage() {
 
 case $1 in
   start)
-    yarn run start
+    npm run start
     ;;
   *)
     exec "$@"
