@@ -413,8 +413,6 @@ DEFAULT_BOOST_MODE = "sum"
 # Avoid DB reads and writes as much as possible
 DB_MAINTENANCE_MODE = False
 
-SEND_PULSE_MESSAGES = True
-
 SYNONYM_FILE_NAME = config("SYNONYM_FILE_NAME", default="peterbecom.synonyms")
 USE_ES_SYNONYM_FILE_NAME = config("USE_ES_SYNONYM_FILE_NAME", default=True, cast=bool)
 

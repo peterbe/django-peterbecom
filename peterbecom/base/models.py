@@ -10,12 +10,10 @@ from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import ArrayField
 from django.db import models, transaction
 from django.db.models import F
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import pre_save
 from django.db.utils import InterfaceError
 from django.dispatch import receiver
 from django.utils import timezone
-
-from peterbecom.base.utils import send_pulse_message
 
 
 class CommandRun(models.Model):
@@ -58,24 +56,6 @@ class PostProcessing(models.Model):
         return cls.objects.filter(exception__isnull=True, duration__isnull=True)
 
 
-@receiver(post_save, sender=PostProcessing)
-def send_post_processing_pulse(sender, instance, **kwargs):
-    # The duration gets set when the post processing is done.
-    if not kwargs.get("created") and instance.duration:
-        send_pulse_message(
-            {
-                "post_processed": {
-                    "filepath": instance.filepath,
-                    "url": instance.url,
-                    "original_url": instance.original_url,
-                    "duration": instance.duration.total_seconds(),
-                    "notes": instance.notes,
-                    "exception": instance.exception,
-                }
-            }
-        )
-
-
 @receiver(pre_save, sender=PostProcessing)
 def set_previous(sender, instance, **kwargs):
     qs = PostProcessing.objects.filter(url=instance.url)
@@ -109,14 +89,6 @@ class SearchResult(models.Model):
 
     def __str__(self):
         return f"{self.q!r} found {self.documents_found:,} in {self.search_time.total_seconds()*1000:.1f}ms"
-
-
-@receiver(post_save, sender=SearchResult)
-def send_search_result_pulse_message(sender, instance, **kwargs):
-    if kwargs.get("created"):
-        send_pulse_message(
-            {"searched": {"q": instance.q, "documents_found": instance.documents_found}}
-        )
 
 
 class CDNPurgeURL(models.Model):

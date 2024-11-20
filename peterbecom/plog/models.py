@@ -26,7 +26,7 @@ from sorl.thumbnail import ImageField
 from peterbecom.base.geo import ip_to_city
 from peterbecom.base.models import CDNPurgeURL
 from peterbecom.base.search import es_retry
-from peterbecom.base.utils import generate_search_terms, send_pulse_message
+from peterbecom.base.utils import generate_search_terms
 from peterbecom.plog.search import (
     BlogCommentDoc,
     BlogItemDoc,
@@ -510,24 +510,6 @@ class BlogComment(models.Model):
 @receiver(pre_save, sender=BlogComment)
 def update_comment_rendered(sender, instance, **kwargs):
     instance.comment_rendered = sender.get_rendered_comment(instance.comment)
-
-
-@receiver(post_save, sender=BlogComment)
-def send_search_result_pulse_message(sender, instance, **kwargs):
-    if kwargs.get("created"):
-        send_pulse_message(
-            {
-                "commented": {
-                    "oid": instance.oid,
-                    "blogitem": {
-                        "oid": instance.blogitem.oid,
-                        "title": instance.blogitem.title,
-                    },
-                    "name": instance.name,
-                    "email": instance.email,
-                }
-            }
-        )
 
 
 def _uploader_dir(instance, filename):
