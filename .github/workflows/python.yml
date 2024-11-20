@@ -64,7 +64,7 @@ jobs:
             node_modules
           key: ${{ runner.os }}-${{ hashFiles('peterbecom/chiveproxy/package*.json') }}-${{ hashFiles('.github/workflows/python.yml') }}
 
-      - name: Install yarn packages
+      - name: Install node packages
         if: steps.cached-node_modules.outputs.cache-hit != 'true'
         working-directory: peterbecom/chiveproxy
         run: npm install
