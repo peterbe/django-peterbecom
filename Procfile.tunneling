@@ -6,5 +6,3 @@ pg: ssh django@68.183.151.74 -L 6432:localhost:5432 -N
 web: ./bin/wait-for-pg.sh && source tunneling.sh &&  ./bin/run.sh web-dev
 # minimalcss: cd minimalcss && PORT=5555 yarn run start
 huey: ./bin/wait-for-pg.sh && ./bin/huey-isnt-running.sh && source tunneling.sh && ./bin/run.sh huey
-#adminui: ./bin/run.sh adminui
-#pulse: cd pulse && yarn run dev

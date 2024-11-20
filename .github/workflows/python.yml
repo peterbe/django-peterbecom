@@ -44,7 +44,7 @@ jobs:
         uses: Harmon758/postgresql-action@v1.0.0
         with:
           # Version of PostgreSQL to use
-          postgresql version: '12'
+          postgresql version: '16'
           postgresql db: peterbecom
           postgresql user: user
           postgresql password: secret
@@ -54,8 +54,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'yarn'
+          node-version: '22'
 
       - name: Cache node_modules
         uses: actions/cache@v4
@@ -63,11 +62,12 @@ jobs:
         with:
           path: |
             node_modules
-          key: ${{ runner.os }}-${{ hashFiles('yarn.lock') }}-${{ hashFiles('.github/workflows/python.yml') }}
+          key: ${{ runner.os }}-${{ hashFiles('peterbecom/chiveproxy/package*.json') }}-${{ hashFiles('.github/workflows/python.yml') }}
 
-      - name: Install yarn packages
+      - name: Install node packages
         if: steps.cached-node_modules.outputs.cache-hit != 'true'
-        run: yarn --frozen-lockfile
+        working-directory: peterbecom/chiveproxy
+        run: npm install
 
       - name: Install uv
         id: setup-uv
