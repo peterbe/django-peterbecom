@@ -71,7 +71,7 @@ dependencies = [
     "tomli==2.1.0",
     "xmltodict==0.14.2",
     "zope-structuredtext==5.0",
-    "zopfli==0.2.3",
+    "zopfli==0.2.3.post1",
 ]
 
 [tool.coverage.run]
