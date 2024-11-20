@@ -27,7 +27,7 @@ jobs:
 
       - uses: getong/elasticsearch-action@v1.3
         with:
-          elasticsearch version: '7.7.0'
+          elasticsearch version: '8.16.0'
           host port: 9200
           container port: 9200
           host node port: 9300
