@@ -1,6 +1,7 @@
 import os
 import signal
 import subprocess
+from pathlib import Path
 
 
 class SubprocessError(Exception):
@@ -43,7 +44,8 @@ def subprocess_execute(command, timeout_seconds=30, shell=True):
 
 
 def suck(url, attempts=3, debug=False):
-    js_file = os.path.join(os.path.dirname(__file__), "puppeteer_sucks.js")
+    here = Path(__file__).parent
+    js_file = here / "puppeteer_sucks.js"
     command = f'node {js_file} "{url}"'
     if debug:
         print("Command:", command)
