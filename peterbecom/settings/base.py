@@ -100,7 +100,6 @@ MIDDLEWARE = (
     "peterbecom.base.middleware.NoNewlineRequestPaths",
     # Important that this is last
     "peterbecom.base.middleware.StatsMiddleware",
-    # "querycount.middleware.QueryCountMiddleware",
 )
 
 ROOT_URLCONF = "peterbecom.urls"
@@ -392,19 +391,6 @@ TRASH_COMMENT_COMBINATIONS = [
     # {"name": "Foo", "email": ""}
     # {"user_agent": re.compile(r'foo'), "ip_address": "123.456.789.12"},
 ]
-
-QUERYCOUNT = {
-    "THRESHOLDS": {
-        "MEDIUM": 50,
-        "HIGH": 200,
-        "MIN_TIME_TO_LOG": 0,
-        "MIN_QUERY_COUNT_TO_LOG": 0,
-    },
-    "IGNORE_REQUEST_PATTERNS": [r"^/api/v0/cdn/purge/urls/count"],
-    "IGNORE_SQL_PATTERNS": [],
-    "DISPLAY_DUPLICATES": None,
-    "RESPONSE_HEADER": "X-DjangoQueryCount-Count",
-}
 
 QUICKMETRICS_API_KEY = None
 
