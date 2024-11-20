@@ -4,10 +4,7 @@ from django.urls import path, re_path
 from . import views
 
 urlpatterns = [
-    path(r"", views.plog_index, name="plog_index"),
     path("prepare.json", views.prepare_json, name="prepare"),
-    path("preview.json", views.preview_json, name="preview"),
-    re_path(r"^(.*)/submit$", views.submit_json, name="submit"),
     re_path(
         r"^(?P<oid>.*)/p(?P<page>\d+)/ping$",
         views.blog_post_ping,
