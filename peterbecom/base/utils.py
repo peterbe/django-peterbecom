@@ -1,6 +1,5 @@
 import json
 import random
-import traceback
 from ipaddress import IPv4Address
 from pathlib import Path
 
@@ -8,7 +7,6 @@ import requests
 from django import http
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
-from django_redis import get_redis_connection
 from jsonschema import validate
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
@@ -84,23 +82,6 @@ def requests_retry_session(
     session.mount("http://", adapter)
     session.mount("https://", adapter)
     return session
-
-
-def send_pulse_message(msg, raise_errors=False):
-    if not settings.SEND_PULSE_MESSAGES:
-        return
-    try:
-        client = get_redis_connection("default")
-        if not isinstance(msg, str):
-            try:
-                msg = json.dumps(msg, cls=PathJSONEncoder)
-            except TypeError:
-                print(f"Unable to JSON dump msg: {msg!r}")
-                raise
-        client.publish("pulse", msg)
-    except Exception:
-        print("EXCEPTION SENDING PUBLISHING PULSE MESSAGE!")
-        traceback.print_exc()
 
 
 def fake_ip_address(seed):
