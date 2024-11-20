@@ -56,7 +56,7 @@ def search(request):
     except JSONDecodeError:
         print(f"WARNING: JSONDecodeError ({remote_url})", response.text)
         return http.JsonResponse(
-            {"error": "Unexpected non-JSON error"},
+            {"error": "Unexpected non-JSON error on fetching search"},
             status=response.status_code,
         )
 
@@ -126,7 +126,15 @@ def song(request):
             {"error": "Unexpected proxy response code"}, status=response.status_code
         )
 
-    res = response.json()
+    try:
+        res = response.json()
+    except JSONDecodeError:
+        print(f"WARNING: JSONDecodeError ({remote_url})", response.text)
+        return http.JsonResponse(
+            {"error": "Unexpected non-JSON error on fetching song"},
+            status=response.status_code,
+        )
+
     song_data = res["song"]
 
     image = song_data.get("image")
