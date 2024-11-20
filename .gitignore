@@ -27,7 +27,6 @@ minimalcss/yarn-error.log
 yarn-error.log
 htmlcov/
 GeoLite2-City.mmdb
-adminui/build.zip
 songsearch-autocomplete/songsearch-autocomplete.zip
 cdn-crawl/cdn-crawler-report-every
 cdn-crawl/cdn-crawler-sleeptime
@@ -40,5 +39,4 @@ peterbecom/static/
 songsearch-autocomplete-preact/build/
 exported-blogcomments.json
 peterbecom/base/management/commands/x-cache-some.log
-adminui/.eslintcache
 coverage.xml

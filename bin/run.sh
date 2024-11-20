@@ -76,13 +76,6 @@ case $1 in
     setup_python
     python manage.py run_huey --flush-locks --huey-verbose
     ;;
-  adminui)
-    cd adminui
-    node --version
-    fnm use `cat .node-version`
-    node --version
-    REACT_APP_WS_URL=ws://localhost:8080 REACT_APP_BASE_URL=http://localhost:3000 BROWSER=none PORT=4000 yarn start
-    ;;
   bash)
     # echo "For high-speed test development, run: pip install pytest-watch"
     exec "$@"

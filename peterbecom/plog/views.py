@@ -1,27 +1,13 @@
 import datetime
 import logging
-import re
 
 from django import http
-from django.conf import settings
-from django.db import transaction
-from django.shortcuts import get_object_or_404, redirect
-from django.template.loader import render_to_string
+from django.shortcuts import redirect
 from django.utils import timezone
-from django.views.decorators.cache import cache_control
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
-from django.views.decorators.http import require_http_methods, require_POST
+from django.views.decorators.http import require_http_methods
 
-from peterbecom.base.utils import fake_ip_address
-
-from .models import BlogComment, BlogItem, BlogItemHit
-from .spamprevention import (
-    contains_spam_patterns,
-    contains_spam_url_patterns,
-    is_trash_commenter,
-)
-from .tasks import send_new_comment_email
-from .utils import render_comment_text
+from .models import BlogItem, BlogItemHit
 
 logger = logging.getLogger("plog.views")
 
@@ -127,148 +113,10 @@ def get_related_posts_by_categories(post, limit=5, exclude_ids=None):
     )
 
 
-def _render_comment(comment):
-    return render_to_string("plog/comment.html", {"comment": comment})
-
-
 @ensure_csrf_cookie
 def prepare_json(request):
     data = {"csrf_token": request.META["CSRF_COOKIE"]}
     return http.JsonResponse(data)
-
-
-@ensure_csrf_cookie
-@require_POST
-def preview_json(request):
-    raise Exception("deprecated")
-
-    comment = request.POST.get("comment", "").strip()
-    name = request.POST.get("name", "").strip()
-    email = request.POST.get("email", "").strip()
-    if not comment:
-        return http.JsonResponse({})
-
-    html = render_comment_text(comment.strip())
-    comment = {
-        "oid": "preview-oid",
-        "name": name,
-        "email": email,
-        "rendered": html,
-        "add_date": timezone.now(),
-    }
-    html = render_to_string("plog/comment.html", {"comment": comment, "preview": True})
-    return http.JsonResponse({"html": html})
-
-
-@require_POST
-@transaction.atomic
-def submit_json(request, oid):
-    raise Exception("deprecated")
-
-    post = get_object_or_404(BlogItem, oid=oid, archived__isnull=True)
-    if post.disallow_comments:
-        return http.HttpResponseBadRequest("No comments please")
-    comment = request.POST.get("comment", "").strip()
-    if not comment:
-        return http.HttpResponseBadRequest("Missing comment")
-
-    # I'm desperate so I'll put in some easy-peasy spam checks before I get around
-    # to building a proper classifier.
-    comment_lower = comment.lower()
-    if (
-        (
-            ("whatsapp" in comment_lower or "://" in comment)
-            and ("@gmail.com" in comment_lower or "@yahoo.com" in comment_lower)
-            and re.findall(r"\+\d+", comment)
-        )
-        or (
-            ("@gmail.com" in comment_lower or "@yahoo.com" in comment_lower)
-            and (
-                "spell" in comment
-                or "healing" in comment
-                or "call doctor" in comment_lower
-            )
-        )
-        or contains_spam_url_patterns(comment)
-        or contains_spam_patterns(comment)
-    ):
-        return http.HttpResponseBadRequest("Looks too spammy")
-
-    name = request.POST.get("name", "").strip()
-    email = request.POST.get("email", "").strip()
-
-    parent = request.POST.get("parent")
-    if parent:
-        parent = get_object_or_404(BlogComment, oid=parent)
-    else:
-        parent = None  # in case it was u''
-
-    search = {"comment": comment}
-    if name:
-        search["name"] = name
-    if email:
-        search["email"] = email
-    if parent:
-        search["parent"] = parent
-
-    ip_address = request.headers.get("x-forwarded-for") or request.META.get(
-        "REMOTE_ADDR"
-    )
-    if ip_address == "127.0.0.1" and settings.FAKE_BLOG_COMMENT_IP_ADDRESS:
-        ip_address = fake_ip_address(str(name) + str(email))
-
-    user_agent = request.headers.get("User-Agent")
-
-    if is_trash_commenter(
-        name=name, email=email, ip_address=ip_address, user_agent=user_agent
-    ):
-        return http.JsonResponse({"trash": True}, status=400)
-
-    for blog_comment in BlogComment.objects.filter(**search):
-        break
-    else:
-        blog_comment = BlogComment.objects.create(
-            oid=BlogComment.next_oid(),
-            blogitem=post,
-            parent=parent,
-            approved=False,
-            comment=comment,
-            name=name,
-            email=email,
-            ip_address=ip_address,
-            user_agent=user_agent,
-        )
-        try:
-            blog_comment.create_geo_lookup()
-        except Exception as exception:
-            if settings.DEBUG:
-                raise
-            print("WARNING! {!r} create_geo_lookup failed".format(exception))
-
-        if post.oid != "blogitem-040601-1":
-            transaction.on_commit(lambda: send_new_comment_email(blog_comment.id))
-
-    html = render_to_string(
-        "plog/comment.html", {"comment": blog_comment, "preview": True}
-    )
-    _comments = BlogComment.objects.filter(approved=True, blogitem=post)
-    comment_count = _comments.count() + 1
-    data = {
-        "html": html,
-        "parent": parent and parent.oid or None,
-        "comment_count": comment_count,
-    }
-
-    return http.JsonResponse(data)
-
-
-@cache_control(public=True, max_age=60 * 60 * 24 * 2)
-def plog_index(request):
-    return http.HttpResponse("Deprecated")
-
-
-def plog_hits(request):
-    raise NotImplementedError("Moved to adminui")
 
 
 def plog_hits_data(request):
