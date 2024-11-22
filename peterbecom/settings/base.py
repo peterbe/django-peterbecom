@@ -300,8 +300,8 @@ PNGQUANT_PATH = "pngquant"
 
 LOGIN_URL = "/signin/"
 
-MINIMALCSS_SERVER_URL = "http://localhost:5555"
-MINIMALCSS_TIMEOUT_SECONDS = 12.0  # Most seem to take about 2-4 seconds in production
+# MINIMALCSS_SERVER_URL = "http://localhost:5555"
+# MINIMALCSS_TIMEOUT_SECONDS = 12.0  # Most seem to take about 2-4 seconds in production
 
 ENABLE_CLIENT_SIDE_ROLLBAR = False
 
