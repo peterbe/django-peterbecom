@@ -2,11 +2,10 @@ import textwrap
 
 from django.contrib.sites.models import Site
 from django.core.mail import send_mail
-from django.urls import reverse
 from huey.contrib.djhuey import task
 
 from peterbecom.plog.models import BlogComment
-from peterbecom.plog.utils import get_comment_page
+from peterbecom.plog.utils import blog_post_url, get_comment_page
 
 
 @task()
@@ -31,10 +30,7 @@ def send_comment_reply_email(blogcomment_id):
 
 def _get_comment_reply_body(blogitem, blogcomment, parent):
     page = get_comment_page(blogcomment)
-    if page > 1:
-        comment_url = reverse("blog_post", args=[blogitem.oid, page])
-    else:
-        comment_url = reverse("blog_post", args=[blogitem.oid])
+    comment_url = blog_post_url(blogitem.oid, page)
 
     domain = Site.objects.get_current().domain
     if domain == "peterbecom.local":

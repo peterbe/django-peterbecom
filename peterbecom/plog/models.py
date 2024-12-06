@@ -17,7 +17,6 @@ from django.db import models, transaction
 from django.db.models import Count
 from django.db.models.signals import post_save, pre_delete, pre_save
 from django.dispatch import receiver
-from django.urls import reverse
 from django.utils import timezone
 from elasticsearch.helpers import parallel_bulk
 from elasticsearch_dsl.connections import connections
@@ -35,6 +34,7 @@ from peterbecom.plog.search import (
 )
 
 from . import utils
+from .utils import blog_post_url
 
 
 class HTMLRenderingError(Exception):
@@ -95,7 +95,7 @@ class BlogItem(models.Model):
         return "<%s: %r>" % (self.__class__.__name__, self.oid)
 
     def get_absolute_url(self):
-        return reverse("blog_post", args=(self.oid,))
+        return blog_post_url(self.oid)
 
     @property
     def rendered(self):
@@ -413,14 +413,6 @@ class BlogComment(models.Model):
     ip_address = models.GenericIPAddressField(blank=True, null=True)
     geo_lookup = models.JSONField(null=True)
 
-    # def __repr__(self):
-    #     return "<%s: %s %r (%sapproved)>" % (
-    #         self.__class__.__name__,
-    #         self.id,
-    #         self.oid + " " + self.comment[:20],
-    #         not self.approved and "not" or "",
-    #     )
-
     def __str__(self):
         return "{} {!r} ({})".format(
             self.id,
@@ -666,9 +658,9 @@ def invalidate_cdn_urls(sender, instance, **kwargs):
         if page >= settings.MAX_BLOGCOMMENT_PAGES:
             break
         if page > 1:
-            urls.append(reverse("blog_post", args=[blogitem.oid, page]))
+            urls.append(blog_post_url(blogitem.oid, page))
         else:
-            urls.append(reverse("blog_post", args=[blogitem.oid]))
+            urls.append(blog_post_url(blogitem.oid))
 
     if urls:
         CDNPurgeURL.add(urls)

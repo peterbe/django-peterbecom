@@ -349,19 +349,6 @@ wheels = [
 ]
 
 [[package]]
-name = "django-jinja"
-version = "2.10.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-    { name = "jinja2" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/71/1c/604f0e6833703a7109c6e5c2d67ad4bf54eec9065ecd5b85394f74cb06cb/django-jinja-2.10.2.tar.gz", hash = "sha256:bfdfbb55c1f5a679d69ad575d550c4707d386634009152efe014089f3c4d1412", size = 17515 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/9c/e8/6318d3721e66a5e4883a9f6075f21c828f283caf8ad61414005f1e63bd82/django_jinja-2.10.2-py3-none-any.whl", hash = "sha256:dd003ec1c95c0989eb28a538831bced62b1b61da551cb44a5dfd708fcf75589f", size = 23488 },
-]
-
-[[package]]
 name = "django-peterbecom"
 version = "0.1.0"
 source = { virtual = "." }
@@ -374,7 +361,6 @@ dependencies = [
     { name = "delegator-py" },
     { name = "dj-database-url" },
     { name = "django" },
-    { name = "django-jinja" },
     { name = "django-redis" },
     { name = "elasticsearch" },
     { name = "elasticsearch-dsl" },
@@ -384,7 +370,6 @@ dependencies = [
     { name = "gunicorn" },
     { name = "huey" },
     { name = "ipaddress" },
-    { name = "jinja2" },
     { name = "jsonschema" },
     { name = "keycdn" },
     { name = "lxml" },
@@ -428,7 +413,6 @@ requires-dist = [
     { name = "delegator-py", specifier = "==0.1.1" },
     { name = "dj-database-url", specifier = "==2.3.0" },
     { name = "django", specifier = "==5.1.3" },
-    { name = "django-jinja", specifier = "==2.10.2" },
     { name = "django-redis", specifier = "==5.4.0" },
     { name = "elasticsearch", specifier = "==8.16.0" },
     { name = "elasticsearch-dsl", specifier = "==8.16.0" },
@@ -438,7 +422,6 @@ requires-dist = [
     { name = "gunicorn", specifier = "==23.0.0" },
     { name = "huey", specifier = "==2.5.2" },
     { name = "ipaddress", specifier = "==1.0.23" },
-    { name = "jinja2", specifier = "==3.0.3" },
     { name = "jsonschema", specifier = "==4.23.0" },
     { name = "keycdn", specifier = "==0.4.3" },
     { name = "lxml", specifier = "==5.3.0" },

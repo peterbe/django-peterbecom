@@ -3,7 +3,6 @@ import datetime
 import pytest
 from django.contrib.sites.models import Site
 from django.core import mail
-from django.urls import reverse
 from django.utils import timezone
 
 from peterbecom.api import tasks
@@ -41,7 +40,7 @@ def test_send_comment_reply_email_page_1():
     assert sent.to == ["rooter@example.com"]
 
     comment_absolute_url = "https://" + Site.objects.get_current().domain
-    comment_absolute_url += reverse("blog_post", args=[blogitem.oid])
+    comment_absolute_url += f"/plog/{blogitem.oid}"
     comment_absolute_url += "#" + parent_comment.oid
     assert comment_absolute_url in sent.body
 
@@ -106,6 +105,6 @@ def test_send_comment_reply_email_page_2(settings):
     assert sent.to == ["middle@example.com"]
 
     comment_absolute_url = "https://" + Site.objects.get_current().domain
-    comment_absolute_url += reverse("blog_post", args=[blogitem.oid, 2])
+    comment_absolute_url += f"/plog/{blogitem.oid}/p2"
     comment_absolute_url += "#" + middle_blogcomment.oid
     assert comment_absolute_url in sent.body

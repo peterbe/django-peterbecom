@@ -27,6 +27,12 @@ from requests.exceptions import ConnectionError, ReadTimeout
 from .gfm import gfm
 
 
+def blog_post_url(oid, page=None):
+    if page and page != 1:
+        return f"/plog/{oid}/p{page}"
+    return f"/plog/{oid}"
+
+
 def is_bot(ua="", ip=None):
     if "bot" not in ua.lower() and "download-all-plogs.py" not in ua:
         return False
