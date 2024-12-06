@@ -95,7 +95,7 @@ class BlogItem(models.Model):
         return "<%s: %r>" % (self.__class__.__name__, self.oid)
 
     def get_absolute_url(self):
-        return reverse("blog_post", args=(self.oid,))
+        return f"/plog/{self.oid}"
 
     @property
     def rendered(self):
