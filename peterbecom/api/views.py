@@ -19,7 +19,6 @@ from django.db.models.functions import Trunc
 from django.db.utils import IntegrityError
 from django.middleware.csrf import get_token
 from django.shortcuts import get_object_or_404
-from django.urls import reverse
 from django.utils import timezone
 from django.utils.timesince import timesince as django_timesince
 from django.views.decorators.cache import cache_control, never_cache
@@ -52,7 +51,7 @@ from peterbecom.plog.models import (
     SpamCommentPattern,
 )
 from peterbecom.plog.popularity import score_to_popularity
-from peterbecom.plog.utils import rate_blog_comment, valid_email  # move this some day
+from peterbecom.plog.utils import blog_post_url, rate_blog_comment, valid_email
 
 from .forms import (
     BlogCommentBatchBothForm,
@@ -955,17 +954,14 @@ def blogcomments(request):
 
         page = get_comment_page(item)
         record["page"] = page
-        if page is not None and page > 1:
-            blog_post_url = reverse("blog_post", args=[blogitem.oid, page])
-        else:
-            blog_post_url = reverse("blog_post", args=[blogitem.oid])
-        record["_absolute_url"] = blog_post_url + "#{}".format(item.oid)
+        url = blog_post_url(blogitem.oid, page)
+        record["_absolute_url"] = f"{url}#{item.oid}"
         if blogitem:
             record["blogitem"] = {
                 "id": blogitem.id,
                 "oid": blogitem.oid,
                 "title": blogitem.title,
-                "_absolute_url": reverse("blog_post", args=[blogitem.oid]),
+                "_absolute_url": blog_post_url(blogitem.oid),
             }
 
             if item.name or item.email:
@@ -1506,7 +1502,7 @@ def cdn_probe(request):
                 return json_response({"error": "OID not found"}, status=400)
 
         absolute_url = get_cdn_base_url()
-        absolute_url += reverse("blog_post", args=[blogitem.oid])
+        absolute_url += blog_post_url(blogitem.oid)
     else:
         return json_response({"error": "Invalid search"}, status=400)
 
@@ -1521,7 +1517,7 @@ def cdn_probe(request):
         for page in range(2, pages + 2):
             if page > settings.MAX_BLOGCOMMENT_PAGES:
                 break
-            url = reverse("blog_post", args=[blogitem.oid, page])
+            url = blog_post_url(blogitem.oid, page)
             other_pages.append(
                 {
                     "url": base_url + url,
