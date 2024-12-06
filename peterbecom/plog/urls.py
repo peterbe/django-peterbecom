@@ -10,7 +10,6 @@ urlpatterns = [
         views.blog_post_ping,
         name="blog_post_ping",
     ),
-    re_path(r"^(?P<oid>.*)/ping$", views.blog_post_ping, name="blog_post_ping"),
     re_path(
         r"^(?P<oid>.*)/p(?P<page>\d+)/$",
         lambda r, oid, page: http.HttpResponseRedirect("/{}/p{}".format(oid, page)),
