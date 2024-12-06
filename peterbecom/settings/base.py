@@ -132,32 +132,6 @@ _CONTEXT_PROCESSORS = (
 
 TEMPLATES = [
     {
-        "BACKEND": "django_jinja.backend.Jinja2",
-        "APP_DIRS": True,
-        "OPTIONS": {
-            # Use jinja2/ for jinja templates
-            "app_dirname": "jinja2",
-            # Don't figure out which template loader to use based on
-            # file extension
-            "match_extension": "",
-            # 'newstyle_gettext': True,
-            "context_processors": _CONTEXT_PROCESSORS,
-            "debug": False,
-            "undefined": "jinja2.Undefined",
-            "extensions": [
-                "jinja2.ext.do",
-                "jinja2.ext.loopcontrols",
-                "jinja2.ext.with_",
-                "jinja2.ext.i18n",  # needed to avoid errors in django_jinja
-                "jinja2.ext.autoescape",
-                "django_jinja.builtins.extensions.CsrfExtension",
-                "django_jinja.builtins.extensions.StaticFilesExtension",
-                "django_jinja.builtins.extensions.DjangoFiltersExtension",
-            ],
-            "globals": {},
-        },
-    },
-    {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [],  # what does this do?!
         "APP_DIRS": True,
@@ -182,7 +156,6 @@ INSTALLED_APPS = (
     "peterbecom.chiveproxy",
     "peterbecom.minimalcss",
     "peterbecom.bayes",
-    "django_jinja",
     "huey.contrib.djhuey",
 )
 
@@ -208,18 +181,6 @@ LOGGING = {
         "huey": {"handlers": ["console"], "level": "INFO", "propagate": True},
     },
 }
-
-
-def JINJA_CONFIG():
-    config = {
-        "extensions": [
-            "jinja2.ext.do",
-            "jinja2.ext.with_",
-            "jinja2.ext.loopcontrols",
-        ],
-        "finalize": lambda x: x if x is not None else "",
-    }
-    return config
 
 
 # REDIS_URL = 'redis://redis:6379/0'
