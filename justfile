@@ -24,7 +24,7 @@ lint: pretty
 format: pretty
 
 install:
-    pip install -r requirements.txt
+    uv sync
 
 test:
     ./bin/run.sh test
