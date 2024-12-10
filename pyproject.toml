@@ -53,7 +53,7 @@ dependencies = [
     "ptyprocess==0.7.0",
     "py-avataaars==1.1.2",
     "pyquery==2.0.1",
-    "pytest-cov>=5.0.0",
+    "pytest-cov==6.0.0",
     "pytest-django>=4.9.0",
     "pytest-watch>=4.2.0",
     "python-dateutil==2.9.0.post0",
