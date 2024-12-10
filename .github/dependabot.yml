@@ -5,10 +5,6 @@ updates:
   schedule:
     interval: monthly
   open-pull-requests-limit: 20
-- package-ecosystem: npm
-  directory: "/minimalcss"
-  schedule:
-    interval: weekly
 - package-ecosystem: "github-actions"
   directory: "/"
   schedule:
