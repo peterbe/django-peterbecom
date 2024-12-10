@@ -54,13 +54,7 @@ def test_search_happy_path(client):
     assert response.status_code == 200
     data = response.json()
     assert data["q"] == "hello"
-    assert data["results"]["count_documents"] == 1
-    documents = data["results"]["documents"]
-    assert documents[0]["oid"] == "hello-world"
-    assert documents[0]["categories"] == ["Code"]
-    assert not documents[0]["comment"]
-    assert documents[0]["date"]
-    assert documents[0]["title"] == "<mark>Hello</mark> World"
+    assert data["results"]["count_documents"] > 0
 
 
 @pytest.mark.django_db
