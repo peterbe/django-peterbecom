@@ -36,9 +36,14 @@ def assert_elasticsearch_index():
     blog_comment_index.create()
     swap_alias(es, blog_comment_index._name, TEST_ES_BLOG_COMMENT_INDEX)
 
+    # The reason SearchTermDoc is not set up here is because it's never
+    # incrementally populated (e.g. new comment => immediately add
+    # it to the index)
+
     yield
 
-    print("CONSIDER DELETING TEST INDEXES")
+    blog_item_index.delete()
+    blog_comment_index.delete()
 
 
 @pytest.fixture(autouse=True)
