@@ -81,8 +81,38 @@ def delete_old_blogitemhits():
     else crontab(hour="0", minute="0")
 )
 def reindex_search_terms():
-    count, took = BlogItem.index_all_search_terms()
-    print(f"Indexed {count:,} search terms in {took:.1f} seconds ({timezone.now()})")
+    count, took, index_name = BlogItem.index_all_search_terms()
+    print(
+        f"Indexed {count:,} search terms into {index_name} "
+        f"in {took:.1f} seconds ({timezone.now()})"
+    )
+
+
+@periodic_task(
+    # Every hour in local dev
+    crontab(hour="*", minute="2")
+    if settings.DEBUG
+    # Every day at midnight in production
+    else crontab(hour="0", minute="2")
+)
+def reindex_blog_items():
+    count, took, index_name = BlogItem.index_all_blogitems()
+    print(
+        f"Indexed {count:,} blog items into {index_name!r} "
+        f"in {took:.1f} seconds ({timezone.now()})"
+    )
+
+
+@periodic_task(
+    # Every day at midnight in production
+    crontab(hour="0", minute="3")
+)
+def reindex_blog_comments():
+    count, took, index_name = BlogItem.index_all_blogcomments()
+    print(
+        f"Indexed {count:,} blog comments into {index_name!r} "
+        f"in {took:.1f} seconds ({timezone.now()})"
+    )
 
 
 @periodic_task(
