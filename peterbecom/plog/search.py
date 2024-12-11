@@ -7,7 +7,6 @@ from elasticsearch_dsl import (
     Float,
     Integer,
     Keyword,
-    SearchAsYouType,
     Text,
     analyzer,
     token_filter,
@@ -62,7 +61,7 @@ class BlogItemDoc(Document):
     id = Keyword(required=True)
     oid = Keyword(required=True)
     # https://github.com/elastic/elasticsearch-dsl-py/blob/master/examples/search_as_you_type.py
-    title_autocomplete = SearchAsYouType(max_shingle_size=3)
+    # title_autocomplete = SearchAsYouType(max_shingle_size=3)  # XXX IS THIS EVER
     title = Text(
         required=True, analyzer=text_analyzer, term_vector="with_positions_offsets"
     )

@@ -193,7 +193,7 @@ class BlogItem(models.Model):
             "id": self.id,
             "oid": self.oid,
             "title": self.title,
-            "title_autocomplete": self.title,
+            # "title_autocomplete": self.title,
             "popularity": self.popularity or 0.0,
             "text": cleaned,
             "pub_date": self.pub_date,

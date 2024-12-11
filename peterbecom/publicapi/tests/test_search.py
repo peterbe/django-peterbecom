@@ -9,18 +9,6 @@ from peterbecom.plog.models import BlogComment, BlogItem, Category
 
 
 @pytest.mark.django_db
-def test_autocompete_search_empty(client):
-    url = reverse("publicapi:autocompete")
-    response = client.get(url)
-    assert response.status_code == 400
-    response = client.get(url, {"q": "fxx"})
-    assert response.status_code == 200
-    data = response.json()
-    assert data["terms"] == ["fxx"]
-    assert data["results"] == []
-
-
-@pytest.mark.django_db
 def test_search_empty(client):
     url = reverse("publicapi:search")
     response = client.get(url)
