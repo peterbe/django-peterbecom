@@ -76,6 +76,10 @@ class BlogItemDoc(Document):
         name = timestamped(dj_settings.ES_BLOG_ITEM_INDEX)
         settings = dj_settings.ES_BLOG_ITEM_INDEX_SETTINGS
 
+        @classmethod
+        def get_refreshed_name(cls, name=None):
+            return timestamped(name or dj_settings.ES_BLOG_ITEM_INDEX)
+
 
 class BlogCommentDoc(Document):
     id = Keyword(required=True)
@@ -89,6 +93,10 @@ class BlogCommentDoc(Document):
     class Index:
         name = timestamped(dj_settings.ES_BLOG_COMMENT_INDEX)
         settings = dj_settings.ES_BLOG_COMMENT_INDEX_SETTINGS
+
+        @classmethod
+        def get_refreshed_name(cls, name=None):
+            return timestamped(name or dj_settings.ES_BLOG_COMMENT_INDEX)
 
 
 class SearchTermDoc(Document):
@@ -104,8 +112,8 @@ class SearchTermDoc(Document):
         settings = dj_settings.ES_SEARCH_TERM_INDEX_SETTINGS
 
         @classmethod
-        def get_refreshed_name(cls):
-            return timestamped(dj_settings.ES_SEARCH_TERM_INDEX)
+        def get_refreshed_name(cls, name=None):
+            return timestamped(name or dj_settings.ES_SEARCH_TERM_INDEX)
 
 
 def swap_alias(connection, index_name, alias):
