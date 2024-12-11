@@ -193,7 +193,7 @@ class BlogItem(models.Model):
             "id": self.id,
             "oid": self.oid,
             "title": self.title,
-            "title_autocomplete": self.title,
+            # "title_autocomplete": self.title,
             "popularity": self.popularity or 0.0,
             "text": cleaned,
             "pub_date": self.pub_date,
@@ -225,6 +225,17 @@ class BlogItem(models.Model):
         es = connections.get_connection()
         report_every = 100
         count = 0
+
+        # This is necessary so that the `SarchTermDoc.Index.name` isn't
+        # what it was when the class was created, which was at startup time.
+        # Normally, operations that involve indexing is happened immediately
+        # after having started the Python process. But if this code is run
+        # multiple times, if we didn't refresh the name, we'd be trying to
+        # create the same index over and over and its name would be that
+        # which gets set when the code imports/loads the first time.
+        index_name = BlogItemDoc.Index.get_refreshed_name()
+        BlogItemDoc._index._name = index_name
+
         t0 = time.time()
         BlogItemDoc._index.create()
         for success, doc in parallel_bulk(
@@ -237,10 +248,10 @@ class BlogItem(models.Model):
             if verbose and not count % report_every:
                 print(f"{count:,}")
 
-        swap_alias(es, BlogItemDoc._index._name, settings.ES_BLOG_ITEM_INDEX)
+        swap_alias(es, index_name, settings.ES_BLOG_ITEM_INDEX)
 
         t1 = time.time()
-        return count, t1 - t0
+        return count, t1 - t0, index_name
 
     @classmethod
     def _get_indexing_queryset(cls):
@@ -280,7 +291,6 @@ class BlogItem(models.Model):
 
         def getter():
             for term, popularities in search_terms.items():
-                # yield SearchTermDoc(popularity=max(popularities), term=term)
                 yield SearchTermDoc(popularity=sum(popularities), term=term)
 
         es = connections.get_connection()
@@ -293,7 +303,8 @@ class BlogItem(models.Model):
         # multiple times, if we didn't refresh the name, we'd be trying to
         # create the same index over and over and its name would be that
         # which gets set when the code imports/loads the first time.
-        SearchTermDoc._index._name = SearchTermDoc.Index.get_refreshed_name()
+        index_name = SearchTermDoc.Index.get_refreshed_name()
+        SearchTermDoc._index._name = index_name
 
         SearchTermDoc._index.create()
         for success, doc in parallel_bulk(
@@ -306,10 +317,10 @@ class BlogItem(models.Model):
             if verbose and not count % report_every:
                 print(f"{count:,}")
 
-        swap_alias(es, SearchTermDoc._index._name, settings.ES_SEARCH_TERM_INDEX)
+        swap_alias(es, index_name, settings.ES_SEARCH_TERM_INDEX)
 
         t1 = time.time()
-        return count, t1 - t0
+        return count, t1 - t0, index_name
 
 
 class BlogItemTotalHits(models.Model):
@@ -482,6 +493,8 @@ class BlogComment(models.Model):
         report_every = 1000
         count = 0
         t0 = time.time()
+        index_name = BlogCommentDoc.Index.get_refreshed_name()
+        BlogCommentDoc._index._name = index_name
         BlogCommentDoc._index.create()
         for success, doc in parallel_bulk(
             es,
@@ -496,7 +509,7 @@ class BlogComment(models.Model):
         swap_alias(es, BlogCommentDoc._index._name, settings.ES_BLOG_COMMENT_INDEX)
 
         t1 = time.time()
-        return count, t1 - t0
+        return count, t1 - t0, index_name
 
 
 @receiver(pre_save, sender=BlogComment)

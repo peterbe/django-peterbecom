@@ -28,25 +28,28 @@ class Command(BaseCommand):
         self._index_blogcomments(keep, verbose=verbose)
 
     def _index_blogitems(self, keep, verbose=False):
-        count, took = BlogItem.index_all_blogitems(verbose=verbose)
+        count, took, index_name = BlogItem.index_all_blogitems(verbose=verbose)
         self.stdout.write(
             self.style.SUCCESS(
-                f"DONE Indexing {count:,} blog items in {took:.1f} seconds"
+                f"DONE Indexing {count:,} blog items into {index_name!r} "
+                f"in {took:.1f} seconds"
             )
         )
 
     def _index_blogcomments(self, keep, verbose=False):
-        count, took = BlogComment.index_all_blogcomments(verbose=verbose)
+        count, took, index_name = BlogComment.index_all_blogcomments(verbose=verbose)
         self.stdout.write(
             self.style.SUCCESS(
-                f"DONE Indexing {count:,} blog comments in {took:.1f} seconds"
+                f"DONE Indexing {count:,} blog comments into {index_name!r} "
+                f"in {took:.1f} seconds"
             )
         )
 
     def _index_search_terms(self, keep, verbose=False):
-        count, took = BlogItem.index_all_search_terms(verbose=verbose)
+        count, took, index_name = BlogItem.index_all_search_terms(verbose=verbose)
         self.stdout.write(
             self.style.SUCCESS(
-                f"DONE Indexing {count:,} search terms in {took:.1f} seconds"
+                f"DONE Indexing {count:,} search terms into {index_name!r} "
+                f"in {took:.1f} seconds"
             )
         )

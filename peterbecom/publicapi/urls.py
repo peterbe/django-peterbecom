@@ -32,11 +32,6 @@ urlpatterns = [
     path("plog/homepage", homepage.homepage_blogitems, name="homepage_blogitems"),
     path("plog/<str:oid>", blogitem.blogitem, name="blogitem"),
     path("plog/", blogitems.blogitems, name="blogitems"),
-    # I prefer trailing / but because of how NextJS treats proxied XHR
-    # requests, in the client-side, via localhost:3000 it forces it to be
-    # sans trailing /. Not loving this.
-    path("autocompete", search.autocompete, name="autocompete"),
-    path("autocomplete", search.autocomplete, name="autocomplete"),
     path("typeahead", search.typeahead, name="typeahead"),
     path("lyrics/search", lyrics.search, name="lyrics_search"),
     path("lyrics/song", lyrics.song, name="lyrics_song"),

@@ -7,7 +7,6 @@ from elasticsearch_dsl import (
     Float,
     Integer,
     Keyword,
-    SearchAsYouType,
     Text,
     analyzer,
     token_filter,
@@ -62,7 +61,7 @@ class BlogItemDoc(Document):
     id = Keyword(required=True)
     oid = Keyword(required=True)
     # https://github.com/elastic/elasticsearch-dsl-py/blob/master/examples/search_as_you_type.py
-    title_autocomplete = SearchAsYouType(max_shingle_size=3)
+    # title_autocomplete = SearchAsYouType(max_shingle_size=3)  # XXX IS THIS EVER
     title = Text(
         required=True, analyzer=text_analyzer, term_vector="with_positions_offsets"
     )
@@ -75,6 +74,10 @@ class BlogItemDoc(Document):
     class Index:
         name = timestamped(dj_settings.ES_BLOG_ITEM_INDEX)
         settings = dj_settings.ES_BLOG_ITEM_INDEX_SETTINGS
+
+        @classmethod
+        def get_refreshed_name(cls, name=None):
+            return timestamped(name or dj_settings.ES_BLOG_ITEM_INDEX)
 
 
 class BlogCommentDoc(Document):
@@ -90,6 +93,10 @@ class BlogCommentDoc(Document):
         name = timestamped(dj_settings.ES_BLOG_COMMENT_INDEX)
         settings = dj_settings.ES_BLOG_COMMENT_INDEX_SETTINGS
 
+        @classmethod
+        def get_refreshed_name(cls, name=None):
+            return timestamped(name or dj_settings.ES_BLOG_COMMENT_INDEX)
+
 
 class SearchTermDoc(Document):
     term = Text(
@@ -104,8 +111,8 @@ class SearchTermDoc(Document):
         settings = dj_settings.ES_SEARCH_TERM_INDEX_SETTINGS
 
         @classmethod
-        def get_refreshed_name(cls):
-            return timestamped(dj_settings.ES_SEARCH_TERM_INDEX)
+        def get_refreshed_name(cls, name=None):
+            return timestamped(name or dj_settings.ES_SEARCH_TERM_INDEX)
 
 
 def swap_alias(connection, index_name, alias):
