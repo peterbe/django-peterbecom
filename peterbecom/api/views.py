@@ -472,7 +472,6 @@ def images(request, oid):
                 return json_response({"id": instance.id})
             return json_response({"errors": form.errors}, status=400)
     elif request.method == "DELETE":
-        print("request.GET:", request.GET)
         blogfile = get_object_or_404(BlogFile, blogitem=blogitem, id=request.GET["id"])
         blogfile.delete()
         return json_response({"deleted": True})
@@ -503,7 +502,7 @@ def _post_thumbnails(blogitem):
             url_ = im.url
             image[key] = {
                 "url": url_,
-                "alt": getattr(blogfile, "title", blogitem.title),
+                "alt": getattr(blogfile, "title", None) or blogitem.title,
                 "width": im.width,
                 "height": im.height,
             }
