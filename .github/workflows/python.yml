@@ -148,7 +148,7 @@ jobs:
 
       - name: Install system dependencies
         run: |
-          set -e
+          set -ex
 
           sudo apt-get install pngquant libjpeg-progs
 
