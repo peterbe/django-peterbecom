@@ -147,7 +147,16 @@ jobs:
           du -sh .venv
 
       - name: Install system dependencies
-        run: sudo apt-get install pngquant
+        run: |
+          set -e
+
+          sudo apt-get install pngquant libjpeg-progs
+
+          jpegtran --help
+          which jpegtran
+
+          pngquant --version
+          which pngquant
 
       - name: Download NLTK dependencies
         run: uv run python scripts/nltk-downloads.py
