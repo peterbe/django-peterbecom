@@ -81,6 +81,38 @@ def test_happy_path(admin_client):
     assert response.json()["deleted"]
 
 
+def test_upload_jpeg(admin_client, client):
+    BlogItem.objects.create(
+        oid="hello-world",
+        title="Hello World",
+        pub_date=timezone.now(),
+        proper_keywords=["one", "two"],
+    )
+    with open(Path(__file__).parent / "test_image.jpg", "rb") as f:
+        test_file = SimpleUploadedFile(
+            "test_image.jpg", f.read(), content_type="image/jpeg"
+        )
+
+    url = reverse("api:images", args=["hello-world"])
+
+    response = admin_client.post(
+        url, {"file": test_file, "title": "Some title"}, format="multipart"
+    )
+
+    response = admin_client.get(url)
+    assert response.status_code == 200
+    images = response.json()["images"]
+    assert images
+
+    response = client.get(images[0]["full_url"])
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/jpeg"
+
+    response = client.get(images[0]["small"]["url"])
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/jpeg"
+
+
 def test_open_graph_image(admin_client):
     url = reverse("api:open_graph_image", args=["hello-world"])
     response = admin_client.get(url)
