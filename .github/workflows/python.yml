@@ -73,7 +73,6 @@ jobs:
         id: setup-uv
         uses: astral-sh/setup-uv@v5
         with:
-          enable-cache: true
           cache-dependency-glob: 'uv.lock'
 
       - name: Celebrate uv cache hit
