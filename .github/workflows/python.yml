@@ -71,17 +71,14 @@ jobs:
 
       - name: Install uv
         id: setup-uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          enable-cache: true
-          cache-dependency-glob: 'uv.lock'
+        uses: astral-sh/setup-uv@v5
 
       - name: Celebrate uv cache hit
         if: steps.setup-uv.outputs.cache-hit == 'true'
         run: echo "Cache was restored"
 
       - name: Set up Python
-        run: uv python install 3.12.7
+        run: uv python install 3.12
 
       - name: Install the project
         run: uv sync
