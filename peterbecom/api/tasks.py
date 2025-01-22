@@ -46,7 +46,7 @@ you wrote:
 
 {line_indent(parent.comment)}
 
-Now, {blogcomment.name if blogcomment.name else 'someone'} has replied with the following comment:
+Now, {blogcomment.name if blogcomment.name else "someone"} has replied with the following comment:
 
 {line_indent(blogcomment.comment)}
 

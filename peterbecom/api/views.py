@@ -225,7 +225,7 @@ def blogitem(request, oid):
         try:
             data = json.loads(request.body.decode("utf-8"))
         except json.decoder.JSONDecodeError:
-            print(f"BODY: {request.body.decode("utf-8")!r}")
+            print(f"BODY: {request.body.decode('utf-8')!r}")
             return json_response({"error": "Invalid JSON"}, status=400)
 
         if "toggle_archived" in data:
