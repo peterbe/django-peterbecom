@@ -10,7 +10,7 @@ class Command(BaseCommand):
             "--base-url",
             dest="base_url",
             default="https://www.peterbe.com",
-            help=("Base URL for the calling URL " "(default https://www.peterbe.com)"),
+            help=("Base URL for the calling URL (default https://www.peterbe.com)"),
         )
 
     def handle(self, *args, **options):

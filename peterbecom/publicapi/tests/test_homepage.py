@@ -36,11 +36,11 @@ def test_homepage_blogitems_happy_path(client, settings):
     settings.HOMEPAGE_BATCH_SIZE = 3
     bulk = []
     for i in range(7):
-        text = f"**Text** `{i +1}`"
+        text = f"**Text** `{i + 1}`"
         bulk.append(
             BlogItem(
-                oid=f"oid-{i+1}",
-                title=f"Title {i+1}",
+                oid=f"oid-{i + 1}",
+                title=f"Title {i + 1}",
                 text=text,
                 text_rendered=BlogItem.render(text, "markdown", ""),
                 display_format="markdown",
