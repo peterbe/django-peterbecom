@@ -1301,9 +1301,7 @@ def blogitem_hits(request):
                 blogitem_id = b.id AND (NOW() - b.pub_date) > INTERVAL '1 day'
             ORDER BY score desc
             LIMIT {limit}
-        """.format(
-                limit=limit
-            )
+        """.format(limit=limit)
         )
     else:
         query = BlogItem.objects.raw(
@@ -1323,9 +1321,7 @@ def blogitem_hits(request):
                 blogitem_id = b.id AND (NOW() - b.pub_date) > INTERVAL '1 day'
             ORDER BY score desc
             LIMIT {limit}
-        """.format(
-                limit=limit
-            )
+        """.format(limit=limit)
         )
     context["all_hits"] = []
     category_scores = defaultdict(list)
