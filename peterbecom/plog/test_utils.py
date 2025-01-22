@@ -37,8 +37,7 @@ def test_linkify_special_domains(settings, requestsmock):
     requestsmock.head("http://www.example.com", text="Welcome!", status_code=200)
     settings.NOFOLLOW_EXCEPTIONS = ["www2.peterbe.com"]
     text = (
-        "Please visit https://www2.peterbe.com but "
-        "don't go to http://www.example.com."
+        "Please visit https://www2.peterbe.com but don't go to http://www.example.com."
     )
     html = utils.render_comment_text(text)
     assert (

@@ -88,7 +88,7 @@ class SearchResult(models.Model):
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.q!r} found {self.documents_found:,} in {self.search_time.total_seconds()*1000:.1f}ms"
+        return f"{self.q!r} found {self.documents_found:,} in {self.search_time.total_seconds() * 1000:.1f}ms"
 
 
 class CDNPurgeURL(models.Model):
