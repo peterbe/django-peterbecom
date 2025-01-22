@@ -993,6 +993,7 @@ def blogcomments(request):
 
     search = request.GET.get("search", "").lower().strip()
     blogitem_regex = re.compile(r"(blogitem|oid):([^\s]+)")
+    name_or_email_regex = re.compile(r"\b(name|email):([^\s]+)")
     if search:
         for _, blogitem_oid in blogitem_regex.findall(search):
             not_blogitem = False
@@ -1006,9 +1007,17 @@ def blogcomments(request):
                     base_qs = base_qs.filter(blogitem=search_blogitem)
                 search = blogitem_regex.sub("", search).strip()
 
+        for key, value in name_or_email_regex.findall(search):
+            if key == "name":
+                base_qs = base_qs.filter(name__icontains=value)
+            elif key == "email":
+                base_qs = base_qs.filter(email__icontains=value)
+            else:
+                raise ValueError(f"Unknown key: {key}")
+            search = name_or_email_regex.sub("", search).strip()
+
         for term in search.split():
             blogitem_oid = get_local_url_oid(term)
-            print(("TERM", term, "LOCAL_URL", blogitem_oid))
             if blogitem_oid:
                 for search_blogitem in BlogItem.objects.filter(oid=blogitem_oid):
                     base_qs = base_qs.filter(blogitem=search_blogitem)
@@ -1018,7 +1027,11 @@ def blogcomments(request):
 
     if search:
         base_qs = base_qs.filter(
-            Q(comment__icontains=search) | Q(oid=search) | Q(blogitem__oid=search)
+            Q(comment__icontains=search)
+            | Q(oid=search)
+            | Q(blogitem__oid=search)
+            | Q(name__icontains=search)
+            | Q(email__icontains=search)
         )
     else:
         # Hide old farts

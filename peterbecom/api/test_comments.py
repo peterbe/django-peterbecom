@@ -155,7 +155,7 @@ def test_search_by_blogitem(admin_client):
         auto_approved=False,
         comment="Fubar!",
         name="",
-        email="",
+        email="secret@example.com",
         add_date=timezone.now() - timezone.timedelta(days=1),
         modify_date=timezone.now() - timezone.timedelta(days=1),
     )
@@ -225,6 +225,39 @@ def test_search_by_blogitem(admin_client):
     assert response.json()["count"] == 1
     found = [x["id"] for x in response.json()["comments"]]
     assert found == [blogcomment1.id]
+
+    # Find by comment name
+    response = admin_client.get(url, {"search": "john doe"})
+    assert response.status_code == 200
+    assert response.json()["count"] == 1
+    response = admin_client.get(url, {"search": "name:john doe"})
+    assert response.status_code == 200
+    assert response.json()["count"] == 1
+
+    # Find by comment email
+    response = admin_client.get(url, {"search": "secret@example"})
+    assert response.status_code == 200
+    assert response.json()["count"] == 1
+    response = admin_client.get(url, {"search": "email:secret@example"})
+    assert response.status_code == 200
+    assert response.json()["count"] == 1
+
+    # But find nothing if combined with keywords
+    response = admin_client.get(url, {"search": "email:doe"})
+    assert response.status_code == 200
+    assert response.json()["count"] == 0
+    response = admin_client.get(url, {"search": "name:secret@example.com"})
+    assert response.status_code == 200
+    assert response.json()["count"] == 0
+
+    # And...
+    response = admin_client.get(url, {"search": "name:findsnothing bla"})
+    assert response.status_code == 200
+    assert response.json()["count"] == 0
+
+    response = admin_client.get(url, {"search": "email:findsnothing bla"})
+    assert response.status_code == 200
+    assert response.json()["count"] == 0
 
 
 def test_batch_submit_auth(client):
