@@ -99,9 +99,9 @@ def test_sitemap_paginated():
     urls = [x["loc"] for x in parsed["urlset"]["url"]]
     for url in urls:
         if urlparse(BASE_URL).scheme == "https":
-            assert (
-                urlparse(url).scheme == "https"
-            ), f"BASE_URL is https:// but {url} isn't"
+            assert urlparse(url).scheme == "https", (
+                f"BASE_URL is https:// but {url} isn't"
+            )
 
     todo = [x for x in urls if re.findall(r"/p\d+", x)]
     grouped = defaultdict(list)
