@@ -7,7 +7,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
 
-from peterbecom.plog.models import BlogComment, BlogItem, Category
+from peterbecom.plog.models import BlogComment, BlogItem
 
 
 def blogitem(request, oid):
@@ -130,8 +130,6 @@ def blogitem(request, oid):
             blogitem, limit=4, exclude_ids=exclude_related
         )
         related_by_keyword = list(related_qs)
-        # for related in related_qs:
-        #     related_by_keyword.append(related)
         post["related_by_keyword"] = serialize_related_objects(related_by_keyword)
 
     blogcomments = BlogComment.objects.filter(blogitem=blogitem, approved=True)
