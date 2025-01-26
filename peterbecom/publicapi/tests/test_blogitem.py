@@ -199,3 +199,4 @@ def test_blogitems_by_category(client):
     assert response.status_code == 200
     related_by_keyword = response.json()["post"]["related_by_keyword"]
     assert related_by_keyword[0]["oid"] == "oid-0"
+    assert related_by_keyword[0]["categories"] == ["Lone"]
