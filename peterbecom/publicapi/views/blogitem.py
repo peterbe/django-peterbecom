@@ -125,11 +125,11 @@ def blogitem(request, oid):
             )
             post["related_by_category"].append(serialized_related)
 
-        related_by_keyword = list(
-            get_related_posts_by_keyword(
-                blogitem, limit=4, exclude_ids=exclude_related
-            ).values("id", "oid", "title", "pub_date")
+        related_by_keyword = []
+        related_qs = get_related_posts_by_keyword(
+            blogitem, limit=4, exclude_ids=exclude_related
         )
+        related_by_keyword = list(related_qs)
         post["related_by_keyword"] = serialize_related_objects(related_by_keyword)
 
     blogcomments = BlogComment.objects.filter(blogitem=blogitem, approved=True)
