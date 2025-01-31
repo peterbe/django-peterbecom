@@ -16,7 +16,7 @@ from peterbecom.plog.spamprevention import (
     contains_spam_url_patterns,
     is_trash_commenter,
 )
-from peterbecom.plog.tasks import send_new_comment_email
+from peterbecom.plog.tasks import delete_e2e_test_comment, send_new_comment_email
 from peterbecom.plog.utils import render_comment_text
 from peterbecom.publicapi.forms import SubmitForm
 
@@ -122,6 +122,12 @@ def submit_comment(request):
             if blogitem.oid != "blogitem-040601-1":
                 transaction.on_commit(lambda: send_new_comment_email(blog_comment.id))
 
+            if (
+                blog_comment.name == "Playwright"
+                and blog_comment.email == "playwright@peterbe.com"
+            ):
+                delete_e2e_test_comment(blog_comment.id, 2)
+
     if not blog_comment_hash:
         # Generate a non-cryptographic hash that the user can user to edit their
         # comment after they posted it.
@@ -132,10 +138,9 @@ def submit_comment(request):
         hash_expiration_seconds = 60 * 60
         cache.set(cache_key, blog_comment.oid, hash_expiration_seconds)
 
-    return http.JsonResponse(
-        {
-            "oid": blog_comment.oid,
-            "hash": blog_comment_hash,
-            "comment": blog_comment.comment_rendered,
-        }
-    )
+    context = {
+        "oid": blog_comment.oid,
+        "hash": blog_comment_hash,
+        "comment": blog_comment.comment_rendered,
+    }
+    return http.JsonResponse(context)

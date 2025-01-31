@@ -1,5 +1,6 @@
 import datetime
 import textwrap
+import time
 
 from django.conf import settings
 from django.contrib.sites.models import Site
@@ -124,3 +125,10 @@ def reindex_blog_comments():
 )
 def analytics_events_to_blogitem_hits():
     analytics_to_blogitem_hits_backfill()
+
+
+@task()
+def delete_e2e_test_comment(blogcomment_id, delay=2):
+    for blog_comment in BlogComment.objects.filter(id=blogcomment_id):
+        time.sleep(delay)
+        blog_comment.delete()
