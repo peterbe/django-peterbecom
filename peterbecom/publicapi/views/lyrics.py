@@ -130,6 +130,8 @@ def song(request):
         res = response.json()
     except JSONDecodeError:
         print(f"WARNING: JSONDecodeError ({remote_url})", response.text)
+        if "<!DOCTYPE html>" in response.text:
+            print("HTML WHEN EXPECTING JSON! {remote_url}")
         return http.JsonResponse(
             {"error": "Unexpected non-JSON error on fetching song"},
             status=response.status_code,
