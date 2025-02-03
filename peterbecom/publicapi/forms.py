@@ -9,8 +9,8 @@ class SubmitForm(forms.Form):
     oid = forms.CharField()
     comment = forms.CharField(max_length=10_000)
     parent = forms.CharField(required=False)
-    name = forms.CharField(required=False)
-    email = forms.EmailField(required=False)
+    name = forms.CharField(required=False, max_length=100)
+    email = forms.EmailField(required=False, max_length=100)
     hash = forms.CharField(required=False)
 
     def clean_oid(self):

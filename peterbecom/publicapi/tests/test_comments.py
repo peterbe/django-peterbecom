@@ -228,6 +228,46 @@ def test_submit_with_name_and_email(client):
 
 
 @pytest.mark.django_db
+def test_submit_with_long_name_and_email(client):
+    url = reverse("publicapi:submit_comment")
+    blogitem = BlogItem.objects.create(
+        oid="oid",
+        title="Title",
+        text="*Text*",
+        text_rendered=BlogItem.render("*Text*", "markdown", ""),
+        display_format="markdown",
+        summary="Summary",
+        pub_date=timezone.now(),
+    )
+
+    response = client.post(
+        url,
+        {
+            "oid": blogitem.oid,
+            "comment": "Comment text ",
+            "name": "x" * 101,
+            "email": "",
+        },
+    )
+    assert response.status_code == 400
+    error = response.json()
+    assert error["error"]["name"]
+
+    response = client.post(
+        url,
+        {
+            "oid": blogitem.oid,
+            "comment": "Comment text ",
+            "name": "Tester",
+            "email": "x" * 100 + "test@example.com",
+        },
+    )
+    assert response.status_code == 400
+    error = response.json()
+    assert error["error"]["email"]
+
+
+@pytest.mark.django_db
 def test_submit_comment_reply(client):
     url = reverse("publicapi:submit_comment")
     response = client.get(url)
