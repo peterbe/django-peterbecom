@@ -109,7 +109,7 @@ def reindex_blog_items():
     crontab(hour="0", minute="3")
 )
 def reindex_blog_comments():
-    count, took, index_name = BlogItem.index_all_blogcomments()
+    count, took, index_name = BlogComment.index_all_blogcomments()
     print(
         f"Indexed {count:,} blog comments into {index_name!r} "
         f"in {took:.1f} seconds ({timezone.now()})"
