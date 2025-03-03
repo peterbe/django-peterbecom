@@ -32,3 +32,7 @@ test:
 test-with-coverage:
     ./bin/run.sh test-with-coverage
     open htmlcov/index.html
+
+upgrade:
+    # uv pip list --outdated
+    /Users/peterbe/bin/Uv-Outdated.py
