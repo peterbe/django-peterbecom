@@ -1,10 +1,12 @@
+import re
 import time
 from json.decoder import JSONDecodeError
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 
 from django import forms, http
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from django.shortcuts import redirect
 from django.views.decorators.cache import cache_page, never_cache
 
 from peterbecom.base.geo import ip_to_country_code
@@ -129,9 +131,18 @@ def song(request):
     try:
         res = response.json()
     except JSONDecodeError:
-        print(f"WARNING: JSONDecodeError ({remote_url})", response.text)
         if "<!DOCTYPE html>" in response.text:
             print(f"HTML WHEN EXPECTING JSON! {remote_url}")
+
+            path = urlparse(response.url).path
+            if path.startswith("/song/") and re.findall(r"/\d+$", path):
+                new_url = f"/plog/blogitem-040601-1{path}"
+                raw_query_string = request.META.get("QUERY_STRING", "")
+                if raw_query_string:
+                    new_url += f"?{raw_query_string}"
+                return redirect(new_url)
+
+        print(f"WARNING: JSONDecodeError ({remote_url})", response.text)
         return http.JsonResponse(
             {"error": "Unexpected non-JSON error on fetching song"},
             status=response.status_code,
