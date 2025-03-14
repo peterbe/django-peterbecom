@@ -20,7 +20,7 @@ name = "django-peterbecom"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = "==3.12.7"
+requires-python = "==3.12.*"
 dependencies = [
     "backoff==2.2.1",
     "bleach==6.2.0",
