@@ -568,7 +568,7 @@ wheels = [
 
 [[package]]
 name = "geoip2"
-version = "4.8.1"
+version = "5.0.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
