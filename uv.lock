@@ -408,7 +408,7 @@ dependencies = [
 requires-dist = [
     { name = "backoff", specifier = "==2.2.1" },
     { name = "bleach", specifier = "==6.2.0" },
-    { name = "brotli", specifier = ">=1.1.0" },
+    { name = "brotli", specifier = "==1.1.0" },
     { name = "cachetools", specifier = "==5.5.2" },
     { name = "cssselect", specifier = "==1.2.0" },
     { name = "delegator-py", specifier = "==0.1.1" },
@@ -439,14 +439,14 @@ requires-dist = [
     { name = "pyquery", specifier = "==2.0.1" },
     { name = "pytest-cov", specifier = "==6.0.0" },
     { name = "pytest-django", specifier = "==4.10.0" },
-    { name = "pytest-watch", specifier = ">=4.2.0" },
+    { name = "pytest-watch", specifier = "==4.2.0" },
     { name = "python-dateutil", specifier = "==2.9.0.post0" },
     { name = "python-decouple", specifier = "==3.8" },
     { name = "pytz", specifier = "==2025.1" },
     { name = "redis", specifier = "==5.2.1" },
     { name = "requests", specifier = "==2.32.3" },
     { name = "requests-mock", specifier = "==1.12.1" },
-    { name = "rollbar", specifier = "==1.2.0" },
+    { name = "rollbar", specifier = "==1.3.0" },
     { name = "ruff", specifier = "==0.9.10" },
     { name = "sorl-thumbnail", specifier = "==12.11.0" },
     { name = "sql-metadata", specifier = "==2.15.0" },
@@ -1121,14 +1121,14 @@ wheels = [
 
 [[package]]
 name = "rollbar"
-version = "1.2.0"
+version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c7/59/57c0563b7e28b5b43f385ea4880cd9a0a4524088a46f9d1c90ac6287b9a5/rollbar-1.2.0.tar.gz", hash = "sha256:991e6600374d8065e1e56accce7ab5f075fff521ce570a7a7ab700d2fa5e4bd5", size = 84913 }
+sdist = { url = "https://files.pythonhosted.org/packages/d2/43/966a7d64ff2c0901451aa2fcbe205a68528b6c6fbac6760b5ad5a705a944/rollbar-1.3.0.tar.gz", hash = "sha256:519402eac39bcc4fa484821872f6bb18497fb7b6c81167047867d17714d3b379", size = 85300 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/7c/9e/b0092930efdef284bde3032c076d903db744c37477a304629347906a671d/rollbar-1.2.0-py3-none-any.whl", hash = "sha256:5f64084fa2335e5dcfd10354829dee5228237bbb145648914fa02d8c09c4b296", size = 116780 },
+    { url = "https://files.pythonhosted.org/packages/c3/d2/b6bf3f24349bc3bc681522fa8c55271923614b47e5e9d923f443523de81a/rollbar-1.3.0-py3-none-any.whl", hash = "sha256:d800c4265a4d5aae547cb3f29e48414b6d4fedaa7f679cd0fd64dac16a1eded3", size = 117183 },
 ]
 
 [[package]]
