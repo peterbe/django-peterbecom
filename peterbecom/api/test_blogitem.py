@@ -239,11 +239,11 @@ def test_edit_blogitem(admin_client):
 sample_markdown = """
 # Header 1
 
-Bla bla
+Textblock 1
 
 ## Header *2*
 
-Ble ble
+Textblock 2
 
 ### Header `three`
 
