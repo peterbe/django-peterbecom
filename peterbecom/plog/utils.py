@@ -18,6 +18,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.utils import timezone
+from markdown.extensions.toc import slugify as toc_slugify
 
 # https://github.com/vzhou842/profanity-check is probably better but it requires
 # scikit-learn or whatever it's called.
@@ -25,6 +26,13 @@ from profanity import profanity
 from requests.exceptions import ConnectionError, ReadTimeout
 
 from .gfm import gfm
+
+
+def custom_toc_slugify(value: str, separator: str, unicode: bool = False) -> str:
+    s = toc_slugify(value, separator, unicode)
+    if s[0].isdigit():
+        s = "h-" + s
+    return s
 
 
 def blog_post_url(oid, page=None):
@@ -223,7 +231,22 @@ def markdown_to_html(text):
         return found
 
     text = _markdown_pre_regex.sub(matcher, text)
-    html = markdown.markdown(gfm(text), extensions=["markdown.extensions.tables"])
+    html = markdown.markdown(
+        gfm(text),
+        extensions=[
+            "tables",
+            "toc",
+        ],
+        extension_configs={
+            "toc": {
+                "anchorlink": True,
+                "permalink": False,
+                "baselevel": 2,
+                "toc_depth": 3,
+                "slugify": custom_toc_slugify,
+            }
+        },
+    )
     html = html.replace("<pre><span></span>", "<pre>")
 
     # Markdown leaves a strange whitespace before the end of the paragraph.
