@@ -71,7 +71,7 @@ jobs:
 
       - name: Install uv
         id: setup-uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v6
 
       - name: Celebrate uv cache hit
         if: steps.setup-uv.outputs.cache-hit == 'true'
