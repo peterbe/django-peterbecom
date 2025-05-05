@@ -60,6 +60,10 @@ case $1 in
     gunicorn wsgi -w ${WORKERS} -b 0.0.0.0:${PORT} --access-logfile=-
     # exec python manage.py runserver 0.0.0.0:8000
     ;;
+  shell)
+    setup_python
+    python manage.py shell
+    ;;
   test)
     setup_python
     pytest

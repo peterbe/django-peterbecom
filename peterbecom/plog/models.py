@@ -289,6 +289,23 @@ class BlogItem(models.Model):
                     # only works because it's deep in the body.
                     search_terms[keyword.lower()].append(max(0, p * 0.9))
 
+        # terms = {}
+        # for term, popularities in search_terms.items():
+        #     # yield SearchTermDoc(popularity=sum(popularities), term=term)
+        #     terms[term] = sum(popularities)
+        # from pprint import pprint
+
+        # pprint(terms)
+        # with open("search-terms.json", "w") as f:
+        #     import json
+
+        #     json.dump(terms, f, indent=2)
+        #     from pprint import pprint
+
+        #     pprint(terms)
+
+        # raise Exception("STOP")
+
         def getter():
             for term, popularities in search_terms.items():
                 yield SearchTermDoc(popularity=sum(popularities), term=term)

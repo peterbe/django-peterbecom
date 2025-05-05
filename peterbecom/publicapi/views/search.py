@@ -6,6 +6,7 @@ from operator import or_
 
 from django import http
 from django.conf import settings
+from django.db import connection
 from django.utils import timezone
 from django.utils.cache import patch_cache_control
 from django.utils.html import strip_tags
@@ -18,171 +19,9 @@ from peterbecom.plog.models import BlogItem
 from peterbecom.plog.search import BlogCommentDoc, BlogItemDoc, SearchTermDoc
 from peterbecom.publicapi.forms import SearchForm
 
+from .html_highlight import html_highlight
+
 HIGHLIGHT_TYPE = "fvh"
-
-
-# def autocompete(request):
-#     q = request.GET.get("q", "")
-#     if not q:
-#         return http.JsonResponse({"error": "Missing 'q'"}, status=400)
-#     size = int(request.GET.get("n", 10))
-#     terms = [q]
-#     search_query = BlogItemDoc.search(index=settings.ES_BLOG_ITEM_INDEX)
-#     if len(q) > 2:
-#         suggestion = search_query.suggest("suggestions", q, term={"field": "title"})
-#         response = suggestion.execute()
-#         suggestions = response.suggest.suggestions
-#         for suggestion in suggestions:
-#             for option in suggestion.options:
-#                 terms.append(q.replace(suggestion.text, option.text))
-
-#     search_query.update_from_dict({"query": {"range": {"pub_date": {"lt": "now"}}}})
-
-#     query = MultiMatch(
-#         query=terms[0],
-#         type="bool_prefix",
-#         fields=[
-#             "title_autocomplete",
-#             "title_autocomplete._2gram",
-#             "title_autocomplete._3gram",
-#         ],
-#     )
-
-#     for term in terms[1:]:
-#         query |= MultiMatch(
-#             query=term,
-#             type="bool_prefix",
-#             fields=[
-#                 "title_autocomplete",
-#                 "title_autocomplete._2gram",
-#                 # Commented out because sometimes the `terms[:1]` are a little bit
-#                 # too wild.
-#                 # What might be a better idea is to make 2 ES queries. One with
-#                 # `term[0]` and if that yields less than $batch_size, we make
-#                 # another query with the `terms[1:]` and append the results.
-#                 # "title_autocomplete._3gram",
-#             ],
-#         )
-
-#     search_query = search_query.query(query)
-
-#     # search_query = search_query.sort("-pub_date", "_score")
-#     search_query = _add_function_score(search_query, query)
-#     search_query = search_query[:size]
-#     response = search_query.execute()
-#     results = []
-#     for hit in response.hits:
-#         results.append([f"/plog/{hit.oid}", hit.title])
-
-#     response = http.JsonResponse({"results": results, "terms": terms})
-#     if len(q) < 5:
-#         patch_cache_control(response, public=True, max_age=60 + 60 * (5 - len(q)))
-#     return response
-
-
-# def autocomplete(request):
-#     q = request.GET.get("q", "")
-#     if q.endswith("/") and len(q) > 1:
-#         q = q[:-1]
-#     if not q:
-#         return http.JsonResponse({"error": "Missing 'q'"}, status=400)
-#     size = int(request.GET.get("n", 10))
-#     result = _autocomplete([q], size, suggest=len(q) > 4)
-#     if len(result["results"]) < size and result["suggestions"]:
-#         print("Suggest", result["suggestions"])
-#         suggestions = _autocomplete(
-#             result["suggestions"], size - len(result["results"]), suggest=False
-#         )
-#         already = set(x["oid"] for x in result["results"])
-#         additional = [x for x in suggestions["results"] if x["oid"] not in already]
-#         result["results"].extend(additional[: size - len(result["results"])])
-#         result["meta"]["found"] += len(additional)
-
-#     response = http.JsonResponse(
-#         {
-#             "results": result["results"],
-#             "meta": result["meta"],
-#         }
-#     )
-#     if len(q) < 5:
-#         patch_cache_control(response, public=True, max_age=60 + 60 * (5 - len(q)))
-#     return response
-
-
-# def _autocomplete(terms, size, suggest=False):
-#     assert terms
-#     all_suggestions = []
-#     search_query = BlogItemDoc.search(index=settings.ES_BLOG_ITEM_INDEX)
-#     if suggest:
-#         suggestion = search_query.suggest(
-#             "suggestions", terms[0], term={"field": "title"}
-#         )
-#         response = suggestion.execute()
-#         suggestions = response.suggest.suggestions
-#         for suggestion in suggestions:
-#             for option in suggestion.options:
-#                 all_suggestions.append(terms[0].replace(suggestion.text, option.text))
-
-#     qs = []
-
-#     for term in terms:
-#         if _is_multiword_query(term):
-#             qs.append(
-#                 Q(
-#                     "match_phrase_prefix",
-#                     title={"query": term, "boost": 4},
-#                 )
-#             )
-#         qs.append(Q("match_bool_prefix", title={"query": term, "boost": 2}))
-#         if suggest:
-#             qs.append(
-#                 Q(
-#                     "fuzzy",
-#                     title={
-#                         "value": term,
-#                         "boost": 0.1,
-#                         "fuzziness": "AUTO",
-#                         "prefix_length": 2,
-#                     },
-#                 )
-#             )
-#     query = reduce(or_, qs)
-
-#     search_query = search_query.query(query)
-
-#     search_query = _add_function_score(search_query, query)
-#     search_query = search_query[:size]
-
-#     search_query = search_query.highlight_options(
-#         pre_tags=["<mark>"], post_tags=["</mark>"]
-#     )
-#     search_query = search_query.highlight(
-#         "title",
-#         fragment_size=200,
-#         no_match_size=200,
-#         number_of_fragments=3,
-#         type=HIGHLIGHT_TYPE,
-#     )
-
-#     response = search_query.execute()
-#     results = []
-#     for hit in response.hits:
-#         title_highlights = _get_highlights(hit, "title")
-#         results.append(
-#             {
-#                 "oid": hit.oid,
-#                 "title": title_highlights and title_highlights[0] or hit.title,
-#                 "date": hit.pub_date,
-#             }
-#         )
-
-#     meta = {"found": response.hits.total.value, "took": response.took}
-
-#     return {
-#         "meta": meta,
-#         "results": results,
-#         "suggestions": all_suggestions,
-#     }
 
 
 def _get_highlights(hit, key, massage=False):
@@ -223,7 +62,15 @@ def typeahead(request):
     except ValueError:
         return http.JsonResponse({"error": "Invalid 'n'"}, status=400)
 
-    result = _typeahead([q], size)
+    # result = _typeahead(q, size)
+    # print("ELASTICSEARCH")
+    # from pprint import pprint
+
+    # pprint(result)
+    # print("POSTGRES")
+    result_pg = _typeahead_pg(q, size)
+    # pprint(result_pg)
+    result = result_pg
     response = http.JsonResponse(
         {
             "results": result["results"],
@@ -235,27 +82,23 @@ def typeahead(request):
     return response
 
 
-def _typeahead(terms, size):
-    assert terms
-    all_suggestions = []
+def _typeahead(term, size):
+    t0 = time.time()
+    assert term
     search_query = SearchTermDoc.search(index=settings.ES_SEARCH_TERM_INDEX)
 
     qs = []
 
-    assert isinstance(terms, list), type(terms)
-    for term in terms:
-        if _is_multiword_query(term):
-            qs.append(
-                Q(
-                    "match_phrase_prefix",
-                    term={"query": term, "boost": 10},
-                )
+    if _is_multiword_query(term):
+        qs.append(
+            Q(
+                "match_phrase_prefix",
+                term={"query": term, "boost": 10},
             )
-        qs.append(Q("match_bool_prefix", term={"query": term, "boost": 5}))
-        if len(term) > 3:
-            qs.append(
-                Q("fuzzy", term={"value": term, "boost": 0.1, "fuzziness": "AUTO"})
-            )
+        )
+    qs.append(Q("match_bool_prefix", term={"query": term, "boost": 5}))
+    if len(term) > 3:
+        qs.append(Q("fuzzy", term={"value": term, "boost": 0.1, "fuzziness": "AUTO"}))
 
     query = reduce(or_, qs)
 
@@ -284,12 +127,56 @@ def _typeahead(terms, size):
                 "highlights": highlights,
             }
         )
-    meta = {"found": response.hits.total.value, "took": response.took}
+    t1 = time.time()
+    took = (t1 - t0) * 1000
+    meta = {"found": response.hits.total.value, "took": took}
 
     return {
         "meta": meta,
         "results": results,
-        "suggestions": all_suggestions,
+    }
+
+
+def _typeahead_pg(term, size):
+    results = []
+    t0 = time.time()
+    found = 0
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            select
+                term
+                -- similarity(term, 'py') as score,
+                -- , popularity
+            from
+                search_terms
+            where
+            term like %s
+            or term like %s
+            order by
+                popularity desc
+            limit
+                %s
+        """,
+            [f"{term}%", f"% {term}%", size],
+        )
+        for row in cursor.fetchall():
+            found += 1
+            results.append(
+                {
+                    "term": row[0],
+                    "highlights": html_highlight(row[0], term),
+                }
+            )
+
+    t1 = time.time()
+    took = (t1 - t0) * 1000
+
+    meta = {"found": found, "took": took}
+
+    return {
+        "meta": meta,
+        "results": results,
     }
 
 
