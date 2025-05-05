@@ -234,3 +234,66 @@ def test_edit_blogitem(admin_client):
     assert response.status_code == 200
     blogitem.refresh_from_db()
     assert blogitem.proper_keywords == ["three", "four"]
+
+
+sample_markdown = """
+# Header 1
+
+Bla bla
+
+## Header *2*
+
+Ble ble
+
+### Header `three`
+
+Moo boo
+
+## 2 Headers
+
+foo muu
+"""
+
+
+@pytest.mark.django_db
+def test_edit_blogitem_markdown_render(admin_client):
+    blogitem = BlogItem.objects.create(
+        oid="hello-world",
+        title="Hello World",
+        pub_date=timezone.now(),
+        proper_keywords=["one", "two"],
+        display_format="markdown",
+        text=sample_markdown,
+    )
+    url = reverse("api:blogitem", args=["hello-world"])
+
+    cat1 = Category.objects.create(name="Code")
+    response = admin_client.post(
+        url,
+        json.dumps(
+            {
+                "title": "New title",
+                "oid": "new-oid",
+                "summary": "New summary",
+                "keywords": "three \n four ",  # ["three ", " four "],
+                "pub_date": json_datetime(timezone.now()),
+                "categories": [cat1.id],
+                "text": sample_markdown,
+                "display_format": "markdown",
+            }
+        ),
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    blogitem.refresh_from_db()
+
+    html = blogitem.text_rendered
+
+    assert (
+        '<h2 id="header-1"><a class="toclink" href="#header-1">Header 1</a></h2>'
+        in html
+    )
+    assert (
+        '<h3 id="h-2-headers"><a class="toclink" href="#h-2-headers">2 Headers</a></h3>'
+        in html
+    )
