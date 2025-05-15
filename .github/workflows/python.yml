@@ -69,7 +69,9 @@ jobs:
         working-directory: peterbecom/chiveproxy
         run: npm install
 
-      - uses: FedericoCarboni/setup-ffmpeg@v3.1
+      # Used by the api/views.py for converting videos
+      - name: Install ffmpeg
+        run: sudo apt install -y ffmpeg
 
       - name: Install uv
         id: setup-uv
