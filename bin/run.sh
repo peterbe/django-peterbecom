@@ -34,7 +34,9 @@ setup_python() {
   source .venv/bin/activate
 
   # Needed for importing cairocffi
-  export DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib
+  export DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib  # Silicon?
+  export DYLD_FALLBACK_LIBRARY_PATH=/usr/local/lib  # Intel?
+  export DYLD_FALLBACK_LIBRARY_PATH=`brew --prefix`/lib  # Both?
 
   # python -c 'import django; print(django.get_version())'
   # python -c 'import sys; print(sys.base_prefix)'
@@ -62,7 +64,8 @@ case $1 in
     ;;
   test)
     setup_python
-    pytest
+    shift # Shift all arguments to the left (drop $1)
+    pytest $@
     ;;
   test-with-coverage)
     setup_python
