@@ -69,10 +69,6 @@ jobs:
         working-directory: peterbecom/chiveproxy
         run: npm install
 
-      # Used by the api/views.py for converting videos
-      - name: Install ffmpeg
-        run: sudo apt install -y ffmpeg
-
       - name: Install uv
         id: setup-uv
         uses: astral-sh/setup-uv@v6
