@@ -19,13 +19,10 @@ def get_cards(limit=None, debug=False):
     page = Fetcher.get(base, stealthy_headers=True)
     assert page.status == 200, page.status
 
-    # print(page)
     count = 0
     for slot in page.css("div.slot"):
-        # print("SLOT:", slot)
         for a in slot.css("a.card-img-link"):
             href = a.attrib["href"]
-            # print("A:", href)
             if not href.startswith(base):
                 continue
             for img_element in a.css("img.card-thumb"):
@@ -58,6 +55,7 @@ def get_cards(limit=None, debug=False):
             break
 
         uri = hashlib.md5(href.encode("utf-8")).hexdigest()[:8]
+        assert date
         yield {
             "url": href,
             "uri": uri,
@@ -70,20 +68,12 @@ def get_cards(limit=None, debug=False):
         if limit and count >= limit:
             print("Card scrape limit reached!", count)
             break
-    yield None
 
 
 @cached(cache=long_ttl_cache)
 def get_card(url):
     assert url.startswith("https://thechive.com"), url
 
-    # # The cache is really just to assure we don't run it more than once
-    # # in a short timeframe. ...by some accident or local dev.
-    # puppeteer_cache_key = "puppeteer_sucks:{}".format(
-    #     hashlib.md5(url.encode("utf-8")).hexdigest()
-    # )
-    # html = cache.get(puppeteer_cache_key)
-    # if html
     page = Fetcher.get(url, stealthy_headers=True)
     assert page.status == 200, page.status
 
