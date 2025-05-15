@@ -1,10 +1,16 @@
+import os
+import shutil
 from pathlib import Path
 
+import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.utils import timezone
 
 from peterbecom.plog.models import BlogFile, BlogItem
+
+executable_path = shutil.which("ffmpeg")
+HAS_FFMPEG = executable_path and os.access(executable_path, os.X_OK)
 
 
 def test_admin_required(client):
@@ -26,6 +32,7 @@ def test_empty(admin_client):
     assert response.json()["videos"] == []
 
 
+@pytest.mark.skipif(not HAS_FFMPEG, reason="ffmpeg not executable")
 def test_happy_path(admin_client):
     blogitem = BlogItem.objects.create(
         oid="hello-world",
