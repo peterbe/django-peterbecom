@@ -69,6 +69,8 @@ jobs:
         working-directory: peterbecom/chiveproxy
         run: npm install
 
+      - uses: FedericoCarboni/setup-ffmpeg@v3.1
+
       - name: Install uv
         id: setup-uv
         uses: astral-sh/setup-uv@v6
