@@ -1,12 +1,12 @@
 import datetime
 import hashlib
 import json
-import os
 import re
 import statistics
 import time
 from collections import defaultdict
 from functools import lru_cache, wraps
+from pathlib import Path
 from urllib.parse import urlencode, urlparse
 
 import requests
@@ -53,6 +53,7 @@ from peterbecom.plog.models import (
 from peterbecom.plog.popularity import score_to_popularity
 from peterbecom.plog.utils import blog_post_url, rate_blog_comment, valid_email
 
+from .blog_video import process_blog_video_to_cache, process_video_to_image
 from .forms import (
     BlogCommentBatchBothForm,
     BlogCommentBatchForm,
@@ -487,9 +488,12 @@ def _post_thumbnails(blogitem):
     images = []
 
     for blogfile in blogfiles:
-        if not os.path.isfile(blogfile.file.path):
+        file_path = Path(blogfile.file.path)
+        if not file_path.is_file():
             continue
-        full_im = thumbnail(blogfile.file, "2000x2000", upscale=False, quality=100)
+        if file_path.suffix in (".mov", ".mp4", ".webm"):
+            continue
+        full_im = thumbnail(blogfile.file, "1500x1500", upscale=False, quality=100)
         full_url = full_im.url
         image = {"id": blogfile.id, "full_url": full_url, "full_size": full_im.size}
         formats = (
@@ -531,6 +535,116 @@ def thumbnail(imagefile, geometry, **options):
         # remember. Just try again a little bit later.
         time.sleep(1)
         return thumbnail(imagefile, geometry, **options)
+
+
+@api_superuser_required
+def videos(request, oid):
+    blogitem = get_object_or_404(BlogItem, oid=oid)
+
+    context = {"videos": _post_videos(blogitem)}
+
+    if request.method == "POST":
+        if request.POST.get("_update"):
+            form = BlogFileForm(request.POST)
+            if form.is_valid():
+                blog_file = BlogFile.objects.get(
+                    blogitem=blogitem,
+                    # Strange that you can't use form.cleaned_data for 'id' here.
+                    id=request.POST["id"],
+                )
+                blog_file.title = form.cleaned_data["title"]
+                blog_file.save()
+                return json_response({"ok": True})
+            return json_response({"errors": form.errors}, status=400)
+        else:
+            form = BlogFileUpload(
+                dict(
+                    request.POST,
+                    blogitem=blogitem.id,
+                    title=request.POST.get("title", ""),
+                ),
+                request.FILES,
+            )
+            if form.is_valid():
+                instance = form.save()
+                return json_response({"id": instance.id})
+            return json_response({"errors": form.errors}, status=400)
+    elif request.method == "DELETE":
+        blogfile = get_object_or_404(BlogFile, blogitem=blogitem, id=request.GET["id"])
+        blogfile.delete()
+        return json_response({"deleted": True})
+    elif request.method == "GET":
+        return json_response(context, schema="api.v0.videos")
+
+    return json_response({"error": "Wrong method"}, status=405)
+
+
+def _post_videos(blogitem):
+    blogfiles = BlogFile.objects.filter(blogitem=blogitem).order_by("add_date")
+
+    videos = []
+
+    for blogfile in blogfiles:
+        title = getattr(blogfile, "title", None) or blogitem.title
+        file_path = Path(blogfile.file.path)
+        if not file_path.is_file():
+            continue
+        if file_path.suffix not in (".mov", ".mp4", ".webm"):
+            continue
+        thumbs = _video_thumbnails(file_path, title)
+        formats = _video_formats(file_path, blogitem.oid)
+        video = {
+            "id": blogfile.id,
+            "thumbnails": thumbs,
+            "formats": formats,
+        }
+        videos.append(video)
+
+    return videos
+
+
+def _video_formats(video_file_path: Path, oid: str):
+    return {
+        "mov": process_blog_video_to_cache(video_file_path, oid, "mov"),
+        "mp4": process_blog_video_to_cache(video_file_path, oid, "mp4"),
+        "webm": process_blog_video_to_cache(video_file_path, oid, "webm"),
+    }
+
+
+def _video_thumbnails(video_file_path, title, times=(0,), width=2000, quality=81):
+    image_file_paths = []
+    thumbs = {}
+    for ss in times:
+        image_file_path = process_video_to_image(video_file_path)
+        image_file_paths.append(image_file_path)
+        full_im = thumbnail(
+            str(image_file_path),
+            "2000x2000",
+            upscale=False,
+            quality=quality,
+            format="JPEG",
+        )
+
+        thumbs["full"] = {
+            "url": full_im.url,
+            "alt": title,
+            "width": full_im.width,
+            "height": full_im.height,
+        }
+        formats = (
+            ("big", "370x370"),
+            ("bigger", "600x600"),
+        )
+        for key, geometry in formats:
+            im = thumbnail(str(image_file_path), geometry, quality=quality)
+            url_ = im.url
+            thumbs[key] = {
+                "url": url_,
+                "alt": title,
+                "width": im.width,
+                "height": im.height,
+            }
+    return thumbs
 
 
 @api_superuser_required

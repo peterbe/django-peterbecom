@@ -42,6 +42,7 @@ urlpatterns = [
     ),
     path("plog/preview/", views.preview, name="preview"),
     re_path(r"^plog/(.*)/images$", views.images, name="images"),
+    re_path(r"^plog/(.*)/videos$", views.videos, name="videos"),
     re_path(r"^plog/(.*)/hits$", views.hits, name="hits"),
     re_path(
         r"^plog/(.*)/open-graph-image$", views.open_graph_image, name="open_graph_image"
