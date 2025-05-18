@@ -71,7 +71,6 @@ dependencies = [
     "zope-structuredtext==5.0",
     "zopfli==0.2.3",
     "ffmpeg-python==0.2.0",
-    "scrapling>=0.2.99",
 ]
 
 [tool.coverage.run]
