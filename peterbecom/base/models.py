@@ -246,3 +246,12 @@ def create_event(type: str, uuid: str, url: str, meta: dict, data: dict):
         meta=meta,
         data=data,
     )
+
+
+class RequestLog(models.Model):
+    url = models.URLField(max_length=500)
+    status_code = models.IntegerField()
+    created = models.DateTimeField(auto_now_add=True, db_index=True)
+    request = models.JSONField(default=dict)
+    response = models.JSONField(default=dict)
+    meta = models.JSONField(default=dict)
