@@ -42,13 +42,16 @@ def query(request):
         error = f"Query can not be parsed: {q!r}"
         return http.JsonResponse({"error": error}, status=400)
 
-    only_valid = ("base_analyticsevent", "base_analyticsgeoevent")
+    only_valid = ("base_analyticsevent", "base_analyticsgeoevent", "base_requestlog")
     for table in parsed.tables:
         if table == "analytics_geo":
             q = re.sub(r"\banalytics_geo\b", "base_analyticsgeoevent", q)
 
         elif table == "analytics":
             q = re.sub(r"\banalytics\b", "base_analyticsevent", q)
+
+        elif table == "requestlog":
+            q = re.sub(r"\brequestlog\b", "base_requestlog", q)
 
         elif table not in only_valid:
             error = f"{table!r} is not a valid table."
