@@ -15,7 +15,7 @@ from huey.contrib.djhuey import periodic_task, task
 from peterbecom.base.analytics_geo_events import create_analytics_geo_events
 from peterbecom.base.analytics_referrer_events import create_analytics_referrer_events
 from peterbecom.base.cdn import purge_cdn_urls
-from peterbecom.base.models import CDNPurgeURL, CommandRun, PostProcessing
+from peterbecom.base.models import CDNPurgeURL, CommandRun, PostProcessing, RequestLog
 from peterbecom.base.utils import do_healthcheck
 from peterbecom.base.xcache_analyzer import get_x_cache
 
@@ -155,7 +155,7 @@ def health_check_to_disk():
 
 @periodic_task(crontab(hour="1", minute="1"))
 def delete_old_commandsruns():
-    old = timezone.now() - datetime.timedelta(days=90)
+    old = timezone.now() - datetime.timedelta(days=60)
     CommandRun.objects.filter(created__lt=old).delete()
 
 
@@ -175,3 +175,9 @@ def create_analytics_referrer_events_backfill():
         timezone.now(),
     )
     create_analytics_referrer_events(max=1000)
+
+
+@periodic_task(crontab(hour="1", minute="2"))
+def delete_old_request_logs():
+    old = timezone.now() - datetime.timedelta(days=60)
+    RequestLog.objects.filter(created__lt=old).delete()
