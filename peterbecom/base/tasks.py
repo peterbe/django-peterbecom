@@ -15,7 +15,13 @@ from huey.contrib.djhuey import periodic_task, task
 from peterbecom.base.analytics_geo_events import create_analytics_geo_events
 from peterbecom.base.analytics_referrer_events import create_analytics_referrer_events
 from peterbecom.base.cdn import purge_cdn_urls
-from peterbecom.base.models import CDNPurgeURL, CommandRun, PostProcessing, RequestLog
+from peterbecom.base.models import (
+    CDNPurgeURL,
+    CommandRun,
+    PostProcessing,
+    RequestLog,
+    AnalyticsEvent,
+)
 from peterbecom.base.utils import do_healthcheck
 from peterbecom.base.xcache_analyzer import get_x_cache
 
@@ -104,7 +110,7 @@ def post_process_after_cdn_purge(url):
 
 @periodic_task(crontab(hour="*", minute="3"))
 def purge_old_cdnpurgeurls():
-    old = timezone.now() - datetime.timedelta(days=90)
+    old = timezone.now() - datetime.timedelta(days=30)
     ancient = CDNPurgeURL.objects.filter(created__lt=old)
     deleted = ancient.delete()
     print(f"{deleted[0]:,} ANCIENT CDNPurgeURLs deleted")
@@ -112,7 +118,7 @@ def purge_old_cdnpurgeurls():
 
 @periodic_task(crontab(hour="*", minute="2"))
 def purge_old_postprocessings():
-    old = timezone.now() - datetime.timedelta(days=90)
+    old = timezone.now() - datetime.timedelta(days=30)
     ancient = PostProcessing.objects.filter(created__lt=old)
     count = ancient.count()
     if count:
@@ -181,3 +187,9 @@ def create_analytics_referrer_events_backfill():
 def delete_old_request_logs():
     old = timezone.now() - datetime.timedelta(days=60)
     RequestLog.objects.filter(created__lt=old).delete()
+
+
+@periodic_task(crontab(hour="1", minute="3"))
+def delete_old_analyticsevents():
+    old = timezone.now() - datetime.timedelta(days=90)
+    AnalyticsEvent.objects.filter(created__lt=old).delete()
