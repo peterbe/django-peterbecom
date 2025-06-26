@@ -12,7 +12,8 @@ dev-with-tunneling:
     ./bin/wait-for-pg.sh --help > /dev/null
     hivemind Procfile.tunneling
 
-start: dev
+start:
+    hivemind Procfile.prod
 
 pretty:
     ruff format peterbecom

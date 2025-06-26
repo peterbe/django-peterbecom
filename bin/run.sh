@@ -47,20 +47,18 @@ setup_python() {
 
 case $1 in
   web-dev)
-    echo "STARTING WEB-DEV"
+    echo "STARTING WEB-DEV  (:${PORT})"
     setup_python
     python manage.py migrate --noinput
     # export PYTHONWARNINGS=d
-    exec python manage.py runserver 0.0.0.0:8000
+    exec python manage.py runserver 0.0.0.0:${PORT}
     ;;
   web)
-    echo "STARTING WEB (with gunicorn)"
-    #python manage.py clear-django-cache
+    echo "STARTING WEB (with gunicorn) (:${PORT})"
     setup_python
     python manage.py migrate --noinput
     # export PYTHONWARNINGS=d
     gunicorn wsgi -w ${WORKERS} -b 0.0.0.0:${PORT} --access-logfile=-
-    # exec python manage.py runserver 0.0.0.0:8000
     ;;
   test)
     setup_python
