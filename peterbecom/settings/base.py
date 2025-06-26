@@ -33,6 +33,9 @@ DATABASES = {
     )
 }
 
+# https://www.peterbe.com/plog/native-connection-pooling-django-5-pg
+DATABASES["default"]["OPTIONS"] = {"pool": True}
+
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
@@ -179,8 +182,33 @@ LOGGING = {
             "propagate": True,
         },
         "huey": {"handlers": ["console"], "level": "INFO", "propagate": True},
+        "django.db.backends": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
     },
 }
+# LOGGING = {
+#     "version": 1,
+#     "disable_existing_loggers": False,
+#     "handlers": {
+#         "console": {
+#             "class": "logging.StreamHandler",
+#         },
+#     },
+#     "loggers": {
+#         "django.db.backends": {
+#             "handlers": ["console"],
+#             "level": "DEBUG",
+#             "propagate": False,  # Prevent messages from being sent to parent loggers
+#         },
+#     },
+#     "root": {
+#         "handlers": ["console"],
+#         "level": "INFO",  # Default level for other loggers
+#     },
+# }
 
 
 # REDIS_URL = 'redis://redis:6379/0'
