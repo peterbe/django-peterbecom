@@ -66,6 +66,7 @@ from .forms import (
     EditBlogForm,
     PreviewBlogForm,
     SpamCommentPatternForm,
+    ProbeURLForm,
 )
 from .tasks import send_comment_reply_email
 
@@ -1975,3 +1976,41 @@ def whereami(request):
 def healthcheck(request):
     do_healthcheck()
     return http.HttpResponse("OK\n")
+
+
+@require_POST
+@api_superuser_required
+def probe_url(request):
+    data = json.loads(request.body.decode("utf-8"))
+    form = ProbeURLForm(data)
+    if not form.is_valid():
+        return json_response({"errors": form.errors}, status=400)
+
+    url = form.cleaned_data["url"]
+    method = form.cleaned_data["method"] or "GET"
+    user_agent = form.cleaned_data["user_agent"] or "peterbe.com/probe/url"
+
+    context = {
+        "request": {
+            "url": url,
+            "method": method,
+            "user_agent": user_agent,
+        }
+    }
+    if method == "GET":
+        func = requests.get
+    else:
+        raise NotImplementedError("Currently only supports 'GET'")
+    headers = {}
+    if user_agent:
+        headers["User-Agent"] = user_agent
+    r = func(url, allow_redirects=False, headers=headers)
+    context["response"] = {"status_code": r.status_code}
+    if r.status_code in (301, 302, 308, 307):
+        context["response"]["location"] = r.headers["location"]
+
+    body = r.text
+    if body:
+        context["response"]["body"] = body
+
+    return json_response(context)
