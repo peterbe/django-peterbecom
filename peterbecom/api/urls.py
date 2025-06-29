@@ -71,5 +71,6 @@ urlpatterns = [
     path("whoami", views.whoami, name="whoami"),
     path("__healthcheck__", views.healthcheck, name="healthcheck"),
     path("analytics/query", analytics.query, name="analytics_query"),
+    path("probe/url", views.probe_url, name="probe_url"),
     path("", views.catch_all, name="catch_all"),
 ]

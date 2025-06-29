@@ -197,6 +197,12 @@ class SpamCommentPatternForm(forms.ModelForm):
         fields = ("pattern", "is_regex", "is_url_pattern")
 
 
+class ProbeURLForm(forms.Form):
+    url = forms.URLField()
+    method = forms.CharField(required=False)
+    user_agent = forms.CharField(required=False)
+
+
 class CommentCountsForm(forms.Form):
     start = ISODateTimeField()
     end = ISODateTimeField()

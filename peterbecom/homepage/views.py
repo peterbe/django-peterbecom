@@ -39,7 +39,15 @@ ONE_MONTH = ONE_WEEK * 4
 
 
 def home(request, oc=None, page=1):
-    return http.HttpResponse("deprecated. Use next\n")
+    print("login?", repr(request.GET.get("login")))
+    print("host", request.get_host())
+    if (
+        request.GET.get("login")
+        and request.get_host() == "localhost:8000"
+        and request.user.is_authenticated
+    ):
+        return http.HttpResponseRedirect("http://localhost:4001")
+    return http.HttpResponse(f"deprecated (user={request.user})")
 
 
 @cache_control(public=True, max_age=ONE_WEEK)
