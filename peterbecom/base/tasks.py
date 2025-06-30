@@ -25,6 +25,34 @@ from peterbecom.base.utils import do_healthcheck
 from peterbecom.base.xcache_analyzer import get_x_cache
 
 
+def get_full_path(func):
+    return f"{func.__module__}.{func.__qualname__}"
+
+
+def log_task_run(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        t0 = time.time()
+        failed = False
+        try:
+            func(*args, **kwargs)
+        except Exception:
+            failed = True
+        finally:
+            t1 = time.time()
+            if t1 - t0 < 1:
+                took = f"{(t1 - t0) * 1000:.1f}ms"
+            else:
+                took = f"{(t1 - t0):.2f}s"
+            print(
+                f"(Crontab Task) {func.__module__}.{func.__qualname__}",
+                f"{'Failed!' if failed else 'Worked.'}",
+                f"Took {took}. ({timezone.now()})",
+            )
+
+    return wrapper
+
+
 def measure_post_process(func):
     @functools.wraps(func)
     def inner(filepath, url, *args, **kwargs):
@@ -54,6 +82,7 @@ def measure_post_process(func):
 
 
 @periodic_task(crontab(minute="*"))
+@log_task_run
 def run_purge_cdn_urls():
     CDNPurgeURL.purge_old()
     for i in range(3):
@@ -108,6 +137,7 @@ def post_process_after_cdn_purge(url):
 
 
 @periodic_task(crontab(hour="*", minute="3"))
+@log_task_run
 def purge_old_cdnpurgeurls():
     old = timezone.now() - datetime.timedelta(days=30)
     ancient = CDNPurgeURL.objects.filter(created__lt=old)
@@ -116,6 +146,7 @@ def purge_old_cdnpurgeurls():
 
 
 @periodic_task(crontab(hour="*", minute="2"))
+@log_task_run
 def purge_old_postprocessings():
     old = timezone.now() - datetime.timedelta(days=30)
     ancient = PostProcessing.objects.filter(created__lt=old)
@@ -133,6 +164,7 @@ def purge_old_postprocessings():
 
 
 @periodic_task(crontab(minute="*"))
+@log_task_run
 def health_check_to_disk():
     health_file = Path("/tmp/huey_health.json")
     try:
@@ -159,30 +191,26 @@ def health_check_to_disk():
 
 
 @periodic_task(crontab(minute="2"))
+@log_task_run
 def create_analytics_geo_events_backfill():
-    print(
-        "(Debugging Cron) Executing create_analytics_geo_events_backfill",
-        timezone.now(),
-    )
     create_analytics_geo_events(max=1000)
 
 
 @periodic_task(crontab(minute="3"))
+@log_task_run
 def create_analytics_referrer_events_backfill():
-    print(
-        "(Debugging Cron) Executing create_analytics_referrer_events_backfill",
-        timezone.now(),
-    )
     create_analytics_referrer_events(max=1000)
 
 
 @periodic_task(crontab(hour="1", minute="2"))
+@log_task_run
 def delete_old_request_logs():
     old = timezone.now() - datetime.timedelta(days=60)
     RequestLog.objects.filter(created__lt=old).delete()
 
 
 @periodic_task(crontab(hour="1", minute="3"))
+@log_task_run
 def delete_old_analyticsevents():
     old = timezone.now() - datetime.timedelta(days=90)
     AnalyticsEvent.objects.filter(created__lt=old).delete()

@@ -204,7 +204,7 @@ class AnalyticsGeoEvent(models.Model):
     country = models.CharField(max_length=100, null=True)
     latitude = models.FloatField(null=True)
     longitude = models.FloatField(null=True)
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True, db_index=True)
     lookup = models.JSONField(default=dict)
 
 
