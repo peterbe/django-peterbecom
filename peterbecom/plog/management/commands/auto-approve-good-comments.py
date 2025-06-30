@@ -5,7 +5,7 @@ from django.core.cache import cache
 from django.utils import timezone
 
 from peterbecom.api.views import actually_approve_comment
-from peterbecom.base.basecommand import BaseCommand
+from django.core.management.base import BaseCommand
 from peterbecom.plog.models import BlogComment
 from peterbecom.plog.utils import rate_blog_comment
 
@@ -21,7 +21,7 @@ class Command(BaseCommand):
             help="Don't actually approve the good candidates",
         )
 
-    def _handle(self, **options):
+    def handle(self, **options):
         if settings.DB_MAINTENANCE_MODE:
             print("DB maintenance mode")
             return
@@ -74,16 +74,16 @@ class Command(BaseCommand):
 
                 if not dry_run:
                     actually_approve_comment(comment, auto_approved=True)
-                    self.out("Actually approved comment: {!r}".format(comment))
+                    self.stdout.write("Actually approved comment: {!r}".format(comment))
                 else:
-                    self.out("*Would* approved comment: {!r}".format(comment))
+                    self.stdout.write("*Would* approved comment: {!r}".format(comment))
                 print("\n")
                 count_approved += 1
                 if count_approved >= limit:
                     break
 
         if count_approved:
-            self.out(
+            self.stdout.write(
                 "{} {} good comments".format(
                     "Would approve" if dry_run else "Approved", count_approved
                 )

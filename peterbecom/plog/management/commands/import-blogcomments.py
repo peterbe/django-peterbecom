@@ -1,6 +1,6 @@
 import json
 
-from peterbecom.base.basecommand import BaseCommand
+from django.core.management.base import BaseCommand
 from peterbecom.plog.models import BlogComment, BlogItem
 
 
@@ -10,7 +10,7 @@ class Command(BaseCommand):
         parser.add_argument("--limit", default=500)
         parser.add_argument("-b", "--in-bulk", action="store_true", default=False)
 
-    def _handle(self, **options):
+    def handle(self, **options):
         limit = int(options["limit"])
         in_bulk = options["in_bulk"]
         with open(options["jsonfilepath"]) as f:
@@ -94,39 +94,3 @@ class Command(BaseCommand):
         print("NOTFOUND (blogitem): {}".format(notfound))
         print("NOTFOUND (parent):   {}".format(notfound_parent))
         print("IMPORTED NEW:        {}".format(new))
-
-        # qs = BlogComment.objects.all()
-        # if options["oids"]:
-        #     qs = qs.filter(blogitem__oid__in=options["oids"])
-
-        # exported = []
-        # exported_oids = set()
-
-        # def export(comment):
-        #     if comment.parent:
-        #         export(comment.parent)
-
-        #     if comment.oid in exported_oids:
-        #         return
-        #     exported_oids.add(comment.oid)
-        #     item = {
-        #         "oid": comment.oid,
-        #         "blogitem": comment.blogitem.oid,
-        #         "parent": comment.parent.oid if comment.parent else None,
-        #         "approved": comment.approved,
-        #         "comment": comment.comment,
-        #         "comment_rendered": comment.comment_rendered,
-        #         "add_date": comment.add_date.isoformat(),
-        #         "modify_date": comment.modify_date.isoformat(),
-        #         "name": comment.name,
-        #         "email": comment.email,
-        #         "user_agent": comment.user_agent,
-        #         "ip_address": comment.ip_address,
-        #     }
-        #     exported.append(item)
-
-        # for comment in qs.select_related("blogitem").order_by("-add_date")[:limit]:
-        #     export(comment)
-
-        # with open("exported-blogcomments.json", "w") as f:
-        #     json.dump(exported, f, indent=3)

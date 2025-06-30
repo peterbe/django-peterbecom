@@ -17,7 +17,6 @@ from peterbecom.base.analytics_referrer_events import create_analytics_referrer_
 from peterbecom.base.cdn import purge_cdn_urls
 from peterbecom.base.models import (
     CDNPurgeURL,
-    CommandRun,
     PostProcessing,
     RequestLog,
     AnalyticsEvent,
@@ -157,12 +156,6 @@ def health_check_to_disk():
                 f,
             )
         raise
-
-
-@periodic_task(crontab(hour="1", minute="1"))
-def delete_old_commandsruns():
-    old = timezone.now() - datetime.timedelta(days=60)
-    CommandRun.objects.filter(created__lt=old).delete()
 
 
 @periodic_task(crontab(minute="2"))

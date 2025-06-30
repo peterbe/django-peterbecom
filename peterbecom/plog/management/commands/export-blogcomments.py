@@ -1,6 +1,6 @@
 import json
 
-from peterbecom.base.basecommand import BaseCommand
+from django.core.management.base import BaseCommand
 from peterbecom.plog.models import BlogComment
 
 
@@ -10,7 +10,7 @@ class Command(BaseCommand):
         parser.add_argument("--limit", default=500)
         parser.add_argument("--offset", default=0)
 
-    def _handle(self, **options):
+    def handle(self, **options):
         limit = int(options["limit"])
         offset = int(options["offset"])
         qs = BlogComment.objects.all()
