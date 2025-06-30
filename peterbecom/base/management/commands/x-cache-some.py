@@ -3,12 +3,12 @@ import os
 
 from django.conf import settings
 
-from peterbecom.base.basecommand import BaseCommand
+from django.core.management.base import BaseCommand
 from peterbecom.base.xcache_analyzer import get_x_cache
 
 
 class Command(BaseCommand):
-    def _handle(self, **options):
+    def handle(self, **options):
         URL = "https://www.peterbe.com/plog/blogitem-040601-1"
         urls = []
         for page in range(1, settings.MAX_BLOGCOMMENT_PAGES + 1):
