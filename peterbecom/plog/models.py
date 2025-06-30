@@ -485,9 +485,13 @@ class BlogComment(models.Model):
 
     @classmethod
     def index_all_blogcomments(cls, verbose=False):
-        iterator = cls.objects.filter(
-            blogitem__archived__isnull=True, blogitem__pub_date__lt=timezone.now()
-        ).select_related("blogitem")
+        iterator = (
+            cls.objects.filter(
+                blogitem__archived__isnull=True, blogitem__pub_date__lt=timezone.now()
+            )
+            .exclude(blogitem__oid="blogitem-040601-1")
+            .select_related("blogitem")
+        )
 
         es = connections.get_connection()
         report_every = 1000
