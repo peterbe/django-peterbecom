@@ -41,7 +41,7 @@ dependencies = [
     "ipaddress==1.0.23",
     "jsonschema==4.24.0",
     "keycdn==0.4.3",
-    "lxml==5.4.0",
+    "lxml==6.0.0",
     "markdown==3.8",
     "mock==5.2.0",
     "mozilla-django-oidc==4.0.1",
