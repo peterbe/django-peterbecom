@@ -215,7 +215,7 @@ class AnalyticsReferrerEvent(models.Model):
     direct = models.BooleanField(default=False)
     search_engine = models.CharField(max_length=100, null=True)
     search = models.CharField(max_length=300, null=True)
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True, db_index=True)
 
 
 @backoff.on_exception(backoff.expo, InterfaceError, max_time=10)
