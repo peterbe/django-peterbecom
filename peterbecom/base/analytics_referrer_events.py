@@ -20,7 +20,6 @@ def create_analytics_referrer_events(max=100, min_hours_old=2):
         .filter(meta__referrer__isnull=False)
         .order_by("-created")
     )
-    print(qs.query)
     batch = []
     for event in qs[:max]:
         referrer = event.meta["referrer"]
