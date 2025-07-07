@@ -77,6 +77,11 @@ case $1 in
     setup_python
     python manage.py run_huey --flush-locks --huey-verbose
     ;;
+  manage.py)
+    setup_python
+    shift # Shift all arguments to the left (drop $1)
+    python manage.py "$@"
+    ;;
   bash)
     # echo "For high-speed test development, run: pip install pytest-watch"
     exec "$@"
