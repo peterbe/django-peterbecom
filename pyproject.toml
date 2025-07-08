@@ -71,6 +71,7 @@ dependencies = [
     "zopfli==0.2.3",
     "ffmpeg-python==0.2.0",
     "psycopg[binary,pool]>=3.2.9",
+    "crawlerdetect>=0.3.0",
 ]
 
 [tool.coverage.run]

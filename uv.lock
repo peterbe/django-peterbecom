@@ -251,6 +251,15 @@ wheels = [
 ]
 
 [[package]]
+name = "crawlerdetect"
+version = "0.3.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/d4/15/e37598eeb987331dce58bda176e265e311b4fe1330c339ec3741936bd7e6/crawlerdetect-0.3.0.tar.gz", hash = "sha256:a269289943f6b2a8f33ed5b9a09591b6dae0e45c0c19a0d9c5ef07f5c518575c", size = 16574, upload-time = "2024-11-15T08:02:23.521Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d2/9f/e0df5531907083792578aec5ebb2ec670829317fe6bb63d9cdf78889382b/crawlerdetect-0.3.0-py3-none-any.whl", hash = "sha256:7a9144619f74941bafe76a384aab55143d41d1c999e846eaf61853b3b02633c2", size = 16058, upload-time = "2024-11-15T08:02:21.684Z" },
+]
+
+[[package]]
 name = "cryptography"
 version = "43.0.1"
 source = { registry = "https://pypi.org/simple" }
@@ -357,6 +366,7 @@ dependencies = [
     { name = "bleach" },
     { name = "brotli" },
     { name = "cachetools" },
+    { name = "crawlerdetect" },
     { name = "cssselect" },
     { name = "delegator-py" },
     { name = "dj-database-url" },
@@ -410,6 +420,7 @@ requires-dist = [
     { name = "bleach", specifier = "==6.2.0" },
     { name = "brotli", specifier = ">=1.1.0" },
     { name = "cachetools", specifier = "==6.1.0" },
+    { name = "crawlerdetect", specifier = ">=0.3.0" },
     { name = "cssselect", specifier = "==1.3.0" },
     { name = "delegator-py", specifier = "==0.1.1" },
     { name = "dj-database-url", specifier = "==3.0.1" },

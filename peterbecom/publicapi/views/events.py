@@ -7,6 +7,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from crawlerdetect import CrawlerDetect
 
 from peterbecom.base.models import AnalyticsEvent, create_event
 from peterbecom.base.utils import fake_ip_address
@@ -20,8 +21,11 @@ def event(request):
     except json.JSONDecodeError:
         return http.JsonResponse({"error": "invalid json"}, status=400)
 
-    uuid = data.get("meta", {}).get("uuid")
-    url = data.get("meta", {}).get("url")
+    meta = data.get("meta") or {}
+    if not isinstance(meta, dict):
+        return http.JsonResponse({"error": "meta must be a dict"}, status=400)
+    uuid = meta.get("uuid")
+    url = meta.get("url")
     if url and len(url) > 500:
         url = url[: 500 - 3] + "..."
     denormalized = dict(
@@ -54,6 +58,13 @@ def event(request):
         ip_address = fake_ip_address(str(time.time()))
     if ip_address:
         meta["ip_address"] = ip_address
+
+    if meta.get("user_agent"):
+        ua = meta["user_agent"].get("ua")
+        if ua:
+            is_bot, bot_agent = get_bot_analysis(ua)
+            data["bot_agent"] = bot_agent
+            data["is_bot"] = is_bot
 
     create_event(
         type=type_,
@@ -103,3 +114,10 @@ class AnalyticsEventForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["data"].required = False
+
+
+def get_bot_analysis(ua: str) -> tuple[bool, str | None]:
+    if not ua:
+        return False, None
+    cd = CrawlerDetect(user_agent=ua)
+    return (cd.isCrawler(), cd.getMatches())
