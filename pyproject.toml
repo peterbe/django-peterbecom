@@ -68,7 +68,7 @@ dependencies = [
     "tomli==2.2.1",
     "xmltodict==0.14.2",
     "zope-structuredtext==5.0",
-    "zopfli==0.2.3",
+    "zopfli==0.2.3.post1",
     "ffmpeg-python==0.2.0",
     "psycopg[binary,pool]>=3.2.9",
     "crawlerdetect>=0.3.0",
