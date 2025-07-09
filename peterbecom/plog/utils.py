@@ -30,7 +30,7 @@ from .gfm import gfm
 
 def custom_toc_slugify(value: str, separator: str, unicode: bool = False) -> str:
     s = toc_slugify(value, separator, unicode)
-    if s[0].isdigit():
+    if s and s[0].isdigit():
         s = "h-" + s
     return s
 
