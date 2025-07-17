@@ -7,7 +7,6 @@ from django.conf import settings
 
 from peterbecom.base.models import create_event
 from peterbecom.base.utils import fake_ip_address
-from peterbecom.publicapi.views.events import get_bot_analysis
 
 max_age_re = re.compile(r"max-age=(\d+)")
 
@@ -41,16 +40,10 @@ class PublicAPIPageviewsMiddleware:
             }
             query_string = request.META.get("QUERY_STRING", "")
             meta = {
-                "user_agent": request.META.get("HTTP_USER_AGENT"),
                 "path": request.path,
                 "query_string": query_string,
                 "request_url": request.build_absolute_uri(),
             }
-            ua = meta.get("user_agent")
-            if ua:
-                is_bot, bot_agent = get_bot_analysis(ua)
-                data["bot_agent"] = bot_agent
-                data["is_bot"] = is_bot
 
             ip_address = request.headers.get("x-forwarded-for") or request.META.get(
                 "REMOTE_ADDR"
