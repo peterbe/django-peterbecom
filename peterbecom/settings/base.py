@@ -102,6 +102,7 @@ MIDDLEWARE = (
     "peterbecom.api.middleware.AuthenticationMiddleware",
     "peterbecom.base.middleware.NoNewlineRequestPaths",
     # Important that this is last
+    "peterbecom.base.middleware.PublicAPIPageviewsMiddleware",
     "peterbecom.base.middleware.StatsMiddleware",
 )
 

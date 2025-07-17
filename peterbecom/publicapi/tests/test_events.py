@@ -150,7 +150,8 @@ def test_post_duplicate_event(client):
         content_type="application/json",
     )
     assert response.status_code == 201
-    assert AnalyticsEvent.objects.count() == 1
+    assert AnalyticsEvent.objects.filter(type="some-thing").count() == 1
+    assert AnalyticsEvent.objects.filter(type="publicapi-pageview").count() == 1
 
     payload["meta"]["created"] = (timezone.now() + timedelta(seconds=1)).isoformat()
     response = client.post(
@@ -159,7 +160,7 @@ def test_post_duplicate_event(client):
         content_type="application/json",
     )
     assert response.status_code == 200
-    assert AnalyticsEvent.objects.count() == 1
+    assert AnalyticsEvent.objects.filter(type="some-thing").count() == 1
 
     payload["meta"]["performance"]["nav"] = 987.1
     response = client.post(
@@ -168,7 +169,7 @@ def test_post_duplicate_event(client):
         content_type="application/json",
     )
     assert response.status_code == 200
-    assert AnalyticsEvent.objects.count() == 1
+    assert AnalyticsEvent.objects.filter(type="some-thing").count() == 1
 
     payload["data"]["pathname"] = "/different"
     response = client.post(
@@ -177,7 +178,7 @@ def test_post_duplicate_event(client):
         content_type="application/json",
     )
     assert response.status_code == 201
-    assert AnalyticsEvent.objects.count() == 2
+    assert AnalyticsEvent.objects.filter(type="some-thing").count() == 2
 
 
 @pytest.mark.django_db
