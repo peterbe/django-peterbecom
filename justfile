@@ -36,4 +36,4 @@ test-with-coverage:
 
 upgrade:
     # uv pip list --outdated
-    /Users/peterbe/bin/Uv-Outdated.py
+    Uv-Outdated.py
