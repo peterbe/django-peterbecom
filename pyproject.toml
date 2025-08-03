@@ -39,7 +39,7 @@ dependencies = [
     "gunicorn==23.0.0",
     "huey==2.5.3",
     "ipaddress==1.0.23",
-    "jsonschema==4.24.0",
+    "jsonschema==4.25.0",
     "keycdn==0.4.3",
     "lxml==6.0.0",
     "markdown==3.8.2",
