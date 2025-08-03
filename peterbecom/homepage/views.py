@@ -39,8 +39,6 @@ ONE_MONTH = ONE_WEEK * 4
 
 
 def home(request, oc=None, page=1):
-    print("login?", repr(request.GET.get("login")))
-    print("host", request.get_host())
     if (
         request.GET.get("login")
         and request.get_host() == "localhost:8000"
