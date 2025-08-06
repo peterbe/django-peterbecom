@@ -65,8 +65,8 @@ from .forms import (
     EditBlogCommentForm,
     EditBlogForm,
     PreviewBlogForm,
-    SpamCommentPatternForm,
     ProbeURLForm,
+    SpamCommentPatternForm,
 )
 from .tasks import send_comment_reply_email
 

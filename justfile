@@ -18,6 +18,8 @@ start:
 pretty:
     ruff format peterbecom
     ruff check --fix peterbecom
+    # correct import sort order
+    ruff check --select I --fix
 
 lint: pretty
     ruff check peterbecom

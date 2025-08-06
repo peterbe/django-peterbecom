@@ -2,12 +2,12 @@ import hashlib
 import json
 import time
 
+from crawlerdetect import CrawlerDetect
 from django import forms, http
 from django.conf import settings
 from django.core.cache import cache
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from crawlerdetect import CrawlerDetect
 
 from peterbecom.base.models import AnalyticsEvent, create_event
 from peterbecom.base.utils import fake_ip_address

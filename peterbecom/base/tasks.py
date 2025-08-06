@@ -16,10 +16,10 @@ from peterbecom.base.analytics_geo_events import create_analytics_geo_events
 from peterbecom.base.analytics_referrer_events import create_analytics_referrer_events
 from peterbecom.base.cdn import purge_cdn_urls
 from peterbecom.base.models import (
+    AnalyticsEvent,
     CDNPurgeURL,
     PostProcessing,
     RequestLog,
-    AnalyticsEvent,
 )
 from peterbecom.base.utils import do_healthcheck
 from peterbecom.base.xcache_analyzer import get_x_cache
