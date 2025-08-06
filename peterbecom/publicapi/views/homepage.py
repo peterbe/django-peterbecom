@@ -1,5 +1,6 @@
 from collections import defaultdict
 
+from cachetools import TTLCache, cached
 from django import http
 from django.conf import settings
 from django.db.models import Count
@@ -11,11 +12,12 @@ from peterbecom.homepage.utils import make_categories_q
 from peterbecom.plog.models import BlogComment, BlogItem, Category
 
 
-def get_category_name_and_id(oc):
-    for name, id in Category.objects.filter(name__iexact=oc).values_list("name", "id"):
-        return (name, id)
-
-    return []
+@cached(cache=TTLCache(maxsize=1, ttl=60 * 10))
+def get_category_id_name_map():
+    mapping = {}
+    for name, id in Category.objects.values_list("name", "id"):
+        mapping[id] = name
+    return mapping
 
 
 @cache_page(10 if settings.DEBUG else 60 * 5, key_prefix="publicapi_cache_page")
@@ -34,13 +36,13 @@ def homepage_blogitems(request):
     if ocs:
         categories = []
         for oc in ocs:
-            for name, id in Category.objects.filter(name__iexact=oc).values_list(
-                "name", "id"
-            ):
-                if name != oc:
-                    return http.HttpResponsePermanentRedirect(f"/oc-{name}")
-                categories.append(id)
-                break
+            for id, name in get_category_id_name_map().items():
+                if name.lower() == oc.lower():
+                    # E.g. ?oc=web+Development
+                    if name != oc:
+                        return http.HttpResponsePermanentRedirect(f"/oc-{name}")
+                    categories.append(id)
+                    break
             else:
                 return http.HttpResponseBadRequest(f"invalid oc {oc!r}")
 
@@ -88,7 +90,7 @@ def homepage_blogitems(request):
 
     context["posts"] = []
 
-    category_names = {x["id"]: x["name"] for x in Category.objects.values("id", "name")}
+    category_names = get_category_id_name_map()
 
     categories = defaultdict(list)
     for (
