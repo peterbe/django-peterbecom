@@ -1,6 +1,5 @@
 from collections import defaultdict
 
-from cachetools import TTLCache, cached
 from django import http
 from django.conf import settings
 from django.db.models import Count
@@ -10,14 +9,6 @@ from django.views.decorators.cache import cache_page
 from peterbecom.base.utils import json_response
 from peterbecom.homepage.utils import make_categories_q
 from peterbecom.plog.models import BlogComment, BlogItem, Category
-
-
-@cached(cache=TTLCache(maxsize=1, ttl=60 * 10))
-def get_category_id_name_map():
-    mapping = {}
-    for name, id in Category.objects.values_list("name", "id"):
-        mapping[id] = name
-    return mapping
 
 
 @cache_page(10 if settings.DEBUG else 60 * 5, key_prefix="publicapi_cache_page")
@@ -36,7 +27,7 @@ def homepage_blogitems(request):
     if ocs:
         categories = []
         for oc in ocs:
-            for id, name in get_category_id_name_map().items():
+            for id, name in Category.get_category_id_name_map().items():
                 if name.lower() == oc.lower():
                     # E.g. ?oc=web+Development
                     if name != oc:
@@ -90,7 +81,7 @@ def homepage_blogitems(request):
 
     context["posts"] = []
 
-    category_names = get_category_id_name_map()
+    category_names = Category.get_category_id_name_map()
 
     categories = defaultdict(list)
     for (
