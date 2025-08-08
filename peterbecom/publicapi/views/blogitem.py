@@ -7,7 +7,12 @@ from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
 
-from peterbecom.plog.models import BlogComment, BlogItem, count_approved_comments, count_approved_root_comments
+from peterbecom.plog.models import (
+    BlogComment,
+    BlogItem,
+    count_approved_comments,
+    count_approved_root_comments,
+)
 
 
 def blogitem(request, oid):

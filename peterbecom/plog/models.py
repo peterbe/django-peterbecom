@@ -544,6 +544,7 @@ class BlogComment(models.Model):
 # blogitem (with the most comments), takes 10-20 milliseconds. Reading from
 # the in-memory cache is 0.01 milliseconds. So, about 1000x faster.
 
+
 @cached(cache=count_comments_cache)
 def count_approved_comments(blogitem_id):
     return BlogComment.objects.filter(blogitem=blogitem_id, approved=True).count()
