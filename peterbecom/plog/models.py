@@ -10,6 +10,7 @@ import uuid
 from collections import defaultdict
 
 import bleach
+from cachetools import TTLCache, cached
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.core.cache import cache
@@ -35,6 +36,10 @@ from peterbecom.plog.search import (
 
 from . import utils
 from .utils import blog_post_url
+
+# This is where we can cache counts of comments per blogitem id.
+count_comments_cache = TTLCache(maxsize=1000, ttl=60)  # XXX increase TTL
+count_approved_comments_cache = TTLCache(maxsize=1000, ttl=60)
 
 
 class HTMLRenderingError(Exception):
@@ -528,6 +533,38 @@ class BlogComment(models.Model):
 
         t1 = time.time()
         return count, t1 - t0, index_name
+
+
+# These utility function is an optimization to avoid hitting the database.
+# Comments are rarely added, edited, or deleted.
+# But when they are, we specifically purge by the blogitem_id, which is the
+# simple cache key in the memoization.
+#
+# Rough estimate is that counting, for example, the number of comments on the
+# blogitem (with the most comments), takes 10-20 milliseconds. Reading from
+# the in-memory cache is 0.01 milliseconds. So, about 1000x faster.
+
+
+@cached(cache=count_comments_cache)
+def count_approved_comments(blogitem_id):
+    return BlogComment.objects.filter(blogitem=blogitem_id, approved=True).count()
+
+
+@cached(cache=count_approved_comments_cache)
+def count_approved_root_comments(blogitem_id):
+    return BlogComment.objects.filter(
+        blogitem__id=blogitem_id, approved=True, parent__isnull=True
+    ).count()
+
+
+@receiver(post_save, sender=BlogComment)
+@receiver(post_delete, sender=BlogComment)
+def purge_count_approved_comments(sender, instance, **kwargs):
+    count_key = count_approved_comments.cache_key(instance.blogitem_id)
+    count_approved_comments.cache.pop(count_key, None)
+
+    count_root_key = count_approved_root_comments.cache_key(instance.blogitem_id)
+    count_approved_root_comments.cache.pop(count_root_key, None)
 
 
 @receiver(pre_save, sender=BlogComment)
