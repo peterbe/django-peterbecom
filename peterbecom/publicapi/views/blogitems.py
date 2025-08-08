@@ -15,7 +15,7 @@ def blogitems(request):
     now = timezone.now()
     group_dates = []
 
-    _categories = {x["id"]: x["name"] for x in Category.objects.values("id", "name")}
+    _categories = Category.get_category_id_name_map()
 
     blogitem_categories = defaultdict(list)
     for (
