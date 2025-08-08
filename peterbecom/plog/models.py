@@ -10,13 +10,12 @@ import uuid
 from collections import defaultdict
 
 import bleach
-from cachetools import TTLCache, cached
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.core.cache import cache
 from django.db import models, transaction
 from django.db.models import Count
-from django.db.models.signals import post_save, pre_delete, pre_save
+from django.db.models.signals import post_delete, post_save, pre_delete, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 from elasticsearch.helpers import parallel_bulk
@@ -42,9 +41,6 @@ class HTMLRenderingError(Exception):
     """When rendering Markdown or RsT generating invalid HTML."""
 
 
-category_ttl_cache = TTLCache(maxsize=1, ttl=60 * 60)
-
-
 class Category(models.Model):
     name = models.CharField(max_length=100)
 
@@ -55,7 +51,7 @@ class Category(models.Model):
         return self.name
 
     @classmethod
-    @cached(cache=category_ttl_cache)
+    @functools.lru_cache(maxsize=1)
     def get_category_id_name_map(cls):
         mapping = {}
         for name, id in cls.objects.values_list("name", "id"):
@@ -64,12 +60,9 @@ class Category(models.Model):
 
 
 @receiver(post_save, sender=Category)
+@receiver(post_delete, sender=Category)
 def purge_get_category_id_name_map(sender, instance, **kwargs):
-    try:
-        category_ttl_cache.popitem()
-    except KeyError:
-        # Happens when the cache is already empty
-        pass
+    Category.get_category_id_name_map.cache_clear()
 
 
 def _upload_path_tagged(tag, instance, filename):
