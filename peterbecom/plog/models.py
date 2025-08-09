@@ -58,10 +58,7 @@ class Category(models.Model):
     @classmethod
     @functools.lru_cache(maxsize=1)
     def get_category_id_name_map(cls):
-        mapping = {}
-        for name, id in cls.objects.values_list("name", "id"):
-            mapping[id] = name
-        return mapping
+        return dict(Category.objects.values_list("id", "name"))
 
 
 @receiver(post_save, sender=Category)
