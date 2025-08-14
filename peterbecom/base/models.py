@@ -180,19 +180,19 @@ class AnalyticsEvent(models.Model):
     type = models.CharField(max_length=100)
     uuid = models.UUIDField()
     url = models.URLField(max_length=500)
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True, db_index=True)
     meta = models.JSONField(default=dict)
     data = models.JSONField(default=dict)
 
     class Meta:
         verbose_name = "Analytics event"
-        indexes = [
-            models.Index(
-                fields=["created"],
-                name="%(app_label)s_%(class)s_created",
-                condition=models.Q(type="pageview"),
-            ),
-        ]
+        # indexes = [
+        #     models.Index(
+        #         fields=["created"],
+        #         name="%(app_label)s_%(class)s_created",
+        #         condition=models.Q(type="pageview"),
+        #     ),
+        # ]
 
 
 class AnalyticsGeoEvent(models.Model):
