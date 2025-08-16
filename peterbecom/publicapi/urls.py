@@ -39,4 +39,5 @@ urlpatterns = [
     re_path("search/?", search.search, name="search"),
     path("__hydro__", hydro.receive, name="hydro_receive"),
     path("events", events.event, name="events_event"),
+    path("logo.png", events.logo, name="events_logo"),
 ]
