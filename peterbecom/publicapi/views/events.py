@@ -131,6 +131,7 @@ def logo(request):
     print(
         "SERVING LOGO:",
         {
+            "x_forwarded_host": request.headers.get("X-Forwarded-Host"),
             "referer": request.META.get("HTTP_REFERER"),
             "query_string": request.META.get("QUERY_STRING", ""),
         },
