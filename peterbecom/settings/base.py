@@ -423,3 +423,8 @@ LYRICS_REMOTE = "https://songsear.ch"
 RUNNING_TESTS = False
 
 NUMBER_AVATARS_PREMADE = 1000
+
+
+LOGO_IMAGE_PATH = (
+    BASE_DIR / "peterbecom" / "base" / "static" / "images" / "apple-touch-icon.png"
+)

@@ -259,3 +259,15 @@ def test_post_event_bot_agent(client, user_agent, is_bot):
     else:
         assert not event.data["is_bot"]
         assert event.data["bot_agent"] is None
+
+
+@pytest.mark.django_db
+def test_logo(client):
+    url = reverse("publicapi:events_logo")
+    response = client.get(url)
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+    assert (
+        response.headers["cache-control"]
+        == "max-age=0, no-cache, no-store, must-revalidate, private"
+    )

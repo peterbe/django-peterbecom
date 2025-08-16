@@ -1,11 +1,14 @@
 import hashlib
 import json
 import time
+from functools import lru_cache
 
 from crawlerdetect import CrawlerDetect
 from django import forms, http
 from django.conf import settings
 from django.core.cache import cache
+from django.core.exceptions import ImproperlyConfigured
+from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
@@ -121,3 +124,28 @@ def get_bot_analysis(ua: str) -> tuple[bool, str | None]:
         return False, None
     cd = CrawlerDetect(user_agent=ua)
     return (cd.isCrawler(), cd.getMatches())
+
+
+@never_cache
+def logo(request):
+    print(
+        "SERVING LOGO:",
+        {
+            "referer": request.META.get("HTTP_REFERER"),
+            "query_string": request.META.get("QUERY_STRING", ""),
+        },
+    )
+    response = http.HttpResponse(_get_image_file(), content_type="image/png")
+    response["Content-Disposition"] = (
+        f'inline; filename="{settings.LOGO_IMAGE_PATH.name}"'
+    )
+    return response
+
+
+@lru_cache()
+def _get_image_file():
+    image_path = settings.LOGO_IMAGE_PATH
+    if not image_path.exists():
+        raise ImproperlyConfigured(f"logo image ({image_path}) does not exist")
+    with open(image_path, "rb") as f:
+        return f.read()
