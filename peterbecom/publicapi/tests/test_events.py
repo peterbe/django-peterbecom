@@ -262,7 +262,8 @@ def test_post_event_bot_agent(client, user_agent, is_bot):
 
 
 @pytest.mark.django_db
-def test_logo(client):
+def test_logo_not_logged(client):
+    assert not AnalyticsEvent.objects.filter(type="logo").exists()
     url = reverse("publicapi:events_logo")
     response = client.get(url)
     assert response.status_code == 200
@@ -271,3 +272,21 @@ def test_logo(client):
         response.headers["cache-control"]
         == "max-age=0, no-cache, no-store, must-revalidate, private"
     )
+    assert not AnalyticsEvent.objects.filter(type="logo").exists()
+
+
+@pytest.mark.django_db
+def test_logo_logged(client):
+    url = reverse("publicapi:events_logo")
+    response = client.get(url, {"ref": "something"}, HTTP_REFERER="https://peterbe.com")
+    assert response.status_code == 200
+    assert AnalyticsEvent.objects.filter(type="logo").exists()
+
+    response = client.get(
+        url, {"ref": "something", "foo": "bar"}, HTTP_REFERER="https://peterbe.com"
+    )
+    assert AnalyticsEvent.objects.filter(type="logo").count() == 2
+    one, two = AnalyticsEvent.objects.filter(type="logo").order_by("created")
+    assert one.uuid == two.uuid
+    assert one.data["query"]["ref"] == "something"
+    assert two.data["query"]["foo"] == "bar"

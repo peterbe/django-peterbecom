@@ -1,6 +1,7 @@
 import hashlib
 import json
 import time
+import uuid
 from functools import lru_cache
 
 from crawlerdetect import CrawlerDetect
@@ -128,18 +129,51 @@ def get_bot_analysis(ua: str) -> tuple[bool, str | None]:
 
 @never_cache
 def logo(request):
-    print(
-        "SERVING LOGO:",
-        {
-            "x_forwarded_host": request.headers.get("X-Forwarded-Host"),
-            "referer": request.META.get("HTTP_REFERER"),
-            "query_string": request.META.get("QUERY_STRING", ""),
-        },
-    )
+    referer = request.META.get("HTTP_REFERER") or ""
+    query_string = request.META.get("QUERY_STRING") or ""
+    set_cookie = ["logo-uuid", None]
+
+    if referer and "ref" in query_string:
+        uuid_ = request.COOKIES.get(set_cookie[0])
+        if not uuid_:
+            uuid_ = str(uuid.uuid4())
+            set_cookie[1] = uuid_
+        url = request.build_absolute_uri()
+        meta = {}
+        query = {}
+        for key, value in request.GET.items():
+            assert isinstance(value, str), type(value)
+            if key in query:
+                if not isinstance(query[key], list):
+                    query[key] = [query[key]]
+                query[key].append(value)
+            else:
+                query[key] = value
+        data = {
+            "ref": request.GET.get("ref"),
+            "query": query,
+            "referer": referer,
+        }
+        create_event(
+            type="logo",
+            uuid=uuid_,
+            url=url,
+            meta=meta,
+            data=data,
+        )
+
     response = http.HttpResponse(_get_image_file(), content_type="image/png")
     response["Content-Disposition"] = (
         f'inline; filename="{settings.LOGO_IMAGE_PATH.name}"'
     )
+    if set_cookie[1]:
+        response.set_cookie(
+            set_cookie[0],
+            uuid_,
+            max_age=60 * 60 * 24 * 7,
+            httponly=True,
+        )
+
     return response
 
 
