@@ -1,6 +1,9 @@
 import json
 
 from django.urls import reverse
+from django.utils import timezone
+
+from peterbecom.plog.models import BlogComment, BlogItem, SpamCommentPattern
 
 
 def test_admin_required(client):
@@ -144,3 +147,84 @@ def test_bad_request_patterns(admin_client):
 
     response = admin_client.delete(f"{url}?id=999999")
     assert response.status_code == 404
+
+
+def test_execute_spam_pattern_auth(client):
+    url = reverse("api:execute_pattern", args=["9999"])
+    response = client.post(
+        url,
+        {"not": "json"},
+    )
+    assert response.status_code == 403
+
+
+def test_execute_spam_pattern_happy(admin_client):
+    blogitem = BlogItem.objects.create(
+        oid="hello-world",
+        title="Hello World",
+        pub_date=timezone.now(),
+        proper_keywords=["one", "two"],
+    )
+
+    BlogComment.objects.create(
+        oid="abc1",
+        blogitem=blogitem,
+        parent=None,
+        approved=False,
+        auto_approved=False,
+        comment="bar and foo",
+        name="John Doe",
+        email="",
+    )
+    BlogComment.objects.create(
+        oid="abc2",
+        blogitem=blogitem,
+        parent=None,
+        approved=False,
+        auto_approved=False,
+        comment="pern is a word",
+        name="John Doe",
+        email="",
+    )
+    BlogComment.objects.create(
+        oid="abc3",
+        blogitem=blogitem,
+        parent=None,
+        approved=False,
+        auto_approved=False,
+        comment="Neither match not FoO or puurn",
+        name="John Doe",
+        email="",
+    )
+    url = reverse("api:execute_pattern", args=["9999"])
+    response = admin_client.post(url)
+    assert response.status_code == 404
+
+    pattern1 = SpamCommentPattern.objects.create(
+        pattern="foo", is_regex=False, is_url_pattern=False
+    )
+    pattern2 = SpamCommentPattern.objects.create(
+        pattern=r"p\wrn", is_regex=True, is_url_pattern=False
+    )
+
+    url = reverse("api:execute_pattern", args=[pattern1.id])
+    response = admin_client.post(url)
+    assert response.status_code == 200
+
+    assert response.json()["limit"]
+    assert response.json()["executions"] == [
+        {"matched": False, "approved": False, "regex": None},
+        {"matched": False, "approved": False, "regex": None},
+        {"matched": True, "approved": False, "regex": False},
+    ]
+
+    url = reverse("api:execute_pattern", args=[pattern2.id])
+    response = admin_client.post(url)
+    assert response.status_code == 200
+
+    assert response.json()["limit"]
+    assert response.json()["executions"] == [
+        {"matched": False, "approved": False, "regex": None},
+        {"matched": True, "approved": False, "regex": True},
+        {"matched": False, "approved": False, "regex": None},
+    ]
