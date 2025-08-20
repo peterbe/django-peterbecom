@@ -17,6 +17,11 @@ urlpatterns = [
         spam.patterns,
         name="spam_patterns",
     ),
+    path(
+        "plog/spam/execute/<int:id>",
+        spam.execute_pattern,
+        name="execute_pattern",
+    ),
     path("plog/spam/signatures", spam.signatures, name="spam_signatures"),
     path("plog/comments/geo/", views.geocomments, name="geocomments"),
     path(
