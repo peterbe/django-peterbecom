@@ -24,6 +24,9 @@ def event(request):
         data = json.loads(request.body.decode("utf-8"))
     except json.JSONDecodeError:
         return http.JsonResponse({"error": "invalid json"}, status=400)
+    except UnicodeDecodeError:
+        print("WARNING, UnicodeDecodeError:", repr(request.body))
+        return http.JsonResponse({"error": "invalid unicode"}, status=400)
 
     meta = data.get("meta") or {}
     if not isinstance(meta, dict):
