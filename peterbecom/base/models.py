@@ -9,7 +9,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import ArrayField
 from django.db import models, transaction
-from django.db.models import F
+from django.db.models import Count, F
 from django.db.models.signals import pre_save
 from django.db.utils import InterfaceError
 from django.dispatch import receiver
@@ -186,13 +186,52 @@ class AnalyticsEvent(models.Model):
 
     class Meta:
         verbose_name = "Analytics event"
-        # indexes = [
-        #     models.Index(
-        #         fields=["created"],
-        #         name="%(app_label)s_%(class)s_created",
-        #         condition=models.Q(type="pageview"),
-        #     ),
-        # ]
+
+
+class AnalyticsRollupsDaily(models.Model):
+    day = models.DateField(db_index=True)
+    count = models.IntegerField()
+    type = models.CharField(max_length=100)
+    url = models.URLField(max_length=500)
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Analytics Rollups daily"
+
+    @classmethod
+    def rollup(cls, day=None):
+        if not day:
+            # Use today!
+            day = timezone.now()
+
+        start_of_day = day.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_of_day = start_of_day + datetime.timedelta(days=1)
+
+        day = start_of_day.date()
+        print(f" ROLLUP DAY: {day} ".center(80, "-"))
+        with transaction.atomic():
+            AnalyticsRollupsDaily.objects.filter(day=day).delete()
+
+            agg_query = (
+                AnalyticsEvent.objects.filter(
+                    created__gte=start_of_day, created__lt=end_of_day
+                )
+                .values("url", "type")
+                .annotate(count=Count("id"))
+            )
+            agg_query = agg_query.order_by("type", "-count")
+            bulk = []
+            for agg in agg_query:
+                print(f"{agg['count']:>5} {agg['type']:<20} {agg['url']}")
+                bulk.append(
+                    AnalyticsRollupsDaily(
+                        day=day, count=agg["count"], type=agg["type"], url=agg["url"]
+                    )
+                )
+                if len(bulk) > 100:
+                    AnalyticsRollupsDaily.objects.bulk_create(bulk)
+                    bulk = []
+            AnalyticsRollupsDaily.objects.bulk_create(bulk)
 
 
 class AnalyticsGeoEvent(models.Model):
