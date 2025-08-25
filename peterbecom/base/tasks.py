@@ -8,6 +8,7 @@ import traceback
 from io import StringIO
 from pathlib import Path
 
+from django.conf import settings
 from django.utils import timezone
 from huey import crontab
 from huey.contrib.djhuey import periodic_task, task
@@ -17,6 +18,7 @@ from peterbecom.base.analytics_referrer_events import create_analytics_referrer_
 from peterbecom.base.cdn import purge_cdn_urls
 from peterbecom.base.models import (
     AnalyticsEvent,
+    AnalyticsRollupsDaily,
     CDNPurgeURL,
     PostProcessing,
     RequestLog,
@@ -214,3 +216,9 @@ def delete_old_request_logs():
 def delete_old_analyticsevents():
     old = timezone.now() - datetime.timedelta(days=90)
     AnalyticsEvent.objects.filter(created__lt=old).delete()
+
+
+@periodic_task(crontab(hour="*/1") if settings.DEBUG else crontab(hour=0, minute=0))
+@log_task_run
+def analytics_rollups_daily():
+    AnalyticsRollupsDaily.rollup()
