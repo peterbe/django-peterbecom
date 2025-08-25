@@ -11,6 +11,7 @@ from pathlib import Path
 from django.utils import timezone
 from huey import crontab
 from huey.contrib.djhuey import periodic_task, task
+from django.conf import settings
 
 from peterbecom.base.analytics_geo_events import create_analytics_geo_events
 from peterbecom.base.analytics_referrer_events import create_analytics_referrer_events
@@ -217,7 +218,7 @@ def delete_old_analyticsevents():
     AnalyticsEvent.objects.filter(created__lt=old).delete()
 
 
-@periodic_task(crontab(hour="24"))
+@periodic_task(crontab(hour="*/1") if settings.DEBUG else crontab(hour=23, minute=0))
 @log_task_run
 def analytics_rollups_daily():
     AnalyticsRollupsDaily.rollup()
