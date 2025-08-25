@@ -42,7 +42,6 @@ def event(request):
     )
     form = AnalyticsEventForm(denormalized)
     if not form.is_valid():
-        print("Analytics event form errors", form.errors)
         return http.JsonResponse({"error": form.errors}, status=400)
 
     meta = form.cleaned_data.get("meta")
@@ -121,6 +120,12 @@ class AnalyticsEventForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["data"].required = False
+
+    def clean_type(self):
+        type_ = self.cleaned_data["type"]
+        if type_ not in AnalyticsEvent.VALID_TYPES:
+            raise forms.ValidationError("Invalid event type")
+        return type_
 
 
 def get_bot_analysis(ua: str) -> tuple[bool, str | None]:

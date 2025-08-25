@@ -21,7 +21,7 @@ def test_post_event_happy_path(client):
         url,
         json.dumps(
             {
-                "type": "some-thing",
+                "type": "pageview",
                 "meta": {
                     "uuid": uuid_,
                     "url": "https://example.com",
@@ -35,7 +35,7 @@ def test_post_event_happy_path(client):
     )
     assert response.status_code == 201
     event = AnalyticsEvent.objects.get(
-        uuid=uuid_, url="https://example.com", type="some-thing"
+        uuid=uuid_, url="https://example.com", type="pageview"
     )
     assert event.created
     assert event.data["key"] == "value"
@@ -49,7 +49,7 @@ def test_post_event_empty_default_data(client):
         url,
         json.dumps(
             {
-                "type": "some-thing",
+                "type": "pageview",
                 "meta": {
                     "uuid": uuid_,
                     "url": "https://example.com",
@@ -61,7 +61,7 @@ def test_post_event_empty_default_data(client):
     )
     assert response.status_code == 201
     event = AnalyticsEvent.objects.get(
-        uuid=uuid_, url="https://example.com", type="some-thing"
+        uuid=uuid_, url="https://example.com", type="pageview"
     )
     assert event.created
     assert event.data == {}
@@ -134,7 +134,7 @@ def test_post_duplicate_event(client):
     uuid_ = generate_random_uuid()
 
     payload = {
-        "type": "some-thing",
+        "type": "pageview",
         "meta": {
             "uuid": uuid_,
             "sid": generate_random_uuid(),
@@ -150,7 +150,7 @@ def test_post_duplicate_event(client):
         content_type="application/json",
     )
     assert response.status_code == 201
-    assert AnalyticsEvent.objects.filter(type="some-thing").count() == 1
+    assert AnalyticsEvent.objects.filter(type="pageview").count() == 1
     assert AnalyticsEvent.objects.filter(type="publicapi-pageview").count() == 1
 
     payload["meta"]["created"] = (timezone.now() + timedelta(seconds=1)).isoformat()
@@ -160,7 +160,7 @@ def test_post_duplicate_event(client):
         content_type="application/json",
     )
     assert response.status_code == 200
-    assert AnalyticsEvent.objects.filter(type="some-thing").count() == 1
+    assert AnalyticsEvent.objects.filter(type="pageview").count() == 1
 
     payload["meta"]["performance"]["nav"] = 987.1
     response = client.post(
@@ -169,7 +169,7 @@ def test_post_duplicate_event(client):
         content_type="application/json",
     )
     assert response.status_code == 200
-    assert AnalyticsEvent.objects.filter(type="some-thing").count() == 1
+    assert AnalyticsEvent.objects.filter(type="pageview").count() == 1
 
     payload["data"]["pathname"] = "/different"
     response = client.post(
@@ -178,7 +178,7 @@ def test_post_duplicate_event(client):
         content_type="application/json",
     )
     assert response.status_code == 201
-    assert AnalyticsEvent.objects.filter(type="some-thing").count() == 2
+    assert AnalyticsEvent.objects.filter(type="pageview").count() == 2
 
 
 @pytest.mark.django_db
@@ -238,7 +238,7 @@ def test_post_event_bot_agent(client, user_agent, is_bot):
         url,
         json.dumps(
             {
-                "type": "bot-test",
+                "type": "pageview",
                 "meta": {
                     "uuid": uuid_,
                     "url": "https://example.com",
@@ -251,7 +251,7 @@ def test_post_event_bot_agent(client, user_agent, is_bot):
     )
     assert response.status_code == 201
     event = AnalyticsEvent.objects.get(
-        uuid=uuid_, url="https://example.com", type="bot-test"
+        uuid=uuid_, url="https://example.com", type="pageview"
     )
     if is_bot:
         assert event.data["is_bot"]

@@ -177,6 +177,16 @@ class UserProfile(models.Model):
 
 
 class AnalyticsEvent(models.Model):
+    VALID_TYPES = {
+        "lyrics-featureflag",
+        "publicapi-pageview",
+        "songsearch-autocomplete",
+        "search",
+        "search-error",
+        "pageview",
+        "logo",
+    }
+
     type = models.CharField(max_length=100)
     uuid = models.UUIDField()
     url = models.URLField(max_length=500)
