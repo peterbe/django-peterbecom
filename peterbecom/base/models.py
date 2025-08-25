@@ -223,9 +223,7 @@ class AnalyticsRollupsDaily(models.Model):
             for agg in agg_query:
                 print(f"{agg['count']:>5} {agg['type']:<20}")
                 bulk.append(
-                    AnalyticsRollupsDaily(
-                        day=day, count=agg["count"], type=agg["type"]
-                    )
+                    AnalyticsRollupsDaily(day=day, count=agg["count"], type=agg["type"])
                 )
                 if len(bulk) > 100:
                     AnalyticsRollupsDaily.objects.bulk_create(bulk)
