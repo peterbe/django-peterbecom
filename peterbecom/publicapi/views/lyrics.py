@@ -212,7 +212,6 @@ def feature_flag(request):
         return response
     value = request.COOKIES.get("local-lyrics-server")
     if value is not None:
-        print(f"LyricsFeatureFlag: cookie value is not None ({value!r})")
         return http.JsonResponse({"enabled": value == "true"})
 
     if value is None:
@@ -240,10 +239,7 @@ def feature_flag(request):
                 country_code = ip_to_country_code(ip_address)
             enabled = False
             if country_code in ["US", "GB", "CA", "DE", "PH", "FR", "IN"]:
-                print(f"LyricsFeatureFlag: Right country ({country_code!r})")
                 enabled = True
-            else:
-                print(f"LyricsFeatureFlag: Not right country code ({country_code!r})")
 
             response = http.JsonResponse({"enabled": enabled})
             response.set_cookie(
@@ -253,7 +249,5 @@ def feature_flag(request):
                 httponly=True,
             )
             return response
-        else:
-            print(f"LyricsFeatureFlag: no ip_address ({ip_address!r})")
 
     return http.JsonResponse({"enabled": False})

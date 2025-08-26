@@ -4,7 +4,6 @@ import os
 import random
 import re
 import time
-from urllib.parse import urlparse
 
 import py_avataaars
 from django import http
@@ -22,7 +21,6 @@ from huey.contrib.djhuey import periodic_task, task
 from lxml import etree
 
 from peterbecom.base.decorators import lock_decorator
-from peterbecom.base.models import AnalyticsEvent
 from peterbecom.base.utils import get_base_url
 from peterbecom.plog.models import BlogComment, BlogItem, BlogItemDailyHits
 
@@ -139,24 +137,6 @@ def sitemap(request):
             changefreq="monthly",
             lastmod=item["pub_date"],
         )
-
-    # (Temporary) add some recent songs
-    events_qs = AnalyticsEvent.objects.filter(
-        type="pageview",
-        url__startswith="https://www.peterbe.com/plog/blogitem-040601-1/song/",
-    ).order_by("-created")
-    for event in events_qs.values("url", "created")[:100]:
-        url_path = urlparse(event["url"]).path
-        add(url_path, lastmod=event["created"], changefreq="weekly")
-
-    # (Temporary) add some recent searches
-    events_qs = AnalyticsEvent.objects.filter(
-        type="pageview",
-        url__startswith="https://www.peterbe.com/plog/blogitem-040601-1/q/",
-    ).order_by("-created")
-    for event in events_qs.values("url", "created")[:100]:
-        url_path = urlparse(event["url"]).path
-        add(url_path, lastmod=event["created"], changefreq="weekly")
 
     xml_output = b'<?xml version="1.0" encoding="utf-8"?>\n'
     xml_output += etree.tostring(root, pretty_print=True)
