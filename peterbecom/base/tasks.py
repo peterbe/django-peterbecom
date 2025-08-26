@@ -15,6 +15,7 @@ from huey.contrib.djhuey import periodic_task, task
 
 from peterbecom.base.analytics_geo_events import create_analytics_geo_events
 from peterbecom.base.analytics_referrer_events import create_analytics_referrer_events
+from peterbecom.base.batch_events import process_batch_events
 from peterbecom.base.cdn import purge_cdn_urls
 from peterbecom.base.models import (
     AnalyticsEvent,
@@ -218,7 +219,13 @@ def delete_old_analyticsevents():
     AnalyticsEvent.objects.filter(created__lt=old).delete()
 
 
-@periodic_task(crontab(hour="*/1") if settings.DEBUG else crontab(hour=0, minute=0))
+@periodic_task(crontab(hour="*/15") if settings.DEBUG else crontab(hour=0, minute=0))
 @log_task_run
 def analytics_rollups_daily():
     AnalyticsRollupsDaily.rollup()
+
+
+@periodic_task(crontab(minute="*"))
+@log_task_run
+def batch_create_events():
+    process_batch_events()
