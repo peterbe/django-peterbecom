@@ -59,4 +59,3 @@ def process_batch_events(batch_limit=100):
         bulk_create_events(bulk)
 
     count = redis_client.llen(LIST_KEY)
-    log(f"Afterwards, there are: {count}")
