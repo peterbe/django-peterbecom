@@ -5,7 +5,7 @@ import uuid
 from django import http
 from django.conf import settings
 
-from peterbecom.base.models import create_event
+from peterbecom.base.batch_events import create_event_later
 from peterbecom.base.utils import fake_ip_address
 
 max_age_re = re.compile(r"max-age=(\d+)")
@@ -62,7 +62,7 @@ class PublicAPIPageviewsMiddleware:
                 url += f"?{query_string}"
 
             try:
-                create_event(
+                create_event_later(
                     type="publicapi-pageview",
                     uuid=str(uuid.uuid4()),
                     url=url,

@@ -6,6 +6,7 @@ import pytest
 from django.urls import reverse
 from django.utils import timezone
 
+from peterbecom.base.batch_events import process_batch_events
 from peterbecom.base.models import AnalyticsEvent
 
 
@@ -34,6 +35,7 @@ def test_post_event_happy_path(client):
         content_type="application/json",
     )
     assert response.status_code == 201
+    process_batch_events()
     event = AnalyticsEvent.objects.get(
         uuid=uuid_, url="https://example.com", type="pageview"
     )
@@ -60,6 +62,7 @@ def test_post_event_empty_default_data(client):
         content_type="application/json",
     )
     assert response.status_code == 201
+    process_batch_events()
     event = AnalyticsEvent.objects.get(
         uuid=uuid_, url="https://example.com", type="pageview"
     )
@@ -150,6 +153,7 @@ def test_post_duplicate_event(client):
         content_type="application/json",
     )
     assert response.status_code == 201
+    process_batch_events()
     assert AnalyticsEvent.objects.filter(type="pageview").count() == 1
     assert AnalyticsEvent.objects.filter(type="publicapi-pageview").count() == 1
 
@@ -178,6 +182,7 @@ def test_post_duplicate_event(client):
         content_type="application/json",
     )
     assert response.status_code == 201
+    process_batch_events()
     assert AnalyticsEvent.objects.filter(type="pageview").count() == 2
 
 
@@ -250,6 +255,7 @@ def test_post_event_bot_agent(client, user_agent, is_bot):
         content_type="application/json",
     )
     assert response.status_code == 201
+    process_batch_events()
     event = AnalyticsEvent.objects.get(
         uuid=uuid_, url="https://example.com", type="pageview"
     )
@@ -280,11 +286,13 @@ def test_logo_logged(client):
     url = reverse("publicapi:events_logo")
     response = client.get(url, {"ref": "something"}, HTTP_REFERER="https://peterbe.com")
     assert response.status_code == 200
+    process_batch_events()
     assert AnalyticsEvent.objects.filter(type="logo").exists()
 
     response = client.get(
         url, {"ref": "something", "foo": "bar"}, HTTP_REFERER="https://peterbe.com"
     )
+    process_batch_events()
     assert AnalyticsEvent.objects.filter(type="logo").count() == 2
     one, two = AnalyticsEvent.objects.filter(type="logo").order_by("created")
     assert one.uuid == two.uuid

@@ -3,6 +3,7 @@ import json
 import sys
 import traceback
 from io import StringIO
+from typing import TypedDict
 
 import backoff
 from django.conf import settings
@@ -273,6 +274,30 @@ def create_event(type: str, uuid: str, url: str, meta: dict, data: dict):
         meta=meta,
         data=data,
     )
+
+
+class EventSignature(TypedDict):
+    type: str
+    uuid: str
+    url: str
+    meta: dict
+    data: dict
+
+
+@backoff.on_exception(backoff.expo, InterfaceError, max_time=10)
+def bulk_create_events(data: list[EventSignature]):
+    bulk = []
+    for event in data:
+        bulk.append(
+            AnalyticsEvent(
+                type=event["type"],
+                uuid=event["uuid"],
+                url=event["url"],
+                meta=event["meta"],
+                data=event["data"],
+            )
+        )
+    AnalyticsEvent.objects.bulk_create(bulk)
 
 
 class RequestLog(models.Model):

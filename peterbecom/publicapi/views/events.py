@@ -13,6 +13,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
+from peterbecom.base.batch_events import create_event_later
 from peterbecom.base.models import AnalyticsEvent, create_event
 from peterbecom.base.utils import fake_ip_address
 
@@ -72,7 +73,15 @@ def event(request):
             data["bot_agent"] = bot_agent
             data["is_bot"] = is_bot
 
-    create_event(
+    # create_event(
+    #     type=type_,
+    #     uuid=uuid,
+    #     url=url,
+    #     meta=meta,
+    #     data=data,
+    # )
+
+    create_event_later(
         type=type_,
         uuid=uuid,
         url=url,
@@ -162,7 +171,7 @@ def logo(request):
             "query": query,
             "referer": referer,
         }
-        create_event(
+        create_event_later(
             type="logo",
             uuid=uuid_,
             url=url,
