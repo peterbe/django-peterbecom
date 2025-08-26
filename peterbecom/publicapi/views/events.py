@@ -14,7 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from peterbecom.base.batch_events import create_event_later
-from peterbecom.base.models import AnalyticsEvent, create_event
+from peterbecom.base.models import AnalyticsEvent
 from peterbecom.base.utils import fake_ip_address
 
 
