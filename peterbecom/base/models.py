@@ -200,7 +200,7 @@ class AnalyticsEvent(models.Model):
 
 
 class AnalyticsRollupsDaily(models.Model):
-    day = models.DateField(db_index=True)
+    day = models.DateTimeField(db_index=True)
     count = models.IntegerField()
     type = models.CharField(max_length=100)
     created = models.DateTimeField(auto_now_add=True)
@@ -211,14 +211,14 @@ class AnalyticsRollupsDaily(models.Model):
     @classmethod
     def rollup(cls, day=None):
         if not day:
-            # Use today!
-            day = timezone.now()
+            # Use yesterday
+            day = timezone.now() - datetime.timedelta(days=1)
 
         start_of_day = day.replace(hour=0, minute=0, second=0, microsecond=0)
         end_of_day = start_of_day + datetime.timedelta(days=1)
 
-        day = start_of_day.date()
-        print(f" ROLLUP DAY: {day} ".center(80, "-"))
+        day = start_of_day
+        print(f" ROLLUP DAY: {day.isoformat()} ".center(80, "-"))
         with transaction.atomic():
             AnalyticsRollupsDaily.objects.filter(day=day).delete()
 
