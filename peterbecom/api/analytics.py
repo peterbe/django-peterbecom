@@ -1,3 +1,4 @@
+import json
 import datetime
 import re
 import time
@@ -29,7 +30,11 @@ def api_superuser_required(view_func):
 
 @api_superuser_required
 def query(request):
-    q = request.GET.get("query")
+    if request.method == "POST":
+        q = json.loads(request.body.decode("utf-8")).get("query")
+    else:
+        q = request.GET.get("query")
+
     if not q:
         return http.JsonResponse({"error": "missing 'query'"}, status=400)
     try:
