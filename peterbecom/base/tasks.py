@@ -218,6 +218,11 @@ def delete_old_analyticsevents():
     old = timezone.now() - datetime.timedelta(days=90)
     AnalyticsEvent.objects.filter(created__lt=old).delete()
 
+    # The publicapi-pageview ones are much more numerous and less
+    # useful and use up a lot of space
+    old = timezone.now() - datetime.timedelta(days=60)
+    AnalyticsEvent.objects.filter(created__lt=old, type="publicapi-pageview").delete()
+
 
 @periodic_task(crontab(hour="*/15") if settings.DEBUG else crontab(hour=0, minute=0))
 @log_task_run
