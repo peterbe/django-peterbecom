@@ -20,6 +20,7 @@ from peterbecom.base.cdn import purge_cdn_urls
 from peterbecom.base.models import (
     AnalyticsEvent,
     AnalyticsRollupsDaily,
+    AnalyticsRollupsPathnameDaily,
     CDNPurgeURL,
     PostProcessing,
     RequestLog,
@@ -224,10 +225,16 @@ def delete_old_analyticsevents():
     AnalyticsEvent.objects.filter(created__lt=old, type="publicapi-pageview").delete()
 
 
-@periodic_task(crontab(hour="*/15") if settings.DEBUG else crontab(hour=0, minute=0))
+@periodic_task(crontab(hour="*/15") if settings.DEBUG else crontab(hour=0, minute=1))
 @log_task_run
 def analytics_rollups_daily():
     AnalyticsRollupsDaily.rollup()
+
+
+@periodic_task(crontab(hour="*/15") if settings.DEBUG else crontab(hour=0, minute=0))
+@log_task_run
+def analytics_rollups_pathname_daily():
+    AnalyticsRollupsPathnameDaily.rollup()
 
 
 @periodic_task(crontab(minute="*"))
