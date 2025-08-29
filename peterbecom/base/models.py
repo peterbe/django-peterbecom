@@ -220,7 +220,7 @@ class AnalyticsRollupsDaily(models.Model):
         day = start_of_day
         print(f" ROLLUP DAY: {day.isoformat()} ".center(80, "-"))
         with transaction.atomic():
-            AnalyticsRollupsDaily.objects.filter(day=day).delete()
+            cls.objects.filter(day=day).delete()
 
             agg_query = (
                 AnalyticsEvent.objects.filter(
@@ -233,13 +233,62 @@ class AnalyticsRollupsDaily(models.Model):
             bulk = []
             for agg in agg_query:
                 print(f"{agg['count']:>5} {agg['type']:<20}")
+                bulk.append(cls(day=day, count=agg["count"], type=agg["type"]))
+                if len(bulk) > 100:
+                    cls.objects.bulk_create(bulk)
+                    bulk = []
+            cls.objects.bulk_create(bulk)
+
+
+class AnalyticsRollupsPathnameDaily(models.Model):
+    day = models.DateTimeField(db_index=True)
+    count = models.IntegerField()
+    pathname = models.CharField(max_length=300)
+    type = models.CharField(max_length=100)
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Analytics Rollups by Pathname daily"
+
+    @classmethod
+    def rollup(cls, day=None):
+        if not day:
+            # Use yesterday
+            day = timezone.now() - datetime.timedelta(days=1)
+
+        start_of_day = day.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_of_day = start_of_day + datetime.timedelta(days=1)
+
+        day = start_of_day
+        print(f" ROLLUP BY PATHNAME DAY: {day.isoformat()} ".center(80, "-"))
+        with transaction.atomic():
+            cls.objects.filter(day=day).delete()
+
+            agg_query = (
+                AnalyticsEvent.objects.filter(
+                    created__gte=start_of_day,
+                    created__lt=end_of_day,
+                    data__pathname__isnull=False,
+                )
+                .values("type", "data__pathname")
+                .annotate(count=Count("id"))
+            )
+            agg_query = agg_query.order_by("-count")
+            bulk = []
+            for agg in agg_query:
+                print(f"{agg['count']:>5} {agg['type']:<12} {agg['data__pathname']}")
                 bulk.append(
-                    AnalyticsRollupsDaily(day=day, count=agg["count"], type=agg["type"])
+                    cls(
+                        day=day,
+                        count=agg["count"],
+                        type=agg["type"],
+                        pathname=agg["data__pathname"],
+                    )
                 )
                 if len(bulk) > 100:
-                    AnalyticsRollupsDaily.objects.bulk_create(bulk)
+                    cls.objects.bulk_create(bulk)
                     bulk = []
-            AnalyticsRollupsDaily.objects.bulk_create(bulk)
+            cls.objects.bulk_create(bulk)
 
 
 class AnalyticsGeoEvent(models.Model):
