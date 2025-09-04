@@ -150,6 +150,7 @@ def blogitems(request):
                     "title": title,
                 }
             )
+        context["count"] = items.count()
         return json_response(context, schema="api.v0.blogitems-all")
 
     items = items.order_by("-" + order_by)
