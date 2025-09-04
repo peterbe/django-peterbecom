@@ -139,7 +139,7 @@ def blogitems(request):
     assert order_by in ("modify_date", "pub_date"), order_by
     items = _amend_blogitems_search(items, search)
 
-    context = {"blogitems": [], "count": items.count()}
+    context = {"blogitems": [], "count": None}
 
     if request.GET.get("show") == "all":
         for id, oid, title in items.values_list("id", "oid", "title"):
@@ -150,6 +150,7 @@ def blogitems(request):
                     "title": title,
                 }
             )
+        context["count"] = items.count()
         return json_response(context, schema="api.v0.blogitems-all")
 
     items = items.order_by("-" + order_by)
@@ -159,7 +160,11 @@ def blogitems(request):
     n, m = ((page - 1) * batch_size, page * batch_size)
     for item in items[n:m]:
         context["blogitems"].append(_serialize_blogitem(item))
-    context["count"] = items.count()
+
+    if len(context["blogitems"]) < batch_size:
+        context["count"] = len(context["blogitems"])
+    else:
+        context["count"] = items.count()
     return json_response(context, schema="api.v0.blogitems")
 
 
