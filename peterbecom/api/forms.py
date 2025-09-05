@@ -263,3 +263,8 @@ class BlogCommentClassificationForm(forms.ModelForm):
 class CategoryForm(forms.Form):
     name = forms.CharField(required=True)
     category = forms.ModelChoiceField(queryset=Category.objects.all(), required=False)
+
+
+class AllBlogitemsForm(forms.Form):
+    since = forms.DateTimeField(required=False)
+    minimal_fields = forms.BooleanField(required=False)

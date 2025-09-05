@@ -126,8 +126,8 @@ def test_show_all_blogitems(admin_client):
         proper_keywords=["one", "two"],
         text="Some *text*",
     )
-    url = reverse("api:blogitems")
-    response = admin_client.get(url, {"show": "all"})
+    url = reverse("api:blogitems_all")
+    response = admin_client.get(url, {"minimal_fields": "true"})
     assert response.status_code == 200
     assert response.json()["count"] == 2
     found = response.json()["blogitems"]
