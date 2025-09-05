@@ -6,6 +6,7 @@ app_name = "api"
 
 urlpatterns = [
     path("plog/", views.blogitems, name="blogitems"),
+    path("plog/all/", views.blogitems_all, name="blogitems_all"),
     path("plog/hits/", views.blogitem_hits, name="blogitem_hits"),
     path(
         "plog/realtimehits/",

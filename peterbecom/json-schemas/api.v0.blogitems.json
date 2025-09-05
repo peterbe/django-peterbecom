@@ -70,8 +70,7 @@
           "pub_date",
           "categories",
           "keywords",
-          "_is_published",
-          "has_split"
+          "_is_published"
         ],
         "additionalProperties": false
       }
