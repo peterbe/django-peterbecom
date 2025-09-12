@@ -33,7 +33,7 @@ wait_for() {
 setup_python() {
   source .venv/bin/activate
 
-  # This makes it so we only run if you have brew installed
+  # This makes it so we only run if you have brew installed.
   if command -v brew >/dev/null 2>&1; then
     # Needed for importing cairocffi
     export DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib  # Silicon?
