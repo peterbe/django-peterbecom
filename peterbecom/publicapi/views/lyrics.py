@@ -114,7 +114,7 @@ class LyricsSearchForm(forms.Form):
         return value
 
 
-@cache_page(settings.DEBUG and 10 or 12 * 60 * 60, key_prefix="publicapi_cache_page")
+@cache_page(settings.DEBUG and 10 or 24 * 60 * 60, key_prefix="publicapi_cache_page")
 def song(request):
     form = LyricsSongForm(request.GET)
     if not form.is_valid():
