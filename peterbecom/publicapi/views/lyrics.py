@@ -114,7 +114,7 @@ class LyricsSearchForm(forms.Form):
         return value
 
 
-@cache_page(settings.DEBUG and 10 or 60 * 60, key_prefix="publicapi_cache_page")
+@cache_page(settings.DEBUG and 10 or 24 * 60 * 60, key_prefix="publicapi_cache_page")
 def song(request):
     form = LyricsSongForm(request.GET)
     if not form.is_valid():
@@ -127,6 +127,11 @@ def song(request):
         return http.JsonResponse(
             {"error": "Unexpected proxy response code"}, status=response.status_code
         )
+
+    if len(response.history) == 1 and response.history[0].status_code == 301:
+        path = urlparse(response.history[0].headers.get("Location")).path
+        new_url = f"/plog/blogitem-040601-1{path}"
+        return redirect(new_url)
 
     try:
         res = response.json()
