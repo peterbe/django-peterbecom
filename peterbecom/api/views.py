@@ -55,6 +55,7 @@ from peterbecom.plog.utils import blog_post_url, rate_blog_comment, valid_email
 
 from .blog_video import process_blog_video_to_cache, process_video_to_image
 from .forms import (
+    AllBlogitemsForm,
     BlogCommentBatchBothForm,
     BlogCommentBatchForm,
     BlogFileForm,
@@ -65,6 +66,7 @@ from .forms import (
     EditBlogCommentForm,
     EditBlogForm,
     PreviewBlogForm,
+    ProbeURLForm,
     SpamCommentPatternForm,
 )
 from .tasks import send_comment_reply_email
@@ -138,18 +140,10 @@ def blogitems(request):
     assert order_by in ("modify_date", "pub_date"), order_by
     items = _amend_blogitems_search(items, search)
 
-    context = {"blogitems": [], "count": items.count()}
+    context = {"blogitems": [], "count": None}
 
     if request.GET.get("show") == "all":
-        for id, oid, title in items.values_list("id", "oid", "title"):
-            context["blogitems"].append(
-                {
-                    "id": id,
-                    "oid": oid,
-                    "title": title,
-                }
-            )
-        return json_response(context, schema="api.v0.blogitems-all")
+        raise DeprecationWarning("Don't use show=all, use pagination instead.")
 
     items = items.order_by("-" + order_by)
     items = items.prefetch_related("categories")
@@ -158,7 +152,11 @@ def blogitems(request):
     n, m = ((page - 1) * batch_size, page * batch_size)
     for item in items[n:m]:
         context["blogitems"].append(_serialize_blogitem(item))
-    context["count"] = items.count()
+
+    if len(context["blogitems"]) < batch_size:
+        context["count"] = len(context["blogitems"])
+    else:
+        context["count"] = items.count()
     return json_response(context, schema="api.v0.blogitems")
 
 
@@ -212,6 +210,71 @@ def _amend_blogitems_search(qs, search):
         qs = qs.filter(Q(title__icontains=search) | Q(oid__icontains=search))
 
     return qs
+
+
+@api_superuser_required
+def blogitems_all(request):
+    _categories = Category.get_category_id_name_map()
+
+    blogitem_categories = defaultdict(list)
+    for (
+        blogitem_id,
+        category_id,
+    ) in BlogItem.categories.through.objects.all().values_list(
+        "blogitem_id", "category_id"
+    ):
+        blogitem_categories[blogitem_id].append(
+            {"id": category_id, "name": _categories[category_id]}
+        )
+
+    form = AllBlogitemsForm(request.GET)
+    if not form.is_valid():
+        return json_response({"errors": form.errors}, status=400)
+
+    def _serialize_blogitem(item: dict):
+        if form.cleaned_data["minimal_fields"]:
+            return {
+                "id": item["id"],
+                "oid": item["oid"],
+                "title": item["title"],
+            }
+
+        return {
+            "id": item["id"],
+            "oid": item["oid"],
+            "title": item["title"],
+            "pub_date": item["pub_date"],
+            "_is_published": item["pub_date"] < timezone.now(),
+            "modify_date": item["modify_date"],
+            "categories": blogitem_categories.get(item["id"], []),
+            "keywords": item["proper_keywords"],
+            "summary": item["summary"],
+            "archived": item["archived"],
+        }
+
+    items = BlogItem.objects.all()
+
+    if form.cleaned_data["since"]:
+        # When serialized, the modify_date of an item in the database might
+        # be datetime.datetime(2025, 8, 8, 20, 39, 16, 463138, tzinfo=datetime.timezone.utc)
+        # but serialized becomes '2025-08-08T20:39:16.463Z' and when serialized *back*
+        # to a datetime object, becomes
+        # datetime.datetime(2025, 8, 8, 20, 39, 16, 463000, tzinfo=datetime.timezone.utc)
+        # which is `463138 - 463000` = 138 microseconds earlier.
+        items = items.filter(
+            modify_date__gte=form.cleaned_data["since"] + datetime.timedelta(seconds=1)
+        )
+
+    context = {"blogitems": [], "count": None}
+    for item in items.values():
+        context["blogitems"].append(_serialize_blogitem(item))
+    context["count"] = len(context["blogitems"])
+
+    if form.cleaned_data["minimal_fields"]:
+        schema = "api.v0.blogitems-minimal"
+    else:
+        schema = "api.v0.blogitems"
+    return json_response(context, schema=schema)
 
 
 @api_superuser_required
@@ -1975,3 +2038,41 @@ def whereami(request):
 def healthcheck(request):
     do_healthcheck()
     return http.HttpResponse("OK\n")
+
+
+@require_POST
+@api_superuser_required
+def probe_url(request):
+    data = json.loads(request.body.decode("utf-8"))
+    form = ProbeURLForm(data)
+    if not form.is_valid():
+        return json_response({"errors": form.errors}, status=400)
+
+    url = form.cleaned_data["url"]
+    method = form.cleaned_data["method"] or "GET"
+    user_agent = form.cleaned_data["user_agent"] or "peterbe.com/probe/url"
+
+    context = {
+        "request": {
+            "url": url,
+            "method": method,
+            "user_agent": user_agent,
+        }
+    }
+    if method == "GET":
+        func = requests.get
+    else:
+        raise NotImplementedError("Currently only supports 'GET'")
+    headers = {}
+    if user_agent:
+        headers["User-Agent"] = user_agent
+    r = func(url, allow_redirects=False, headers=headers)
+    context["response"] = {"status_code": r.status_code}
+    if r.status_code in (301, 302, 308, 307):
+        context["response"]["location"] = r.headers["location"]
+
+    body = r.text
+    if body:
+        context["response"]["body"] = body
+
+    return json_response(context)

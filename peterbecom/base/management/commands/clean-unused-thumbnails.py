@@ -1,9 +1,9 @@
 import time
 from pathlib import Path
 
+from django.core.management.base import BaseCommand
 from django.template.defaultfilters import filesizeformat
 
-from peterbecom.base.basecommand import BaseCommand
 from peterbecom.plog.models import BlogItem
 
 
@@ -17,7 +17,7 @@ class Command(BaseCommand):
             help="Print instead of deleting",
         )
 
-    def _handle(self, **options):
+    def handle(self, **options):
         limit = int(options["limit"])
         dry_run = options["dry_run"]
         deleted_size = []

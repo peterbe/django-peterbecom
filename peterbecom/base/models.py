@@ -3,36 +3,18 @@ import json
 import sys
 import traceback
 from io import StringIO
+from typing import TypedDict
 
 import backoff
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import ArrayField
 from django.db import models, transaction
-from django.db.models import F
+from django.db.models import Count, F
 from django.db.models.signals import pre_save
 from django.db.utils import InterfaceError
 from django.dispatch import receiver
 from django.utils import timezone
-
-
-class CommandRun(models.Model):
-    app = models.CharField(max_length=100)
-    command = models.CharField(max_length=100)
-    duration = models.DurationField()
-    notes = models.TextField(null=True)
-    exception = models.TextField(null=True)
-    # options = LegacyJSONField(default={}, null=True)
-    options = models.JSONField(default=dict, null=True)
-    created = models.DateTimeField(auto_now_add=True)
-
-    def __repr__(self):
-        return "<{}: {!r} {!r}{}>".format(
-            self.__class__.__name__,
-            self.app,
-            self.command,
-            self.exception and " (Errored)" or "",
-        )
 
 
 class PostProcessing(models.Model):
@@ -196,22 +178,117 @@ class UserProfile(models.Model):
 
 
 class AnalyticsEvent(models.Model):
+    VALID_TYPES = {
+        "lyrics-featureflag",
+        "publicapi-pageview",
+        "songsearch-autocomplete",
+        "search",
+        "search-error",
+        "pageview",
+        "logo",
+    }
+
     type = models.CharField(max_length=100)
     uuid = models.UUIDField()
     url = models.URLField(max_length=500)
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True, db_index=True)
     meta = models.JSONField(default=dict)
     data = models.JSONField(default=dict)
 
     class Meta:
         verbose_name = "Analytics event"
-        indexes = [
-            models.Index(
-                fields=["created"],
-                name="%(app_label)s_%(class)s_created",
-                condition=models.Q(type="pageview"),
-            ),
-        ]
+
+
+class AnalyticsRollupsDaily(models.Model):
+    day = models.DateTimeField(db_index=True)
+    count = models.IntegerField()
+    type = models.CharField(max_length=100)
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Analytics Rollups daily"
+
+    @classmethod
+    def rollup(cls, day=None):
+        if not day:
+            # Use yesterday
+            day = timezone.now() - datetime.timedelta(days=1)
+
+        start_of_day = day.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_of_day = start_of_day + datetime.timedelta(days=1)
+
+        day = start_of_day
+        print(f" ROLLUP DAY: {day.isoformat()} ".center(80, "-"))
+        with transaction.atomic():
+            cls.objects.filter(day=day).delete()
+
+            agg_query = (
+                AnalyticsEvent.objects.filter(
+                    created__gte=start_of_day, created__lt=end_of_day
+                )
+                .values("type")
+                .annotate(count=Count("id"))
+            )
+            agg_query = agg_query.order_by("type", "-count")
+            bulk = []
+            for agg in agg_query:
+                print(f"{agg['count']:>5} {agg['type']:<20}")
+                bulk.append(cls(day=day, count=agg["count"], type=agg["type"]))
+                if len(bulk) > 100:
+                    cls.objects.bulk_create(bulk)
+                    bulk = []
+            cls.objects.bulk_create(bulk)
+
+
+class AnalyticsRollupsPathnameDaily(models.Model):
+    day = models.DateTimeField(db_index=True)
+    count = models.IntegerField()
+    pathname = models.CharField(max_length=300)
+    type = models.CharField(max_length=100)
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Analytics Rollups by Pathname daily"
+
+    @classmethod
+    def rollup(cls, day=None):
+        if not day:
+            # Use yesterday
+            day = timezone.now() - datetime.timedelta(days=1)
+
+        start_of_day = day.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_of_day = start_of_day + datetime.timedelta(days=1)
+
+        day = start_of_day
+        print(f" ROLLUP BY PATHNAME DAY: {day.isoformat()} ".center(80, "-"))
+        with transaction.atomic():
+            cls.objects.filter(day=day).delete()
+
+            agg_query = (
+                AnalyticsEvent.objects.filter(
+                    created__gte=start_of_day,
+                    created__lt=end_of_day,
+                    data__pathname__isnull=False,
+                )
+                .values("type", "data__pathname")
+                .annotate(count=Count("id"))
+            )
+            agg_query = agg_query.order_by("-count")
+            bulk = []
+            for agg in agg_query:
+                print(f"{agg['count']:>5} {agg['type']:<12} {agg['data__pathname']}")
+                bulk.append(
+                    cls(
+                        day=day,
+                        count=agg["count"],
+                        type=agg["type"],
+                        pathname=agg["data__pathname"],
+                    )
+                )
+                if len(bulk) > 100:
+                    cls.objects.bulk_create(bulk)
+                    bulk = []
+            cls.objects.bulk_create(bulk)
 
 
 class AnalyticsGeoEvent(models.Model):
@@ -223,7 +300,7 @@ class AnalyticsGeoEvent(models.Model):
     country = models.CharField(max_length=100, null=True)
     latitude = models.FloatField(null=True)
     longitude = models.FloatField(null=True)
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True, db_index=True)
     lookup = models.JSONField(default=dict)
 
 
@@ -234,7 +311,7 @@ class AnalyticsReferrerEvent(models.Model):
     direct = models.BooleanField(default=False)
     search_engine = models.CharField(max_length=100, null=True)
     search = models.CharField(max_length=300, null=True)
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True, db_index=True)
 
 
 @backoff.on_exception(backoff.expo, InterfaceError, max_time=10)
@@ -246,6 +323,30 @@ def create_event(type: str, uuid: str, url: str, meta: dict, data: dict):
         meta=meta,
         data=data,
     )
+
+
+class EventSignature(TypedDict):
+    type: str
+    uuid: str
+    url: str
+    meta: dict
+    data: dict
+
+
+@backoff.on_exception(backoff.expo, InterfaceError, max_time=10)
+def bulk_create_events(data: list[EventSignature]):
+    bulk = []
+    for event in data:
+        bulk.append(
+            AnalyticsEvent(
+                type=event["type"],
+                uuid=event["uuid"],
+                url=event["url"],
+                meta=event["meta"],
+                data=event["data"],
+            )
+        )
+    AnalyticsEvent.objects.bulk_create(bulk)
 
 
 class RequestLog(models.Model):

@@ -6,6 +6,7 @@ import pytest
 from django.urls import reverse
 from django.utils import timezone
 
+from peterbecom.base.batch_events import process_batch_events
 from peterbecom.base.models import AnalyticsEvent
 
 
@@ -21,7 +22,7 @@ def test_post_event_happy_path(client):
         url,
         json.dumps(
             {
-                "type": "some-thing",
+                "type": "pageview",
                 "meta": {
                     "uuid": uuid_,
                     "url": "https://example.com",
@@ -34,8 +35,9 @@ def test_post_event_happy_path(client):
         content_type="application/json",
     )
     assert response.status_code == 201
+    process_batch_events()
     event = AnalyticsEvent.objects.get(
-        uuid=uuid_, url="https://example.com", type="some-thing"
+        uuid=uuid_, url="https://example.com", type="pageview"
     )
     assert event.created
     assert event.data["key"] == "value"
@@ -49,7 +51,7 @@ def test_post_event_empty_default_data(client):
         url,
         json.dumps(
             {
-                "type": "some-thing",
+                "type": "pageview",
                 "meta": {
                     "uuid": uuid_,
                     "url": "https://example.com",
@@ -60,8 +62,9 @@ def test_post_event_empty_default_data(client):
         content_type="application/json",
     )
     assert response.status_code == 201
+    process_batch_events()
     event = AnalyticsEvent.objects.get(
-        uuid=uuid_, url="https://example.com", type="some-thing"
+        uuid=uuid_, url="https://example.com", type="pageview"
     )
     assert event.created
     assert event.data == {}
@@ -134,7 +137,7 @@ def test_post_duplicate_event(client):
     uuid_ = generate_random_uuid()
 
     payload = {
-        "type": "some-thing",
+        "type": "pageview",
         "meta": {
             "uuid": uuid_,
             "sid": generate_random_uuid(),
@@ -150,7 +153,9 @@ def test_post_duplicate_event(client):
         content_type="application/json",
     )
     assert response.status_code == 201
-    assert AnalyticsEvent.objects.count() == 1
+    process_batch_events()
+    assert AnalyticsEvent.objects.filter(type="pageview").count() == 1
+    assert AnalyticsEvent.objects.filter(type="publicapi-pageview").count() == 1
 
     payload["meta"]["created"] = (timezone.now() + timedelta(seconds=1)).isoformat()
     response = client.post(
@@ -159,7 +164,7 @@ def test_post_duplicate_event(client):
         content_type="application/json",
     )
     assert response.status_code == 200
-    assert AnalyticsEvent.objects.count() == 1
+    assert AnalyticsEvent.objects.filter(type="pageview").count() == 1
 
     payload["meta"]["performance"]["nav"] = 987.1
     response = client.post(
@@ -168,7 +173,7 @@ def test_post_duplicate_event(client):
         content_type="application/json",
     )
     assert response.status_code == 200
-    assert AnalyticsEvent.objects.count() == 1
+    assert AnalyticsEvent.objects.filter(type="pageview").count() == 1
 
     payload["data"]["pathname"] = "/different"
     response = client.post(
@@ -177,4 +182,119 @@ def test_post_duplicate_event(client):
         content_type="application/json",
     )
     assert response.status_code == 201
-    assert AnalyticsEvent.objects.count() == 2
+    process_batch_events()
+    assert AnalyticsEvent.objects.filter(type="pageview").count() == 2
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "user_agent, is_bot",
+    [
+        (
+            "Mozilla/5.0 (compatible; SemrushBot/7~bl; +http://www.semrush.com/bot.html)",
+            True,
+        ),
+        (
+            "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm) Chrome/116.0.1938.76 Safari/537.36",
+            True,
+        ),
+        ("Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)", True),
+        ("Site24x7", True),
+        (
+            "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; ChatGPT-User/1.0; +https://openai.com/bot",
+            True,
+        ),
+        (
+            "Mozilla/5.0 (Linux; Android 7.0;) AppleWebKit/537.36 (KHTML, like Gecko) Mobile Safari/537.36 (compatible; PetalBot;+https://webmaster.petalsearch.com/site/petalbot)",
+            True,
+        ),
+        (
+            "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; ClaudeBot/1.0; +claudebot@anthropic.com)",
+            True,
+        ),
+        (
+            "meta-externalagent/1.1 (+https://developers.facebook.com/docs/sharing/webmasters/crawler)",
+            True,
+        ),
+        (
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36; compatible; OAI-SearchBot/1.0; +https://openai.com/searchbot",
+            True,
+        ),
+        ("Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)", True),
+        # Some that are NOT bots
+        (
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1",
+            False,
+        ),
+        (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.43",
+            False,
+        ),
+        (
+            "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0",
+            False,
+        ),
+    ],
+)
+def test_post_event_bot_agent(client, user_agent, is_bot):
+    url = reverse("publicapi:events_event")
+    uuid_ = generate_random_uuid()
+    response = client.post(
+        url,
+        json.dumps(
+            {
+                "type": "pageview",
+                "meta": {
+                    "uuid": uuid_,
+                    "url": "https://example.com",
+                    "user_agent": {"ua": user_agent},
+                },
+                "data": {},
+            }
+        ),
+        content_type="application/json",
+    )
+    assert response.status_code == 201
+    process_batch_events()
+    event = AnalyticsEvent.objects.get(
+        uuid=uuid_, url="https://example.com", type="pageview"
+    )
+    if is_bot:
+        assert event.data["is_bot"]
+        assert event.data["bot_agent"]
+    else:
+        assert not event.data["is_bot"]
+        assert event.data["bot_agent"] is None
+
+
+@pytest.mark.django_db
+def test_logo_not_logged(client):
+    assert not AnalyticsEvent.objects.filter(type="logo").exists()
+    url = reverse("publicapi:events_logo")
+    response = client.get(url)
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+    assert (
+        response.headers["cache-control"]
+        == "max-age=0, no-cache, no-store, must-revalidate, private"
+    )
+    assert not AnalyticsEvent.objects.filter(type="logo").exists()
+
+
+@pytest.mark.django_db
+def test_logo_logged(client):
+    url = reverse("publicapi:events_logo")
+    response = client.get(url, {"ref": "something"}, HTTP_REFERER="https://peterbe.com")
+    assert response.status_code == 200
+    process_batch_events()
+    assert AnalyticsEvent.objects.filter(type="logo").exists()
+
+    response = client.get(
+        url, {"ref": "something", "foo": "bar"}, HTTP_REFERER="https://peterbe.com"
+    )
+    process_batch_events()
+    assert AnalyticsEvent.objects.filter(type="logo").count() == 2
+    one, two = AnalyticsEvent.objects.filter(type="logo").order_by("created")
+    assert one.uuid == two.uuid
+    assert one.data["query"]["ref"] == "something"
+    assert two.data["query"]["foo"] == "bar"

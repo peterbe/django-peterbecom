@@ -8,16 +8,53 @@ import traceback
 from io import StringIO
 from pathlib import Path
 
+from django.conf import settings
 from django.utils import timezone
 from huey import crontab
 from huey.contrib.djhuey import periodic_task, task
 
 from peterbecom.base.analytics_geo_events import create_analytics_geo_events
 from peterbecom.base.analytics_referrer_events import create_analytics_referrer_events
+from peterbecom.base.batch_events import process_batch_events
 from peterbecom.base.cdn import purge_cdn_urls
-from peterbecom.base.models import CDNPurgeURL, CommandRun, PostProcessing, RequestLog
+from peterbecom.base.models import (
+    AnalyticsEvent,
+    AnalyticsRollupsDaily,
+    AnalyticsRollupsPathnameDaily,
+    CDNPurgeURL,
+    PostProcessing,
+    RequestLog,
+)
 from peterbecom.base.utils import do_healthcheck
 from peterbecom.base.xcache_analyzer import get_x_cache
+
+
+def get_full_path(func):
+    return f"{func.__module__}.{func.__qualname__}"
+
+
+def log_task_run(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        t0 = time.time()
+        failed = False
+        try:
+            func(*args, **kwargs)
+        except Exception:
+            failed = True
+        finally:
+            t1 = time.time()
+            if t1 - t0 < 1:
+                took = f"{(t1 - t0) * 1000:.1f}ms"
+            else:
+                took = f"{(t1 - t0):.2f}s"
+            print(
+                f"(Crontab Task) {func.__module__}.{func.__qualname__}",
+                f"{'Failed!' if failed else 'Worked.'}",
+                f"Took {took}. ({timezone.now()})",
+            )
+
+    return wrapper
 
 
 def measure_post_process(func):
@@ -49,6 +86,7 @@ def measure_post_process(func):
 
 
 @periodic_task(crontab(minute="*"))
+@log_task_run
 def run_purge_cdn_urls():
     CDNPurgeURL.purge_old()
     for i in range(3):
@@ -103,16 +141,18 @@ def post_process_after_cdn_purge(url):
 
 
 @periodic_task(crontab(hour="*", minute="3"))
+@log_task_run
 def purge_old_cdnpurgeurls():
-    old = timezone.now() - datetime.timedelta(days=90)
+    old = timezone.now() - datetime.timedelta(days=30)
     ancient = CDNPurgeURL.objects.filter(created__lt=old)
     deleted = ancient.delete()
     print(f"{deleted[0]:,} ANCIENT CDNPurgeURLs deleted")
 
 
 @periodic_task(crontab(hour="*", minute="2"))
+@log_task_run
 def purge_old_postprocessings():
-    old = timezone.now() - datetime.timedelta(days=90)
+    old = timezone.now() - datetime.timedelta(days=30)
     ancient = PostProcessing.objects.filter(created__lt=old)
     count = ancient.count()
     if count:
@@ -128,6 +168,7 @@ def purge_old_postprocessings():
 
 
 @periodic_task(crontab(minute="*"))
+@log_task_run
 def health_check_to_disk():
     health_file = Path("/tmp/huey_health.json")
     try:
@@ -153,31 +194,50 @@ def health_check_to_disk():
         raise
 
 
-@periodic_task(crontab(hour="1", minute="1"))
-def delete_old_commandsruns():
-    old = timezone.now() - datetime.timedelta(days=60)
-    CommandRun.objects.filter(created__lt=old).delete()
-
-
 @periodic_task(crontab(minute="2"))
+@log_task_run
 def create_analytics_geo_events_backfill():
-    print(
-        "(Debugging Cron) Executing create_analytics_geo_events_backfill",
-        timezone.now(),
-    )
     create_analytics_geo_events(max=1000)
 
 
 @periodic_task(crontab(minute="3"))
+@log_task_run
 def create_analytics_referrer_events_backfill():
-    print(
-        "(Debugging Cron) Executing create_analytics_referrer_events_backfill",
-        timezone.now(),
-    )
     create_analytics_referrer_events(max=1000)
 
 
 @periodic_task(crontab(hour="1", minute="2"))
+@log_task_run
 def delete_old_request_logs():
     old = timezone.now() - datetime.timedelta(days=60)
     RequestLog.objects.filter(created__lt=old).delete()
+
+
+@periodic_task(crontab(hour="1", minute="3"))
+@log_task_run
+def delete_old_analyticsevents():
+    old = timezone.now() - datetime.timedelta(days=90)
+    AnalyticsEvent.objects.filter(created__lt=old).delete()
+
+    # The publicapi-pageview ones are much more numerous and less
+    # useful and use up a lot of space
+    old = timezone.now() - datetime.timedelta(days=60)
+    AnalyticsEvent.objects.filter(created__lt=old, type="publicapi-pageview").delete()
+
+
+@periodic_task(crontab(hour="*/15") if settings.DEBUG else crontab(hour=0, minute=1))
+@log_task_run
+def analytics_rollups_daily():
+    AnalyticsRollupsDaily.rollup()
+
+
+@periodic_task(crontab(hour="*/15") if settings.DEBUG else crontab(hour=0, minute=0))
+@log_task_run
+def analytics_rollups_pathname_daily():
+    AnalyticsRollupsPathnameDaily.rollup()
+
+
+@periodic_task(crontab(minute="*"))
+@log_task_run
+def batch_create_events():
+    process_batch_events()

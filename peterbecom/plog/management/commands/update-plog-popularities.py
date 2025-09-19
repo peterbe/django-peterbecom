@@ -1,6 +1,6 @@
 from django.conf import settings
+from django.core.management.base import BaseCommand
 
-from peterbecom.base.basecommand import BaseCommand
 from peterbecom.plog.popularity import update_all
 
 
@@ -20,7 +20,7 @@ class Command(BaseCommand):
             help="Reindex in Elasticsearch",
         )
 
-    def _handle(self, **options):
+    def handle(self, **options):
         if settings.DB_MAINTENANCE_MODE:
             print("DB maintenance mode")
             return
@@ -30,7 +30,7 @@ class Command(BaseCommand):
         reindex = options["reindex"]
 
         ids = update_all(verbose=verbose, dry_run=dry_run, limit=limit, reindex=reindex)
-        self.out(
+        self.stdout.write(
             "Recalculated {} {:,} IDs".format(
                 reindex and "and reindexed" or "", len(ids)
             )

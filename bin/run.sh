@@ -33,34 +33,35 @@ wait_for() {
 setup_python() {
   source .venv/bin/activate
 
-  # Needed for importing cairocffi
-  export DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib  # Silicon?
-  export DYLD_FALLBACK_LIBRARY_PATH=/usr/local/lib  # Intel?
-  export DYLD_FALLBACK_LIBRARY_PATH=`brew --prefix`/lib  # Both?
+  # This makes it so we only run if you have brew installed.
+  if command -v brew >/dev/null 2>&1; then
+    # Needed for importing cairocffi
+    export DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib  # Silicon?
+    export DYLD_FALLBACK_LIBRARY_PATH=/usr/local/lib  # Intel?
+    export DYLD_FALLBACK_LIBRARY_PATH=`brew --prefix`/lib  # Both?
 
-  # python -c 'import django; print(django.get_version())'
-  # python -c 'import sys; print(sys.base_prefix)'
-  # python -c 'import cairocffi; print(cairocffi.version)'
+    # python -c 'import django; print(django.get_version())'
+    # python -c 'import sys; print(sys.base_prefix)'
+    # python -c 'import cairocffi; print(cairocffi.version)'
+  fi
 
 }
 
 
 case $1 in
   web-dev)
-    echo "STARTING WEB-DEV"
+    echo "STARTING WEB-DEV  (:${PORT})"
     setup_python
     python manage.py migrate --noinput
     # export PYTHONWARNINGS=d
-    exec python manage.py runserver 0.0.0.0:8000
+    exec python manage.py runserver 0.0.0.0:${PORT}
     ;;
   web)
-    echo "STARTING WEB (with gunicorn)"
-    #python manage.py clear-django-cache
+    echo "STARTING WEB (with gunicorn) (:${PORT})"
     setup_python
     python manage.py migrate --noinput
     # export PYTHONWARNINGS=d
     gunicorn wsgi -w ${WORKERS} -b 0.0.0.0:${PORT} --access-logfile=-
-    # exec python manage.py runserver 0.0.0.0:8000
     ;;
   test)
     setup_python
@@ -78,6 +79,11 @@ case $1 in
   huey)
     setup_python
     python manage.py run_huey --flush-locks --huey-verbose
+    ;;
+  manage.py)
+    setup_python
+    shift # Shift all arguments to the left (drop $1)
+    python manage.py "$@"
     ;;
   bash)
     # echo "For high-speed test development, run: pip install pytest-watch"

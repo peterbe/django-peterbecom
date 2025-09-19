@@ -10,12 +10,13 @@ import uuid
 from collections import defaultdict
 
 import bleach
+from cachetools import TTLCache, cached
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.core.cache import cache
 from django.db import models, transaction
 from django.db.models import Count
-from django.db.models.signals import post_save, pre_delete, pre_save
+from django.db.models.signals import post_delete, post_save, pre_delete, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 from elasticsearch.helpers import parallel_bulk
@@ -36,6 +37,10 @@ from peterbecom.plog.search import (
 from . import utils
 from .utils import blog_post_url
 
+# This is where we can cache counts of comments per blogitem id.
+count_comments_cache = TTLCache(maxsize=1000, ttl=60)  # XXX increase TTL
+count_approved_comments_cache = TTLCache(maxsize=1000, ttl=60)
+
 
 class HTMLRenderingError(Exception):
     """When rendering Markdown or RsT generating invalid HTML."""
@@ -49,6 +54,17 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
+
+    @classmethod
+    @functools.lru_cache(maxsize=1)
+    def get_category_id_name_map(cls):
+        return dict(Category.objects.values_list("id", "name"))
+
+
+@receiver(post_save, sender=Category)
+@receiver(post_delete, sender=Category)
+def purge_get_category_id_name_map(sender, instance, **kwargs):
+    Category.get_category_id_name_map.cache_clear()
 
 
 def _upload_path_tagged(tag, instance, filename):
@@ -485,9 +501,13 @@ class BlogComment(models.Model):
 
     @classmethod
     def index_all_blogcomments(cls, verbose=False):
-        iterator = cls.objects.filter(
-            blogitem__archived__isnull=True, blogitem__pub_date__lt=timezone.now()
-        ).select_related("blogitem")
+        iterator = (
+            cls.objects.filter(
+                blogitem__archived__isnull=True, blogitem__pub_date__lt=timezone.now()
+            )
+            .exclude(blogitem__oid="blogitem-040601-1")
+            .select_related("blogitem")
+        )
 
         es = connections.get_connection()
         report_every = 1000
@@ -510,6 +530,38 @@ class BlogComment(models.Model):
 
         t1 = time.time()
         return count, t1 - t0, index_name
+
+
+# These utility function is an optimization to avoid hitting the database.
+# Comments are rarely added, edited, or deleted.
+# But when they are, we specifically purge by the blogitem_id, which is the
+# simple cache key in the memoization.
+#
+# Rough estimate is that counting, for example, the number of comments on the
+# blogitem (with the most comments), takes 10-20 milliseconds. Reading from
+# the in-memory cache is 0.01 milliseconds. So, about 1000x faster.
+
+
+@cached(cache=count_comments_cache)
+def count_approved_comments(blogitem_id):
+    return BlogComment.objects.filter(blogitem=blogitem_id, approved=True).count()
+
+
+@cached(cache=count_approved_comments_cache)
+def count_approved_root_comments(blogitem_id):
+    return BlogComment.objects.filter(
+        blogitem__id=blogitem_id, approved=True, parent__isnull=True
+    ).count()
+
+
+@receiver(post_save, sender=BlogComment)
+@receiver(post_delete, sender=BlogComment)
+def purge_count_approved_comments(sender, instance, **kwargs):
+    count_key = count_approved_comments.cache_key(instance.blogitem_id)
+    count_approved_comments.cache.pop(count_key, None)
+
+    count_root_key = count_approved_root_comments.cache_key(instance.blogitem_id)
+    count_approved_root_comments.cache.pop(count_root_key, None)
 
 
 @receiver(pre_save, sender=BlogComment)

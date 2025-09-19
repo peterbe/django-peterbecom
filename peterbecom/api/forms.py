@@ -197,6 +197,12 @@ class SpamCommentPatternForm(forms.ModelForm):
         fields = ("pattern", "is_regex", "is_url_pattern")
 
 
+class ProbeURLForm(forms.Form):
+    url = forms.URLField()
+    method = forms.CharField(required=False)
+    user_agent = forms.CharField(required=False)
+
+
 class CommentCountsForm(forms.Form):
     start = ISODateTimeField()
     end = ISODateTimeField()
@@ -257,3 +263,8 @@ class BlogCommentClassificationForm(forms.ModelForm):
 class CategoryForm(forms.Form):
     name = forms.CharField(required=True)
     category = forms.ModelChoiceField(queryset=Category.objects.all(), required=False)
+
+
+class AllBlogitemsForm(forms.Form):
+    since = forms.DateTimeField(required=False)
+    minimal_fields = forms.BooleanField(required=False)

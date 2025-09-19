@@ -1,4 +1,5 @@
 import datetime
+import json
 import re
 import time
 from collections import Counter
@@ -29,7 +30,11 @@ def api_superuser_required(view_func):
 
 @api_superuser_required
 def query(request):
-    q = request.GET.get("query")
+    if request.method == "POST":
+        q = json.loads(request.body.decode("utf-8")).get("query")
+    else:
+        q = request.GET.get("query")
+
     if not q:
         return http.JsonResponse({"error": "missing 'query'"}, status=400)
     try:
@@ -49,6 +54,16 @@ def query(request):
 
         elif table == "analytics":
             q = re.sub(r"\banalytics\b", "base_analyticsevent", q)
+
+        elif table == "analyticsrollupsdaily":
+            q = re.sub(r"\banalyticsrollupsdaily\b", "base_analyticsrollupsdaily", q)
+
+        elif table == "analyticsrollupspathnamedaily":
+            q = re.sub(
+                r"\banalyticsrollupspathnamedaily\b",
+                "base_analyticsrollupspathnamedaily",
+                q,
+            )
 
         elif table == "requestlog":
             q = re.sub(r"\brequestlog\b", "base_requestlog", q)

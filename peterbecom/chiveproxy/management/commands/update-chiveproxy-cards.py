@@ -1,4 +1,5 @@
-from peterbecom.base.basecommand import BaseCommand
+from django.core.management.base import BaseCommand
+
 from peterbecom.chiveproxy.models import Card
 from peterbecom.chiveproxy.views import update_cards
 

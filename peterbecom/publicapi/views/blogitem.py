@@ -7,7 +7,12 @@ from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
 
-from peterbecom.plog.models import BlogComment, BlogItem
+from peterbecom.plog.models import (
+    BlogComment,
+    BlogItem,
+    count_approved_comments,
+    count_approved_root_comments,
+)
 
 
 def blogitem(request, oid):
@@ -148,9 +153,8 @@ def blogitem(request, oid):
 
     replies = blogcomments.filter(parent__isnull=False).order_by("add_date").only(*only)
 
-    count_comments = blogcomments.count()
-
-    root_comments_count = root_comments.count()
+    count_comments = count_approved_comments(blogitem.id)
+    root_comments_count = count_approved_root_comments(blogitem.id)
 
     if page > 1:
         if (page - 1) * settings.MAX_RECENT_COMMENTS > root_comments_count:

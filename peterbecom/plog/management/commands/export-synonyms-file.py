@@ -1,18 +1,14 @@
 from pathlib import Path
 
 from django.conf import settings
-
-from peterbecom.base.basecommand import BaseCommand
+from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("--filename", default=settings.SYNONYM_FILE_NAME)
 
-    #     parser.add_argument("--limit", default=500)
-    #     parser.add_argument("-b", "--in-bulk", action="store_true", default=False)
-
-    def _handle(self, **options):
+    def handle(self, **options):
         synonyms_root = settings.BASE_DIR / "peterbecom/es-synonyms"
         american_british_syns_fn = synonyms_root / "be-ae.synonyms"
 

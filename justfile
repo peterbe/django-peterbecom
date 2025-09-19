@@ -12,11 +12,14 @@ dev-with-tunneling:
     ./bin/wait-for-pg.sh --help > /dev/null
     hivemind Procfile.tunneling
 
-start: dev
+start:
+    hivemind Procfile.prod
 
 pretty:
     ruff format peterbecom
     ruff check --fix peterbecom
+    # correct import sort order
+    ruff check --select I --fix
 
 lint: pretty
     ruff check peterbecom
@@ -35,4 +38,4 @@ test-with-coverage:
 
 upgrade:
     # uv pip list --outdated
-    /Users/peterbe/bin/Uv-Outdated.py
+    Uv-Outdated.py

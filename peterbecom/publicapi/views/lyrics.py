@@ -114,7 +114,7 @@ class LyricsSearchForm(forms.Form):
         return value
 
 
-@cache_page(settings.DEBUG and 10 or 60 * 60, key_prefix="publicapi_cache_page")
+@cache_page(settings.DEBUG and 10 or 24 * 60 * 60, key_prefix="publicapi_cache_page")
 def song(request):
     form = LyricsSongForm(request.GET)
     if not form.is_valid():
@@ -127,6 +127,11 @@ def song(request):
         return http.JsonResponse(
             {"error": "Unexpected proxy response code"}, status=response.status_code
         )
+
+    if len(response.history) == 1 and response.history[0].status_code == 301:
+        path = urlparse(response.history[0].headers.get("Location")).path
+        new_url = f"/plog/blogitem-040601-1{path}"
+        return redirect(new_url)
 
     try:
         res = response.json()
@@ -212,7 +217,6 @@ def feature_flag(request):
         return response
     value = request.COOKIES.get("local-lyrics-server")
     if value is not None:
-        print(f"LyricsFeatureFlag: cookie value is not None ({value!r})")
         return http.JsonResponse({"enabled": value == "true"})
 
     if value is None:
@@ -240,10 +244,7 @@ def feature_flag(request):
                 country_code = ip_to_country_code(ip_address)
             enabled = False
             if country_code in ["US", "GB", "CA", "DE", "PH", "FR", "IN"]:
-                print(f"LyricsFeatureFlag: Right country ({country_code!r})")
                 enabled = True
-            else:
-                print(f"LyricsFeatureFlag: Not right country code ({country_code!r})")
 
             response = http.JsonResponse({"enabled": enabled})
             response.set_cookie(
@@ -253,7 +254,5 @@ def feature_flag(request):
                 httponly=True,
             )
             return response
-        else:
-            print(f"LyricsFeatureFlag: no ip_address ({ip_address!r})")
 
     return http.JsonResponse({"enabled": False})

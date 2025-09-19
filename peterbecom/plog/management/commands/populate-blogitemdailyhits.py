@@ -1,10 +1,10 @@
 import datetime
 import time
 
+from django.core.management.base import BaseCommand
 from django.db.models import Max, Min
 from django.utils import timezone
 
-from peterbecom.base.basecommand import BaseCommand
 from peterbecom.plog.models import BlogItemDailyHits, BlogItemDailyHitsExistingError
 
 
@@ -13,7 +13,7 @@ class Command(BaseCommand):
         parser.add_argument("-d", "--days-back", default=1)
         parser.add_argument("-s", "--start-back", default=0)
 
-    def _handle(self, **options):
+    def handle(self, **options):
         if options["verbosity"] > 1:
             self._print_stats()
             print()
@@ -28,14 +28,14 @@ class Command(BaseCommand):
                 t0 = time.time()
                 sum_, count = BlogItemDailyHits.rollup_date(date)
                 t1 = time.time()
-                self.notice(
+                self.stdout.write(
                     "Took {:.2f}s to update daily hits for {} "
                     "({:,} blogitems, sum total {:,} hits)".format(
                         t1 - t0, date.date(), count, sum_
                     )
                 )
             except BlogItemDailyHitsExistingError:
-                self.warning("Daily hits for {} already done".format(date.date()))
+                self.stdout.write("Daily hits for {} already done".format(date.date()))
 
         if options["verbosity"] > 1:
             print()
