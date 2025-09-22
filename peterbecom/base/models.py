@@ -390,8 +390,8 @@ class RequestLogRollupsBotAgentStatusCodeDaily(models.Model):
                 RequestLog.objects.filter(
                     created__gte=start_of_day,
                     created__lt=end_of_day,
-                    meta__botAgent__isnull=False,
                 )
+                .extra(where=["meta->>'botAgent' IS NOT NULL"])
                 .values("status_code", "meta__botAgent")
                 .annotate(count=Count("id"))
             )
@@ -412,4 +412,4 @@ class RequestLogRollupsBotAgentStatusCodeDaily(models.Model):
                 if len(bulk) > 100:
                     cls.objects.bulk_create(bulk)
                     bulk = []
-            cls.objects.bulk_create(bulk)
+            # cls.objects.bulk_create(bulk)
