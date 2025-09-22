@@ -21,6 +21,11 @@ def homepage_blogitems(request):
     except ValueError:
         return http.HttpResponseBadRequest("invalid page")
 
+    max_next_page = settings.MAX_NEXT_PAGE_PAGINATION
+
+    # TODO:
+    # If the page is > max_next_page redirect to the last page
+
     qs = BlogItem.objects.filter(pub_date__lt=timezone.now(), archived__isnull=True)
 
     ocs = request.GET.getlist("oc")
@@ -67,6 +72,8 @@ def homepage_blogitems(request):
         context["previous_page"] = page
     else:
         context["previous_page"] = None
+
+    context["max_next_page"] = max_next_page
 
     blogitems = (qs.prefetch_related("categories").order_by("-pub_date"))[n:m]
 

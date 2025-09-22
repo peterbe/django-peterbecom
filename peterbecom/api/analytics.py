@@ -65,6 +65,13 @@ def query(request):
                 q,
             )
 
+        elif table == "requestlogrollupsbotagentstatuscodedaily":
+            q = re.sub(
+                r"\brequestlogrollupsbotagentstatuscodedaily\b",
+                "base_requestlogrollupsbotagentstatuscodedaily",
+                q,
+            )
+
         elif table == "requestlog":
             q = re.sub(r"\brequestlog\b", "base_requestlog", q)
 

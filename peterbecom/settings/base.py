@@ -428,3 +428,5 @@ NUMBER_AVATARS_PREMADE = 1000
 LOGO_IMAGE_PATH = (
     BASE_DIR / "peterbecom" / "base" / "static" / "images" / "apple-touch-icon.png"
 )
+
+MAX_NEXT_PAGE_PAGINATION = 10
