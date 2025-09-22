@@ -356,3 +356,60 @@ class RequestLog(models.Model):
     request = models.JSONField(default=dict)
     response = models.JSONField(default=dict)
     meta = models.JSONField(default=dict)
+
+
+class RequestLogRollupsBotAgentStatusCodeDaily(models.Model):
+    day = models.DateTimeField(db_index=True)
+    count = models.IntegerField()
+    bot_agent = models.CharField(max_length=100, null=True)
+    status_code = models.IntegerField()
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = " RequestLog Rollups by Bot Agent and Status Code daily"
+
+    @classmethod
+    def rollup(cls, day=None):
+        if not day:
+            # Use yesterday
+            day = timezone.now() - datetime.timedelta(days=1)
+
+        start_of_day = day.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_of_day = start_of_day + datetime.timedelta(days=1)
+
+        day = start_of_day
+        print(
+            f" ROLLUP BY BOTAGENT BY STATUS CODE DAY: {day.isoformat()} ".center(
+                80, "-"
+            )
+        )
+        with transaction.atomic():
+            cls.objects.filter(day=day).delete()
+
+            agg_query = (
+                RequestLog.objects.filter(
+                    created__gte=start_of_day,
+                    created__lt=end_of_day,
+                    meta__botAgent__isnull=False,
+                )
+                .values("status_code", "meta__botAgent")
+                .annotate(count=Count("id"))
+            )
+            agg_query = agg_query.order_by("-count")
+            bulk = []
+            for agg in agg_query:
+                print(
+                    f"{agg['count']:>5} {agg['status_code']:<3} {agg['meta__botAgent']}"
+                )
+                bulk.append(
+                    cls(
+                        day=day,
+                        count=agg["count"],
+                        status_code=agg["status_code"],
+                        bot_agent=agg["meta__botAgent"],
+                    )
+                )
+                if len(bulk) > 100:
+                    cls.objects.bulk_create(bulk)
+                    bulk = []
+            cls.objects.bulk_create(bulk)

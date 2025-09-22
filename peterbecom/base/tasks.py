@@ -24,6 +24,7 @@ from peterbecom.base.models import (
     CDNPurgeURL,
     PostProcessing,
     RequestLog,
+    RequestLogRollupsBotAgentStatusCodeDaily,
 )
 from peterbecom.base.utils import do_healthcheck
 from peterbecom.base.xcache_analyzer import get_x_cache
@@ -235,6 +236,12 @@ def analytics_rollups_daily():
 @log_task_run
 def analytics_rollups_pathname_daily():
     AnalyticsRollupsPathnameDaily.rollup()
+
+
+@periodic_task(crontab(hour="*/15") if settings.DEBUG else crontab(hour=10))
+@log_task_run
+def requestlog_rollups_bot_agent_status_code_daily():
+    RequestLogRollupsBotAgentStatusCodeDaily.rollup()
 
 
 @periodic_task(crontab(minute="*"))
