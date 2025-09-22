@@ -412,4 +412,4 @@ class RequestLogRollupsBotAgentStatusCodeDaily(models.Model):
                 if len(bulk) > 100:
                     cls.objects.bulk_create(bulk)
                     bulk = []
-            # cls.objects.bulk_create(bulk)
+            cls.objects.bulk_create(bulk)
