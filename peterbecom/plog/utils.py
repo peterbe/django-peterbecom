@@ -23,7 +23,7 @@ from markdown.extensions.toc import slugify as toc_slugify
 # https://github.com/vzhou842/profanity-check is probably better but it requires
 # scikit-learn or whatever it's called.
 from profanity import profanity
-from requests.exceptions import ConnectionError, ReadTimeout
+from requests.exceptions import ConnectionError, InvalidURL, ReadTimeout
 
 from .gfm import gfm
 
@@ -134,7 +134,7 @@ def render_comment_text(text):
                     ):
                         attrs[href_key] = href.replace("http://", "https://")
 
-            except (ConnectionError, ReadTimeout):
+            except (ConnectionError, ReadTimeout, InvalidURL):
                 return None
 
             rel_key = (None, "rel")

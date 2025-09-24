@@ -431,3 +431,38 @@ def test_prepare_comment(client):
     response = client.get(url)
     assert response.status_code == 200
     assert response.json()["csrfmiddlewaretoken"]
+
+
+@pytest.mark.django_db
+def test_submit_comment_with_invalid_url(client):
+    url = reverse("publicapi:submit_comment")
+    response = client.get(url)
+    assert response.status_code == 405
+
+    blogitem = BlogItem.objects.create(
+        oid="oid",
+        title="Title",
+        text="*Text*",
+        text_rendered=BlogItem.render("*Text*", "markdown", ""),
+        display_format="markdown",
+        summary="Summary",
+        pub_date=timezone.now(),
+    )
+
+    response = client.post(
+        url,
+        {
+            "oid": blogitem.oid,
+            "comment": "Please help me, I'm trying to identify the song ...here:\nhttps:/youtube.com/watch?v=abc123&t=25",
+            "name": "John Doe",
+            "email": "example@exmple.com ",
+        },
+    )
+    assert response.status_code == 200
+
+    # The point is that the badly formed URL does not become a link.
+    # Nor does its presence cause an exception; the comment is saved.
+    assert response.json()["comment"] == (
+        "Please help me, I'm trying to identify the song ...here:<br>https:/youtube.com/watch?v=abc123&amp;t=25"
+    )
+    assert BlogComment.objects.filter(blogitem=blogitem).count() == 1

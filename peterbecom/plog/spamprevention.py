@@ -35,7 +35,7 @@ def contains_spam_url_patterns(text):
         if href.startswith("mailto:") or href.startswith("tel:"):
             # Leave untouched
             return
-        if not (href.startswith("http:") or href.startswith("https:")):
+        if not (href.startswith("http://") or href.startswith("https://")):
             # Bail if it's not a HTTP URL, such as ssh:// or ftp://
             return
 
