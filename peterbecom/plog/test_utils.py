@@ -78,6 +78,14 @@ But try github.com too.
     assert '<a href="https://github.com" rel="nofollow">github.com</a>' in html
 
 
+def test_linkify_exceptions():
+    text = """
+    by Will.i.am and Britney Spears
+    """.strip()
+    html = utils.render_comment_text(text)
+    assert " Will.i.am " in html
+
+
 def test_linkify_urls_with_ampersands(requestsmock):
     requestsmock.head("https://www.youtobe.com", text="Works", status_code=200)
     text = "link: https://www.youtobe.com/watch?v=2rGuXYAQb8s&feature=share"

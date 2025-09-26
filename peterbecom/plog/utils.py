@@ -117,6 +117,8 @@ def render_comment_text(text):
             return None
 
         p = urlparse(href)
+        if p.netloc.lower() in settings.NO_LIKIFY_EXCEPTIONS:
+            return None
         if p.netloc not in settings.NOFOLLOW_EXCEPTIONS:
             # Before we add the `rel="nofollow"` let's first check that this is a
             # valid domain at all.

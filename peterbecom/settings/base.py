@@ -430,3 +430,6 @@ LOGO_IMAGE_PATH = (
 )
 
 MAX_NEXT_PAGE_PAGINATION = 10
+
+# domains, in lower case, that should not be linkified
+NO_LIKIFY_EXCEPTIONS = {"will.i.am"}

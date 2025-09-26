@@ -141,6 +141,7 @@ def submit_comment(request):
     context = {
         "oid": blog_comment.oid,
         "hash": blog_comment_hash,
+        "comment_original": blog_comment.comment,
         "comment": blog_comment.comment_rendered,
     }
     return http.JsonResponse(context)
