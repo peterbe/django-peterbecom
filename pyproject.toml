@@ -30,7 +30,7 @@ dependencies = [
     "delegator-py==0.1.1",
     "dj-database-url==3.0.1",
     "django-redis==6.0.0",
-    "django==5.2.6",
+    "django==5.2.7",
     "elasticsearch-dsl==8.17.1",
     "elasticsearch==8.17.2",
     "feedparser==6.0.12",
