@@ -1122,6 +1122,7 @@ def blogcomments(request):
             "email": item.email,
             "user_agent": item.user_agent,
             "location": _serialize_location(geo_lookup),
+            "ip_address": item.ip_address,
             "_clues": not item.approved and rate_blog_comment(item) or None,
             "replies": [],
             "gravatar_url": get_gravatar_url(item),
