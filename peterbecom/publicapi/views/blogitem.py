@@ -26,7 +26,9 @@ def blogitem(request, oid):
     if page > settings.MAX_BLOGCOMMENT_PAGES:
         return http.HttpResponseNotFound("gone too far")
 
-    cache_key = f"publicapi_blogitem_{oid}:{page}"
+    comment_oid = request.GET.get("comment")
+
+    cache_key = f"publicapi_blogitem_{oid}:{page}:{comment_oid}"
     cached = cache.get(cache_key)
     if cached:
         return http.JsonResponse(cached)
@@ -44,6 +46,27 @@ def blogitem(request, oid):
         return http.HttpResponseNotFound("not published yet")
     if blogitem.archived:
         return http.HttpResponseNotFound("blog post archived")
+
+    _values = (
+        "id",
+        "add_date",
+        "parent_id",
+        "oid",
+        "name",
+        "comment_rendered",
+        "approved",
+    )
+
+    comment: dict | None = None
+    if comment_oid:
+        for comment in BlogComment.objects.filter(
+            oid=comment_oid, blogitem=blogitem
+        ).values(*_values):
+            if not comment["approved"]:
+                return http.HttpResponseNotFound("comment not found")
+            break
+        else:
+            return http.HttpResponseNotFound(comment_oid)
 
     post = {
         "oid": blogitem.oid,
@@ -78,7 +101,9 @@ def blogitem(request, oid):
 
     post["previous_post"] = post["next_post"] = None
 
-    if blogitem.oid != "blogitem-040601-1":
+    if comment:
+        pass
+    elif blogitem.oid != "blogitem-040601-1":
         base_qs = BlogItem.objects.filter(archived__isnull=True).values(
             "id", "oid", "title", "pub_date"
         )
@@ -137,7 +162,6 @@ def blogitem(request, oid):
         related_by_keyword = list(related_qs)
         post["related_by_keyword"] = serialize_related_objects(related_by_keyword)
 
-    blogcomments = BlogComment.objects.filter(blogitem=blogitem, approved=True)
     only = (
         "oid",
         "blogitem_id",
@@ -147,62 +171,94 @@ def blogitem(request, oid):
         "add_date",
         "name",
     )
-    root_comments = (
-        blogcomments.filter(parent__isnull=True).order_by("add_date").only(*only)
-    )
+    blogcomments_base = BlogComment.objects.filter(blogitem=blogitem, approved=True)
+    if comment:
+        # parent_comment = None  # XXX
 
-    replies = blogcomments.filter(parent__isnull=False).order_by("add_date").only(*only)
+        # replies = (
+        #     blogcomments_base.filter(parent_id=comment["id"])
+        #     .order_by("add_date")
+        #     .only(*only)
+        # )
+        # _values = (
+        #     "id",
+        #     "add_date",
+        #     "parent_id",
+        #     "oid",
+        #     "name",
+        #     "comment_rendered",
+        #     "approved",
+        # )
+        # for comment in replies.values(*_values):
+        #     print("CHILD_COMMENT", comment)
+        # # print("REPLIES", replies.query)
 
-    count_comments = count_approved_comments(blogitem.id)
-    root_comments_count = count_approved_root_comments(blogitem.id)
+        comments = {}
+        comments["truncated"] = False
+        comments["count"] = 0
+        comments["total_pages"] = 1
+        comments["tree"] = []  # serialize_comment(comment) for comment in replies]
+        comments["next_page"] = comments["previous_page"] = None
 
-    if page > 1:
-        if (page - 1) * settings.MAX_RECENT_COMMENTS > root_comments_count:
-            raise http.Http404("Gone too far")
+        comment = serialize_comment(comment)
+        comment["depth"] = 0
 
-    slice_m, slice_n = get_blogcomment_slice(root_comments_count, page)
-    root_comments = root_comments[slice_m:slice_n]
+    else:
+        root_comments = (
+            blogcomments_base.filter(parent__isnull=True)
+            .order_by("add_date")
+            .only(*only)
+        )
 
-    comments_truncated = False
-    if root_comments_count > settings.MAX_RECENT_COMMENTS:
-        comments_truncated = settings.MAX_RECENT_COMMENTS
+        replies = (
+            blogcomments_base.filter(parent__isnull=False)
+            .order_by("add_date")
+            .only(*only)
+        )
 
-    _values = (
-        "id",
-        "add_date",
-        "parent_id",
-        "oid",
-        "name",
-        "comment_rendered",
-        "approved",
-    )
-    all_comments = defaultdict(list)
-    for comment in root_comments.values(*_values):
-        all_comments[comment["parent_id"]].append(comment)
+        count_comments = count_approved_comments(blogitem.id)
+        root_comments_count = count_approved_root_comments(blogitem.id)
 
-    for comment in replies.values(*_values):
-        all_comments[comment["parent_id"]].append(comment)
+        if page > 1:
+            if (page - 1) * settings.MAX_RECENT_COMMENTS > root_comments_count:
+                raise http.Http404("Gone too far")
 
-    total_pages = 1
-    if isinstance(comments_truncated, int) and comments_truncated > 0:
-        total_pages = math.ceil(root_comments_count / comments_truncated)
-    total_pages = min(total_pages, settings.MAX_BLOGCOMMENT_PAGES)
+        slice_m, slice_n = get_blogcomment_slice(root_comments_count, page)
+        root_comments = root_comments[slice_m:slice_n]
 
-    comments = {}
-    comments["truncated"] = comments_truncated
-    comments["count"] = count_comments
-    comments["total_pages"] = total_pages
-    comments["tree"] = traverse_and_serialize_comments(all_comments)
+        comments_truncated: bool | int = False
+        if root_comments_count > settings.MAX_RECENT_COMMENTS:
+            comments_truncated = settings.MAX_RECENT_COMMENTS
 
-    comments["next_page"] = comments["previous_page"] = None
-    if page < settings.MAX_BLOGCOMMENT_PAGES:
-        # But is there even a next page?!
-        if page * settings.MAX_RECENT_COMMENTS < root_comments_count:
-            comments["next_page"] = page + 1
-    if page > 1:
-        comments["previous_page"] = page - 1
+        all_comments = defaultdict(list)
+        for comment in root_comments.values(*_values):
+            all_comments[comment["parent_id"]].append(comment)
 
-    context = {"post": post, "comments": comments}
+        for comment in replies.values(*_values):
+            all_comments[comment["parent_id"]].append(comment)
+
+        total_pages = 1
+        if isinstance(comments_truncated, int) and comments_truncated > 0:
+            total_pages = math.ceil(root_comments_count / comments_truncated)
+        total_pages = min(total_pages, settings.MAX_BLOGCOMMENT_PAGES)
+
+        comments = {}
+        comments["truncated"] = comments_truncated
+        comments["count"] = count_comments
+        comments["total_pages"] = total_pages
+        comments["tree"] = traverse_and_serialize_comments(all_comments)
+
+        comments["next_page"] = comments["previous_page"] = None
+        if page < settings.MAX_BLOGCOMMENT_PAGES:
+            # But is there even a next page?!
+            if page * settings.MAX_RECENT_COMMENTS < root_comments_count:
+                comments["next_page"] = page + 1
+        if page > 1:
+            comments["previous_page"] = page - 1
+
+        comment = None
+
+    context = {"post": post, "comments": comments, "comment": comment}
     cache.set(cache_key, context, 10 if settings.DEBUG else 60 * 60 * 12)
     return http.JsonResponse(context)
 
