@@ -5,6 +5,7 @@ from collections import defaultdict
 from django import http
 from django.conf import settings
 from django.core.cache import cache
+from django.db.models import Q
 from django.utils import timezone
 
 from peterbecom.plog.models import (
@@ -44,6 +45,18 @@ def blogitem(request, oid):
         return http.HttpResponseNotFound("not published yet")
     if blogitem.archived:
         return http.HttpResponseNotFound("blog post archived")
+
+    comment_oid = request.GET.get("comment")
+    if comment_oid:
+        query = BlogComment.objects.filter(blogitem=blogitem, oid=comment_oid)
+        # If the comment was created very recently it might not be approved yet
+        # so don't filter on that.
+        query = query.filter(
+            Q(approved=True)
+            | Q(add_date__gt=timezone.now() - datetime.timedelta(minutes=60))
+        )
+        if not query.exists():
+            return http.HttpResponseNotFound("comment not found")
 
     post = {
         "oid": blogitem.oid,
