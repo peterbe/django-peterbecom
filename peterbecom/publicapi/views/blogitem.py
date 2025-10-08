@@ -174,24 +174,51 @@ def blogitem(request, oid):
     blogcomments_base = BlogComment.objects.filter(blogitem=blogitem, approved=True)
     if comment:
         # parent_comment = None  # XXX
+        # count_replies = 0 # XXX
 
-        # replies = (
-        #     blogcomments_base.filter(parent_id=comment["id"])
-        #     .order_by("add_date")
-        #     .only(*only)
-        # )
-        # _values = (
-        #     "id",
-        #     "add_date",
-        #     "parent_id",
-        #     "oid",
-        #     "name",
-        #     "comment_rendered",
-        #     "approved",
-        # )
-        # for comment in replies.values(*_values):
-        #     print("CHILD_COMMENT", comment)
-        # # print("REPLIES", replies.query)
+        # To figure out which page this belongs to, we need count how many root
+        # comments there are before this comment.
+        # parent_comment = comment["parent_id"]
+        # this_comment = copy.copy(comment)
+        root_comment = comment
+        # print("0000")
+        # from pprint import pprint
+
+        # pprint(root_comment)
+        while root_comment["parent_id"]:
+            root_comment = BlogComment.objects.values(*_values).get(
+                id=root_comment["parent_id"]
+            )
+            # print("1111")
+            # pprint(root_comment)
+            # print("\n")
+
+            # found = False
+            # print("111", root_comment)
+            # for other_comment in BlogComment.objects.filter(
+            #     oid=root_comment["parent_id"], blogitem=blogitem
+            # ).values(*_values):
+            #     if comment["approved"]:
+            #         root_comment = other_comment
+            #         # found = True
+            #         break
+            # # if found:
+            # #     break
+
+        # print("THIS COMMENT", repr(comment))
+        # print("ROOT COMMENT", repr(root_comment))
+        count_after = blogcomments_base.filter(
+            add_date__gt=root_comment["add_date"],
+            parent__isnull=True,
+        ).count()
+        print(
+            "COUNT AFTER",
+            count_after,
+            "settings.MAX_RECENT_COMMENTS",
+            settings.MAX_RECENT_COMMENTS,
+        )
+        page = 1 + (count_after // settings.MAX_RECENT_COMMENTS)
+        # print("PAGE", page)
 
         comments = {}
         comments["truncated"] = False
@@ -258,7 +285,7 @@ def blogitem(request, oid):
 
         comment = None
 
-    context = {"post": post, "comments": comments, "comment": comment}
+    context = {"post": post, "comments": comments, "comment": comment, "page": page}
     cache.set(cache_key, context, 10 if settings.DEBUG else 60 * 60 * 12)
     return http.JsonResponse(context)
 
