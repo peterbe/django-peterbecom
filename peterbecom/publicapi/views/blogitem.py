@@ -27,7 +27,9 @@ def blogitem(request, oid):
     if page > settings.MAX_BLOGCOMMENT_PAGES:
         return http.HttpResponseNotFound("gone too far")
 
-    cache_key = f"publicapi_blogitem_{oid}:{page}"
+    comment_oid = request.GET.get("comment")
+
+    cache_key = f"publicapi_blogitem_{oid}:{page}:{comment_oid}"
     cached = cache.get(cache_key)
     if cached:
         return http.JsonResponse(cached)
@@ -46,7 +48,6 @@ def blogitem(request, oid):
     if blogitem.archived:
         return http.HttpResponseNotFound("blog post archived")
 
-    comment_oid = request.GET.get("comment")
     if comment_oid:
         query = BlogComment.objects.filter(blogitem=blogitem, oid=comment_oid)
         # If the comment was created very recently it might not be approved yet

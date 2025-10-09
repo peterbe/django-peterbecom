@@ -200,3 +200,44 @@ def test_blogitems_by_category(client):
     related_by_keyword = response.json()["post"]["related_by_keyword"]
     assert related_by_keyword[0]["oid"] == "oid-0"
     assert related_by_keyword[0]["categories"] == ["Lone"]
+
+
+@pytest.mark.django_db
+def test_blogitem_with_comment_oid(client):
+    blogitem = BlogItem.objects.create(
+        oid="oid",
+        title="Title",
+        text="*Text*",
+        text_rendered=BlogItem.render("*Text*", "markdown", ""),
+        display_format="markdown",
+        summary="Summary",
+        pub_date=timezone.now(),
+    )
+    blogitem.categories.add(Category.objects.create(name="Category"))
+    url = reverse("publicapi:blogitem", args=["oid"])
+    response = client.get(url, {"comment": "doesnotexist"})
+    assert response.status_code == 404
+
+    blog_comment = BlogComment.objects.create(
+        blogitem=blogitem,
+        oid="commentoid",
+        name="Name",
+        email="name@example.com",
+        comment="Bla bla",
+        approved=True,
+    )
+    response = client.get(url, {"comment": blog_comment.oid})
+    assert response.status_code == 200
+
+    blog_comment.oid = "otheroid"
+    blog_comment.approved = False
+    blog_comment.add_date = timezone.now() - datetime.timedelta(minutes=1)
+    blog_comment.save()
+    response = client.get(url, {"comment": blog_comment.oid})
+    assert response.status_code == 200
+
+    blog_comment.oid = "thirdoid"
+    blog_comment.add_date = timezone.now() - datetime.timedelta(hours=1)
+    blog_comment.save()
+    response = client.get(url, {"comment": blog_comment.oid})
+    assert response.status_code == 404
