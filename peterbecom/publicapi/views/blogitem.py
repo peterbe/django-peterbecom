@@ -11,8 +11,6 @@ from django.utils import timezone
 from peterbecom.plog.models import (
     BlogComment,
     BlogItem,
-    count_approved_comments,
-    count_approved_root_comments,
 )
 
 
@@ -151,7 +149,12 @@ def blogitem(request, oid):
         related_by_keyword = list(related_qs)
         post["related_by_keyword"] = serialize_related_objects(related_by_keyword)
 
-    blogcomments = BlogComment.objects.filter(blogitem=blogitem, approved=True)
+    # blogcomments = BlogComment.objects.filter(blogitem=blogitem, approved=True)
+    blogcomments = BlogComment.objects.filter(blogitem=blogitem)
+    if comment_oid:
+        blogcomments = blogcomments.filter(Q(oid=comment_oid) | Q(approved=True))
+    else:
+        blogcomments = blogcomments.filter(approved=True)
     only = (
         "oid",
         "blogitem_id",
@@ -167,8 +170,10 @@ def blogitem(request, oid):
 
     replies = blogcomments.filter(parent__isnull=False).order_by("add_date").only(*only)
 
-    count_comments = count_approved_comments(blogitem.id)
-    root_comments_count = count_approved_root_comments(blogitem.id)
+    # count_comments = count_approved_comments(blogitem.id)
+    count_comments = blogcomments.count()
+    # root_comments_count = count_approved_root_comments(blogitem.id)
+    root_comments_count = blogcomments.filter(parent__isnull=True).count()
 
     if page > 1:
         if (page - 1) * settings.MAX_RECENT_COMMENTS > root_comments_count:
