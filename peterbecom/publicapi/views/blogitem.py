@@ -233,25 +233,15 @@ def traverse_and_serialize_comments(all_comments, comment=None, depth=None):
 
 
 def serialize_comment(blogcomment):
-    if isinstance(blogcomment, dict):
-        return {
-            "id": blogcomment["id"],
-            "oid": blogcomment["oid"],
-            "add_date": blogcomment["add_date"],
-            "name": blogcomment["name"] or None,
-            "comment": blogcomment["comment_rendered"],
-            "approved": bool(blogcomment["approved"]),
-        }
-    else:
-        raise Exception("/????")
-        return {
-            "id": blogcomment.id,
-            "oid": blogcomment.oid,
-            "add_date": blogcomment.add_date,
-            "name": blogcomment.name or None,
-            "comment": blogcomment.comment_rendered,
-            "approved": bool(blogcomment.approved),
-        }
+    assert isinstance(blogcomment, dict)
+    return {
+        "id": blogcomment["id"],
+        "oid": blogcomment["oid"],
+        "add_date": blogcomment["add_date"],
+        "name": blogcomment["name"] or None,
+        "comment": blogcomment["comment_rendered"],
+        "approved": bool(blogcomment["approved"]),
+    }
 
 
 def get_blogcomment_slice(count_comments, page):
@@ -295,3 +285,122 @@ def get_related_posts_by_categories(post, limit=5, exclude_ids=None):
         .exclude(id__in=exclude_ids or [])
         .order_by("-popularity")[:limit]
     )
+
+
+def blogcomment(request, blogitem_oid, oid):
+    only = (
+        "id",
+        "oid",
+        "blogitem_id",
+        "parent_id",
+        "approved",
+        "comment",
+        "comment_rendered",
+        "add_date",
+        "name",
+    )
+    for comment in BlogComment.objects.filter(
+        oid=oid, blogitem__oid=blogitem_oid, blogitem__hide_comments=False
+    ).values(*only):
+        for post in BlogItem.objects.filter(id=comment["blogitem_id"]).values(
+            "oid",
+            "title",
+            "pub_date",
+            "disallow_comments",
+            "summary",
+            "open_graph_image",
+        ):
+            break
+        break
+    else:
+        return http.HttpResponseNotFound(oid)
+
+    blogcomments = BlogComment.objects.filter(
+        blogitem_id=comment["blogitem_id"], approved=True
+    )
+
+    page = _get_comment_page(comment)
+
+    only = (
+        "id",
+        "oid",
+        "blogitem_id",
+        "parent_id",
+        "approved",
+        "comment",
+        "comment_rendered",
+        "add_date",
+        "name",
+    )
+
+    all_comments = _get_replies_recursively(comment)
+
+    root_comment = None
+    if comment["parent_id"]:
+        for root_comment in blogcomments.filter(id=comment["parent_id"]).values(*only):
+            root_comment["depth"] = 0
+            break
+
+    comments = {}
+    comments["truncated"] = False
+    comments["count"] = 0
+    comments["total_pages"] = 1
+    comments["tree"] = traverse_and_serialize_comments(all_comments)
+    comments["next_page"] = comments["previous_page"] = None
+
+    comment_serialized = serialize_comment(comment)
+    comment_serialized["depth"] = 0
+    context = {
+        "post": post,
+        "replies": comments,
+        "comment": comment_serialized,
+        "parent": root_comment,
+        "page": page,
+    }
+    return http.JsonResponse(context)
+
+
+def _get_replies_recursively(comment, root=None, base_query=None):
+    base_query = base_query or BlogComment.objects.filter(
+        blogitem_id=comment["blogitem_id"], approved=True
+    )
+    _reply_values = (
+        "add_date",
+        "id",
+        "oid",
+        "parent_id",
+        "name",
+        "comment_rendered",
+        "approved",
+        "name",
+    )
+    replies = (
+        base_query.filter(parent__oid=comment["oid"])
+        .order_by("add_date")
+        .values(*_reply_values)
+    )
+    all_comments = defaultdict(list)
+    for reply in replies:
+        all_comments[root].append(reply)
+        all_comments.update(
+            _get_replies_recursively(reply, root=reply["id"], base_query=base_query)
+        )
+
+    return all_comments
+
+
+def _get_comment_page(comment: dict) -> int:
+    base_query = BlogComment.objects.filter(
+        blogitem_id=comment["blogitem_id"], approved=True
+    )
+    root_comment = comment
+    root_comment = comment
+    while root_comment["parent_id"]:
+        root_comment = base_query.values("id", "parent_id", "add_date").get(
+            id=root_comment["parent_id"]
+        )
+    count = base_query.filter(
+        add_date__gt=root_comment["add_date"],
+        parent__isnull=True,
+    ).count()
+    return 1 + (count // settings.MAX_RECENT_COMMENTS)
