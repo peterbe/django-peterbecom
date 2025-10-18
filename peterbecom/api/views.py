@@ -250,6 +250,8 @@ def blogitems_all(request):
             "keywords": item["proper_keywords"],
             "summary": item["summary"],
             "archived": item["archived"],
+            "hide_comments": item["hide_comments"],
+            "disallow_comments": item["disallow_comments"],
         }
 
     items = BlogItem.objects.all()
@@ -297,6 +299,14 @@ def blogitem(request, oid):
                 item.archived = None
             else:
                 item.archived = timezone.now()
+            item.save()
+            item.refresh_from_db()
+        elif "toggle_hide_comments" in data:
+            item.hide_comments = not item.hide_comments
+            item.save()
+            item.refresh_from_db()
+        elif "toggle_disallow_comments" in data:
+            item.disallow_comments = not item.disallow_comments
             item.save()
             item.refresh_from_db()
         else:

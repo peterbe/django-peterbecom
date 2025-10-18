@@ -187,6 +187,70 @@ def test_toggle_archived_blogitem(admin_client):
 
 
 @pytest.mark.django_db
+def test_toggle_hide_comments(admin_client):
+    blogitem = BlogItem.objects.create(
+        oid="hello-world",
+        title="Hello World",
+        pub_date=timezone.now(),
+        proper_keywords=["one", "two"],
+        display_format="markdown",
+        text="Hello *world*\n",
+    )
+    url = reverse("api:blogitem", args=["hello-world"])
+    response = admin_client.post(
+        url,
+        json.dumps({"toggle_hide_comments": True}),
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    assert response.json()["blogitem"]["hide_comments"]
+    blogitem.refresh_from_db()
+    assert blogitem.hide_comments
+
+    response = admin_client.post(
+        url,
+        json.dumps({"toggle_hide_comments": True}),
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    assert not response.json()["blogitem"]["hide_comments"]
+    blogitem.refresh_from_db()
+    assert not blogitem.hide_comments
+
+
+@pytest.mark.django_db
+def test_toggle_disallow_comments(admin_client):
+    blogitem = BlogItem.objects.create(
+        oid="hello-world",
+        title="Hello World",
+        pub_date=timezone.now(),
+        proper_keywords=["one", "two"],
+        display_format="markdown",
+        text="Hello *world*\n",
+    )
+    url = reverse("api:blogitem", args=["hello-world"])
+    response = admin_client.post(
+        url,
+        json.dumps({"toggle_disallow_comments": True}),
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    assert response.json()["blogitem"]["disallow_comments"]
+    blogitem.refresh_from_db()
+    assert blogitem.disallow_comments
+
+    response = admin_client.post(
+        url,
+        json.dumps({"toggle_disallow_comments": True}),
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    assert not response.json()["blogitem"]["disallow_comments"]
+    blogitem.refresh_from_db()
+    assert not blogitem.disallow_comments
+
+
+@pytest.mark.django_db
 def test_edit_blogitem(admin_client):
     blogitem = BlogItem.objects.create(
         oid="hello-world",

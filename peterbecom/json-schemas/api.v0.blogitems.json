@@ -61,6 +61,12 @@
           },
           "has_split": {
             "type": "boolean"
+          },
+          "hide_comments": {
+            "type": "boolean"
+          },
+          "disallow_comments": {
+            "type": "boolean"
           }
         },
         "required": [

@@ -55,6 +55,35 @@ def test_happy_path(admin_client):
     assert not first["has_split"]
 
 
+def test_hidden_and_disallowed(admin_client):
+    blogitem = BlogItem.objects.create(
+        oid="hello-world",
+        title="Hello World",
+        pub_date=timezone.now(),
+        proper_keywords=["one", "two"],
+    )
+    category = Category.objects.create(name="Code")
+    blogitem.categories.add(category)
+
+    url = reverse("api:blogitems_all")
+    response = admin_client.get(url)
+    assert response.status_code == 200
+    assert response.json()["count"] == 1
+    (first,) = response.json()["blogitems"]
+    assert not first["hide_comments"]
+    assert not first["disallow_comments"]
+
+    blogitem.hide_comments = True
+    blogitem.disallow_comments = True
+    blogitem.save()
+    response = admin_client.get(url)
+    assert response.status_code == 200
+    assert response.json()["count"] == 1
+    (first,) = response.json()["blogitems"]
+    assert first["hide_comments"]
+    assert first["disallow_comments"]
+
+
 def test_search_blogitems(admin_client):
     blogitem1 = BlogItem.objects.create(
         oid="foo-bar",
