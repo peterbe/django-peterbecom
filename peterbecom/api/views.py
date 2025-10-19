@@ -1083,6 +1083,10 @@ def blogcomments(request):
         for i in range(settings.MAX_BLOGCOMMENT_PAGES):
             sub_list = ids[i * per_page : (i + 1) * per_page]
             if root_comment.id in sub_list:
+                print(
+                    f"For blog_comment {blog_comment.id}, page is {i + 1}. "
+                    "This might be very slow to compute and is better done with another query."
+                )
                 return i + 1
         else:
             return None

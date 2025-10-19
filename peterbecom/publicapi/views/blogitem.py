@@ -319,7 +319,7 @@ def blogcomment(request, blogitem_oid, oid):
         blogitem_id=comment["blogitem_id"], approved=True
     )
 
-    page = _get_comment_page(comment)
+    page: int = _get_comment_page(comment)
 
     only = (
         "id",
