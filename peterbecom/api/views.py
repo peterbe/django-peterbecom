@@ -5,7 +5,7 @@ import re
 import statistics
 import time
 from collections import defaultdict
-from functools import lru_cache, wraps
+from functools import wraps
 from pathlib import Path
 from urllib.parse import urlencode, urlparse
 
@@ -1056,11 +1056,6 @@ def blogcomments(request):
     ):
         all_parent_ids.add(each["parent_id"])
 
-    @lru_cache()
-    def get_blogitem_comment_add_dates(blogitem_id):
-        qs = BlogComment.objects.filter(blogitem_id=blogitem_id, parent__isnull=True)
-        return list(qs.order_by("-add_date").values_list("id", flat=True))
-
     def make_commenter_hash_key(name, email):
         return "{}:{}".format(name, email)
 
@@ -1073,23 +1068,6 @@ def blogcomments(request):
 
     def get_commenter_count(name, email, blogitem_id):
         return commenters[make_commenter_hash_key(name, email)].count(blogitem_id)
-
-    def get_comment_page(blog_comment):
-        root_comment = blog_comment
-        while root_comment.parent_id:
-            root_comment = root_comment.parent
-        ids = get_blogitem_comment_add_dates(blog_comment.blogitem_id)
-        per_page = settings.MAX_RECENT_COMMENTS
-        for i in range(settings.MAX_BLOGCOMMENT_PAGES):
-            sub_list = ids[i * per_page : (i + 1) * per_page]
-            if root_comment.id in sub_list:
-                print(
-                    f"For blog_comment {blog_comment.id}, page is {i + 1}. "
-                    "This might be very slow to compute and is better done with another query."
-                )
-                return i + 1
-        else:
-            return None
 
     def get_gravatar_url(item):
         seed = (
@@ -1143,10 +1121,6 @@ def blogcomments(request):
             "classification": None,
         }
 
-        page = get_comment_page(item)
-        record["page"] = page
-        url = blog_post_url(blogitem.oid, page)
-        record["_absolute_url"] = f"{url}#{item.oid}"
         if blogitem:
             record["blogitem"] = {
                 "id": blogitem.id,
