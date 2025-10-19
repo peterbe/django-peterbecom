@@ -73,6 +73,9 @@ def event(request):
             data["bot_agent"] = bot_agent
             data["is_bot"] = is_bot
 
+    if type_ == "pageview":
+        data["is_comment"] = url.starswith("/plog/") and "/comment/" in url
+
     # create_event(
     #     type=type_,
     #     uuid=uuid,
