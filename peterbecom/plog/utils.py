@@ -1,7 +1,5 @@
-import datetime
 import functools
 import hashlib
-import json
 import re
 import subprocess
 import time
@@ -13,7 +11,6 @@ import markdown
 import requests
 import zope.structuredtext
 from bleach.linkifier import Linker
-from django import http
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
@@ -41,13 +38,13 @@ def blog_post_url(oid, page=None):
     return f"/plog/{oid}"
 
 
-def is_bot(ua="", ip=None):
-    if "bot" not in ua.lower() and "download-all-plogs.py" not in ua:
-        return False
-    if "HeadlessChrome/" in ua:
-        return True
+# def is_bot(ua="", ip=None):
+#     if "bot" not in ua.lower() and "download-all-plogs.py" not in ua:
+#         return False
+#     if "HeadlessChrome/" in ua:
+#         return True
 
-    return True
+#     return True
 
 
 def make_prefix(request_dict, max_length=100, hash_request_values=False):
@@ -258,53 +255,53 @@ def markdown_to_html(text):
     return html
 
 
-_SRC_regex = re.compile(r'(src|href)="([^"]+)"')
-_image_extension_regex = re.compile(r"\.(png|jpg|jpeg|gif)$", re.I)
+# _SRC_regex = re.compile(r'(src|href)="([^"]+)"')
+# _image_extension_regex = re.compile(r"\.(png|jpg|jpeg|gif)$", re.I)
 
 
-# Note: this is quite experimental still
-def cache_prefix_files(text):
-    hash_ = str(int(time.time()))
-    static_url = settings.STATIC_URL.replace("/static/", "/")
-    prefix = "%sCONTENTCACHE-%s" % (static_url, hash_)
-    assert not prefix.endswith("/")
+# # Note: this is quite experimental still
+# def cache_prefix_files(text):
+#     hash_ = str(int(time.time()))
+#     static_url = settings.STATIC_URL.replace("/static/", "/")
+#     prefix = "%sCONTENTCACHE-%s" % (static_url, hash_)
+#     assert not prefix.endswith("/")
 
-    def matcher(match):
-        attr, url = match.groups()
-        if (
-            url.startswith("/")
-            and not url.startswith("//")
-            and "://" not in url
-            and _image_extension_regex.findall(url)
-        ):
-            url = "%s%s" % (prefix, url)
-        return '%s="%s"' % (attr, url)
+#     def matcher(match):
+#         attr, url = match.groups()
+#         if (
+#             url.startswith("/")
+#             and not url.startswith("//")
+#             and "://" not in url
+#             and _image_extension_regex.findall(url)
+#         ):
+#             url = "%s%s" % (prefix, url)
+#         return '%s="%s"' % (attr, url)
 
-    return _SRC_regex.sub(matcher, text)
-
-
-class DateTimeEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, datetime.datetime):
-            return obj.isoformat()
-        return json.JSONEncoder.default(self, obj)
+#     return _SRC_regex.sub(matcher, text)
 
 
-def json_view(f):
-    @functools.wraps(f)
-    def wrapper(*args, **kw):
-        response = f(*args, **kw)
-        if isinstance(response, http.HttpResponse):
-            return response
-        else:
-            r = http.HttpResponse(
-                json.dumps(response, cls=DateTimeEncoder, indent=2),
-                content_type="application/json",
-            )
-            r.write("\n")
-            return r
+# class DateTimeEncoder(json.JSONEncoder):
+#     def default(self, obj):
+#         if isinstance(obj, datetime.datetime):
+#             return obj.isoformat()
+#         return json.JSONEncoder.default(self, obj)
 
-    return wrapper
+
+# def json_view(f):
+#     @functools.wraps(f)
+#     def wrapper(*args, **kw):
+#         response = f(*args, **kw)
+#         if isinstance(response, http.HttpResponse):
+#             return response
+#         else:
+#             r = http.HttpResponse(
+#                 json.dumps(response, cls=DateTimeEncoder, indent=2),
+#                 content_type="application/json",
+#             )
+#             r.write("\n")
+#             return r
+
+#     return wrapper
 
 
 def view_function_timer(prefix="", writeto=print):
