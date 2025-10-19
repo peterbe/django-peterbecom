@@ -187,6 +187,57 @@ def test_post_duplicate_event(client):
 
 
 @pytest.mark.django_db
+def test_post_pageview_event_is_comment(client):
+    url = reverse("publicapi:events_event")
+    uuid_ = generate_random_uuid()
+
+    payload = {
+        "type": "pageview",
+        "meta": {
+            "uuid": uuid_,
+            "sid": generate_random_uuid(),
+            "url": "https://example.com",
+            "created": timezone.now().isoformat(),
+            "performance": {"nav": 123.4},
+        },
+        "data": {"pathname": "/value", "search": "foo"},
+    }
+    response = client.post(
+        url,
+        json.dumps(payload),
+        content_type="application/json",
+    )
+    assert response.status_code == 201
+    process_batch_events()
+    assert AnalyticsEvent.objects.filter(type="pageview").count() == 1
+    (event,) = AnalyticsEvent.objects.filter(type="pageview")
+    assert not event.data["is_comment"]
+
+    payload = {
+        "type": "pageview",
+        "meta": {
+            "uuid": uuid_,
+            "sid": generate_random_uuid(),
+            "url": "https://example.com/plog/some-post/comment/12345",
+            "created": timezone.now().isoformat(),
+            "performance": {},
+        },
+        "data": {"pathname": "/plog/some-post/comment/12345"},
+    }
+    response = client.post(
+        url,
+        json.dumps(payload),
+        content_type="application/json",
+    )
+    assert response.status_code == 201
+    process_batch_events()
+
+    assert AnalyticsEvent.objects.filter(type="pageview").count() == 2
+    (event,) = AnalyticsEvent.objects.filter(type="pageview").order_by("-created")[:1]
+    assert event.data["is_comment"]
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "user_agent, is_bot",
     [
