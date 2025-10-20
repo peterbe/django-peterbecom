@@ -11,7 +11,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "puppeteer": "^23.8.0"
+    "puppeteer": "^23.11.1"
   },
   "private": true,
   "devDependencies": {
