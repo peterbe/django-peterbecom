@@ -31,6 +31,11 @@ urlpatterns = [
     ),
     path("plog/homepage", homepage.homepage_blogitems, name="homepage_blogitems"),
     path("plog/<str:oid>", blogitem.blogitem, name="blogitem"),
+    path(
+        "plog/<str:blogitem_oid>/comment/<str:oid>",
+        blogitem.blogcomment,
+        name="blogcomment",
+    ),
     path("plog/", blogitems.blogitems, name="blogitems"),
     path("typeahead", search.typeahead, name="typeahead"),
     path("lyrics/search", lyrics.search, name="lyrics_search"),

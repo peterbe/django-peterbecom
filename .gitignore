@@ -44,3 +44,4 @@ coverage.xml
 elasticsearch-8
 .envrc
 tunneling.sh
+.coverage

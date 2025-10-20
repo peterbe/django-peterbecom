@@ -73,6 +73,11 @@ def event(request):
             data["bot_agent"] = bot_agent
             data["is_bot"] = is_bot
 
+    if type_ == "pageview" and data.get("pathname"):
+        data["is_comment"] = (
+            data["pathname"].startswith("/plog/") and "/comment/" in data["pathname"]
+        )
+
     # create_event(
     #     type=type_,
     #     uuid=uuid,

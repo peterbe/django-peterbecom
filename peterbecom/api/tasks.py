@@ -5,7 +5,7 @@ from django.core.mail import send_mail
 from huey.contrib.djhuey import task
 
 from peterbecom.plog.models import BlogComment
-from peterbecom.plog.utils import blog_post_url, get_comment_page
+from peterbecom.plog.utils import blog_post_url
 
 
 @task()
@@ -29,8 +29,7 @@ def send_comment_reply_email(blogcomment_id):
 
 
 def _get_comment_reply_body(blogitem, blogcomment, parent):
-    page = get_comment_page(blogcomment)
-    comment_url = blog_post_url(blogitem.oid, page)
+    comment_url = blog_post_url(blogitem.oid)
 
     domain = Site.objects.get_current().domain
     if domain == "peterbecom.local":
@@ -51,7 +50,7 @@ Now, {blogcomment.name if blogcomment.name else "someone"} has replied with the 
 {line_indent(blogcomment.comment)}
 
 To visit the page again or to respond, go to:
-{base_url}{comment_url}#{parent.oid}
+{base_url}{comment_url}/comment/{blogcomment.oid}
 
     """.strip()
 

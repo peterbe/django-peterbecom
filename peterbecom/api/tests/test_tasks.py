@@ -41,7 +41,7 @@ def test_send_comment_reply_email_page_1():
 
     comment_absolute_url = "https://" + Site.objects.get_current().domain
     comment_absolute_url += f"/plog/{blogitem.oid}"
-    comment_absolute_url += "#" + parent_comment.oid
+    comment_absolute_url += f"/comment/{blogcomment.oid}"
     assert comment_absolute_url in sent.body
 
 
@@ -105,6 +105,6 @@ def test_send_comment_reply_email_page_2(settings):
     assert sent.to == ["middle@example.com"]
 
     comment_absolute_url = "https://" + Site.objects.get_current().domain
-    comment_absolute_url += f"/plog/{blogitem.oid}/p2"
-    comment_absolute_url += "#" + middle_blogcomment.oid
+    comment_absolute_url += f"/plog/{blogitem.oid}/"
+    comment_absolute_url += f"comment/{blogcomment.oid}"
     assert comment_absolute_url in sent.body

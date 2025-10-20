@@ -60,7 +60,6 @@ def test_happy_path(admin_client):
     assert first["blogitem"]["oid"] == "hello-world"
     assert first["blogitem"]["title"] == "Hello World"
     assert first["location"] is None
-    assert first["page"] == 1
     assert first["comment"] == "Bla <bla>"
     assert first["rendered"] == "Bla &lt;bla&gt;"
     assert first["gravatar_url"] == "https://www.peterbe.com/avatar.abc123.png"
