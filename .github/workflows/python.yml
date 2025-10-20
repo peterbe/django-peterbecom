@@ -55,7 +55,7 @@ jobs:
 
       - name: Install bun packages
         working-directory: peterbecom/chiveproxy
-        run: npm install
+        run: bun install
 
       - name: Test compiled puppeteer_sucks
         working-directory: peterbecom/chiveproxy
