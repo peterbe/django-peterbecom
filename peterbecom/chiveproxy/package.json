@@ -3,13 +3,21 @@
   "version": "1.0.0",
   "main": "puppeteer_sucks.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "compile": "bun build puppeteer_sucks.js --outfile out/puppeteer_sucks --minify --sourcemap --bytecode --compile",
+    "compile:linux-x64": "bun build puppeteer_sucks.js --outfile out/puppeteer_sucks --minify --sourcemap --bytecode --compile --target=bun-linux-x64"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "puppeteer": "^23.8.0"
+    "puppeteer": "^23.11.1"
+  },
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
   }
 }

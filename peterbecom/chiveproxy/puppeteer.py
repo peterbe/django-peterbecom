@@ -45,8 +45,12 @@ def subprocess_execute(command, timeout_seconds=30, shell=True):
 
 def suck(url, attempts=3, debug=False):
     here = Path(__file__).parent
-    js_file = here / "puppeteer_sucks.js"
-    command = f'node {js_file} "{url}"'
+    executable = here / "out" / "puppeteer_sucks"
+    if not executable.exists():
+        raise FileNotFoundError(
+            f"The executable {executable} does not exist. Did you compile it?"
+        )
+    command = f'{executable} "{url}"'
     if debug:
         print("Command:", command)
 
