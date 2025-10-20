@@ -27,47 +27,39 @@ jobs:
 
       - uses: getong/elasticsearch-action@v1.3
         with:
-          elasticsearch version: '8.16.0'
+          elasticsearch version: "8.16.0"
           host port: 9200
           container port: 9200
           host node port: 9300
           node port: 9300
-          discovery type: 'single-node'
+          discovery type: "single-node"
 
       - name: Redis Server in GitHub Actions
         uses: supercharge/redis-github-action@1.8.0
         with:
           # Redis version to use
-          redis-version: '5.0.5'
+          redis-version: "5.0.5"
 
       - name: Setup PostgreSQL
         uses: Harmon758/postgresql-action@v1.0.0
         with:
           # Version of PostgreSQL to use
-          postgresql version: '16'
+          postgresql version: "16"
           postgresql db: peterbecom
           postgresql user: user
           postgresql password: secret
 
       - uses: actions/checkout@v5
 
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v5
-        with:
-          node-version: '22'
+      - uses: oven-sh/setup-bun@v2
 
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        id: cached-node_modules
-        with:
-          path: |
-            node_modules
-          key: ${{ runner.os }}-${{ hashFiles('peterbecom/chiveproxy/package*.json') }}-${{ hashFiles('.github/workflows/python.yml') }}
-
-      - name: Install node packages
-        if: steps.cached-node_modules.outputs.cache-hit != 'true'
+      - name: Install bun packages
         working-directory: peterbecom/chiveproxy
         run: npm install
+
+      - name: Compile puppeteer_sucks with bun
+        working-directory: peterbecom/chiveproxy
+        run: bun run compile
 
       - name: Install uv
         id: setup-uv
