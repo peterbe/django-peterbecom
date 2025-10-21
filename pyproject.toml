@@ -61,7 +61,7 @@ dependencies = [
     "sql-metadata==2.17.0",
     "tomli==2.2.1",
     "xmltodict==1.0.2",
-    "zope-structuredtext==5.1",
+    "zope-structuredtext==6.0",
     "zopfli==0.2.3",
     "ffmpeg-python==0.2.0",
     "psycopg[binary,pool]>=3.2.9",
