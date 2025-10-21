@@ -8,12 +8,6 @@ exclude = [
 line-length = 88
 
 [tool.ruff.lint]
-# Add the `line-too-long` rule to the enforced rule set.
-#extend-ignore = ["E501"]
-#extend-select = ["E", "F", "W", "I"]
-
-[tool.uv]
-dev-dependencies = []
 
 [project]
 name = "django-peterbecom"
