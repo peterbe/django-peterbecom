@@ -472,9 +472,6 @@ requires-dist = [
     { name = "zopfli", specifier = "==0.2.3" },
 ]
 
-[package.metadata.requires-dev]
-dev = []
-
 [[package]]
 name = "django-redis"
 version = "6.0.0"
