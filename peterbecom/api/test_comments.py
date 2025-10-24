@@ -344,3 +344,39 @@ def test_batch_submit(admin_client):
     assert blogcomment1.approved
 
     assert not BlogComment.objects.filter(oid=blogcomment2.oid).exists()
+
+
+def test_delete_comment(admin_client):
+    blogitem = BlogItem.objects.create(
+        oid="hello-world",
+        title="Hello World",
+        pub_date=timezone.now(),
+        proper_keywords=["one", "two"],
+    )
+    blogcomment = BlogComment.objects.create(
+        oid="abc123",
+        blogitem=blogitem,
+        parent=None,
+        approved=True,
+        comment="Bla <bla>",
+        name="John Doe",
+        email="",
+    )
+    child_comment = BlogComment.objects.create(
+        oid="xyz123",
+        blogitem=blogitem,
+        parent=blogcomment,
+        approved=True,
+        comment="Bla <bla>",
+        name="Someone Else",
+        email="",
+    )
+
+    url = reverse("api:blogcomment", args=[blogitem.oid, blogcomment.oid])
+    response = admin_client.delete(url)
+    assert response.status_code == 200
+    assert response.json()["ok"]
+
+    assert not BlogComment.objects.filter(oid=blogcomment.oid).exists()
+    assert not BlogComment.objects.filter(oid=child_comment.oid).exists()
+    assert BlogComment.objects.filter(blogitem=blogitem).count() == 0

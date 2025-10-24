@@ -47,6 +47,11 @@ urlpatterns = [
         name="blogcomments_batch",
     ),
     path("plog/preview/", views.preview, name="preview"),
+    path(
+        "plog/<str:blogitem_oid>/comment/<str:oid>",
+        views.blogcomment,
+        name="blogcomment",
+    ),
     re_path(r"^plog/(.*)/images$", views.images, name="images"),
     re_path(r"^plog/(.*)/videos$", views.videos, name="videos"),
     re_path(r"^plog/(.*)/hits$", views.hits, name="hits"),

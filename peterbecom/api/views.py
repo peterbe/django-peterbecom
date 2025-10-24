@@ -22,7 +22,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.timesince import timesince as django_timesince
 from django.views.decorators.cache import cache_control, never_cache
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_http_methods, require_POST
 from requests.exceptions import ConnectionError
 from sorl.thumbnail import get_thumbnail
 
@@ -2065,3 +2065,14 @@ def probe_url(request):
         context["response"]["body"] = body
 
     return json_response(context)
+
+
+@api_superuser_required
+@require_http_methods(["DELETE"])
+def blogcomment(request, blogitem_oid, oid):
+    if request.method == "DELETE":
+        comment = get_object_or_404(BlogComment, blogitem__oid=blogitem_oid, oid=oid)
+        comment.delete()
+        return json_response({"ok": True})
+    else:
+        raise NotImplementedError("Only DELETE is implemented")
