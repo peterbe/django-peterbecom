@@ -291,6 +291,65 @@ class AnalyticsRollupsPathnameDaily(models.Model):
             cls.objects.bulk_create(bulk)
 
 
+class AnalyticsRollupCommentsReferrerDaily(models.Model):
+    day = models.DateTimeField(db_index=True)
+    count = models.IntegerField()
+    referrer = models.URLField()
+    pathname = models.CharField(max_length=300)
+    is_bot = models.BooleanField()
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Analytics Rollup Comments by Referrer and Pathname daily"
+
+    @classmethod
+    def rollup(cls, day=None):
+        if not day:
+            # Use yesterday
+            day = timezone.now() - datetime.timedelta(days=1)
+
+        start_of_day = day.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_of_day = start_of_day + datetime.timedelta(days=1)
+
+        day = start_of_day
+        print(f" ROLLUP BY PATHNAME DAY: {day.isoformat()} ".center(80, "-"))
+        with transaction.atomic():
+            cls.objects.filter(day=day).delete()
+
+            agg_query = (
+                AnalyticsEvent.objects.filter(
+                    created__gte=start_of_day,
+                    created__lt=end_of_day,
+                    type="pageview",
+                    data__is_comment=True,
+                    # data__referrer__isnull=False,
+                    data__pathname__isnull=False,
+                    data__is_bot__isnull=False,
+                )
+                .values("data__referrer", "data__pathname", "data__is_bot")
+                .annotate(count=Count("id"))
+                .order_by("-count")
+            )
+            bulk = []
+            for agg in agg_query:
+                print(
+                    f"{agg['count']:>5} {agg['data__referrer'] or '':<12} {agg['data__pathname']:<12} is_bot={agg['data__is_bot']}"
+                )
+                bulk.append(
+                    cls(
+                        day=day,
+                        count=agg["count"],
+                        referrer=agg["data__referrer"] or "",
+                        is_bot=agg["data__is_bot"],
+                        pathname=agg["data__pathname"],
+                    )
+                )
+                if len(bulk) > 100:
+                    cls.objects.bulk_create(bulk)
+                    bulk = []
+            cls.objects.bulk_create(bulk)
+
+
 class AnalyticsGeoEvent(models.Model):
     event = models.OneToOneField(AnalyticsEvent, on_delete=models.CASCADE)
     ip_address = models.GenericIPAddressField()
