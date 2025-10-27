@@ -19,6 +19,7 @@ from peterbecom.base.batch_events import process_batch_events
 from peterbecom.base.cdn import purge_cdn_urls
 from peterbecom.base.models import (
     AnalyticsEvent,
+    AnalyticsRollupCommentsReferrerDaily,
     AnalyticsRollupsDaily,
     AnalyticsRollupsPathnameDaily,
     CDNPurgeURL,
@@ -221,24 +222,30 @@ def delete_old_analyticsevents():
     AnalyticsEvent.objects.filter(created__lt=old).delete()
 
     # The publicapi-pageview ones are much more numerous and less
-    # useful and use up a lot of space
+    # useful and use up a lot of spacecd
     old = timezone.now() - datetime.timedelta(days=60)
     AnalyticsEvent.objects.filter(created__lt=old, type="publicapi-pageview").delete()
 
 
-@periodic_task(crontab(hour="*/15") if settings.DEBUG else crontab(hour=0, minute=1))
+@periodic_task(crontab(minute="*/15") if settings.DEBUG else crontab(hour=0, minute=1))
 @log_task_run
 def analytics_rollups_daily():
     AnalyticsRollupsDaily.rollup()
 
 
-@periodic_task(crontab(hour="*/15") if settings.DEBUG else crontab(hour=0, minute=0))
+@periodic_task(crontab(minute="*/15") if settings.DEBUG else crontab(hour=0, minute=0))
 @log_task_run
 def analytics_rollups_pathname_daily():
     AnalyticsRollupsPathnameDaily.rollup()
 
 
-@periodic_task(crontab(hour="*/15") if settings.DEBUG else crontab(hour=10))
+@periodic_task(crontab(minute="*/15") if settings.DEBUG else crontab(hour="*/12"))
+@log_task_run
+def analytics_rollup_comments_referrer_pathname_daily():
+    AnalyticsRollupCommentsReferrerDaily.rollup()
+
+
+@periodic_task(crontab(minute="*/15") if settings.DEBUG else crontab(hour=10))
 @log_task_run
 def requestlog_rollups_bot_agent_status_code_daily():
     RequestLogRollupsBotAgentStatusCodeDaily.rollup()
