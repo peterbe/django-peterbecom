@@ -322,24 +322,24 @@ class AnalyticsRollupCommentsReferrerDaily(models.Model):
                     created__lt=end_of_day,
                     type="pageview",
                     data__is_comment=True,
-                    # data__referrer__isnull=False,
+                    meta__referrer__isnull=False,
                     data__pathname__isnull=False,
                     data__is_bot__isnull=False,
                 )
-                .values("data__referrer", "data__pathname", "data__is_bot")
+                .values("meta__referrer", "data__pathname", "data__is_bot")
                 .annotate(count=Count("id"))
                 .order_by("-count")
             )
             bulk = []
             for agg in agg_query:
                 print(
-                    f"{agg['count']:>5} {agg['data__referrer'] or '':<12} {agg['data__pathname']:<12} is_bot={agg['data__is_bot']}"
+                    f"{agg['count']:>5} {agg['meta__referrer'] or '*no referrer*':<12} {agg['data__pathname']:<12} is_bot={agg['data__is_bot']}"
                 )
                 bulk.append(
                     cls(
                         day=day,
                         count=agg["count"],
-                        referrer=agg["data__referrer"] or "",
+                        referrer=agg["meta__referrer"] or "",
                         is_bot=agg["data__is_bot"],
                         pathname=agg["data__pathname"],
                     )
