@@ -1,0 +1,31 @@
+name: JavaScript
+
+on:
+    push:
+        branches:
+            - master
+    pull_request:
+
+permissions:
+    contents: read
+
+jobs:
+    build-and-test-javascript:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v5
+
+            - uses: oven-sh/setup-bun@v2
+
+            - name: Install bun packages
+              working-directory: peterbecom/chiveproxy
+              run: bun install
+
+            - name: Compile puppeteer_sucks with bun
+              working-directory: peterbecom/chiveproxy
+              run: bun run compile
+
+            - name: Test compiled puppeteer_sucks
+              working-directory: peterbecom/chiveproxy
+              run: ./out/puppeteer_sucks https://www.example.com
