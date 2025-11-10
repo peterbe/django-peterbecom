@@ -160,6 +160,7 @@ INSTALLED_APPS = (
     "peterbecom.chiveproxy",
     "peterbecom.minimalcss",
     "peterbecom.bayes",
+    "peterbecom.llmcalls",
     "huey.contrib.djhuey",
 )
 

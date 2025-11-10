@@ -1,6 +1,6 @@
 from django.urls import path, re_path
 
-from . import analytics, classification, spam, views
+from . import analytics, classification, rewrite, spam, views
 
 app_name = "api"
 
@@ -29,6 +29,11 @@ urlpatterns = [
         "plog/comments/<str:oid>/classify/",
         classification.comment_classify,
         name="comment_classify",
+    ),
+    path(
+        "plog/comments/<str:oid>/rewrite/",
+        rewrite.comment_rewrite,
+        name="comment_rewrite",
     ),
     path(
         "plog/comments/counts/",

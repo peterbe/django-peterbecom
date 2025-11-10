@@ -3,10 +3,12 @@ import json
 from django.db.models import Count
 
 from peterbecom.api.forms import BlogCommentClassificationForm
+from peterbecom.api.views import api_superuser_required
 from peterbecom.base.utils import json_response
 from peterbecom.plog.models import BlogComment, BlogCommentClassification
 
 
+@api_superuser_required
 def comment_classify(request, oid):
     try:
         blogcomment = BlogComment.objects.get(oid=oid)
