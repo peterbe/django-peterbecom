@@ -3,7 +3,7 @@ from html import escape
 
 from peterbecom.api.views import api_superuser_required
 from peterbecom.base.utils import json_response
-from peterbecom.llmcalls.rewrite import rewrite_comment
+from peterbecom.llmcalls.rewrite import get_llm_response_comment
 from peterbecom.plog.models import BlogComment
 
 
@@ -20,9 +20,23 @@ def comment_rewrite(request, oid):
     if request.method == "POST":
         raise NotImplementedError("Not implemented yet")
 
+    llm_call = get_llm_response_comment(blogcomment.comment, blogcomment.oid)
+    rewritten = None
+    if llm_call.status == "success":
+        response = llm_call.response
+        if "choices" in response and len(response["choices"]) > 0:
+            choice = response["choices"][0]
+            if "message" in choice and "content" in choice["message"]:
+                rewritten = choice["message"]["content"]
+
     context = {
-        "rewritten": rewrite_comment(blogcomment.comment, blogcomment.oid),
-        "error": None,
+        "rewritten": rewritten,
+        "llm_call": {
+            "took_seconds": llm_call.took_seconds,
+            "status": llm_call.status,
+            "error": llm_call.error,
+            "model": llm_call.model,
+        },
         "comment": blogcomment.comment,
         "html_diff": None,
     }

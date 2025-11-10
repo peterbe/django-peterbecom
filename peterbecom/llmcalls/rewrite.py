@@ -108,6 +108,7 @@ def get_llm_response_comment(comment: str, oid: str):
     # from pprint import pprint
 
     # pprint(messages)
+    t0 = time.time()
 
     response = litellm.completion(
         # model="azure/gpt-4o",
@@ -119,7 +120,6 @@ def get_llm_response_comment(comment: str, oid: str):
         # temperature=0,
         # response_format={"type": "json_object"},
     )
-    t0 = time.time()
     try:
         llm_call.status = "success"
         llm_call.response = response.to_dict()
