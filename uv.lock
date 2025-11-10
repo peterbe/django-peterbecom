@@ -502,7 +502,7 @@ requires-dist = [
     { name = "sql-metadata", specifier = "==2.17.0" },
     { name = "tomli", specifier = "==2.2.1" },
     { name = "xmltodict", specifier = "==1.0.2" },
-    { name = "zope-structuredtext", specifier = "==5.1" },
+    { name = "zope-structuredtext", specifier = "==6.0" },
     { name = "zopfli", specifier = "==0.2.3" },
 ]
 
@@ -1833,14 +1833,14 @@ wheels = [
 
 [[package]]
 name = "zope-structuredtext"
-version = "5.1"
+version = "6.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "setuptools" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a2/1d/d458af20a8b5835a852a4a584f04e0e12c9d82fd8881024c3d21fb72d8f8/zope_structuredtext-5.1.tar.gz", hash = "sha256:e5ecd8e9cc03341780d87ce8be0a7906890c9b6d053688c13d19da7dea6728e6", size = 74922, upload-time = "2025-08-11T06:47:47.795Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/3f/d7/d3770b41215d754beebddd9286fd39aecfcd3355c3cfd8161024c3aba8f9/zope_structuredtext-6.0.tar.gz", hash = "sha256:3ec31e22459711dde25e0ee3dc744f2cb70ac77ab090776a11a901db4b7ab94f", size = 74903, upload-time = "2025-09-12T07:45:53.087Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/56/bb/a4c40aa7638d04fd332e0215772a8e1f5f8f691ddd1395c0e5c070d181db/zope_structuredtext-5.1-py3-none-any.whl", hash = "sha256:a837009f5880c06ac2450df79c8441881e2ec847c1da1057ab2f57ca503dc1d2", size = 92571, upload-time = "2025-08-11T06:47:45.895Z" },
+    { url = "https://files.pythonhosted.org/packages/36/41/a37ac4c1b5d5047a6810136a4ce931a937f2856889c7e23bc2fd1d5ed602/zope_structuredtext-6.0-py3-none-any.whl", hash = "sha256:a62999493901d840b100dd19ec2f1a6de4aa608e93dd0cb4cc7a83272ec015a2", size = 91950, upload-time = "2025-09-12T07:45:51.491Z" },
 ]
 
 [[package]]
