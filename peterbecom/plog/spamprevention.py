@@ -55,6 +55,16 @@ def contains_spam_patterns(text):
         if pattern["pattern"] in text:
             increment_pattern(pattern["id"])
             return True
+
+    qs = SpamCommentPattern.objects.filter(is_url_pattern=False, is_regex=True).values(
+        "pattern", "id"
+    )
+    for pattern in qs:
+        regex = re.compile(pattern["pattern"])
+        if regex.search(text):
+            increment_pattern(pattern["id"])
+            return True
+
     return False
 
 
