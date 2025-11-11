@@ -1,9 +1,7 @@
-import time
-
-import litellm
 from django.conf import settings
 
 from peterbecom.llmcalls.models import LLMCall
+from peterbecom.llmcalls.tasks import execute_completion
 
 
 def rewrite_comment(comment: str, oid: str):
@@ -98,37 +96,9 @@ def get_llm_response_comment(comment: str, oid: str):
         model=MODEL,
         error=None,
         took_seconds=None,
-        metadata={
-            "comment": comment,
-            "oid": oid,
-        },
+        metadata={"comment": comment, "oid": oid},
     )
 
-    # print("EXECUTING....")
-    # from pprint import pprint
+    execute_completion(llm_call.id)
 
-    # pprint(messages)
-    t0 = time.time()
-
-    response = litellm.completion(
-        # model="azure/gpt-4o",
-        # model="gpt-4o",
-        # model="gpt-5",
-        model=MODEL,
-        api_key=settings.OPENAI_API_KEY,
-        messages=messages,
-        # temperature=0,
-        # response_format={"type": "json_object"},
-    )
-    try:
-        llm_call.status = "success"
-        llm_call.response = response.to_dict()
-        llm_call.took_seconds = time.time() - t0
-        llm_call.save()
-
-    except Exception as e:
-        llm_call.status = "error"
-        llm_call.error = str(e)
-        llm_call.took_seconds = time.time() - t0
-        llm_call.save()
     return llm_call
