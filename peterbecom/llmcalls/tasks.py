@@ -11,10 +11,10 @@ from peterbecom.llmcalls.models import LLMCall
 def execute_completion(llm_call_id):
     llm_call = LLMCall.objects.get(id=llm_call_id)
 
-    # print("EXECUTING....")
-    # from pprint import pprint
+    print("EXECUTING....")
+    from pprint import pprint
 
-    # pprint(llm_call.messages)
+    pprint(llm_call.messages)
 
     t0 = time.time()
 
@@ -26,8 +26,7 @@ def execute_completion(llm_call_id):
         # response_format={"type": "json_object"},
     )
     try:
-        print("response.to_dict() is...")
-        print(response.to_dict())
+        print(llm_call, "succeeded")
         LLMCall.objects.filter(id=llm_call_id).update(
             status="success",
             response=response.to_dict(),
@@ -35,6 +34,7 @@ def execute_completion(llm_call_id):
         )
 
     except Exception as e:
+        print(llm_call, "errored", e)
         LLMCall.objects.filter(id=llm_call_id).update(
             status="error",
             error=str(e),
