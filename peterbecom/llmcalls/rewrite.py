@@ -82,7 +82,7 @@ def get_llm_response_comment(comment: str, oid: str):
 
     assert settings.OPENAI_API_KEY, "OPENAI_API_KEY must be set"
 
-    MODEL = "gpt-5"
+    MODEL = "gpt-5-mini"  # faster and more cost effective than gpt-5
 
     def create_and_start(attempts=0):
         llm_call = LLMCall.objects.create(
