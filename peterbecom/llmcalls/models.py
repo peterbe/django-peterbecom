@@ -28,7 +28,10 @@ class LLMCall(models.Model):
         return hash.hexdigest()
 
     def __str__(self):
-        return f"LLMCall(id={self.id}, status={self.status}, model={self.model}, error={self.error})"
+        return (
+            f"id={self.id}, status={self.status}, model={self.model}, "
+            f"error={True if self.error else None}, attempts={self.attempts}"
+        )
 
 
 @receiver(pre_save, sender=LLMCall)

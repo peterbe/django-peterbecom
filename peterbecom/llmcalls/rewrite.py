@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.utils import timezone
 
 from peterbecom.llmcalls.models import LLMCall
 from peterbecom.llmcalls.tasks import execute_completion
@@ -83,22 +84,40 @@ def get_llm_response_comment(comment: str, oid: str):
 
     MODEL = "gpt-5"
 
-    query = LLMCall.objects.filter(
-        model=MODEL, message_hash=LLMCall.make_message_hash(messages)
-    )
-    for llm_call in query.order_by("-created"):
+    def create_and_start(attempts=0):
+        llm_call = LLMCall.objects.create(
+            status="progress",
+            messages=messages,
+            response={},
+            model=MODEL,
+            error=None,
+            attempts=attempts,
+            took_seconds=None,
+            metadata={"comment": comment, "oid": oid},
+        )
+
+        execute_completion(llm_call.id)
+
         return llm_call
 
-    llm_call = LLMCall.objects.create(
-        status="progress",
-        messages=messages,
-        response={},
+    query = LLMCall.objects.filter(
         model=MODEL,
-        error=None,
-        took_seconds=None,
-        metadata={"comment": comment, "oid": oid},
+        message_hash=LLMCall.make_message_hash(messages),
     )
+    for llm_call in query.order_by("-created"):
+        if llm_call.status in ("progress", "error"):
+            age = timezone.now() - llm_call.created
+            age_seconds = age.total_seconds()
+            print(
+                f"{llm_call!r} is in status {llm_call.status!r} "
+                f"({age_seconds:.1f} seconds old)"
+            )
+            if age_seconds > 60 * 5:
+                if llm_call.attempts <= 3:
+                    return create_and_start(attempts=llm_call.attempts + 1)
+                else:
+                    print(f"Giving up on {llm_call!r} after 3 attempts")
 
-    execute_completion(llm_call.id)
+        return llm_call
 
-    return llm_call
+    return create_and_start()
