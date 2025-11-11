@@ -27,6 +27,9 @@ class LLMCall(models.Model):
         hash = hashlib.sha256(as_json.encode("utf-8"))
         return hash.hexdigest()
 
+    def __str__(self):
+        return f"LLMCall(id={self.id}, status={self.status}, model={self.model}, error={self.error})"
+
 
 @receiver(pre_save, sender=LLMCall)
 def set_message_hash(sender, instance, **kwargs):
