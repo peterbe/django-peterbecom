@@ -45,7 +45,7 @@ def comment_rewrite(request, oid):
             blogcomment.comment, context["rewritten"]
         )
 
-    return json_response(context)
+    return json_response(context, status=201 if llm_call.status == "progress" else 200)
 
 
 def generate_inline_diff_html(text1: str, text2: str, with_color=False) -> str:
