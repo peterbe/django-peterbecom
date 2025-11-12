@@ -13,41 +13,17 @@
             margin: 0 auto;
             padding: 20px;
         }
-        .header {
-            background-color: #4CAF50;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-        .button {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-        dt {
-            font-weight: bold;
+        table th {
+            text-align: left;
+            white-space: nowrap;
+            vertical-align: top;
         }
         blockquote {
             border-left: 4px solid #ccc;
             padding-left: 10px;
             color: #555;
             margin-bottom: 40px;
-        }
-        dt, dd {
-            display: inline;
-            margin: 0; /* Remove default margins */
-        }
-
-        dt:not(:first-child):before {
-            content: "\A"; /* Insert a line break before each <dt> except the first */
-            white-space: pre; /* Ensure the line break is rendered */
-        }
-
-        dd:before {
-            content: " "; /* Add a space between <dt> and <dd> */
+            margin-left: 10px;
         }
     </style>
 </head>
@@ -58,18 +34,28 @@
             <b>Post:</b> <a href="{{ absolute_url }}">{{ blogitem.title }}</a>
         </p>
 
-        <dl>
-            <dt>Name</dt>
-            <dd>{% if blogcomment.name %}{{ blogcomment.name }}{% else %}<i>not set</i>{% endif %}</dd>
-            <dt>Email</dt>
-            <dd>{% if blogcomment.email %}{{ blogcomment.email }}{% else %}<i>not set</i>{% endif %}</dd>
-            <dt>IP Address</dt>
-            <dd>{{ blogcomment.ip_address }}</dd>
-            <dt>User Agent</dt>
-            <dd>{{ blogcomment.user_agent }}</dd>
-        </dl>
+        <table>
+            <tbody>
+                <tr>
+                    <th>Name</th>
+                    <td>{% if blogcomment.name %}{{ blogcomment.name }}{% else %}<i>not set</i>{% endif %}</td>
+                </tr>
+                <tr>
+                    <th>Email</th>
+                    <td>{% if blogcomment.email %}{{ blogcomment.email }}{% else %}<i>not set</i>{% endif %}</td>
+                </tr>
+                <tr>
+                    <th>IP Address</th>
+                    <td>{{ blogcomment.ip_address }}</td>
+                </tr>
+                <tr>
+                    <th>User Agent</th>
+                    <td>{{ blogcomment.user_agent }}</td>
+                </tr>
+            </tbody>
+        </table>
 
-        <h4>Comment:</h4>
+        <h4>Comment</h4>
 
         <blockquote>
             {{ blogcomment.comment|linebreaks }}
