@@ -5,6 +5,7 @@ import time
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.mail import send_mail
+from django.template.loader import render_to_string
 from django.utils import timezone
 from huey import crontab
 from huey.contrib.djhuey import periodic_task, task
@@ -26,8 +27,15 @@ def send_new_comment_email(blogcomment_id):
     tos = [x[1] for x in settings.MANAGERS]
     from_ = ["%s <%s>" % x for x in settings.MANAGERS][0]
     body = _get_comment_body(blogcomment.blogitem, blogcomment)
+    html_body = _get_html_comment_body(blogcomment.blogitem, blogcomment)
+
+    # fname = f"/tmp/new-comment-email.{blogcomment_id}.html"
+    # with open(fname, "w") as f:
+    #     f.write(html_body)
+    # print(f"Dumped HTML to {fname}")
+
     subject = f"Peterbe.com: New comment on {blogcomment.blogitem.title!r}"
-    send_mail(subject, body, from_, tos)
+    send_mail(subject, body, from_, tos, html_message=html_body)
 
 
 def _get_comment_body(blogitem, blogcomment):
@@ -47,8 +55,27 @@ User Agent: {blogcomment.user_agent}
 Comment:
 {line_indent(blogcomment.comment)}
 
-{admin_url}/plog/comments#search={blogcomment.oid}
+{admin_url}/plog/comments?search={blogcomment.oid}
     """.strip()
+
+
+def _get_html_comment_body(blogitem, blogcomment):
+    base_url = "https://%s" % Site.objects.get_current().domain
+    if "peterbecom.local" in base_url:
+        base_url = "http://localhost:4000"
+    admin_url_base = base_url.replace("www.", "admin.")
+    absolute_url = f"{base_url}{blogitem.get_absolute_url()}#{blogcomment.oid}"
+    admin_url = f"{admin_url_base}/plog/comments?search={blogcomment.oid}"
+
+    return render_to_string(
+        "emails/new-comment-email.djt",
+        {
+            "blogitem": blogitem,
+            "absolute_url": absolute_url,
+            "blogcomment": blogcomment,
+            "admin_url": admin_url,
+        },
+    )
 
 
 def line_indent(text, indent=" " * 4):
