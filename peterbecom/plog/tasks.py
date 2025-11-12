@@ -29,10 +29,11 @@ def send_new_comment_email(blogcomment_id):
     body = _get_comment_body(blogcomment.blogitem, blogcomment)
     html_body = _get_html_comment_body(blogcomment.blogitem, blogcomment)
 
-    # fname = f"/tmp/new-comment-email.{blogcomment_id}.html"
-    # with open(fname, "w") as f:
-    #     f.write(html_body)
-    # print(f"Dumped HTML to {fname}")
+    if settings.DEBUG:
+        fname = f"/tmp/new-comment-email.{blogcomment_id}.html"
+        with open(fname, "w") as f:
+            f.write(html_body)
+        print(f"Dumped HTML to {fname}")
 
     subject = f"Peterbe.com: New comment on {blogcomment.blogitem.title!r}"
     send_mail(subject, body, from_, tos, html_message=html_body)
