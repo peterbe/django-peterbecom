@@ -17,7 +17,10 @@ def rewrite_comment(comment: str, oid: str):
     return None
 
 
-def get_llm_response_comment(comment: str, oid: str):
+VALID_MODELS = ("gpt-5", "gpt-5-mini", "gpt-5-nano")
+
+
+def get_llm_response_comment(comment: str, oid: str, model: str = VALID_MODELS[0]):
     messages = []
     messages.append(
         {
@@ -82,14 +85,12 @@ def get_llm_response_comment(comment: str, oid: str):
 
     assert settings.OPENAI_API_KEY, "OPENAI_API_KEY must be set"
 
-    MODEL = "gpt-5-mini"  # faster and more cost effective than gpt-5
-
     def create_and_start(attempts=0):
         llm_call = LLMCall.objects.create(
             status="progress",
             messages=messages,
             response={},
-            model=MODEL,
+            model=model,
             error=None,
             attempts=attempts,
             took_seconds=None,
@@ -101,7 +102,7 @@ def get_llm_response_comment(comment: str, oid: str):
         return llm_call
 
     query = LLMCall.objects.filter(
-        model=MODEL,
+        model=model,
         message_hash=LLMCall.make_message_hash(messages),
     )
     for llm_call in query.order_by("-created"):
