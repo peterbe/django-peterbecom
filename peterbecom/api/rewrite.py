@@ -19,12 +19,6 @@ def comment_rewrite(request, oid):
     except BlogComment.DoesNotExist:
         return json_response({"error": "Not found"}, status=404)
 
-    # if request.method == "DELETE":
-    #     raise NotImplementedError("Not implemented yet")
-
-    # if request.method == "POST":
-    #     raise NotImplementedError("Not implemented yet")
-
     try:
         data = json.loads(request.body.decode("utf-8"))
     except json.decoder.JSONDecodeError:
@@ -35,7 +29,6 @@ def comment_rewrite(request, oid):
 
     model = form.cleaned_data["model"]
 
-    print("MODEL:", repr(model))
     llm_call = get_llm_response_comment(
         blogcomment.comment, blogcomment.oid, model=model
     )
