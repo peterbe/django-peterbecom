@@ -272,3 +272,15 @@ class AllBlogitemsForm(forms.Form):
 
 class CommentRewriteForm(forms.Form):
     model = forms.CharField(required=True)
+
+    def __init__(self, *args, valid_models=None, **kwargs):
+        super(CommentRewriteForm, self).__init__(*args, **kwargs)
+        self.valid_models = valid_models
+
+    def clean_model(self):
+        value = self.cleaned_data["model"]
+        if self.valid_models and value not in self.valid_models:
+            raise forms.ValidationError(
+                f"Invalid model. Valid models are: {', '.join(self.valid_models)}"
+            )
+        return value

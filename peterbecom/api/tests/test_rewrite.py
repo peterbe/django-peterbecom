@@ -1,3 +1,5 @@
+import json
+
 import litellm
 import pytest
 from django.urls import reverse
@@ -52,6 +54,13 @@ def test_rewrite_happy_path(admin_client, monkeypatch):
 
     url = reverse("api:comment_rewrite", args=[blogcomment.oid])
     response = admin_client.get(url)
+    assert response.status_code == 405
+
+    response = admin_client.post(
+        url,
+        json.dumps({"model": "gpt-5"}),
+        content_type="application/json",
+    )
 
     assert response.status_code == 201
     data = response.json()
@@ -62,7 +71,11 @@ def test_rewrite_happy_path(admin_client, monkeypatch):
     assert data["llm_call"]["error"] is None
 
     url = reverse("api:comment_rewrite", args=[blogcomment.oid])
-    response = admin_client.get(url)
+    response = admin_client.post(
+        url,
+        json.dumps({"model": "gpt-5"}),
+        content_type="application/json",
+    )
 
     assert response.status_code == 200
     data = response.json()
@@ -86,5 +99,35 @@ def test_rewrite_auth(client):
 def test_rewrite_bad_request(admin_client):
     url = reverse("api:comment_rewrite", args=["test-oid"])
     response = admin_client.get(url)
+    assert response.status_code == 405
 
+    response = admin_client.post(
+        url,
+        json.dumps({"model": "gpt-5"}),
+        content_type="application/json",
+    )
     assert response.status_code == 404
+
+    blogitem = BlogItem.objects.create(
+        oid="hello-world",
+        title="Hello World",
+        pub_date=timezone.now(),
+    )
+    blogcomment = BlogComment.objects.create(
+        oid="abc123",
+        blogitem=blogitem,
+        parent=None,
+        approved=False,
+        auto_approved=False,
+        comment="Bla <bla>",
+        name="John Doe",
+        email="",
+    )
+
+    url = reverse("api:comment_rewrite", args=[blogcomment.oid])
+    response = admin_client.post(
+        url,
+        json.dumps({"model": "neverheardof"}),
+        content_type="application/json",
+    )
+    assert response.status_code == 400

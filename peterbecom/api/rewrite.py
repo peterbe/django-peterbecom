@@ -7,7 +7,7 @@ from django.views.decorators.http import require_POST
 from peterbecom.api.forms import CommentRewriteForm
 from peterbecom.api.views import api_superuser_required
 from peterbecom.base.utils import json_response
-from peterbecom.llmcalls.rewrite import get_llm_response_comment
+from peterbecom.llmcalls.rewrite import VALID_MODELS, get_llm_response_comment
 from peterbecom.plog.models import BlogComment
 
 
@@ -29,12 +29,13 @@ def comment_rewrite(request, oid):
         data = json.loads(request.body.decode("utf-8"))
     except json.decoder.JSONDecodeError:
         return json_response({"error": "Invalid JSON"}, status=400)
-    form = CommentRewriteForm(data)
+    form = CommentRewriteForm(data, valid_models=VALID_MODELS)
     if not form.is_valid():
         return json_response({"errors": form.errors}, status=400)
 
     model = form.cleaned_data["model"]
 
+    print("MODEL:", repr(model))
     llm_call = get_llm_response_comment(
         blogcomment.comment, blogcomment.oid, model=model
     )
