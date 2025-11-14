@@ -268,3 +268,7 @@ class CategoryForm(forms.Form):
 class AllBlogitemsForm(forms.Form):
     since = forms.DateTimeField(required=False)
     minimal_fields = forms.BooleanField(required=False)
+
+
+class CommentRewriteForm(forms.Form):
+    model = forms.CharField(required=True)

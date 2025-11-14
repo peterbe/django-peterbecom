@@ -1,6 +1,10 @@
 import difflib
+import json
 from html import escape
 
+from django.views.decorators.http import require_POST
+
+from peterbecom.api.forms import CommentRewriteForm
 from peterbecom.api.views import api_superuser_required
 from peterbecom.base.utils import json_response
 from peterbecom.llmcalls.rewrite import get_llm_response_comment
@@ -8,19 +12,32 @@ from peterbecom.plog.models import BlogComment
 
 
 @api_superuser_required
+@require_POST
 def comment_rewrite(request, oid):
     try:
         blogcomment = BlogComment.objects.get(oid=oid)
     except BlogComment.DoesNotExist:
         return json_response({"error": "Not found"}, status=404)
 
-    if request.method == "DELETE":
-        raise NotImplementedError("Not implemented yet")
+    # if request.method == "DELETE":
+    #     raise NotImplementedError("Not implemented yet")
 
-    if request.method == "POST":
-        raise NotImplementedError("Not implemented yet")
+    # if request.method == "POST":
+    #     raise NotImplementedError("Not implemented yet")
 
-    llm_call = get_llm_response_comment(blogcomment.comment, blogcomment.oid)
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except json.decoder.JSONDecodeError:
+        return json_response({"error": "Invalid JSON"}, status=400)
+    form = CommentRewriteForm(data)
+    if not form.is_valid():
+        return json_response({"errors": form.errors}, status=400)
+
+    model = form.cleaned_data["model"]
+
+    llm_call = get_llm_response_comment(
+        blogcomment.comment, blogcomment.oid, model=model
+    )
     rewritten = None
     if llm_call.status == "success":
         response = llm_call.response
