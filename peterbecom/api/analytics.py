@@ -71,6 +71,12 @@ def query(request):
                 "base_requestlogrollupsbotagentstatuscodedaily",
                 q,
             )
+        elif table == "requestlogrollupsquerystringdaily":
+            q = re.sub(
+                r"\brequestlogrollupsquerystringdaily\b",
+                "base_requestlogrollupsquerystringdaily",
+                q,
+            )
 
         elif table == "analyticsrollupcommentsreferrerdaily":
             q = re.sub(

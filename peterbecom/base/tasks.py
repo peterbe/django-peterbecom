@@ -26,6 +26,7 @@ from peterbecom.base.models import (
     PostProcessing,
     RequestLog,
     RequestLogRollupsBotAgentStatusCodeDaily,
+    RequestLogRollupsQuerystringDaily,
 )
 from peterbecom.base.utils import do_healthcheck
 from peterbecom.base.xcache_analyzer import get_x_cache
@@ -249,6 +250,12 @@ def analytics_rollup_comments_referrer_pathname_daily():
 @log_task_run
 def requestlog_rollups_bot_agent_status_code_daily():
     RequestLogRollupsBotAgentStatusCodeDaily.rollup()
+
+
+@periodic_task(crontab(minute="*/15") if settings.DEBUG else crontab(hour=10))
+@log_task_run
+def requestlog_rollups_querystring_daily():
+    RequestLogRollupsQuerystringDaily.rollup()
 
 
 @periodic_task(crontab(minute="*"))
