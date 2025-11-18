@@ -240,7 +240,7 @@ def analytics_rollups_pathname_daily():
     AnalyticsRollupsPathnameDaily.rollup()
 
 
-@periodic_task(crontab(minute="*/15") if settings.DEBUG else crontab(hour="*/12"))
+@periodic_task(crontab(minute="*/15") if settings.DEBUG else crontab(hour=10))
 @log_task_run
 def analytics_rollup_comments_referrer_pathname_daily():
     AnalyticsRollupCommentsReferrerDaily.rollup()
