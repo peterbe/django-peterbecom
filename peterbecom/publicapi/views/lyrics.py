@@ -5,6 +5,7 @@ from urllib.parse import urlencode, urlparse
 
 from django import forms, http
 from django.conf import settings
+from django.core.cache import cache
 from django.core.exceptions import ImproperlyConfigured
 from django.shortcuts import redirect
 from django.views.decorators.cache import cache_page, never_cache
@@ -121,37 +122,49 @@ def song(request):
         return http.JsonResponse({"error": form.errors}, status=400)
 
     id = form.cleaned_data["id"]
-    remote_url = f"{settings.LYRICS_REMOTE}/api/song/{id}"
-    response = requests_retry_session().get(remote_url)
-    if response.status_code != 200:
-        return http.JsonResponse(
-            {"error": "Unexpected proxy response code"}, status=response.status_code
-        )
 
-    if len(response.history) == 1 and response.history[0].status_code == 301:
-        path = urlparse(response.history[0].headers.get("Location")).path
-        new_url = f"/plog/blogitem-040601-1{path}"
-        return redirect(new_url)
+    cache_key = f"lyrics_song_{id}"
+    res = cache.get(cache_key)
 
-    try:
-        res = response.json()
-    except JSONDecodeError:
-        if "<!DOCTYPE html>" in response.text:
-            print(f"HTML WHEN EXPECTING JSON! {remote_url}")
+    if not res:
+        print("SONGCACHE", cache_key, "MISS")
+        remote_url = f"{settings.LYRICS_REMOTE}/api/song/{id}"
+        response = requests_retry_session().get(remote_url)
+        if response.status_code != 200:
+            return http.JsonResponse(
+                {"error": "Unexpected proxy response code"}, status=response.status_code
+            )
 
-            path = urlparse(response.url).path
-            if path.startswith("/song/") and re.findall(r"/\d+$", path):
-                new_url = f"/plog/blogitem-040601-1{path}"
-                raw_query_string = request.META.get("QUERY_STRING", "")
-                if raw_query_string:
-                    new_url += f"?{raw_query_string}"
-                return redirect(new_url)
+        if len(response.history) == 1 and response.history[0].status_code == 301:
+            path = urlparse(response.history[0].headers.get("Location")).path
+            new_url = f"/plog/blogitem-040601-1{path}"
+            return redirect(new_url)
 
-        print(f"WARNING: JSONDecodeError ({remote_url})", response.text)
-        return http.JsonResponse(
-            {"error": "Unexpected non-JSON error on fetching song"},
-            status=response.status_code,
-        )
+        try:
+            res = response.json()
+        except JSONDecodeError:
+            if "<!DOCTYPE html>" in response.text:
+                print(f"HTML WHEN EXPECTING JSON! {remote_url}")
+
+                path = urlparse(response.url).path
+                if path.startswith("/song/") and re.findall(r"/\d+$", path):
+                    new_url = f"/plog/blogitem-040601-1{path}"
+                    raw_query_string = request.META.get("QUERY_STRING", "")
+                    if raw_query_string:
+                        new_url += f"?{raw_query_string}"
+                    return redirect(new_url)
+
+            print(f"WARNING: JSONDecodeError ({remote_url})", response.text)
+            return http.JsonResponse(
+                {"error": "Unexpected non-JSON error on fetching song"},
+                status=response.status_code,
+            )
+
+        # Could bump this to 3 months when we're confident it won't
+        # bloat the Redis storage.
+        cache.set(cache_key, res, timeout=60 * 60 * 24 * 7 * 4)
+    else:
+        print("SONGCACHE", cache_key, "HIT")
 
     song_data = res["song"]
 
