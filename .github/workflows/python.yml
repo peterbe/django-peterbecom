@@ -34,7 +34,7 @@ jobs:
           discovery type: "single-node"
 
       - name: Redis Server in GitHub Actions
-        uses: supercharge/redis-github-action@1.8.1
+        uses: supercharge/redis-github-action@v2
         with:
           # Redis version to use
           redis-version: "5.0.5"
