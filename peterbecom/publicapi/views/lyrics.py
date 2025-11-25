@@ -31,7 +31,7 @@ def search(request):
         sp["page"] = page
 
     remote_url = f"{settings.LYRICS_REMOTE}/api/search?{urlencode(sp)}"
-    response = requests_retry_session().get(remote_url)
+    response = requests_retry_session(retries=2).get(remote_url)
     if response.status_code != 200:
         if response.status_code == 400:
             try:
@@ -129,7 +129,7 @@ def song(request):
     if not res:
         print("SONGCACHE", cache_key, "MISS")
         remote_url = f"{settings.LYRICS_REMOTE}/api/song/{id}"
-        response = requests_retry_session().get(remote_url)
+        response = requests_retry_session(retries=2).get(remote_url)
         if response.status_code != 200:
             return http.JsonResponse(
                 {"error": "Unexpected proxy response code"}, status=response.status_code
