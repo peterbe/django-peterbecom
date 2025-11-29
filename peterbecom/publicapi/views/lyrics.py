@@ -162,7 +162,7 @@ def song(request):
 
         # Could bump this to 3 months when we're confident it won't
         # bloat the Redis storage.
-        cache.set(cache_key, res, timeout=60 * 60 * 24 * 7 * 4)
+        cache.set(cache_key, res, timeout=60 * 60 * 24 * 7 * 8)
     else:
         print("SONGCACHE", cache_key, "HIT")
 
