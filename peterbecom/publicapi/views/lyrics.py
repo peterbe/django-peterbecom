@@ -96,6 +96,8 @@ def search(request):
         result["artist"] = {"name": result["artist"]["name"]}
         results.append(result)
 
+    print("TOP 3 results:", [x["id"] for x in results[:3]])
+
     context = {"results": results, "metadata": metadata}
 
     return http.JsonResponse(context)
@@ -119,7 +121,8 @@ class LyricsSearchForm(forms.Form):
         return value
 
 
-@cache_page(settings.DEBUG and 10 or 24 * 60 * 60, key_prefix="publicapi_cache_page")
+# Lower case TTL because the underlying get_song has a long TTL cache
+@cache_page(settings.DEBUG and 10 or 60 * 60, key_prefix="publicapi_cache_page")
 def song(request):
     form = LyricsSongForm(request.GET)
     if not form.is_valid():
