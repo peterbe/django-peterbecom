@@ -29,7 +29,7 @@ def get_song(id, request_retries=DEFAULT_REQUEST_RETRIES):
     res = cache.get(cache_key)
 
     if not res:
-        print("SONGCACHE", cache_key, "MISS")
+        print("SONGCACHE", cache_key, "MISS", f"retries={request_retries}")
         remote_url = f"{settings.LYRICS_REMOTE}/api/song/{id}"
         response = requests_retry_session(retries=request_retries).get(remote_url)
         if response.status_code != 200:

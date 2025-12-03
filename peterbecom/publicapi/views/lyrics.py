@@ -10,6 +10,7 @@ from django.views.decorators.cache import cache_page, never_cache
 
 from peterbecom.base.geo import ip_to_country_code
 from peterbecom.base.utils import fake_ip_address, requests_retry_session
+from peterbecom.publicapi.tasks import populate_song_cache_by_id
 from peterbecom.publicapi.views.lyrics_utils import (
     NonJSONError,
     NotOKError,
@@ -96,6 +97,9 @@ def search(request):
         result["artist"] = {"name": result["artist"]["name"]}
         results.append(result)
 
+    for result in results[:3]:
+        populate_song_cache_by_id(result["id"])
+
     context = {"results": results, "metadata": metadata}
 
     return http.JsonResponse(context)
@@ -119,7 +123,8 @@ class LyricsSearchForm(forms.Form):
         return value
 
 
-@cache_page(settings.DEBUG and 10 or 24 * 60 * 60, key_prefix="publicapi_cache_page")
+# Lower case TTL because the underlying get_song has a long TTL cache
+@cache_page(settings.DEBUG and 10 or 60, key_prefix="publicapi_cache_page")
 def song(request):
     form = LyricsSongForm(request.GET)
     if not form.is_valid():
