@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Peterbe.com: Reply on comment</title>
+    <style>
+        /* Inline styles work best for email */
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        table th {
+            text-align: left;
+            white-space: nowrap;
+            vertical-align: top;
+        }
+        blockquote {
+            border-left: 4px solid #ccc;
+            padding-left: 10px;
+            color: #555;
+            margin-bottom: 40px;
+            margin-left: 10px;
+        }
+        .comment {
+            font-style: italic;
+            margin-left: 15px;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <p>
+            {% if parent.name %}
+                Hi {{ parent.name }},
+            {% else %}
+                Hi,
+            {% endif %}
+        </p>
+
+        <p>
+            This is an automatic email notification from
+            <a href="{% if is_lyrics_post %}{{ post_url }}{% else %}https://www.peterbe.com{% endif %}">{% if is_lyrics_post %}Find song by lyrics{% else %}Peterbe.com{% endif %}</a>.
+        </p>
+        <p>
+            <a href="{{ post_url }}">On this page</a>, on {{ parent_comment_date_human }}, you wrote:
+        </p>
+        <blockquote>
+            {{ parent.comment|linebreaks }}
+        </blockquote>
+
+        <p>
+            Now, {% if blogcomment.name %}{{ blogcomment.name }}{% else %}someone{% endif %} has replied with the following comment:
+        </p>
+
+        <div class="comment">
+            {{ blogcomment.comment|linebreaks }}
+        </div>
+
+
+        <hr/>
+
+        <p>
+            To visit the page again or to respond,
+            <a href="{{ comment_url }}">go to this page</a>.
+        </p>
+
+    </div>
+</body>
+</html>
