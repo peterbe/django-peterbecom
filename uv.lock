@@ -495,7 +495,7 @@ requires-dist = [
     { name = "tomli", specifier = "==2.3.0" },
     { name = "xmltodict", specifier = "==1.0.2" },
     { name = "zope-structuredtext", specifier = "==6.0" },
-    { name = "zopfli", specifier = "==0.2.3" },
+    { name = "zopfli", specifier = "==0.4.0" },
 ]
 
 [[package]]
@@ -1856,18 +1856,15 @@ wheels = [
 
 [[package]]
 name = "zopfli"
-version = "0.2.3"
+version = "0.4.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/92/d8/71230eb25ede499401a9a39ddf66fab4e4dab149bf75ed2ecea51a662d9e/zopfli-0.2.3.zip", hash = "sha256:dbc9841bedd736041eb5e6982cd92da93bee145745f5422f3795f6f258cdc6ef", size = 205354, upload-time = "2023-09-08T14:02:28.54Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/be/4c/efa0760686d4cc69e68a8f284d3c6c5884722c50f810af0e277fb7d61621/zopfli-0.4.0.tar.gz", hash = "sha256:a8ee992b2549e090cd3f0178bf606dd41a29e0613a04cdf5054224662c72dce6", size = 176720, upload-time = "2025-11-07T17:00:59.507Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c9/40/fdea52bd84501684464bcffc403d6c6e09a39098fdb011bc3c40956fee53/zopfli-0.2.3-cp312-cp312-macosx_10_9_universal2.whl", hash = "sha256:2073b07c3ec4fcbc895bb02565a90f9f31373233979f6be398e82eacbd1105f3", size = 295678, upload-time = "2023-09-08T14:01:34.826Z" },
-    { url = "https://files.pythonhosted.org/packages/ce/ff/fc4ad33a1c250ac74dbec9d1dfbdcb92f3ccf0e8151aca110402add473a8/zopfli-0.2.3-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:1f25f1bb6440ed90a1d458772fa6ce53632f5fb61e435b12ae6b9b39af98d758", size = 161479, upload-time = "2023-09-08T14:01:36.591Z" },
-    { url = "https://files.pythonhosted.org/packages/24/40/6a7d5cbcd1041cf19f9b248a29a9bfda14856390358e824363d625c2d062/zopfli-0.2.3-cp312-cp312-manylinux_2_12_i686.manylinux2010_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:39d8a73bee07cf7f2c73e08508bf788bfdf28a527da353b5d3e2a0ee4aaf770c", size = 823532, upload-time = "2023-09-08T15:03:23.694Z" },
-    { url = "https://files.pythonhosted.org/packages/dc/95/4dfcbc895e340924aa0a656dee6c47bf34fccbdf3583bb9acabf79b9f988/zopfli-0.2.3-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d40373db61883f6fc8b7040c9196a16f737e3063632afd15e8b3f25e871a30e8", size = 826448, upload-time = "2023-09-08T14:01:38.141Z" },
-    { url = "https://files.pythonhosted.org/packages/eb/ca/023861cb06595cac37494d8ddc07f8fa7b2b1123469090fbbc5ff86ccdee/zopfli-0.2.3-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:31c467a300ba46f55aa0ea958ea388e350eefd039cf15764bf4cd737d5eeb8a6", size = 851035, upload-time = "2023-09-08T15:03:30.194Z" },
-    { url = "https://files.pythonhosted.org/packages/00/d0/72fbe612fd32314604a253c656750ebb2e9f2a75ed024d88e6280601ca62/zopfli-0.2.3-cp312-cp312-musllinux_1_1_aarch64.whl", hash = "sha256:c3c61787a90439cf68f751b2a1ab789b0805876c0cd9b58398adc212d1eeace5", size = 1357721, upload-time = "2023-09-08T14:01:40.072Z" },
-    { url = "https://files.pythonhosted.org/packages/6b/3c/eea1507d2aed0fcec0a0fc0c15d431142bd4325e75f4f323bbbe312e5c5a/zopfli-0.2.3-cp312-cp312-musllinux_1_1_i686.whl", hash = "sha256:3e4675ca4c7b1215b8a53cec1831cbdb6914f91ea2f183817a06fc7b38e27642", size = 1383763, upload-time = "2023-09-08T15:03:38.945Z" },
-    { url = "https://files.pythonhosted.org/packages/3a/ce/0fbfe45e566dedf8c8fc2ed0aba74faf8da8df51efd4112d79b23ae714a0/zopfli-0.2.3-cp312-cp312-musllinux_1_1_x86_64.whl", hash = "sha256:f48de4818c10c539fdd01276512043ae4ae738e0301e9cace1dd38f4bcffad6a", size = 1389078, upload-time = "2023-09-08T15:03:46.661Z" },
-    { url = "https://files.pythonhosted.org/packages/a8/9d/bca3a910753ea1e5ca5c1cb33c8454be2cf5c8a55cc13c51dbd92f829c8a/zopfli-0.2.3-cp312-cp312-win32.whl", hash = "sha256:7769f6ca73f37dff92159127bd25b0cc7d81d3feb819d355dc7ac01ad05c673d", size = 81201, upload-time = "2023-09-08T14:01:41.38Z" },
-    { url = "https://files.pythonhosted.org/packages/dc/9d/633f072f4c5d5289fcb8bb1494283e40a90ab578b4911d47b8d45910b020/zopfli-0.2.3-cp312-cp312-win_amd64.whl", hash = "sha256:1c5fd29730024f5fb0e2623e3853ca422bd3cf57042389c8e0e771dc47f88084", size = 97752, upload-time = "2023-09-08T14:01:42.551Z" },
+    { url = "https://files.pythonhosted.org/packages/98/62/ec5cb67ee379c6a4f296f1277b971ff8c26460bf8775f027f82c519a0a72/zopfli-0.4.0-cp310-abi3-macosx_10_9_universal2.whl", hash = "sha256:d1b98ad47c434ef213444a03ef2f826eeec100144d64f6a57504b9893d3931ce", size = 287433, upload-time = "2025-11-07T17:00:45.662Z" },
+    { url = "https://files.pythonhosted.org/packages/5a/9e/8f81e69bd771014a488c4c64476b6e6faab91b2c913d0f81eca7e06401eb/zopfli-0.4.0-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:18b5f1570f64d4988482e4466f10ef5f2a30f687c19ad62a64560f2152dc89eb", size = 847135, upload-time = "2025-11-07T17:00:47.483Z" },
+    { url = "https://files.pythonhosted.org/packages/24/84/6e60eeaaa1c1eae7b4805f1c528f3e8ae62cef323ec1e52347a11031e3ba/zopfli-0.4.0-cp310-abi3-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:b72a010d205d00b2855acc2302772067362f9ab5a012e3550662aec60d28e6b3", size = 831606, upload-time = "2025-11-07T17:00:48.576Z" },
+    { url = "https://files.pythonhosted.org/packages/6d/aa/a4d5de7ed8e809953cb5e8992bddc40f38461ec5a44abfb010953875adfc/zopfli-0.4.0-cp310-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:c3ba02a9a6ca90481d2b2f68bab038b310d63a1e3b5ae305e95a6599787ed941", size = 1789376, upload-time = "2025-11-07T17:00:49.63Z" },
+    { url = "https://files.pythonhosted.org/packages/39/95/4d1e943fbc44157f58b623625686d0b970f2fda269e721fbf9546b93f6cc/zopfli-0.4.0-cp310-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:7d66337be6d5613dec55213e9ac28f378c41e2cc04fbad4a10748e4df774ca85", size = 1879013, upload-time = "2025-11-07T17:00:50.751Z" },
+    { url = "https://files.pythonhosted.org/packages/95/db/4f2eebf73c0e2df293a366a1d176cd315a74ce0b00f83826a7ba9ddd1ab3/zopfli-0.4.0-cp310-abi3-win32.whl", hash = "sha256:03181d48e719fcb6cf8340189c61e8f9883d8bbbdf76bf5212a74457f7d083c1", size = 83655, upload-time = "2025-11-07T17:00:51.797Z" },
+    { url = "https://files.pythonhosted.org/packages/24/f6/bd80c5278b1185dc41155c77bc61bfe1d817254a7f2115f66aa69a270b89/zopfli-0.4.0-cp310-abi3-win_amd64.whl", hash = "sha256:f94e4dd7d76b4fe9f5d9229372be20d7f786164eea5152d1af1c34298c3d5975", size = 100824, upload-time = "2025-11-07T17:00:52.658Z" },
 ]
