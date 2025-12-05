@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <title>Peterbe.com: New comment</title>
     <style>
         /* Inline styles work best for email */
         body {
@@ -17,13 +18,6 @@
             text-align: left;
             white-space: nowrap;
             vertical-align: top;
-        }
-        blockquote {
-            border-left: 4px solid #ccc;
-            padding-left: 10px;
-            color: #555;
-            margin-bottom: 40px;
-            margin-left: 10px;
         }
     </style>
 </head>
@@ -57,9 +51,9 @@
 
         <h4>Comment</h4>
 
-        <blockquote>
+        <div style="font-style: italic">
             {{ blogcomment.comment|linebreaks }}
-        </blockquote>
+        </div>
 
         <hr/>
 

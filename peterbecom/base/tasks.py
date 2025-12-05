@@ -122,6 +122,13 @@ def run_purge_cdn_urls():
 
 @task()
 def post_process_after_cdn_purge(url):
+    if not getattr(settings, "HTTP_RELAY_ENDPOINTS", None):
+        print(
+            "WARNING settings.HTTP_RELAY_ENDPOINTS is not set. "
+            "So not going to do any post-processing after cdn purge."
+        )
+        return
+
     if "://" not in url:
         if url.startswith("/"):
             url = f"peterbecom.local{url}"
