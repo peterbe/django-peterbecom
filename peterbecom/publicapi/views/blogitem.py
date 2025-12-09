@@ -175,6 +175,7 @@ def blogitem(request, oid):
         "name",
         "comment_rendered",
         "approved",
+        "highlighted",
     )
     all_comments = defaultdict(list)
     for comment in root_comments.values(*_values):
@@ -304,6 +305,7 @@ def blogcomment(request, blogitem_oid, oid):
         "comment_rendered",
         "add_date",
         "name",
+        "highlighted",
     )
     for comment in BlogComment.objects.filter(
         oid=oid, blogitem__oid=blogitem_oid, blogitem__hide_comments=False
@@ -379,6 +381,7 @@ def _get_replies_recursively(comment, root=None, base_query=None):
         "comment_rendered",
         "approved",
         "name",
+        "highlighted",
     )
     replies = (
         base_query.filter(parent__oid=comment["oid"])
