@@ -146,6 +146,7 @@ def blogitem(request, oid):
         "comment_rendered",
         "add_date",
         "name",
+        "highlighted",
     )
     root_comments = (
         blogcomments.filter(parent__isnull=True).order_by("add_date").only(*only)
@@ -236,7 +237,6 @@ def traverse_and_serialize_comments(all_comments, comment=None, depth=None):
 
 def serialize_comment(blogcomment):
     assert isinstance(blogcomment, dict)
-    highlighted: None | datetime.datetime = None
     data = {
         "id": blogcomment["id"],
         "oid": blogcomment["oid"],
@@ -246,7 +246,7 @@ def serialize_comment(blogcomment):
         "approved": bool(blogcomment["approved"]),
     }
     if blogcomment["highlighted"]:
-        data["highlighted"] = highlighted
+        data["highlighted"] = blogcomment["highlighted"]
 
     return data
 
@@ -423,15 +423,6 @@ def _unhighlight_others(comments_tree):
     highlighted.sort(key=lambda x: x[1], reverse=True)
 
     _traverse_unhighlight(comments_tree, highlighted[0][0])
-
-    # from pprint import pprint
-
-    # pprint(comments_tree)
-
-    # highlight_ids = {cid for cid, _ in highlighted}
-    # now = timezone.now()
-    # for comment in comments_tree:
-    #     _unhighlight_others_helper(comment, highlight_ids, now)
 
 
 def _traverse_highlights(comments_tree):
