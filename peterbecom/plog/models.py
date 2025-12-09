@@ -439,6 +439,7 @@ class BlogComment(models.Model):
     user_agent = models.CharField(max_length=300, blank=True, null=True)
     ip_address = models.GenericIPAddressField(blank=True, null=True)
     geo_lookup = models.JSONField(null=True)
+    highlighted = models.DateTimeField(null=True)
 
     def __str__(self):
         return "{} {!r} ({})".format(

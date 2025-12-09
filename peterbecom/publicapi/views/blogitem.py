@@ -193,6 +193,7 @@ def blogitem(request, oid):
     comments["count"] = count_comments
     comments["total_pages"] = total_pages
     comments["tree"] = traverse_and_serialize_comments(all_comments)
+    _unhighlight_others(comments["tree"])
 
     comments["next_page"] = comments["previous_page"] = None
     if page < settings.MAX_BLOGCOMMENT_PAGES:
@@ -203,7 +204,7 @@ def blogitem(request, oid):
         comments["previous_page"] = page - 1
 
     context = {"post": post, "comments": comments}
-    cache.set(cache_key, context, 10 if settings.DEBUG else 60 * 60 * 12)
+    cache.set(cache_key, context, 5 if settings.DEBUG else 60 * 60 * 12)
     return http.JsonResponse(context)
 
 
@@ -234,7 +235,8 @@ def traverse_and_serialize_comments(all_comments, comment=None, depth=None):
 
 def serialize_comment(blogcomment):
     assert isinstance(blogcomment, dict)
-    return {
+    highlighted: None | datetime.datetime = None
+    data = {
         "id": blogcomment["id"],
         "oid": blogcomment["oid"],
         "add_date": blogcomment["add_date"],
@@ -242,6 +244,10 @@ def serialize_comment(blogcomment):
         "comment": blogcomment["comment_rendered"],
         "approved": bool(blogcomment["approved"]),
     }
+    if blogcomment["highlighted"]:
+        data["highlighted"] = highlighted
+
+    return data
 
 
 def get_blogcomment_slice(count_comments, page):
@@ -404,3 +410,42 @@ def _get_comment_page(comment: dict) -> int:
         parent__isnull=True,
     ).count()
     return 1 + (count // settings.MAX_RECENT_COMMENTS)
+
+
+def _unhighlight_others(comments_tree):
+    highlighted = _traverse_highlights(comments_tree)
+    if not highlighted:
+        return
+
+    highlighted.sort(key=lambda x: x[1], reverse=True)
+
+    _traverse_unhighlight(comments_tree, highlighted[0][0])
+
+    # from pprint import pprint
+
+    # pprint(comments_tree)
+
+    # highlight_ids = {cid for cid, _ in highlighted}
+    # now = timezone.now()
+    # for comment in comments_tree:
+    #     _unhighlight_others_helper(comment, highlight_ids, now)
+
+
+def _traverse_highlights(comments_tree):
+    highlighted: list[tuple[id, datetime.datetime]] = []
+    for comment in comments_tree:
+        if comment.get("highlighted"):
+            highlighted.append((comment["id"], comment["highlighted"]))
+        if comment.get("replies"):
+            highlighted.extend(_traverse_highlights(comment["replies"]))
+
+    return highlighted
+
+
+def _traverse_unhighlight(comments_tree, exception_id):
+    for comment in comments_tree:
+        if comment.get("highlighted"):
+            if comment["id"] != exception_id:
+                del comment["highlighted"]
+        if comment.get("replies"):
+            _traverse_unhighlight(comment["replies"], exception_id)
