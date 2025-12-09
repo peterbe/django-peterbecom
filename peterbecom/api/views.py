@@ -1119,6 +1119,7 @@ def blogcomments(request):
             "replies": [],
             "gravatar_url": get_gravatar_url(item),
             "classification": None,
+            "highlighted": item.highlighted,
         }
 
         if blogitem:
@@ -1160,6 +1161,7 @@ def blogcomments(request):
     search = request.GET.get("search", "").lower().strip()
     blogitem_regex = re.compile(r"(blogitem|oid):([^\s]+)")
     name_or_email_regex = re.compile(r"\b(name|email):([^\s]+)")
+    highlighted_regex = re.compile(r"\b(not|is):highlighted\b")
     if search:
         for _, blogitem_oid in blogitem_regex.findall(search):
             not_blogitem = False
@@ -1181,6 +1183,13 @@ def blogcomments(request):
             else:
                 raise ValueError(f"Unknown key: {key}")
             search = name_or_email_regex.sub("", search).strip()
+
+        for prefix in highlighted_regex.findall(search):
+            if prefix == "is":
+                base_qs = base_qs.filter(highlighted__isnull=False)
+            else:
+                base_qs = base_qs.filter(highlighted__isnull=True)
+            search = highlighted_regex.sub("", search).strip()
 
         for term in search.split():
             blogitem_oid = get_local_url_oid(term)
@@ -2068,11 +2077,27 @@ def probe_url(request):
 
 
 @api_superuser_required
-@require_http_methods(["DELETE"])
+@require_http_methods(["DELETE", "POST"])
 def blogcomment(request, blogitem_oid, oid):
+    comment = get_object_or_404(BlogComment, blogitem__oid=blogitem_oid, oid=oid)
     if request.method == "DELETE":
-        comment = get_object_or_404(BlogComment, blogitem__oid=blogitem_oid, oid=oid)
         comment.delete()
         return json_response({"ok": True})
+    elif request.method == "POST":
+        try:
+            data = json.loads(request.body.decode("utf-8"))
+        except json.decoder.JSONDecodeError:
+            return json_response({"error": "Invalid JSON"}, status=400)
+
+        if "toggle_highlight" in data:
+            if comment.highlighted:
+                comment.highlighted = None
+            else:
+                comment.highlighted = timezone.now()
+            comment.save()
+            return json_response({"highlighted": comment.highlighted})
+        else:
+            return json_response({"error": "Invalid data"}, status=400)
+
     else:
-        raise NotImplementedError("Only DELETE is implemented")
+        raise NotImplementedError("Only DELETE and POST is implemented")

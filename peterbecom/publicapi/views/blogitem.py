@@ -146,6 +146,7 @@ def blogitem(request, oid):
         "comment_rendered",
         "add_date",
         "name",
+        "highlighted",
     )
     root_comments = (
         blogcomments.filter(parent__isnull=True).order_by("add_date").only(*only)
@@ -175,6 +176,7 @@ def blogitem(request, oid):
         "name",
         "comment_rendered",
         "approved",
+        "highlighted",
     )
     all_comments = defaultdict(list)
     for comment in root_comments.values(*_values):
@@ -193,6 +195,7 @@ def blogitem(request, oid):
     comments["count"] = count_comments
     comments["total_pages"] = total_pages
     comments["tree"] = traverse_and_serialize_comments(all_comments)
+    _unhighlight_others(comments["tree"])
 
     comments["next_page"] = comments["previous_page"] = None
     if page < settings.MAX_BLOGCOMMENT_PAGES:
@@ -203,7 +206,7 @@ def blogitem(request, oid):
         comments["previous_page"] = page - 1
 
     context = {"post": post, "comments": comments}
-    cache.set(cache_key, context, 10 if settings.DEBUG else 60 * 60 * 12)
+    cache.set(cache_key, context, 5 if settings.DEBUG else 60 * 60 * 12)
     return http.JsonResponse(context)
 
 
@@ -234,7 +237,7 @@ def traverse_and_serialize_comments(all_comments, comment=None, depth=None):
 
 def serialize_comment(blogcomment):
     assert isinstance(blogcomment, dict)
-    return {
+    data = {
         "id": blogcomment["id"],
         "oid": blogcomment["oid"],
         "add_date": blogcomment["add_date"],
@@ -242,6 +245,10 @@ def serialize_comment(blogcomment):
         "comment": blogcomment["comment_rendered"],
         "approved": bool(blogcomment["approved"]),
     }
+    if blogcomment["highlighted"]:
+        data["highlighted"] = blogcomment["highlighted"]
+
+    return data
 
 
 def get_blogcomment_slice(count_comments, page):
@@ -298,6 +305,7 @@ def blogcomment(request, blogitem_oid, oid):
         "comment_rendered",
         "add_date",
         "name",
+        "highlighted",
     )
     for comment in BlogComment.objects.filter(
         oid=oid, blogitem__oid=blogitem_oid, blogitem__hide_comments=False
@@ -373,6 +381,7 @@ def _get_replies_recursively(comment, root=None, base_query=None):
         "comment_rendered",
         "approved",
         "name",
+        "highlighted",
     )
     replies = (
         base_query.filter(parent__oid=comment["oid"])
@@ -404,3 +413,33 @@ def _get_comment_page(comment: dict) -> int:
         parent__isnull=True,
     ).count()
     return 1 + (count // settings.MAX_RECENT_COMMENTS)
+
+
+def _unhighlight_others(comments_tree):
+    highlighted = _traverse_highlights(comments_tree)
+    if not highlighted:
+        return
+
+    highlighted.sort(key=lambda x: x[1], reverse=True)
+
+    _traverse_unhighlight(comments_tree, highlighted[0][0])
+
+
+def _traverse_highlights(comments_tree):
+    highlighted: list[tuple[id, datetime.datetime]] = []
+    for comment in comments_tree:
+        if comment.get("highlighted"):
+            highlighted.append((comment["id"], comment["highlighted"]))
+        if comment.get("replies"):
+            highlighted.extend(_traverse_highlights(comment["replies"]))
+
+    return highlighted
+
+
+def _traverse_unhighlight(comments_tree, exception_id):
+    for comment in comments_tree:
+        if comment.get("highlighted"):
+            if comment["id"] != exception_id:
+                del comment["highlighted"]
+        if comment.get("replies"):
+            _traverse_unhighlight(comment["replies"], exception_id)
