@@ -41,9 +41,19 @@ urlpatterns = [
         name="comment_counts",
     ),
     path(
+        "plog/comments/counts/",
+        views.comment_counts,
+        name="comment_counts",
+    ),
+    path(
         "plog/comments/auto-approved-records/",
         views.comment_auto_approved_records,
         name="comment_auto_approved_records",
+    ),
+    path(
+        "plog/comments/highlighted/",
+        views.highlighted_comments,
+        name="highlighted_comments",
     ),
     path("plog/comments/", views.blogcomments, name="blogcomments"),
     re_path(

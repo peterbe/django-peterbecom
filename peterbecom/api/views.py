@@ -2101,3 +2101,48 @@ def blogcomment(request, blogitem_oid, oid):
 
     else:
         raise NotImplementedError("Only DELETE and POST is implemented")
+
+
+@api_superuser_required
+def highlighted_comments(request):
+    context = {
+        "comments": _get_highlighted_comments(),
+        "count": _count_highlighted_comments(),
+    }
+    return json_response(context)
+
+
+def _get_highlighted_comments():
+    records = []
+    query = BlogComment.objects.filter(highlighted__isnull=False).order_by(
+        "-highlighted"
+    )
+    first = {}
+    for comment in query.select_related("blogitem"):
+        records.append(
+            {
+                "id": comment.id,
+                "oid": comment.oid,
+                "name": comment.name,
+                "email": comment.email,
+                "comment": comment.comment,
+                "rendered": comment.comment_rendered,
+                "add_date": comment.add_date,
+                "highlighted": comment.highlighted,
+                "parent_id": comment.parent_id,
+                "is_first": not first.get(comment.blogitem_id),
+                "blogitem": {
+                    "id": comment.blogitem.id,
+                    "oid": comment.blogitem.oid,
+                    "title": comment.blogitem.title,
+                    "pub_date": comment.blogitem.pub_date,
+                },
+            }
+        )
+        first[comment.blogitem_id] = True
+
+    return records
+
+
+def _count_highlighted_comments():
+    return BlogComment.objects.filter(highlighted__isnull=False).count()
