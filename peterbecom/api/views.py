@@ -5,7 +5,7 @@ import re
 import statistics
 import time
 from collections import defaultdict
-from functools import wraps
+from functools import lru_cache, wraps
 from pathlib import Path
 from urllib.parse import urlencode, urlparse
 
@@ -2118,30 +2118,51 @@ def _get_highlighted_comments():
         "-highlighted"
     )
     first = {}
-    for comment in query.select_related("blogitem"):
+
+    @lru_cache
+    def get_blogitem(id):
+        for blogitem in BlogItem.objects.filter(id=id).values(
+            "id", "oid", "title", "pub_date"
+        ):
+            return blogitem
+
+    for comment in query.select_related("blogitem").values():
+        page = _get_comment_page(comment)
         records.append(
             {
-                "id": comment.id,
-                "oid": comment.oid,
-                "name": comment.name,
-                "email": comment.email,
-                "comment": comment.comment,
-                "rendered": comment.comment_rendered,
-                "add_date": comment.add_date,
-                "highlighted": comment.highlighted,
-                "parent_id": comment.parent_id,
-                "is_first": not first.get(comment.blogitem_id),
-                "blogitem": {
-                    "id": comment.blogitem.id,
-                    "oid": comment.blogitem.oid,
-                    "title": comment.blogitem.title,
-                    "pub_date": comment.blogitem.pub_date,
-                },
+                "id": comment["id"],
+                "oid": comment["oid"],
+                "name": comment["name"],
+                "email": comment["email"],
+                "comment": comment["comment"],
+                "rendered": comment["comment_rendered"],
+                "add_date": comment["add_date"],
+                "highlighted": comment["highlighted"],
+                "parent_id": comment["parent_id"],
+                "is_first": not first.get(comment["blogitem_id"]),
+                "page": page,
+                "blogitem": get_blogitem(comment["blogitem_id"]),
             }
         )
-        first[comment.blogitem_id] = True
+        first[comment["blogitem_id"]] = True
 
     return records
+
+
+def _get_comment_page(comment: dict) -> int:
+    base_query = BlogComment.objects.filter(
+        blogitem_id=comment["blogitem_id"], approved=True
+    )
+    root_comment = comment
+    while root_comment["parent_id"]:
+        root_comment = base_query.values("id", "parent_id", "add_date").get(
+            id=root_comment["parent_id"]
+        )
+    count = base_query.filter(
+        add_date__gt=root_comment["add_date"],
+        parent__isnull=True,
+    ).count()
+    return 1 + (count // settings.MAX_RECENT_COMMENTS)
 
 
 def _count_highlighted_comments():

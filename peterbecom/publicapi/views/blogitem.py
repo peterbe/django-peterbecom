@@ -403,7 +403,6 @@ def _get_comment_page(comment: dict) -> int:
         blogitem_id=comment["blogitem_id"], approved=True
     )
     root_comment = comment
-    root_comment = comment
     while root_comment["parent_id"]:
         root_comment = base_query.values("id", "parent_id", "add_date").get(
             id=root_comment["parent_id"]
