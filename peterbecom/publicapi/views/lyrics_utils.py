@@ -98,7 +98,7 @@ def refresh_song_cache(
         percent_left = 100 * age_left / GET_SONG_TTL_SECONDS
 
         print(key.ljust(20), s_print(age_left), f"{percent_left:1f}% left")
-        if percent_left > min_percent_left:
+        if percent_left < min_percent_left:
             refresh_ids.append((age_left, key, song_id))
             if len(refresh_ids) >= max_refresh_count:
                 print("Reached max_refresh_count of possible candidates")
