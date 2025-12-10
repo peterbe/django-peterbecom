@@ -68,7 +68,7 @@ def get_song(id, request_retries=DEFAULT_REQUEST_RETRIES, refresh_cache=False):
 
 
 def refresh_song_cache(
-    max_refresh_count=10, random_sample_size=1_000, sleep_time=1, min_percent_age=50
+    max_refresh_count=10, random_sample_size=1_000, sleep_time=1, min_percent_left=20
 ):
     def s_print(seconds):
         if seconds > 60 * 60 * 24 * 7:
@@ -90,16 +90,16 @@ def refresh_song_cache(
     key_age = []
     for key in random.sample(keys, random_sample_size):
         for song_id in re.findall(r"lyrics_song_(\d+)", key):
-            age = cache.ttl(key)
-            key_age.append((age, key, song_id))
-    key_age.sort(reverse=True)
+            age_left = cache.ttl(key)
+            key_age.append((age_left, key, song_id))
+    key_age.sort()
     refresh_ids = []
-    for age, key, song_id in key_age:
-        percent = 100 * age / GET_SONG_TTL_SECONDS
+    for age_left, key, song_id in key_age:
+        percent_left = 100 * age_left / GET_SONG_TTL_SECONDS
 
-        print(key.ljust(20), age, s_print(age), f"{percent:.1f}% of total time")
-        if percent > min_percent_age:
-            refresh_ids.append((age, key, song_id))
+        print(key.ljust(20), s_print(age_left), f"{percent_left:1f}% left")
+        if percent_left > min_percent_left:
+            refresh_ids.append((age_left, key, song_id))
             if len(refresh_ids) >= max_refresh_count:
                 print("Reached max_refresh_count of possible candidates")
                 break
