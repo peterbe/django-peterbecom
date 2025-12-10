@@ -1,4 +1,6 @@
+import random
 import re
+import time
 from json.decoder import JSONDecodeError
 from urllib.parse import urlparse
 
@@ -22,27 +24,26 @@ class NonJSONError(Exception):
 
 
 DEFAULT_REQUEST_RETRIES = 2
+GET_SONG_TTL_SECONDS = 60 * 60 * 24 * 7 * 8
 
 
-def get_song(id, request_retries=DEFAULT_REQUEST_RETRIES):
+def get_song(id, request_retries=DEFAULT_REQUEST_RETRIES, refresh_cache=False):
     cache_key = f"lyrics_song_{id}"
-    res = cache.get(cache_key)
+    res = None if refresh_cache else cache.get(cache_key)
+
+    log_prefix = "REFRESH-SONGCACHE" if refresh_cache else "SONGCACHE"
 
     if not res:
-        print("SONGCACHE", cache_key, "MISS", f"retries={request_retries}")
+        print(log_prefix, cache_key, "MISS", f"retries={request_retries}")
         remote_url = f"{settings.LYRICS_REMOTE}/api/song/{id}"
         response = requests_retry_session(retries=request_retries).get(remote_url)
         if response.status_code != 200:
             raise NotOKError(response.status_code)
-            # return http.JsonResponse(
-            #     {"error": "Unexpected proxy response code"}, status=response.status_code
-            # )
 
         if len(response.history) == 1 and response.history[0].status_code == 301:
             path = urlparse(response.history[0].headers.get("Location")).path
             new_url = f"/plog/blogitem-040601-1{path}"
             raise RedirectNeeded(new_url)
-            # return redirect(new_url)
 
         try:
             res = response.json()
@@ -53,23 +54,56 @@ def get_song(id, request_retries=DEFAULT_REQUEST_RETRIES):
                 path = urlparse(response.url).path
                 if path.startswith("/song/") and re.findall(r"/\d+$", path):
                     new_url = f"/plog/blogitem-040601-1{path}"
-                    # raw_query_string = request.META.get("QUERY_STRING", "")
-                    # if raw_query_string:
-                    #     new_url += f"?{raw_query_string}"
                     return redirect(new_url)
                 raise RedirectNeeded(new_url)
 
             print(f"WARNING: JSONDecodeError ({remote_url})", response.text)
             raise NonJSONError()
-            # return http.JsonResponse(
-            #     {"error": "Unexpected non-JSON error on fetching song"},
-            #     status=response.status_code,
-            # )
 
-        # Could bump this to 3 months when we're confident it won't
-        # bloat the Redis storage.
-        cache.set(cache_key, res, timeout=60 * 60 * 24 * 7 * 8)
+        cache.set(cache_key, res, timeout=GET_SONG_TTL_SECONDS)
     else:
-        print("SONGCACHE", cache_key, "HIT")
+        print(log_prefix, cache_key, "HIT")
 
     return res
+
+
+def refresh_song_cache(max_refresh_count=10, random_sample_size=1_000):
+    def s_print(seconds):
+        if seconds > 60 * 60 * 24 * 7:
+            return f"{seconds / (60 * 60 * 24 * 7):.1f} weeks"
+        if seconds > 60 * 60 * 24:
+            return f"{seconds / (60 * 60 * 24):.1f} days"
+        if seconds > 60 * 60:
+            return f"{seconds / (60 * 60):.1f} hours"
+        if seconds > 60:
+            return f"{seconds / 60:.1f} minutes"
+        return f"{seconds:.1f} seconds"
+
+    keys = cache.keys("lyrics_song_*")
+    print(len(keys), "keys")
+
+    GET_SONG_TTL_SECONDS = 60 * 60 * 24 * 7 * 8
+    print("TOTAL/MAX TTL:", s_print(GET_SONG_TTL_SECONDS))
+
+    key_age = []
+    for key in random.sample(keys, random_sample_size):
+        for song_id in re.findall(r"lyrics_song_(\d+)", key):
+            age = cache.ttl(key)
+            key_age.append((age, key, song_id))
+    key_age.sort(reverse=True)
+    refresh_ids = []
+    for age, key, song_id in key_age:
+        percent = 100 * age / GET_SONG_TTL_SECONDS
+
+        print(key.ljust(20), age, s_print(age), f"{percent:.1f}% of total time")
+        if percent > 50:
+            refresh_ids.append((age, key, song_id))
+
+    print(len(refresh_ids), "up for refresh")
+    if len(refresh_ids) > max_refresh_count:
+        print(f"Max {max_refresh_count} to refresh this time.")
+
+    for i, (age, _, song_id) in enumerate(refresh_ids[:max_refresh_count]):
+        print("Refreshing song_id", song_id)
+        get_song(int(song_id), refresh_cache=True, request_retries=0)
+        time.sleep(1)
