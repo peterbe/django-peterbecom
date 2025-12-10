@@ -67,7 +67,9 @@ def get_song(id, request_retries=DEFAULT_REQUEST_RETRIES, refresh_cache=False):
     return res
 
 
-def refresh_song_cache(max_refresh_count=10, random_sample_size=1_000):
+def refresh_song_cache(
+    max_refresh_count=10, random_sample_size=1_000, sleep_time=1, min_percent_age=50
+):
     def s_print(seconds):
         if seconds > 60 * 60 * 24 * 7:
             return f"{seconds / (60 * 60 * 24 * 7):.1f} weeks"
@@ -96,8 +98,11 @@ def refresh_song_cache(max_refresh_count=10, random_sample_size=1_000):
         percent = 100 * age / GET_SONG_TTL_SECONDS
 
         print(key.ljust(20), age, s_print(age), f"{percent:.1f}% of total time")
-        if percent > 50:
+        if percent > min_percent_age:
             refresh_ids.append((age, key, song_id))
+            if len(refresh_ids) >= max_refresh_count:
+                print("Reached max_refresh_count of possible candidates")
+                break
 
     print(len(refresh_ids), "up for refresh")
     if len(refresh_ids) > max_refresh_count:
@@ -106,4 +111,4 @@ def refresh_song_cache(max_refresh_count=10, random_sample_size=1_000):
     for i, (age, _, song_id) in enumerate(refresh_ids[:max_refresh_count]):
         print("Refreshing song_id", song_id)
         get_song(int(song_id), refresh_cache=True, request_retries=0)
-        time.sleep(1)
+        time.sleep(sleep_time)
