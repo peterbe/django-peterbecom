@@ -1174,7 +1174,6 @@ def blogcomments(request):
                 else:
                     base_qs = base_qs.filter(blogitem=search_blogitem)
                 search = blogitem_regex.sub("", search).strip()
-
         for key, value in name_or_email_regex.findall(search):
             if key == "name":
                 base_qs = base_qs.filter(name__icontains=value)
@@ -1192,6 +1191,14 @@ def blogcomments(request):
             search = highlighted_regex.sub("", search).strip()
 
         for term in search.split():
+            blogcomment_oid = get_local_comment_url_oid(term)
+            if blogcomment_oid:
+                for search_blogcomment in BlogComment.objects.filter(
+                    oid=blogcomment_oid
+                ):
+                    base_qs = base_qs.filter(oid=search_blogcomment.oid)
+                search = search.replace(term, "")
+
             blogitem_oid = get_local_url_oid(term)
             if blogitem_oid:
                 for search_blogitem in BlogItem.objects.filter(oid=blogitem_oid):
@@ -1294,6 +1301,21 @@ def get_local_url_oid(search):
     ):
         parsed = urlparse(search)
         return parsed.path.split("/plog/")[1]
+
+
+def get_local_comment_url_oid(search):
+    if not search:
+        return
+
+    if search.startswith("/plog/") and " " not in search and "/comment/" in search:
+        return search.split("/comment/")[1].split("?")[0].split("#")[0]
+
+    if (
+        search.startswith("https://www.peterbe.com/plog/")
+        or search.startswith("http://localhost:3000/plog/")
+    ) and "/comment/" in search:
+        parsed = urlparse(search)
+        return parsed.path.split("/comment/")[1]
 
 
 @api_superuser_required
