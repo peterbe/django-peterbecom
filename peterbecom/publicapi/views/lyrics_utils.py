@@ -84,11 +84,10 @@ def refresh_song_cache(
     keys = cache.keys("lyrics_song_*")
     print(len(keys), "keys")
 
-    GET_SONG_TTL_SECONDS = 60 * 60 * 24 * 7 * 8
     print("TOTAL/MAX TTL:", s_print(GET_SONG_TTL_SECONDS))
 
     key_age = []
-    for key in random.sample(keys, random_sample_size):
+    for key in random.sample(keys, min(random_sample_size, len(keys))):
         for song_id in re.findall(r"lyrics_song_(\d+)", key):
             age_left = cache.ttl(key)
             key_age.append((age_left, key, song_id))
@@ -97,7 +96,7 @@ def refresh_song_cache(
     for age_left, key, song_id in key_age:
         percent_left = 100 * age_left / GET_SONG_TTL_SECONDS
 
-        print(key.ljust(20), s_print(age_left), f"{percent_left:1f}% left")
+        print(key.ljust(20), s_print(age_left), f"{percent_left:.1f}% left")
         if percent_left < min_percent_left:
             refresh_ids.append((age_left, key, song_id))
             if len(refresh_ids) >= max_refresh_count:
@@ -109,6 +108,13 @@ def refresh_song_cache(
         print(f"Max {max_refresh_count} to refresh this time.")
 
     for i, (age, _, song_id) in enumerate(refresh_ids[:max_refresh_count]):
-        print("Refreshing song_id", song_id)
-        get_song(int(song_id), refresh_cache=True, request_retries=0)
+        print(i + 1, "Refreshing song_id", song_id)
+        song = get_song(int(song_id), refresh_cache=True, request_retries=0)
+        print(
+            "Refreshed",
+            repr(song["song"]["name"]),
+            "by",
+            repr(song["song"]["artist"]["name"]),
+        )
         time.sleep(sleep_time)
+        print()
