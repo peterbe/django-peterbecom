@@ -14,7 +14,7 @@ from elasticsearch_dsl import Q, query
 
 from peterbecom.base.models import SearchResult
 from peterbecom.homepage.utils import STOPWORDS, split_search
-from peterbecom.plog.models import BlogItem
+from peterbecom.plog.models import BlogItem, SearchTerm
 from peterbecom.plog.search import BlogCommentDoc, BlogItemDoc, SearchTermDoc
 from peterbecom.publicapi.forms import SearchForm
 
@@ -290,6 +290,65 @@ def _typeahead(terms, size):
         "meta": meta,
         "results": results,
         "suggestions": all_suggestions,
+    }
+
+
+@cache_control(max_age=settings.DEBUG and 6 or 60 * 60 * 12, public=True)
+def typeahead_pg(request):
+    q = request.GET.get("q", "")
+    if q.endswith("/") and len(q) > 1:
+        q = q[:-1]
+    if not q:
+        return http.JsonResponse({"error": "Missing 'q'"}, status=400)
+    if len(q) > 75:  # Arbitrary limit
+        return http.JsonResponse({"error": "Too long"}, status=400)
+    try:
+        size = int(request.GET.get("n", 8))
+        if size > 20:  # Arbitrary limit
+            return http.JsonResponse({"error": "'n' too big"}, status=400)
+    except ValueError:
+        return http.JsonResponse({"error": "Invalid 'n'"}, status=400)
+
+    result = _typeahead_pg(q, size)
+    response = http.JsonResponse(
+        {
+            "results": result["results"],
+            "meta": result["meta"],
+        }
+    )
+    if len(q) < 5:
+        patch_cache_control(response, public=True, max_age=60 + 60 * (5 - len(q)))
+    return response
+
+
+def _typeahead_pg(term: str, size: int):
+    assert term
+    query = SearchTerm.objects.filter(term__startswith=term.lower())
+
+    query = query.order_by("-popularity")[:size]
+
+    results = []
+    t0 = time.time()
+    for term in query.values_list("term", flat=True):
+        results.append(
+            {
+                "term": term,
+                "highlights": [term.replace(term, f"<mark>{term}</mark>")],
+            }
+        )
+
+    t1 = time.time()
+
+    if len(results) < size:
+        count = len(results)
+    else:
+        count = query.count()
+
+    meta = {"found": count, "took": t1 - t0}
+
+    return {
+        "meta": meta,
+        "results": results,
     }
 
 

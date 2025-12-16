@@ -13,9 +13,10 @@ import bleach
 from cachetools import TTLCache, cached
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.indexes import GinIndex
 from django.core.cache import cache
 from django.db import models, transaction
-from django.db.models import Count
+from django.db.models import Count, Max
 from django.db.models.signals import post_delete, post_save, pre_delete, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -65,6 +66,23 @@ class Category(models.Model):
 @receiver(post_delete, sender=Category)
 def purge_get_category_id_name_map(sender, instance, **kwargs):
     Category.get_category_id_name_map.cache_clear()
+
+
+class SearchTerm(models.Model):
+    term = models.CharField(max_length=100, db_index=True)
+    popularity = models.FloatField(default=0.0)
+    add_date = models.DateTimeField(auto_now=True)
+    index_version = models.IntegerField(default=0)
+
+    class Meta:
+        unique_together = ("term", "index_version")
+        indexes = [
+            GinIndex(
+                name="plog_searchterm_term_gin_idx",
+                fields=["term"],
+                opclasses=["gin_trgm_ops"],
+            ),
+        ]
 
 
 def _upload_path_tagged(tag, instance, filename):
@@ -307,6 +325,7 @@ class BlogItem(models.Model):
 
         def getter():
             for term, popularities in search_terms.items():
+                print(dict(term=term, popularities=popularities))
                 yield SearchTermDoc(popularity=sum(popularities), term=term)
 
         es = connections.get_connection()
@@ -337,6 +356,69 @@ class BlogItem(models.Model):
 
         t1 = time.time()
         return count, t1 - t0, index_name
+
+    @classmethod
+    def index_all_search_terms_pg(cls, verbose=False):
+        query_set = cls._get_indexing_queryset()
+        t0 = time.time()
+        count = 0
+        search_terms = defaultdict(list)
+        for title, popularity, keywords, text in query_set.values_list(
+            "title", "popularity", "proper_keywords", "text"
+        ):
+            count += 1
+            for search_term in generate_search_terms(title):
+                p = popularity or 0.0
+                # The longer it is the lower the popularity score
+                length = len(search_term.split())
+                adjusted_popularity = p - max(0, p * 0.01 * length)
+                search_terms[search_term].append(adjusted_popularity)
+
+            for keyword in keywords:
+                # Some keywords are NOT present in the title or text.
+                # That means if we suggested it and the user proceeds to search
+                # it might not find anything.
+                if re.findall(rf"\b{re.escape(keyword)}\b", text, re.I) or re.findall(
+                    rf"\b{re.escape(keyword)}\b", title, re.I
+                ):
+                    p = popularity or 0.0
+                    # Reduce it by 10% to make it ever so slightly less important
+                    # that the term as it's derived from a title.
+                    # A lot of keywords aren't actually present in the title,
+                    # so it could be negatively surprising if the word works but
+                    # only works because it's deep in the body.
+                    search_terms[keyword.lower()].append(max(0, p * 0.9))
+
+        current_index_version = (
+            SearchTerm.objects.aggregate(Max("index_version"))["index_version__max"]
+            or 0
+        )
+        index_version = current_index_version + 1
+
+        report_every = 100
+        count = 0
+
+        bulk: list[SearchTerm] = []
+        for term, popularities in search_terms.items():
+            bulk.append(
+                SearchTerm(
+                    term=term, popularity=sum(popularities), index_version=index_version
+                )
+            )
+            count += 1
+            if verbose and not count % report_every:
+                print(f"{count:,}")
+
+        SearchTerm.objects.bulk_create(bulk)
+
+        SearchTerm.objects.filter(index_version__lt=index_version).delete()
+
+        t1 = time.time()
+        print(
+            f"Bulk inserted {count:,} search terms in {t1 - t0:.2f} seconds. "
+            f"Index version: {index_version}"
+        )
+        return count, t1 - t0, index_version
 
 
 class BlogItemTotalHits(models.Model):
