@@ -89,12 +89,9 @@ def test_typeahead_happy_path(client):
         display_format="markdown",
         text="Hello *world*\n<!--split-->Second part",
     )
-    count, took, index_name = BlogItem.index_all_search_terms()
+    count, took, _ = BlogItem.index_all_search_terms()
     assert count
     assert took > 0.0
-    es = connections.get_connection()
-    while es.count(index=index_name)["count"] < 1:
-        time.sleep(0.5)
 
     url = reverse("publicapi:typeahead")
     response = client.get(url, {"q": "h"})

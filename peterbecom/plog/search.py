@@ -98,23 +98,6 @@ class BlogCommentDoc(Document):
             return timestamped(name or dj_settings.ES_BLOG_COMMENT_INDEX)
 
 
-class SearchTermDoc(Document):
-    term = Text(
-        required=True,
-        analyzer=search_term_analyzer,
-        term_vector="with_positions_offsets",
-    )
-    popularity = Float()
-
-    class Index:
-        name = timestamped(dj_settings.ES_SEARCH_TERM_INDEX)
-        settings = dj_settings.ES_SEARCH_TERM_INDEX_SETTINGS
-
-        @classmethod
-        def get_refreshed_name(cls, name=None):
-            return timestamped(name or dj_settings.ES_SEARCH_TERM_INDEX)
-
-
 def swap_alias(connection, index_name, alias):
     assert index_name.startswith(alias + "_")
     alias_updates = [

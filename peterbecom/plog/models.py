@@ -4,6 +4,7 @@ import hashlib
 import os
 import random
 import re
+import string
 import time
 import unicodedata
 import uuid
@@ -13,9 +14,10 @@ import bleach
 from cachetools import TTLCache, cached
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.indexes import GinIndex
 from django.core.cache import cache
 from django.db import models, transaction
-from django.db.models import Count
+from django.db.models import Count, Max
 from django.db.models.signals import post_delete, post_save, pre_delete, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -30,7 +32,6 @@ from peterbecom.base.utils import generate_search_terms
 from peterbecom.plog.search import (
     BlogCommentDoc,
     BlogItemDoc,
-    SearchTermDoc,
     swap_alias,
 )
 
@@ -65,6 +66,23 @@ class Category(models.Model):
 @receiver(post_delete, sender=Category)
 def purge_get_category_id_name_map(sender, instance, **kwargs):
     Category.get_category_id_name_map.cache_clear()
+
+
+class SearchTerm(models.Model):
+    term = models.CharField(max_length=100, db_index=True)
+    popularity = models.FloatField(default=0.0)
+    add_date = models.DateTimeField(auto_now=True)
+    index_version = models.IntegerField(default=0)
+
+    class Meta:
+        unique_together = ("term", "index_version")
+        indexes = [
+            GinIndex(
+                name="plog_searchterm_term_gin_idx",
+                fields=["term"],
+                opclasses=["gin_trgm_ops"],
+            ),
+        ]
 
 
 def _upload_path_tagged(tag, instance, filename):
@@ -284,6 +302,8 @@ class BlogItem(models.Model):
         ):
             count += 1
             for search_term in generate_search_terms(title):
+                if len(search_term) <= 1 and search_term in string.ascii_letters:
+                    continue
                 p = popularity or 0.0
                 # The longer it is the lower the popularity score
                 length = len(search_term.split())
@@ -291,6 +311,8 @@ class BlogItem(models.Model):
                 search_terms[search_term].append(adjusted_popularity)
 
             for keyword in keywords:
+                if len(keyword) <= 1 and keyword in string.ascii_letters:
+                    continue
                 # Some keywords are NOT present in the title or text.
                 # That means if we suggested it and the user proceeds to search
                 # it might not find anything.
@@ -305,38 +327,38 @@ class BlogItem(models.Model):
                     # only works because it's deep in the body.
                     search_terms[keyword.lower()].append(max(0, p * 0.9))
 
-        def getter():
-            for term, popularities in search_terms.items():
-                yield SearchTermDoc(popularity=sum(popularities), term=term)
+        current_index_version = (
+            SearchTerm.objects.aggregate(Max("index_version"))["index_version__max"]
+            or 0
+        )
+        index_version = current_index_version + 1
 
-        es = connections.get_connection()
         report_every = 100
         count = 0
-        # This is necessary so that the `SarchTermDoc.Index.name` isn't
-        # what it was when the class was created, which was at startup time.
-        # Normally, operations that involve indexing is happened immediately
-        # after having started the Python process. But if this code is run
-        # multiple times, if we didn't refresh the name, we'd be trying to
-        # create the same index over and over and its name would be that
-        # which gets set when the code imports/loads the first time.
-        index_name = SearchTermDoc.Index.get_refreshed_name()
-        SearchTermDoc._index._name = index_name
 
-        SearchTermDoc._index.create()
-        for success, doc in parallel_bulk(
-            es,
-            (m.to_dict(True) for m in getter()),
-        ):
-            if not success:
-                print("NOT SUCCESS!", doc)
+        bulk: list[SearchTerm] = []
+        for term, popularities in search_terms.items():
+            if len(term) < 2:
+                continue
+            bulk.append(
+                SearchTerm(
+                    term=term, popularity=sum(popularities), index_version=index_version
+                )
+            )
             count += 1
             if verbose and not count % report_every:
                 print(f"{count:,}")
 
-        swap_alias(es, index_name, settings.ES_SEARCH_TERM_INDEX)
+        SearchTerm.objects.bulk_create(bulk)
+
+        SearchTerm.objects.filter(index_version__lt=index_version).delete()
 
         t1 = time.time()
-        return count, t1 - t0, index_name
+        print(
+            f"Bulk inserted {count:,} search terms in {t1 - t0:.2f} seconds. "
+            f"Index version: {index_version}"
+        )
+        return count, t1 - t0, index_version
 
 
 class BlogItemTotalHits(models.Model):

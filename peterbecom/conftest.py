@@ -11,6 +11,19 @@ TEST_ES_BLOG_ITEM_INDEX = "test_blog_items"
 TEST_ES_SEARCH_TERM_INDEX = "test_search_terms"
 
 
+# @pytest.fixture(scope="session", autouse=True)
+# def setup_custom_pg_stuff(django_db_setup, django_db_blocker):
+#     with django_db_blocker.unblock():
+#         with connection.cursor() as cursor:
+#             print("HELLO " * 100)
+#             cursor.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm")
+
+
+# @pytest.fixture(autouse=True)
+# def enable_db_access_for_all_tests(db):
+#     pass
+
+
 @pytest.fixture(autouse=True)
 def force_elasticsearch_test_index(settings):
     settings.ES_BLOG_ITEM_INDEX = TEST_ES_BLOG_ITEM_INDEX
