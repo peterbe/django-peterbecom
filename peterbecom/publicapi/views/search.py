@@ -17,32 +17,10 @@ from elasticsearch_dsl import Q, query
 from peterbecom.base.models import SearchResult
 from peterbecom.homepage.utils import STOPWORDS, split_search
 from peterbecom.plog.models import BlogItem, SearchTerm
-from peterbecom.plog.search import BlogCommentDoc, BlogItemDoc, SearchTermDoc
+from peterbecom.plog.search import BlogCommentDoc, BlogItemDoc
 from peterbecom.publicapi.forms import SearchForm
 
 HIGHLIGHT_TYPE = "fvh"
-
-
-def _get_highlights(hit, key, massage=False):
-    highlights = []
-    try:
-        highlight = hit.meta.highlight
-        for fragment in getattr(highlight, key, []):
-            if massage:
-                highlights.append(_massage_fragment(fragment))
-            else:
-                highlights.append(_clean_fragment_html(fragment))
-    except AttributeError:
-        print(f"No highlight called {key!r}")
-        # Happens when there exists no highlights for this key.
-        # Most likely it's when no indexer was used to match on it.
-        # For example, if you...
-        #
-        #   Q("match", title={"query": query}) | Q("match", content={"query": query})
-        #
-        # But it never used the match on `content`.
-        pass
-    return highlights
 
 
 @cache_control(max_age=settings.DEBUG and 6 or 60 * 60 * 12, public=True)
@@ -61,11 +39,7 @@ def typeahead(request):
     except ValueError:
         return http.JsonResponse({"error": "Invalid 'n'"}, status=400)
 
-    pg = request.GET.get("pg") and request.GET.get("pg") not in ("no", "0", "")
-    if pg:
-        result = _typeahead_pg(q, size)
-    else:
-        result = _typeahead([q], size)
+    result = _typeahead(q, size)
     response = http.JsonResponse(
         {
             "results": result["results"],
@@ -77,65 +51,7 @@ def typeahead(request):
     return response
 
 
-def _typeahead(terms, size):
-    assert terms
-    all_suggestions = []
-    search_query = SearchTermDoc.search(index=settings.ES_SEARCH_TERM_INDEX)
-
-    qs = []
-
-    assert isinstance(terms, list), type(terms)
-    for term in terms:
-        if _is_multiword_query(term):
-            qs.append(
-                Q(
-                    "match_phrase_prefix",
-                    term={"query": term, "boost": 10},
-                )
-            )
-        qs.append(Q("match_bool_prefix", term={"query": term, "boost": 5}))
-        if len(term) > 3:
-            qs.append(
-                Q("fuzzy", term={"value": term, "boost": 0.1, "fuzziness": "AUTO"})
-            )
-
-    query = reduce(or_, qs)
-
-    search_query = search_query.query(query)
-
-    search_query = _add_function_score(search_query, query)
-
-    search_query = search_query[:size]
-
-    search_query = search_query.highlight_options(
-        pre_tags=["<mark>"], post_tags=["</mark>"]
-    )
-    search_query = search_query.highlight(
-        "term",
-        number_of_fragments=1,
-        type=HIGHLIGHT_TYPE,
-    )
-
-    response = search_query.execute()
-    results = []
-    for hit in response.hits:
-        highlights = _get_highlights(hit, "term")
-        results.append(
-            {
-                "term": hit.term,
-                "highlights": highlights,
-            }
-        )
-    meta = {"found": response.hits.total.value, "took": response.took}
-
-    return {
-        "meta": meta,
-        "results": results,
-        "suggestions": all_suggestions,
-    }
-
-
-def _typeahead_pg(term: str, size: int):
+def _typeahead(term: str, size: int):
     term = term.strip()
     assert term
 

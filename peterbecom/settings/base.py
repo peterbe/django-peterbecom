@@ -275,7 +275,6 @@ ES_SEARCH_TERM_INDEX = "search_terms"
 _ES_INDEX_SETTINGS = {"number_of_shards": 1, "number_of_replicas": 0}
 ES_BLOG_ITEM_INDEX_SETTINGS = _ES_INDEX_SETTINGS
 ES_BLOG_COMMENT_INDEX_SETTINGS = _ES_INDEX_SETTINGS
-ES_SEARCH_TERM_INDEX_SETTINGS = _ES_INDEX_SETTINGS
 
 ES_CONNECTIONS = {"default": {"hosts": ["http://localhost:9200"]}}
 

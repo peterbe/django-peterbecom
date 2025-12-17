@@ -116,12 +116,6 @@ def reindex_search_terms():
         f"in {took:.1f} seconds ({timezone.now()})"
     )
 
-    count, took, index_name = BlogItem.index_all_search_terms_pg()
-    print(
-        f"Indexed {count:,} search terms (PG) into {index_name} "
-        f"in {took:.1f} seconds ({timezone.now()})"
-    )
-
 
 @periodic_task(
     # Every hour in local dev

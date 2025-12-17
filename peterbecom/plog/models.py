@@ -32,7 +32,6 @@ from peterbecom.base.utils import generate_search_terms
 from peterbecom.plog.search import (
     BlogCommentDoc,
     BlogItemDoc,
-    SearchTermDoc,
     swap_alias,
 )
 
@@ -294,72 +293,6 @@ class BlogItem(models.Model):
 
     @classmethod
     def index_all_search_terms(cls, verbose=False):
-        query_set = cls._get_indexing_queryset()
-        t0 = time.time()
-        count = 0
-        search_terms = defaultdict(list)
-        for title, popularity, keywords, text in query_set.values_list(
-            "title", "popularity", "proper_keywords", "text"
-        ):
-            count += 1
-            for search_term in generate_search_terms(title):
-                p = popularity or 0.0
-                # The longer it is the lower the popularity score
-                length = len(search_term.split())
-                adjusted_popularity = p - max(0, p * 0.01 * length)
-                search_terms[search_term].append(adjusted_popularity)
-
-            for keyword in keywords:
-                # Some keywords are NOT present in the title or text.
-                # That means if we suggested it and the user proceeds to search
-                # it might not find anything.
-                if re.findall(rf"\b{re.escape(keyword)}\b", text, re.I) or re.findall(
-                    rf"\b{re.escape(keyword)}\b", title, re.I
-                ):
-                    p = popularity or 0.0
-                    # Reduce it by 10% to make it ever so slightly less important
-                    # that the term as it's derived from a title.
-                    # A lot of keywords aren't actually present in the title,
-                    # so it could be negatively surprising if the word works but
-                    # only works because it's deep in the body.
-                    search_terms[keyword.lower()].append(max(0, p * 0.9))
-
-        def getter():
-            for term, popularities in search_terms.items():
-                print(dict(term=term, popularities=popularities))
-                yield SearchTermDoc(popularity=sum(popularities), term=term)
-
-        es = connections.get_connection()
-        report_every = 100
-        count = 0
-        # This is necessary so that the `SarchTermDoc.Index.name` isn't
-        # what it was when the class was created, which was at startup time.
-        # Normally, operations that involve indexing is happened immediately
-        # after having started the Python process. But if this code is run
-        # multiple times, if we didn't refresh the name, we'd be trying to
-        # create the same index over and over and its name would be that
-        # which gets set when the code imports/loads the first time.
-        index_name = SearchTermDoc.Index.get_refreshed_name()
-        SearchTermDoc._index._name = index_name
-
-        SearchTermDoc._index.create()
-        for success, doc in parallel_bulk(
-            es,
-            (m.to_dict(True) for m in getter()),
-        ):
-            if not success:
-                print("NOT SUCCESS!", doc)
-            count += 1
-            if verbose and not count % report_every:
-                print(f"{count:,}")
-
-        swap_alias(es, index_name, settings.ES_SEARCH_TERM_INDEX)
-
-        t1 = time.time()
-        return count, t1 - t0, index_name
-
-    @classmethod
-    def index_all_search_terms_pg(cls, verbose=False):
         query_set = cls._get_indexing_queryset()
         t0 = time.time()
         count = 0
