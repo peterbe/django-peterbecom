@@ -38,7 +38,6 @@ urlpatterns = [
     ),
     path("plog/", blogitems.blogitems, name="blogitems"),
     path("typeahead", search.typeahead, name="typeahead"),
-    path("typeahead_pg", search.typeahead_pg, name="typeahead_pg"),
     path("lyrics/search", lyrics.search, name="lyrics_search"),
     path("lyrics/song", lyrics.song, name="lyrics_song"),
     path("lyrics/featureflag", lyrics.feature_flag, name="lyrics_feature_flag"),

@@ -4,6 +4,7 @@ import hashlib
 import os
 import random
 import re
+import string
 import time
 import unicodedata
 import uuid
@@ -368,6 +369,8 @@ class BlogItem(models.Model):
         ):
             count += 1
             for search_term in generate_search_terms(title):
+                if len(search_term) <= 1 and search_term in string.ascii_letters:
+                    continue
                 p = popularity or 0.0
                 # The longer it is the lower the popularity score
                 length = len(search_term.split())
@@ -375,6 +378,8 @@ class BlogItem(models.Model):
                 search_terms[search_term].append(adjusted_popularity)
 
             for keyword in keywords:
+                if len(keyword) <= 1 and keyword in string.ascii_letters:
+                    continue
                 # Some keywords are NOT present in the title or text.
                 # That means if we suggested it and the user proceeds to search
                 # it might not find anything.
@@ -400,6 +405,8 @@ class BlogItem(models.Model):
 
         bulk: list[SearchTerm] = []
         for term, popularities in search_terms.items():
+            if len(term) < 2:
+                continue
             bulk.append(
                 SearchTerm(
                     term=term, popularity=sum(popularities), index_version=index_version
