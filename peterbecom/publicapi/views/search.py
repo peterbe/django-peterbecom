@@ -164,34 +164,30 @@ def _typeahead_pg(term: str, size: int):
             }
         )
 
-    def html_escape(s: str) -> str:
-        return (
-            s.replace("&", "&amp;")
-            .replace("<", "&lt;")
-            .replace(">", "&gt;")
-            .replace('"', "&quot;")
-            .replace("'", "&#39;")
-        )
-
     if not results and len(term) >= 3:
-        qs = base_qs.annotate(
-            similarity=TrigramSimilarity("term", term),
-        ).filter(similarity__gt=0.1)
+        qs = base_qs.filter(term__trigram_similar=term.lower())
         qs = qs.values_list("term", flat=True).order_by("-popularity")[:size]
         for found_term in qs:
-            highlights_parts: list[str] = []
-            for word in found_term.split():
-                if _edit_distance(term, word) <= 2:
-                    highlights_parts.append(f"<mark>{html_escape(word)}</mark>")
-                else:
-                    highlights_parts.append(word)
-
             results.append(
                 {
                     "term": found_term,
-                    "highlights": [" ".join(highlights_parts)],
+                    "highlights": [_highlight_fuzzy_matches(term, found_term)],
                 }
             )
+
+        if not results:
+            qs = base_qs.annotate(
+                similarity=TrigramSimilarity("term", term),
+            ).filter(similarity__gt=0.1)
+            qs = qs.values_list("term", flat=True).order_by("-popularity")[:size]
+            for found_term in qs:
+                print("   FUZZY FOUND:", found_term)
+                results.append(
+                    {
+                        "term": found_term,
+                        "highlights": [_highlight_fuzzy_matches(term, found_term)],
+                    }
+                )
 
     t1 = time.time()
 
@@ -206,6 +202,26 @@ def _typeahead_pg(term: str, size: int):
         "meta": meta,
         "results": results,
     }
+
+
+def _highlight_fuzzy_matches(term: str, found_term: str) -> str:
+    def html_escape(s: str) -> str:
+        return (
+            s.replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace('"', "&quot;")
+            .replace("'", "&#39;")
+        )
+
+    highlights_parts: list[str] = []
+    for word in found_term.split():
+        if _edit_distance(term, word) <= 2:
+            highlights_parts.append(f"<mark>{html_escape(word)}</mark>")
+        else:
+            highlights_parts.append(word)
+
+    return " ".join(highlights_parts)
 
 
 def _edit_distance(s1: str, s2: str) -> int:
