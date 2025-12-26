@@ -97,7 +97,6 @@ def _typeahead(term: str, size: int):
             ).filter(similarity__gt=0.1)
             qs = qs.values_list("term", flat=True).order_by("-popularity")[:size]
             for found_term in qs:
-                print("   FUZZY FOUND:", found_term)
                 results.append(
                     {
                         "term": found_term,
