@@ -15,6 +15,7 @@ from cachetools import TTLCache, cached
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.search import SearchVector, SearchVectorField
 from django.core.cache import cache
 from django.db import models, transaction
 from django.db.models import Count, Max
@@ -80,6 +81,35 @@ class SearchTerm(models.Model):
             GinIndex(
                 name="plog_searchterm_term_gin_idx",
                 fields=["term"],
+                opclasses=["gin_trgm_ops"],
+            ),
+        ]
+
+
+class SearchDoc(models.Model):
+    oid = models.CharField(max_length=100)
+    title = models.CharField(max_length=200)
+    title_search_vector = SearchVectorField("title")
+    text = models.TextField()
+    text_search_vector = SearchVectorField("text")
+    popularity = models.FloatField(default=0.0)
+    date = models.DateTimeField()
+    keywords = ArrayField(models.CharField(max_length=100), default=list)
+    categories = ArrayField(models.CharField(max_length=100), default=list)
+
+    # meta data
+    add_date = models.DateTimeField(auto_now=True)
+    source_modify_date = models.DateTimeField()
+    index_version = models.IntegerField(default=0)
+
+    class Meta:
+        unique_together = ("oid", "index_version")
+        indexes = [
+            GinIndex(fields=["title_search_vector"]),
+            GinIndex(fields=["text_search_vector"]),
+            GinIndex(
+                name="plog_searchdoc_title_gin_idx",
+                fields=["title"],
                 opclasses=["gin_trgm_ops"],
             ),
         ]
@@ -286,6 +316,57 @@ class BlogItem(models.Model):
 
         t1 = time.time()
         return count, t1 - t0, index_name
+
+    @classmethod
+    def index_all_blogitems_pg(cls, ids_only=None, verbose=False):
+        iterator = cls._get_indexing_queryset()
+        t0 = time.time()
+        if ids_only:
+            iterator = iterator.filter(id__in=ids_only)
+        category_names = dict((x.id, x.name) for x in Category.objects.all())
+        categories = defaultdict(list)
+        for e in BlogItem.categories.through.objects.all():
+            categories[e.blogitem_id].append(category_names[e.category_id])
+
+        report_every = 100
+        count = 0
+
+        current_index_version = (
+            SearchDoc.objects.aggregate(Max("index_version"))["index_version__max"] or 0
+        )
+        index_version = current_index_version + 1
+
+        bulk: list[SearchDoc] = []
+        for m in iterator:
+            to_search_doc = m.to_search_doc(all_categories=categories)
+            bulk.append(
+                SearchDoc(
+                    oid=to_search_doc["oid"],
+                    title=to_search_doc["title"],
+                    date=to_search_doc["pub_date"],
+                    text=to_search_doc["text"],
+                    keywords=to_search_doc["keywords"],
+                    popularity=to_search_doc["popularity"] or 0.0,
+                    categories=to_search_doc["categories"],
+                    index_version=index_version,
+                    source_modify_date=m.modify_date,
+                )
+            )
+            count += 1
+            if verbose and not count % report_every:
+                print(f"{count:,}")
+
+        SearchDoc.objects.bulk_create(bulk)
+
+        SearchDoc.objects.filter(index_version__lt=index_version).delete()
+
+        SearchDoc.objects.all().update(
+            title_search_vector=SearchVector("title", config="english"),
+            text_search_vector=SearchVector("text", config="english"),
+        )
+
+        t1 = time.time()
+        return count, t1 - t0, index_version
 
     @classmethod
     def _get_indexing_queryset(cls):
