@@ -26,7 +26,6 @@ from sorl.thumbnail import ImageField
 
 from peterbecom.base.geo import ip_to_city
 from peterbecom.base.models import CDNPurgeURL
-from peterbecom.base.search import es_retry
 from peterbecom.base.utils import generate_search_terms
 
 from . import utils
@@ -250,12 +249,12 @@ class BlogItem(models.Model):
             "id": self.id,
             "oid": self.oid,
             "title": self.title,
-            # "title_autocomplete": self.title,
             "popularity": self.popularity or 0.0,
             "text": cleaned,
-            "pub_date": self.pub_date,
+            "date": self.pub_date,
             "categories": categories,
             "keywords": self.proper_keywords,
+            "modify_date": self.modify_date,
         }
 
         return doc
@@ -295,13 +294,13 @@ class BlogItem(models.Model):
                 SearchDoc(
                     oid=to_search_doc["oid"],
                     title=to_search_doc["title"],
-                    date=to_search_doc["pub_date"],
+                    date=to_search_doc["date"],
                     text=to_search_doc["text"],
                     keywords=to_search_doc["keywords"],
                     popularity=to_search_doc["popularity"] or 0.0,
                     categories=to_search_doc["categories"],
                     index_version=index_version,
-                    source_modify_date=m.modify_date,
+                    source_modify_date=to_search_doc["modify_date"],
                 )
             )
             count += 1
@@ -752,24 +751,42 @@ def invalidate_cdn_urls(sender, instance, **kwargs):
 
 
 @receiver(models.signals.post_save, sender=BlogItem)
-@receiver(models.signals.post_save, sender=BlogComment)
-def update_es(sender, instance, **kwargs):
-    if sender is BlogComment:
-        if not instance.approved:
-            return
+def update_search_doc(sender, instance, **kwargs):
     if sender is BlogItem:
         if instance.archived or instance.pub_date > timezone.now():
             return
 
-    doc = instance.to_search()
-    es_retry(doc.save)
+        as_search_doc = instance.to_search_doc()
+        updated = SearchDoc.objects.filter(oid=instance.oid).update(
+            title=as_search_doc["title"],
+            date=as_search_doc["date"],
+            text=as_search_doc["text"],
+            keywords=as_search_doc["keywords"],
+            popularity=as_search_doc["popularity"],
+            categories=as_search_doc["categories"],
+            source_modify_date=as_search_doc["modify_date"],
+        )
+        if not updated:
+            current_index_version = (
+                SearchTerm.objects.aggregate(Max("index_version"))["index_version__max"]
+                or 0
+            )
+            SearchDoc.objects.create(
+                oid=as_search_doc["oid"],
+                title=as_search_doc["title"],
+                date=as_search_doc["date"],
+                text=as_search_doc["text"],
+                keywords=as_search_doc["keywords"],
+                popularity=as_search_doc["popularity"],
+                categories=as_search_doc["categories"],
+                source_modify_date=as_search_doc["modify_date"],
+                index_version=current_index_version,
+            )
 
 
 @receiver(models.signals.pre_delete, sender=BlogItem)
-@receiver(models.signals.pre_delete, sender=BlogComment)
-def delete_from_es(sender, instance, **kwargs):
-    doc = instance.to_search()
-    es_retry(doc.delete, _ignore_not_found=True)
+def delete_from_search_doc(sender, instance, **kwargs):
+    SearchDoc.objects.filter(oid=instance.oid).delete()
 
 
 class SpamCommentPattern(models.Model):

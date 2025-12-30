@@ -2,61 +2,6 @@ import mock
 import pytest
 import requests_mock
 from django.core.cache import cache
-from elasticsearch_dsl.connections import connections
-
-from peterbecom.plog.search import BlogCommentDoc, BlogItemDoc, swap_alias
-
-TEST_ES_BLOG_COMMENT_INDEX = "test_blog_comments"
-TEST_ES_BLOG_ITEM_INDEX = "test_blog_items"
-TEST_ES_SEARCH_TERM_INDEX = "test_search_terms"
-
-
-# @pytest.fixture(scope="session", autouse=True)
-# def setup_custom_pg_stuff(django_db_setup, django_db_blocker):
-#     with django_db_blocker.unblock():
-#         with connection.cursor() as cursor:
-#             print("HELLO " * 100)
-#             cursor.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm")
-
-
-# @pytest.fixture(autouse=True)
-# def enable_db_access_for_all_tests(db):
-#     pass
-
-
-@pytest.fixture(autouse=True)
-def force_elasticsearch_test_index(settings):
-    settings.ES_BLOG_ITEM_INDEX = TEST_ES_BLOG_ITEM_INDEX
-    settings.ES_BLOG_COMMENT_INDEX = TEST_ES_BLOG_COMMENT_INDEX
-    settings.ES_SEARCH_TERM_INDEX = TEST_ES_SEARCH_TERM_INDEX
-
-
-@pytest.fixture(scope="session", autouse=True)
-def assert_elasticsearch_index():
-    es = connections.get_connection()
-
-    blog_item_index = BlogItemDoc._index
-    blog_item_index._name = BlogItemDoc.Index.get_refreshed_name(
-        TEST_ES_BLOG_ITEM_INDEX
-    )
-    blog_item_index.create()
-    swap_alias(es, blog_item_index._name, TEST_ES_BLOG_ITEM_INDEX)
-
-    blog_comment_index = BlogCommentDoc._index
-    blog_comment_index._name = BlogCommentDoc.Index.get_refreshed_name(
-        TEST_ES_BLOG_COMMENT_INDEX
-    )
-    blog_comment_index.create()
-    swap_alias(es, blog_comment_index._name, TEST_ES_BLOG_COMMENT_INDEX)
-
-    # The reason SearchTermDoc is not set up here is because it's never
-    # incrementally populated (e.g. new comment => immediately add
-    # it to the index)
-
-    yield
-
-    blog_item_index.delete()
-    blog_comment_index.delete()
 
 
 @pytest.fixture(autouse=True)
