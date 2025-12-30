@@ -32,7 +32,4 @@ ROLLBAR = {
 USE_ES_SYNONYM_FILE_NAME = False
 SETTINGS
 
-# Make sure we're running Elasticsearch
-curl -v http://localhost:9200/
-
 ./bin/run.sh test
