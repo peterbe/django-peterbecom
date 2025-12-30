@@ -6,7 +6,11 @@ from operator import or_
 
 from django import http
 from django.conf import settings
-from django.contrib.postgres.search import TrigramSimilarity
+from django.contrib.postgres.search import (
+    SearchHeadline,
+    SearchQuery,
+    TrigramSimilarity,
+)
 from django.db.models import Q as Q_
 from django.utils import timezone
 from django.utils.cache import patch_cache_control
@@ -16,7 +20,7 @@ from elasticsearch_dsl import Q, query
 
 from peterbecom.base.models import SearchResult
 from peterbecom.homepage.utils import STOPWORDS, split_search
-from peterbecom.plog.models import BlogItem, SearchTerm
+from peterbecom.plog.models import BlogItem, Category, SearchDoc, SearchTerm
 from peterbecom.plog.search import BlogCommentDoc, BlogItemDoc
 from peterbecom.publicapi.forms import SearchForm
 
@@ -190,14 +194,26 @@ def search(request):
         form.cleaned_data["popularity_factor"] or settings.DEFAULT_POPULARITY_FACTOR
     )
     non_stopwords_q = [x for x in q.split() if x.lower() not in STOPWORDS]
-    search_results = _search(
-        q,
-        popularity_factor,
-        boost_mode,
-        debug_search=debug,
-        in_title_only=config.get("in_title"),
-        no_fuzzy=config.get("no_fuzzy"),
-    )
+
+    if q.startswith("pg:"):
+        q = q[3:].strip()  # Temporary
+        search_results = _pg_search(
+            q,
+            popularity_factor,
+            boost_mode,
+            debug_search=debug,
+            in_title_only=config.get("in_title"),
+            no_fuzzy=config.get("no_fuzzy"),
+        )
+    else:
+        search_results = _search(
+            q,
+            popularity_factor,
+            boost_mode,
+            debug_search=debug,
+            in_title_only=config.get("in_title"),
+            no_fuzzy=config.get("no_fuzzy"),
+        )
     context = {
         "q": q,
         "debug": debug,
@@ -230,8 +246,8 @@ def _save_search_result(q, original_q, search_results):
     )
 
 
-LIMIT_BLOG_ITEMS = 30
-LIMIT_BLOG_COMMENTS = 20
+LIMIT_BLOG_ITEMS = 20
+LIMIT_BLOG_COMMENTS = 10
 
 
 def _search(
@@ -516,3 +532,122 @@ def _clean_fragment_html(fragment):
     _html_regex = re.compile(r"<.*?>")
     fragment = _html_regex.sub(replacer, fragment)
     return fragment.replace("</mark> <mark>", " ")
+
+
+def _pg_search(
+    q,
+    popularity_factor,
+    boost_mode,
+    debug_search=False,
+    in_title_only=False,
+    no_fuzzy=False,
+):
+    keyword_search = {}
+    search_times = []
+    if len(q) > 1:
+        _keyword_keys = ("keyword", "keywords", "category", "categories")
+        q, keyword_search = split_search(q, _keyword_keys)
+
+    search_query = SearchDoc.objects.all().order_by("-popularity", "-date")
+
+    if keyword_search.get("keyword"):
+        search_query = search_query.filter(
+            keywords__contains=[keyword_search["keyword"].lower()]
+        )
+
+    if keyword_search.get("category"):
+        # This turns 'python' into 'Python'
+        categories = []
+        for name in Category.objects.filter(
+            name__iexact=keyword_search["category"]
+        ).values_list("name", flat=True):
+            categories.append(name)
+        search_query = search_query.filter(categories__contains=categories)
+
+    search_query = search_query.annotate(
+        title_headline=SearchHeadline(
+            "title",
+            q,
+            start_sel="<mark>",
+            stop_sel="</mark>",
+        ),
+        text_headline=SearchHeadline(
+            "text", q, start_sel="<mark>", stop_sel="</mark>", max_fragments=2
+        ),
+    )
+
+    if _is_multiword_query(q):
+        q_split = q.split()
+        title_search_query = SearchQuery(q_split[0])
+        text_search_query = SearchQuery(q_split[0])
+        for sub_q in q_split[1:]:
+            title_search_query |= SearchQuery(sub_q)
+            text_search_query |= SearchQuery(sub_q)
+    else:
+        title_search_query = SearchQuery(q)
+        text_search_query = SearchQuery(q)
+
+    search_query_by_title = search_query.filter(title_search_vector=title_search_query)
+
+    only = (
+        "id",
+        "oid",
+        "title",
+        "date",
+        "text",
+        "popularity",
+        "categories",
+        "title_headline",
+        "text_headline",
+    )
+
+    t0 = time.time()
+    results = list(search_query_by_title.values(*only)[: LIMIT_BLOG_ITEMS + 1])
+
+    if len(results) > LIMIT_BLOG_ITEMS:
+        count = search_query_by_title.count()
+    else:
+        count = len(results)
+        found_by_title_ids = [r["id"] for r in results]
+
+        if not in_title_only:
+            search_query_by_text = search_query.filter(
+                text_search_vector=text_search_query
+            ).exclude(id__in=found_by_title_ids)
+            text_results = list(search_query_by_text.values(*only)[:LIMIT_BLOG_ITEMS])
+
+            results.extend(text_results)
+            if len(results) > LIMIT_BLOG_ITEMS:
+                count += search_query_by_text.count()
+            else:
+                count += len(results)
+
+    t1 = time.time()
+    search_times.append(("blogitems", t1 - t0))
+
+    documents = []
+    for result in results:
+        title = result["title_headline"]
+        summary = result["text_headline"]
+        document = {
+            "oid": result["oid"],
+            "title": title,
+            "date": result["date"],
+            "summary": summary,
+            "score": 0,
+            "popularity": result["popularity"] or 0.0,
+            "comment": False,
+            "categories": result["categories"],
+        }
+        documents.append(document)
+
+    context = {
+        "keywords": keyword_search,
+        "count_documents": count,
+        "documents": documents,
+        "count_documents_shown": len(documents),
+    }
+    context["search_time"] = sum(x[1] for x in search_times)
+    context["search_times"] = search_times
+
+    return context
