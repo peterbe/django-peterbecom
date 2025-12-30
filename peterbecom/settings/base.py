@@ -264,20 +264,6 @@ AUTH_SIGNOUT_URL = "https://www.peterbe.com/?logged=out"
 
 # CSRF_FAILURE_VIEW = "peterbecom.base.views.csrf_failure"
 
-# ElasticSearch
-
-# ES_BLOG_ITEM_INDEX = config("ES_BLOG_ITEM_INDEX", default="blog_item")
-# ES_BLOG_COMMENT_INDEX = config("ES_BLOG_COMMENT_INDEX", default="blog_comment")
-ES_BLOG_ITEM_INDEX = "blog_items"
-ES_BLOG_COMMENT_INDEX = "blog_comments"
-ES_SEARCH_TERM_INDEX = "search_terms"
-
-_ES_INDEX_SETTINGS = {"number_of_shards": 1, "number_of_replicas": 0}
-ES_BLOG_ITEM_INDEX_SETTINGS = _ES_INDEX_SETTINGS
-ES_BLOG_COMMENT_INDEX_SETTINGS = _ES_INDEX_SETTINGS
-
-ES_CONNECTIONS = {"default": {"hosts": ["http://localhost:9200"]}}
-
 LATEST_PODCAST_CUTOFF_DAYS = 300
 
 MAX_RECENT_COMMENTS = 95

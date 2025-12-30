@@ -5,9 +5,9 @@ name: Django
 
 on:
   push:
-    branches: [master]
+    branches:
+      - master
   pull_request:
-    branches: [master]
 
 permissions:
   contents: read
@@ -17,22 +17,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Configure sysctl limits
-        run: |
-          sudo swapoff -a
-          sudo sysctl -w vm.swappiness=1
-          sudo sysctl -w fs.file-max=262144
-          sudo sysctl -w vm.max_map_count=262144
-
-      - uses: getong/elasticsearch-action@v1.3
-        with:
-          elasticsearch version: "8.16.0"
-          host port: 9200
-          container port: 9200
-          host node port: 9300
-          node port: 9300
-          discovery type: "single-node"
-
       - name: Redis Server in GitHub Actions
         uses: supercharge/redis-github-action@v2
         with:

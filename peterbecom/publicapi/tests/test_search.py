@@ -1,11 +1,8 @@
-import time
-
 import pytest
 from django.urls import reverse
 from django.utils import timezone
-from elasticsearch_dsl.connections import connections
 
-from peterbecom.plog.models import BlogComment, BlogItem, Category
+from peterbecom.plog.models import BlogItem, Category
 
 
 @pytest.mark.django_db
@@ -40,43 +37,6 @@ def test_search_happy_path(client):
     count, took, index_name = BlogItem.index_all_blogitems(verbose=True)
     assert count
     assert took > 0.0
-    es = connections.get_connection()
-    while es.count(index=index_name)["count"] < 1:
-        time.sleep(0.5)
-
-    BlogComment.objects.create(
-        oid="abc123",
-        blogitem=blogitem,
-        parent=None,
-        approved=False,  # Note!
-        auto_approved=False,
-        comment="Bla <bla>",
-        name="John Doe",
-        email="",
-    )
-    BlogComment.objects.create(
-        oid="xyz789",
-        blogitem=blogitem,
-        parent=None,
-        approved=True,  # Note!
-        auto_approved=False,
-        comment="hello underworld",
-        name="Peter B",
-        email="",
-    )
-    count, took, index_name = BlogComment.index_all_blogcomments(verbose=True)
-    assert count
-    assert took > 0.0
-    es = connections.get_connection()
-    while es.count(index=index_name)["count"] < 1:
-        time.sleep(0.5)
-
-    url = reverse("publicapi:search")
-    response = client.get(url, {"q": "hello "})
-    assert response.status_code == 200
-    data = response.json()
-    assert data["q"] == "hello"
-    assert data["results"]["count_documents"] > 0
 
 
 @pytest.mark.django_db
