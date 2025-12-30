@@ -133,18 +133,6 @@ def reindex_blog_items():
 
 
 @periodic_task(
-    # Every day at midnight in production
-    crontab(hour="0", minute="3")
-)
-def reindex_blog_comments():
-    count, took, index_name = BlogComment.index_all_blogcomments()
-    print(
-        f"Indexed {count:,} blog comments into {index_name!r} "
-        f"in {took:.1f} seconds ({timezone.now()})"
-    )
-
-
-@periodic_task(
     # Every minute in local dev
     crontab(minute="*")
     if settings.DEBUG

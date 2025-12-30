@@ -22,19 +22,12 @@ from django.db.models import Count, Max
 from django.db.models.signals import post_delete, post_save, pre_delete, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
-from elasticsearch.helpers import parallel_bulk
-from elasticsearch_dsl.connections import connections
 from sorl.thumbnail import ImageField
 
 from peterbecom.base.geo import ip_to_city
 from peterbecom.base.models import CDNPurgeURL
 from peterbecom.base.search import es_retry
 from peterbecom.base.utils import generate_search_terms
-from peterbecom.plog.search import (
-    BlogCommentDoc,
-    BlogItemDoc,
-    swap_alias,
-)
 
 from . import utils
 from .utils import blog_post_url
@@ -240,10 +233,10 @@ class BlogItem(models.Model):
             raise cls.DoesNotExist("not found")
         return cls.objects.get(pk=value)
 
-    def to_search(self, **kwargs):
-        doc = self.to_search_doc(**kwargs)
-        assert self.id
-        return BlogItemDoc(meta={"id": self.id}, **doc)
+    # def to_search(self, **kwargs):
+    #     doc = self.to_search_doc(**kwargs)
+    #     assert self.id
+    #     return BlogItemDoc(meta={"id": self.id}, **doc)
 
     def to_search_doc(self, **kwargs):
         if "all_categories" in kwargs:
@@ -278,47 +271,6 @@ class BlogItem(models.Model):
 
     @classmethod
     def index_all_blogitems(cls, ids_only=None, verbose=False):
-        iterator = cls._get_indexing_queryset()
-        if ids_only:
-            iterator = iterator.filter(id__in=ids_only)
-        category_names = dict((x.id, x.name) for x in Category.objects.all())
-        categories = defaultdict(list)
-        for e in BlogItem.categories.through.objects.all():
-            categories[e.blogitem_id].append(category_names[e.category_id])
-
-        es = connections.get_connection()
-        report_every = 100
-        count = 0
-
-        # This is necessary so that the `SarchTermDoc.Index.name` isn't
-        # what it was when the class was created, which was at startup time.
-        # Normally, operations that involve indexing is happened immediately
-        # after having started the Python process. But if this code is run
-        # multiple times, if we didn't refresh the name, we'd be trying to
-        # create the same index over and over and its name would be that
-        # which gets set when the code imports/loads the first time.
-        index_name = BlogItemDoc.Index.get_refreshed_name()
-        BlogItemDoc._index._name = index_name
-
-        t0 = time.time()
-        BlogItemDoc._index.create()
-        for success, doc in parallel_bulk(
-            es,
-            (m.to_search(all_categories=categories).to_dict(True) for m in iterator),
-        ):
-            if not success:
-                print("NOT SUCCESS!", doc)
-            count += 1
-            if verbose and not count % report_every:
-                print(f"{count:,}")
-
-        swap_alias(es, index_name, settings.ES_BLOG_ITEM_INDEX)
-
-        t1 = time.time()
-        return count, t1 - t0, index_name
-
-    @classmethod
-    def index_all_blogitems_pg(cls, ids_only=None, verbose=False):
         iterator = cls._get_indexing_queryset()
         t0 = time.time()
         if ids_only:
@@ -577,10 +529,6 @@ class BlogComment(models.Model):
         self.blogitem = self.parent.blogitem
         self.save()
 
-    def to_search(self, **kwargs):
-        doc = self.to_search_doc(**kwargs)
-        return BlogCommentDoc(meta={"id": self.id}, **doc)
-
     def to_search_doc(self, **kwargs):
         doc = {
             "id": self.id,
@@ -602,38 +550,6 @@ class BlogComment(models.Model):
                 self.__class__.objects.filter(id=self.id).update(geo_lookup=found)
 
         return found
-
-    @classmethod
-    def index_all_blogcomments(cls, verbose=False):
-        iterator = (
-            cls.objects.filter(
-                blogitem__archived__isnull=True, blogitem__pub_date__lt=timezone.now()
-            )
-            .exclude(blogitem__oid="blogitem-040601-1")
-            .select_related("blogitem")
-        )
-
-        es = connections.get_connection()
-        report_every = 1000
-        count = 0
-        t0 = time.time()
-        index_name = BlogCommentDoc.Index.get_refreshed_name()
-        BlogCommentDoc._index._name = index_name
-        BlogCommentDoc._index.create()
-        for success, doc in parallel_bulk(
-            es,
-            (m.to_search().to_dict(True) for m in iterator),
-        ):
-            if not success:
-                print("NOT SUCCESS!", doc)
-            count += 1
-            if verbose and not count % report_every:
-                print(f"{count:,}")
-
-        swap_alias(es, BlogCommentDoc._index._name, settings.ES_BLOG_COMMENT_INDEX)
-
-        t1 = time.time()
-        return count, t1 - t0, index_name
 
 
 # These utility function is an optimization to avoid hitting the database.
