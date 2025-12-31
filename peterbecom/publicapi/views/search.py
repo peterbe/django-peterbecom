@@ -203,7 +203,7 @@ def search(request):
         "q": q,
         "debug": debug,
         "original_q": original_q,
-        "count_documents": 0,
+        # "count_documents": 0,
         "results": search_results,
         "non_stopwords_q": non_stopwords_q,
         "config": config,
@@ -233,10 +233,6 @@ def _save_search_result(q, original_q, search_results):
 
 LIMIT_BLOG_ITEMS = 20
 LIMIT_BLOG_COMMENTS = 10
-
-
-def _is_multiword_query(query):
-    return " " in query or "-" in query
 
 
 def _pg_search(
@@ -269,28 +265,24 @@ def _pg_search(
             categories.append(name)
         search_query = search_query.filter(categories__contains=categories)
 
+    title_search_query = _get_search_query(q)
+    text_search_query = _get_search_query(q)
+
     search_query = search_query.annotate(
         title_headline=SearchHeadline(
             "title",
-            q,
+            title_search_query,
             start_sel="<mark>",
             stop_sel="</mark>",
         ),
         text_headline=SearchHeadline(
-            "text", q, start_sel="<mark>", stop_sel="</mark>", max_fragments=2
+            "text",
+            text_search_query,
+            start_sel="<mark>",
+            stop_sel="</mark>",
+            max_fragments=2,
         ),
     )
-
-    if _is_multiword_query(q):
-        q_split = q.split()
-        title_search_query = SearchQuery(q_split[0])
-        text_search_query = SearchQuery(q_split[0])
-        for sub_q in q_split[1:]:
-            title_search_query |= SearchQuery(sub_q)
-            text_search_query |= SearchQuery(sub_q)
-    else:
-        title_search_query = SearchQuery(q)
-        text_search_query = SearchQuery(q)
 
     search_query_by_title = search_query.filter(title_search_vector=title_search_query)
 
@@ -322,10 +314,10 @@ def _pg_search(
             text_results = list(search_query_by_text.values(*only)[:LIMIT_BLOG_ITEMS])
 
             results.extend(text_results)
-            if len(results) > LIMIT_BLOG_ITEMS:
+            if len(text_results) > LIMIT_BLOG_ITEMS:
                 count += search_query_by_text.count()
             else:
-                count += len(results)
+                count += len(text_results)
 
     t1 = time.time()
     search_times.append(("blogitems", t1 - t0))
@@ -356,3 +348,47 @@ def _pg_search(
     context["search_times"] = search_times
 
     return context
+
+
+synonyms = {
+    ("js", "javascript"),
+    ("py", "python"),
+    ("python", "py"),
+    ("react", "reactjs", "react.js"),
+    ("node", "nodejs", "node.js"),
+    ("nodejs", "node", "node.js"),
+    ("node.js", "node", "nodejs"),
+    ("postgres", "postgresql"),
+    ("elastic", "elasticsearch"),
+}
+_synonyms_map = {}
+for group in synonyms:
+    for term in group:
+        _synonyms_map[term] = [t for t in group if t != term]
+
+
+def _get_synonyms(term: str) -> list[str]:
+    return _synonyms_map.get(term.lower(), [])
+
+
+def _get_search_query(q: str) -> SearchQuery:
+    if _is_perfectly_quoted(q):
+        return SearchQuery(q[1:-1], search_type="phrase")
+
+    qs = re.split(r"[\s-]+", q.lower())
+    new_qs: list[str] = []
+    for q in qs:
+        if q not in new_qs:
+            new_qs.append(q)
+        for synonym in _get_synonyms(q):
+            if synonym not in new_qs:
+                new_qs.append(synonym)
+
+    search_query = SearchQuery(new_qs[0])
+    for q_ in new_qs[1:]:
+        search_query |= SearchQuery(q_)
+    return search_query
+
+
+def _is_perfectly_quoted(q: str) -> bool:
+    return len(q) >= 2 and q[0] == '"' and q[-1] == '"'

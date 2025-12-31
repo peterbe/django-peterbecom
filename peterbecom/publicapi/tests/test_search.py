@@ -30,13 +30,96 @@ def test_search_happy_path(client):
         proper_keywords=["one", "two"],
         display_format="markdown",
         text="Hello *world*\n<!--split-->Second part",
+        popularity=0.5,
+    )
+    blogitem = BlogItem.objects.create(
+        oid="hello-planet",
+        title="Hello Planet",
+        pub_date=timezone.now(),
+        proper_keywords=["one", "two"],
+        display_format="markdown",
+        text="Hello *Planet*\n",
+        popularity=0.7,  # higher
     )
     category = Category.objects.create(name="Code")
     blogitem.categories.add(category)
 
-    count, took, index_name = BlogItem.index_all_blogitems(verbose=True)
+    count, took, _ = BlogItem.index_all_blogitems(verbose=True)
     assert count
     assert took > 0.0
+
+    url = reverse("publicapi:search")
+
+    response = client.get(url, {"q": "hello"})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["q"] == "hello"
+    assert data["original_q"] == "hello"
+    assert data["non_stopwords_q"] == ["hello"]
+    assert data["results"]["count_documents"] == 2
+    assert [doc["oid"] for doc in data["results"]["documents"]] == [
+        "hello-planet",
+        "hello-world",
+    ]
+
+    response = client.get(url, {"q": "PLAnet woRld"})  # OR query is default
+    assert response.status_code == 200
+    data = response.json()
+    assert data["results"]["count_documents"] == 2
+    assert [doc["oid"] for doc in data["results"]["documents"]] == [
+        "hello-planet",
+        "hello-world",
+    ]
+
+    response = client.get(url, {"q": "planet"})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["results"]["count_documents"] == 1
+    assert [doc["oid"] for doc in data["results"]["documents"]] == [
+        "hello-planet",
+    ]
+
+    response = client.get(url, {"q": '"hello world"'})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["results"]["count_documents"] == 1
+    assert [doc["oid"] for doc in data["results"]["documents"]] == [
+        "hello-world",
+    ]
+
+
+@pytest.mark.django_db
+def test_search_synonyms(client):
+    BlogItem.objects.create(
+        oid="hello-world",
+        title="React.js and Postgres",
+        pub_date=timezone.now(),
+        proper_keywords=["one", "two"],
+        display_format="markdown",
+        text="Hello *world*",
+    )
+    BlogItem.index_all_blogitems(verbose=True)
+
+    url = reverse("publicapi:search")
+    response = client.get(url, {"q": "react"})
+    assert response.status_code == 200
+    data = response.json()
+
+    assert len(data["results"]["documents"]) == 1
+    assert data["results"]["count_documents"] == 1
+    (found,) = data["results"]["documents"]
+    assert found["oid"] == "hello-world"
+    assert found["title"] == "<mark>React.js</mark> and Postgres"
+
+    response = client.get(url, {"q": "react postgresql"})
+    assert response.status_code == 200
+    data = response.json()
+
+    assert len(data["results"]["documents"]) == 1
+    assert data["results"]["count_documents"] == 1
+    (found,) = data["results"]["documents"]
+    assert found["oid"] == "hello-world"
+    assert found["title"] == "<mark>React.js</mark> and <mark>Postgres</mark>"
 
 
 @pytest.mark.django_db
