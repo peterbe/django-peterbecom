@@ -18,7 +18,7 @@ from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVector, SearchVectorField
 from django.core.cache import cache
 from django.db import models, transaction
-from django.db.models import Count, Max
+from django.db.models import Count, Max, Q
 from django.db.models.signals import post_delete, post_save, pre_delete, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -494,6 +494,22 @@ class BlogComment(models.Model):
     ip_address = models.GenericIPAddressField(blank=True, null=True)
     geo_lookup = models.JSONField(null=True)
     highlighted = models.DateTimeField(null=True)
+
+    class Meta:
+        indexes = [
+            # Index email only when archived_at IS NULL
+            models.Index(
+                name="add_date_when_parent_null",
+                fields=["add_date"],
+                condition=Q(parent__isnull=True),
+            ),
+            # If you need the opposite (NOT NULL), use:
+            # models.Index(
+            #     name="idx_customer_email_when_archived_not_null",
+            #     fields=["email"],
+            #     condition=Q(archived_at__isnull=False),
+            # ),
+        ]
 
     def __str__(self):
         return "{} {!r} ({})".format(
