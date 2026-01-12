@@ -17,7 +17,7 @@ class Command(BaseCommand):
             "--reindex",
             action="store_true",
             default=False,
-            help="Reindex in Elasticsearch",
+            help="Reindex",
         )
 
     def handle(self, **options):
