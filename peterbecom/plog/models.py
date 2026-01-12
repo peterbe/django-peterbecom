@@ -497,18 +497,11 @@ class BlogComment(models.Model):
 
     class Meta:
         indexes = [
-            # Index email only when archived_at IS NULL
             models.Index(
                 name="add_date_when_parent_null",
                 fields=["add_date"],
                 condition=Q(parent__isnull=True),
             ),
-            # If you need the opposite (NOT NULL), use:
-            # models.Index(
-            #     name="idx_customer_email_when_archived_not_null",
-            #     fields=["email"],
-            #     condition=Q(archived_at__isnull=False),
-            # ),
         ]
 
     def __str__(self):
