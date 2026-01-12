@@ -400,8 +400,6 @@ dependencies = [
     { name = "dj-database-url" },
     { name = "django" },
     { name = "django-redis" },
-    { name = "elasticsearch" },
-    { name = "elasticsearch-dsl" },
     { name = "feedparser" },
     { name = "ffmpeg-python" },
     { name = "ftfy" },
@@ -455,8 +453,6 @@ requires-dist = [
     { name = "dj-database-url", specifier = "==3.1.0" },
     { name = "django", specifier = "==6.0.1" },
     { name = "django-redis", specifier = "==6.0.0" },
-    { name = "elasticsearch", specifier = "==8.17.2" },
-    { name = "elasticsearch-dsl", specifier = "==8.17.1" },
     { name = "feedparser", specifier = "==6.0.12" },
     { name = "ffmpeg-python", specifier = "==0.2.0" },
     { name = "ftfy", specifier = "==6.3.1" },
@@ -516,46 +512,6 @@ name = "docopt"
 version = "0.6.2"
 source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/a2/55/8f8cab2afd404cf578136ef2cc5dfb50baa1761b68c9da1fb1e4eed343c9/docopt-0.6.2.tar.gz", hash = "sha256:49b3a825280bd66b3aa83585ef59c4a8c82f2c8a522dbe754a8bc8d08c85c491", size = 25901, upload-time = "2014-06-16T11:18:57.406Z" }
-
-[[package]]
-name = "elastic-transport"
-version = "8.15.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "certifi" },
-    { name = "urllib3" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/6c/8a/54608571bf0a6686b9f49ccb3acf86e20bc50039ce87e368ebb11faebbc8/elastic_transport-8.15.1.tar.gz", hash = "sha256:9cac4ab5cf9402668cf305ae0b7d93ddc0c7b61461d6d1027850db6da9cc5742", size = 72726, upload-time = "2024-10-09T11:50:42.974Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/b1/20/864177d7ecbc98633ead4d8e12200ec1c7c7a0c8d45080ac636e043db1c7/elastic_transport-8.15.1-py3-none-any.whl", hash = "sha256:b5e82ff1679d8c7705a03fd85c7f6ef85d6689721762d41228dd312e34f331fc", size = 64426, upload-time = "2024-10-09T11:50:41.022Z" },
-]
-
-[[package]]
-name = "elasticsearch"
-version = "8.17.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "elastic-transport" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/5b/3d/f563e58f45d23565c0d0316a565638ce312f536b882a3281b8047fb4a58f/elasticsearch-8.17.2.tar.gz", hash = "sha256:ff7f1db8aeefd87ceba4edce3aa4070994582e6cf029d2e67b74e66d634509db", size = 602691, upload-time = "2025-03-04T12:14:27.382Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/c0/50/16306f4722ca2fcb64a5875bc1fa9b4d0bcb08c05967f60c23acd4cbb019/elasticsearch-8.17.2-py3-none-any.whl", hash = "sha256:2d058dcddd8f2686cd431a916cdf983f9fb7d211d902834f564ab7df05ba6478", size = 717971, upload-time = "2025-03-04T12:14:23.843Z" },
-]
-
-[[package]]
-name = "elasticsearch-dsl"
-version = "8.17.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "elastic-transport" },
-    { name = "elasticsearch" },
-    { name = "python-dateutil" },
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/bf/57/d375ce8915f289f1f032e001010cd901c2f1be4a14246e7506af63ba34f7/elasticsearch_dsl-8.17.1.tar.gz", hash = "sha256:d8170699bfdb4fe7fab3854cdac319a2d6dddbaa29c9ea7993d2ec22056db5a0", size = 151630, upload-time = "2025-01-08T12:02:06.801Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ad/b4/5e707bca39062ba0b5227696a767db09767e5f09e869c6cb14aeb36e4b9d/elasticsearch_dsl-8.17.1-py3-none-any.whl", hash = "sha256:49ee12a6a8d43fcfc0af42b49649531a6ef228c9e4795325de27f6b309b62b6d", size = 158294, upload-time = "2025-01-08T12:02:03.951Z" },
-]
 
 [[package]]
 name = "fastuuid"

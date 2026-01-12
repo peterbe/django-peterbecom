@@ -41,7 +41,6 @@ exported-blogcomments.json
 peterbecom/base/management/commands/x-cache-some.log
 coverage.xml
 .coverage.*
-elasticsearch-8
 .envrc
 tunneling.sh
 .coverage

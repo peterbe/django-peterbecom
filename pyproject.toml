@@ -25,8 +25,6 @@ dependencies = [
     "dj-database-url==3.1.0",
     "django-redis==6.0.0",
     "django==6.0.1",
-    "elasticsearch-dsl==8.17.1",
-    "elasticsearch==8.17.2",
     "feedparser==6.0.12",
     "ftfy==6.3.1",
     "geoip2==4.8.1",
