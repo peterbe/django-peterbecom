@@ -4,10 +4,6 @@
 dev:
     hivemind Procfile
 
-elasticsearch:
-    hivemind -l elasticsearch Procfile
-    echo "Now you can run `just test`"
-
 dev-with-tunneling:
     ./bin/wait-for-pg.sh --help > /dev/null
     hivemind Procfile.tunneling
