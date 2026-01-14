@@ -97,7 +97,7 @@ def search(request):
         result["artist"] = {"name": result["artist"]["name"]}
         results.append(result)
 
-    for result in results[:3]:
+    for result in results[: settings.POPULATE_SONG_CACHE_BY_ID_BATCH_SIZE]:
         populate_song_cache_by_id(result["id"])
 
     context = {"results": results, "metadata": metadata}
