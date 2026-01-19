@@ -66,6 +66,7 @@ def test_robots_txt(client):
     response = client.get(url)
     assert response.status_code == 200
     assert response["content-type"] == "text/plain"
+    assert response.text == "User-agent: *\nAllow: /\n"
 
 
 @pytest.mark.django_db

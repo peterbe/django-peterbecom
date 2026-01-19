@@ -580,6 +580,7 @@ def preview_500(request):
 
 ROBOTS_TXT = """
 User-agent: *
+Allow: /
 """
 
 
