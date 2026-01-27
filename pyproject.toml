@@ -28,7 +28,7 @@ dependencies = [
     "feedparser==6.0.12",
     "ftfy==6.3.1",
     "geoip2==4.8.1",
-    "gunicorn==23.0.0",
+    "gunicorn==24.1.1",
     "huey==2.6.0",
     "ipaddress==1.0.23",
     "jsonschema==4.26.0",
