@@ -369,9 +369,10 @@ def blogcomment(request, blogitem_oid, oid):
 
 
 def _get_replies_recursively(comment, root=None, base_query=None):
-    base_query = base_query or BlogComment.objects.filter(
-        blogitem_id=comment["blogitem_id"], approved=True
-    )
+    if base_query is None:
+        base_query = BlogComment.objects.filter(
+            blogitem_id=comment["blogitem_id"], approved=True
+        )
     _reply_values = (
         "add_date",
         "id",
