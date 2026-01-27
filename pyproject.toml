@@ -34,7 +34,7 @@ dependencies = [
     "jsonschema==4.26.0",
     "keycdn==0.4.3",
     "lxml==6.0.2",
-    "markdown==3.10",
+    "markdown==3.10.1",
     "mock==5.2.0",
     "mozilla-django-oidc==5.0.2",
     "nltk==3.9.2",
