@@ -39,7 +39,7 @@ dependencies = [
     "mozilla-django-oidc==5.0.2",
     "nltk==3.9.2",
     "optisorl==0.2.1",
-    "pillow==12.1.0",
+    "pillow==12.1.1",
     "profanity==1.1",
     "ptyprocess==0.7.0",
     "py-avataaars==1.1.2",
