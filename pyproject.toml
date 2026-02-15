@@ -65,6 +65,8 @@ dependencies = [
     "psycopg[binary,pool]>=3.2.9",
     "crawlerdetect>=0.3.0",
     "litellm==1.81.3",
+    "pgvector>=0.4.2",
+    "sentence-transformers>=5.2.2",
 ]
 
 [tool.coverage.run]

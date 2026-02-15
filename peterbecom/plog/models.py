@@ -22,6 +22,7 @@ from django.db.models import Count, Max, Q
 from django.db.models.signals import post_delete, post_save, pre_delete, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
+from pgvector.django import VectorField
 from sorl.thumbnail import ImageField
 
 from peterbecom.base.geo import ip_to_city
@@ -88,6 +89,18 @@ class SearchDoc(models.Model):
     date = models.DateTimeField()
     keywords = ArrayField(models.CharField(max_length=100), default=list)
     categories = ArrayField(models.CharField(max_length=100), default=list)
+
+    title_embedding = VectorField(
+        dimensions=768,
+        null=True,
+        blank=True,
+    )
+
+    text_embedding = VectorField(
+        dimensions=768,
+        null=True,
+        blank=True,
+    )
 
     # meta data
     add_date = models.DateTimeField(auto_now=True)
