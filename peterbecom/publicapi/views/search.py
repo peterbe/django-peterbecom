@@ -1,6 +1,7 @@
 import datetime
 import re
 import time
+from functools import lru_cache
 
 from django import http
 from django.conf import settings
@@ -9,15 +10,24 @@ from django.contrib.postgres.search import (
     SearchQuery,
     TrigramSimilarity,
 )
+from django.db import connection
 from django.db.models import Q as Q_
 from django.utils import timezone
 from django.utils.cache import patch_cache_control
 from django.views.decorators.cache import cache_control
+from sentence_transformers import SentenceTransformer
 
 from peterbecom.base.models import SearchResult
 from peterbecom.homepage.utils import STOPWORDS, split_search
 from peterbecom.plog.models import Category, SearchDoc, SearchTerm
 from peterbecom.publicapi.forms import SearchForm
+
+
+@lru_cache(maxsize=1)
+def get_embedding_model():
+    model = SentenceTransformer("all-mpnet-base-v2")
+    return model
+
 
 HIGHLIGHT_TYPE = "fvh"
 
@@ -190,6 +200,11 @@ def search(request):
     )
     non_stopwords_q = [x for x in q.split() if x.lower() not in STOPWORDS]
 
+    with_embeddings = False
+    if q.startswith("embedded:"):
+        q = q[len("embedded:") :].strip()
+        with_embeddings = True
+
     search_results = _pg_search(
         q,
         popularity_factor,
@@ -197,6 +212,7 @@ def search(request):
         debug_search=debug,
         in_title_only=config.get("in_title"),
         no_fuzzy=config.get("no_fuzzy"),
+        with_embeddings=with_embeddings,
     )
 
     context = {
@@ -242,9 +258,85 @@ def _pg_search(
     debug_search=False,
     in_title_only=False,
     no_fuzzy=False,
+    with_embeddings=False,
 ):
     keyword_search = {}
     search_times = []
+
+    if with_embeddings:
+        threshold = 0.4
+        t0 = time.time()
+        query_embedding = get_embedding_model().encode(q).tolist()
+        search_times.append(("query_embedding", time.time() - t0))
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT
+                    oid,
+                    title,
+                    date,
+                    popularity,
+                    text,
+                    categories,
+                    1 - (title_embedding <=> %s::vector) AS title_similarity,
+                    1 - (text_embedding <=> %s::vector) AS text_similarity
+                FROM plog_searchdoc
+                WHERE title_embedding IS NOT NULL and text_embedding IS NOT NULL
+                AND (1 - (title_embedding <=> %s::vector) > %s OR 1 - (text_embedding <=> %s::vector) > %s)
+                -- ORDER BY popularity DESC, title_similarity DESC, text_similarity DESC
+                ORDER BY title_similarity DESC, text_similarity DESC
+                LIMIT %s
+            """,
+                (
+                    query_embedding,
+                    query_embedding,
+                    query_embedding,
+                    threshold,
+                    query_embedding,
+                    threshold,
+                    LIMIT_BLOG_ITEMS,
+                ),
+            )
+            count = 0
+            documents = []
+            for result in cursor.fetchall():
+                (
+                    oid,
+                    title,
+                    date,
+                    popularity,
+                    text,
+                    categories,
+                    title_similarity,
+                    text_similarity,
+                ) = result
+                document = {
+                    "oid": oid,
+                    "title": title,
+                    "date": date,
+                    "summary": text[:100],
+                    "score": title_similarity + text_similarity,
+                    "popularity": popularity or 0.0,
+                    "comment": False,
+                    "categories": categories,
+                }
+                documents.append(document)
+                count += 1
+            search_times.append(("query", time.time() - t0))
+            print(f"Found {count} results with embeddings.")
+
+            context = {
+                "keywords": {},
+                "count_documents": count,
+                "documents": documents,
+                "count_documents_shown": len(documents),
+            }
+            context["search_time"] = sum(x[1] for x in search_times)
+            context["search_times"] = search_times
+
+            return context
+
     if len(q) > 1:
         _keyword_keys = ("keyword", "keywords", "category", "categories")
         q, keyword_search = split_search(q, _keyword_keys)
@@ -360,6 +452,7 @@ synonyms = {
     ("node.js", "node", "nodejs"),
     ("postgres", "postgresql"),
     ("elastic", "elasticsearch"),
+    ("pi", "π"),
 }
 _synonyms_map = {}
 for group in synonyms:
