@@ -284,7 +284,8 @@ def _pg_search(
                 FROM plog_searchdoc
                 WHERE title_embedding IS NOT NULL and text_embedding IS NOT NULL
                 AND (1 - (title_embedding <=> %s::vector) > %s OR 1 - (text_embedding <=> %s::vector) > %s)
-                ORDER BY popularity DESC, title_similarity DESC, text_similarity DESC
+                -- ORDER BY popularity DESC, title_similarity DESC, text_similarity DESC
+                ORDER BY title_similarity DESC, text_similarity DESC
                 LIMIT %s
             """,
                 (
@@ -451,6 +452,7 @@ synonyms = {
     ("node.js", "node", "nodejs"),
     ("postgres", "postgresql"),
     ("elastic", "elasticsearch"),
+    ("pi", "π"),
 }
 _synonyms_map = {}
 for group in synonyms:
