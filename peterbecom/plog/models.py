@@ -50,7 +50,7 @@ class Category(models.Model):
         return self.name
 
     @classmethod
-    @functools.lru_cache(maxsize=1)
+    @cached(cache=TTLCache(maxsize=1, ttl=60 * 5))
     def get_category_id_name_map(cls):
         return dict(Category.objects.values_list("id", "name"))
 
