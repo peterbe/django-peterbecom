@@ -14,6 +14,7 @@ from peterbecom.plog.models import BlogComment
 from peterbecom.plog.spamprevention import (
     contains_spam_patterns,
     contains_spam_url_patterns,
+    custom_spam_patterns,
     is_trash_commenter,
 )
 from peterbecom.plog.tasks import delete_e2e_test_comment, send_new_comment_email
@@ -56,7 +57,12 @@ def submit_comment(request):
     parent = form.cleaned_data["parent"]
     blog_comment_hash = form.cleaned_data["hash"]
 
-    if contains_spam_url_patterns(comment) or contains_spam_patterns(comment):
+    if (
+        contains_spam_url_patterns(comment)
+        or contains_spam_patterns(comment)
+        or custom_spam_patterns(comment)
+    ):
+        print(f"SPAM COMMENT: {comment!r}")
         return http.HttpResponseBadRequest("Looks too spammy")
 
     ip_addresses = (

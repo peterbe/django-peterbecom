@@ -110,6 +110,32 @@ def test_spamy_comment(client):
 
 
 @pytest.mark.django_db
+def test_spamy_custom_comment(client):
+    url = reverse("publicapi:submit_comment")
+    blogitem = BlogItem.objects.create(
+        oid="oid",
+        title="Title",
+        text="*Text*",
+        text_rendered=BlogItem.render("*Text*", "markdown", ""),
+        display_format="markdown",
+        summary="Summary",
+        pub_date=timezone.now(),
+    )
+    response = client.post(
+        url,
+        {"oid": blogitem.oid, "comment": "OfcrPkOaz9oJwwWYaLhtsCp\n"},
+    )
+    assert response.status_code == 400
+    assert response.content.decode("utf-8") == "Looks too spammy"
+
+    response = client.post(
+        url,
+        {"oid": blogitem.oid, "comment": "LondonUndergroundStation\n"},
+    )
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db
 def test_trash_commenter(client):
     url = reverse("publicapi:submit_comment")
     blogitem = BlogItem.objects.create(
