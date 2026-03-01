@@ -37,7 +37,7 @@ dependencies = [
     "markdown==3.10.1",
     "mock==5.2.0",
     "mozilla-django-oidc==5.0.2",
-    "nltk==3.9.2",
+    "nltk==3.9.3",
     "optisorl==0.2.1",
     "pillow==12.1.0",
     "profanity==1.1",
