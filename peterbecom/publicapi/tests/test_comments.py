@@ -130,6 +130,13 @@ def test_spamy_custom_comment(client):
 
     response = client.post(
         url,
+        {"oid": blogitem.oid, "comment": "vjKPBFBmeqiursEcjQxUhGIN\n"},
+    )
+    assert response.status_code == 400
+    assert response.content.decode("utf-8") == "Looks too spammy"
+
+    response = client.post(
+        url,
         {"oid": blogitem.oid, "comment": "LondonUndergroundStation\n"},
     )
     assert response.status_code == 200

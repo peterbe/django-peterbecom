@@ -75,16 +75,6 @@ def custom_spam_patterns(text):
     if len(words) == 1:
         word = words[0]
         if re.match(r"^\w{20,25}$", word):
-            lower_char_clusters = re.findall(r"[a-z]+", word)
-            lower_char_clusters_lengths = [len(x) for x in lower_char_clusters]
-            longest_lower_char_cluster = (
-                max(lower_char_clusters_lengths) if lower_char_clusters_lengths else 0
-            )
-            if longest_lower_char_cluster >= 5:
-                # for example 'LondonUndergroundStation' has long stretches
-                # of lowercase characters.
-                return False
-
             lower_chars_count = len(re.findall(r"[a-z]", word))
             upper_chars_count = len(re.findall(r"[A-Z]", word))
             lower_chars_count_r = lower_chars_count / (
