@@ -30,20 +30,6 @@ jobs:
 
       - uses: actions/checkout@v6
 
-      # - uses: oven-sh/setup-bun@v2
-
-      # - name: Install bun packages
-      #   working-directory: peterbecom/chiveproxy
-      #   run: bun install
-
-      # - name: Compile puppeteer_sucks with bun
-      #   working-directory: peterbecom/chiveproxy
-      #   run: bun run compile
-
-      # - name: Test compiled puppeteer_sucks
-      #   working-directory: peterbecom/chiveproxy
-      #   run: ./out/puppeteer_sucks https://www.example.com
-
       - name: Install uv
         id: setup-uv
         uses: astral-sh/setup-uv@v7
@@ -70,16 +56,6 @@ jobs:
           pngquant --version
           which pngquant
 
-      # - name: Download NLTK dependencies
-      #   run: uv run python scripts/nltk-downloads.py
-
-      # - name: Run Lints
-      #   run: |
-      #     # Linting
-      #     uv run ruff check .
-      #     # Formatting
-      #     uv run ruff format --check .
-
       - name: Run gunicorn server
         run: |
           ./scripts/ci-run.sh > /tmp/stdout.log 2> /tmp/stderr.log &
@@ -87,7 +63,8 @@ jobs:
       - name: Navigate to the server
         run: |
           sleep 2
-          curl --retry-connrefused --retry 4 http://localhost:8000
+          curl --retry-connrefused --retry 4 http://localhost:8000/api/v0/__healthcheck__
+          curl http://localhost:8000/api/v0/whoami
 
       - name: Debug any server outputs
         if: failure()

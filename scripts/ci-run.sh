@@ -2,23 +2,23 @@
 
 set -e
 
-if [ -f peterbecom/settings/local.py ]; then
-  echo "The file peterbecom/settings/local.py already exists. Refusing to override."
-  exit 1
-fi
+# if [ -f peterbecom/settings/local.py ]; then
+#   echo "The file peterbecom/settings/local.py already exists. Refusing to override."
+#   exit 1
+# fi
 
 echo "Making settings/local.py"
 cat > peterbecom/settings/local.py <<SETTINGS
 from . import base
+import dj_database_url
+from decouple import config
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'peterbecom',
-        'USER': 'user',
-        'PASSWORD': 'secret',
-        'HOST': 'localhost',
-        'PORT': '',
-    },
+    "default": config(
+        "DATABASE_URL",
+        default="postgresql://user:secret@localhost/peterbecom",
+        cast=dj_database_url.parse,
+    )
 }
 REDIS_URL = 'redis://localhost:6379/0'
 HMAC_KEYS = {'some': 'thing'}
@@ -29,7 +29,8 @@ OIDC_RP_CLIENT_SECRET = 'secreter'
 ROLLBAR = {
     "enabled": False,  # NOTE!
 }
-USE_ES_SYNONYM_FILE_NAME = False
+ALLOWED_HOSTS = ["localhost"]
+CSRF_TRUSTED_ORIGINS = ["http://localhost:8000"]
 SETTINGS
 
 ./bin/run.sh web
