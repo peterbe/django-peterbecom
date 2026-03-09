@@ -29,7 +29,6 @@ OIDC_RP_CLIENT_SECRET = 'secreter'
 ROLLBAR = {
     "enabled": False,  # NOTE!
 }
-USE_ES_SYNONYM_FILE_NAME = False
 SETTINGS
 
 ./bin/run.sh test

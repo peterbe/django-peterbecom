@@ -2,10 +2,10 @@
 
 set -e
 
-# if [ -f peterbecom/settings/local.py ]; then
-#   echo "The file peterbecom/settings/local.py already exists. Refusing to override."
-#   exit 1
-# fi
+if [ -f peterbecom/settings/local.py ]; then
+  echo "The file peterbecom/settings/local.py already exists. Refusing to override."
+  exit 1
+fi
 
 echo "Making settings/local.py"
 cat > peterbecom/settings/local.py <<SETTINGS
