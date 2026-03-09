@@ -20,8 +20,7 @@ jobs:
       - name: Redis Server in GitHub Actions
         uses: supercharge/redis-github-action@v2
         with:
-          # Redis version to use
-          redis-version: "5.0.5"
+          redis-version: "7"
 
       - name: Setup PostgreSQL
         uses: Harmon758/postgresql-action@v1.0.0
