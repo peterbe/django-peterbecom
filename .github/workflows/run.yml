@@ -64,7 +64,8 @@ jobs:
         run: |
           sleep 2
           curl --retry-connrefused --retry 4 http://localhost:8000/api/v0/__healthcheck__
-          curl http://localhost:8000/api/v0/whoami
+          curl --fail http://localhost:8000/api/v0/whoami
+          curl --fail http://localhost:8000/robots.txt
 
       - name: Debug any server outputs
         if: failure()
