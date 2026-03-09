@@ -110,7 +110,16 @@ def test_spamy_comment(client):
 
 
 @pytest.mark.django_db
-def test_spamy_custom_comment(client):
+@pytest.mark.parametrize(
+    "comment, expected",
+    [
+        ("OfcrPkOaz9oJwwWYaLhtsCp\n", 400),
+        ("sckClraZlDBWdLce\n", 400),
+        ("vjKPBFBmeqiursEcjQxUhGIN\n", 400),
+        ("LondonUndergroundStation\n", 200),
+    ],
+)
+def test_spamy_custom_comment(client, comment, expected):
     url = reverse("publicapi:submit_comment")
     blogitem = BlogItem.objects.create(
         oid="oid",
@@ -123,23 +132,11 @@ def test_spamy_custom_comment(client):
     )
     response = client.post(
         url,
-        {"oid": blogitem.oid, "comment": "OfcrPkOaz9oJwwWYaLhtsCp\n"},
+        {"oid": blogitem.oid, "comment": comment},
     )
-    assert response.status_code == 400
-    assert response.content.decode("utf-8") == "Looks too spammy"
-
-    response = client.post(
-        url,
-        {"oid": blogitem.oid, "comment": "vjKPBFBmeqiursEcjQxUhGIN\n"},
-    )
-    assert response.status_code == 400
-    assert response.content.decode("utf-8") == "Looks too spammy"
-
-    response = client.post(
-        url,
-        {"oid": blogitem.oid, "comment": "LondonUndergroundStation\n"},
-    )
-    assert response.status_code == 200
+    assert response.status_code == expected
+    if expected == 400:
+        assert response.content.decode("utf-8") == "Looks too spammy"
 
 
 @pytest.mark.django_db
