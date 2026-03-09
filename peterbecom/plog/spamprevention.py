@@ -74,7 +74,7 @@ def custom_spam_patterns(text):
     words = text.strip().split()
     if len(words) == 1:
         word = words[0]
-        if re.match(r"^\w{20,25}$", word):
+        if re.match(r"^\w{16,25}$", word):
             lower_chars_count = len(re.findall(r"[a-z]", word))
             upper_chars_count = len(re.findall(r"[A-Z]", word))
             lower_chars_count_r = lower_chars_count / (
