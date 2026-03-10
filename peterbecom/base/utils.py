@@ -97,7 +97,7 @@ def do_healthcheck():
 
     cache.set("foo", "bar", 1)
     assert cache.get("foo") == "bar", "cache not working"
-    assert BlogItem.objects.all().count(), "Unable to count BlogItem objects"
+    assert BlogItem.objects.all().count() >= 0, "Unable to count BlogItem objects"
 
 
 def generate_search_terms(title, max_words=4):

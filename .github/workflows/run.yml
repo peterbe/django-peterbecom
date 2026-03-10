@@ -22,7 +22,6 @@ jobs:
       - name: Setup PostgreSQL
         uses: Harmon758/postgresql-action@v1.0.0
         with:
-          # Version of PostgreSQL to use
           postgresql version: "16"
           postgresql db: peterbecom
           postgresql user: user
@@ -56,16 +55,31 @@ jobs:
           pngquant --version
           which pngquant
 
+      - name: Prepare to run server
+        run: |
+          ./scripts/ci-run.sh
+
       - name: Run gunicorn server
         run: |
-          ./scripts/ci-run.sh > /tmp/stdout.log 2> /tmp/stderr.log &
+          ./bin/run.sh web > /tmp/stdout.log 2> /tmp/stderr.log &
 
       - name: Navigate to the server
         run: |
-          sleep 2
-          curl --retry-connrefused --retry 4 http://localhost:8000/api/v0/__healthcheck__
+          sleep 4
+          echo "HEALTHCHECK_____________________________"
+          echo ""
+          curl --retry-connrefused --retry 4 --fail http://localhost:8000/api/v0/__healthcheck__
+          echo ""
+
+          echo "WHOAMI__________________________________"
+          echo ""
           curl --fail http://localhost:8000/api/v0/whoami
+          echo ""
+
+          echo "ROBOTS.TXT_______________________________"
+          echo ""
           curl --fail http://localhost:8000/robots.txt
+          echo ""
 
       - name: Debug any server outputs
         if: failure()

@@ -1,6 +1,7 @@
 import datetime
 import hashlib
 import json
+import logging
 import re
 import statistics
 import time
@@ -70,6 +71,8 @@ from .forms import (
     SpamCommentPatternForm,
 )
 from .tasks import send_comment_reply_email
+
+logger = logging.getLogger(__name__)
 
 
 def timesince(*args, **kwargs):
@@ -2056,7 +2059,12 @@ def whereami(request):
 
 @never_cache
 def healthcheck(request):
-    do_healthcheck()
+    try:
+        do_healthcheck()
+    except Exception as exception:
+        logger.exception("Healthcheck failed: %s", exception)
+        print(f"Healthcheck failed: {exception}")
+        raise
     return http.HttpResponse("OK\n")
 
 
