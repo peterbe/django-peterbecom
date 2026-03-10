@@ -58,7 +58,8 @@ jobs:
 
       - name: Run gunicorn server
         run: |
-          ./scripts/ci-run.sh > /tmp/stdout.log 2> /tmp/stderr.log &
+          ./scripts/ci-run.sh
+          ./bin/run.sh web > /tmp/stdout.log 2> /tmp/stderr.log &
 
       - name: Navigate to the server
         run: |

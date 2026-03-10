@@ -35,4 +35,4 @@ SETTINGS
 
 ./bin/run.sh manage.py migrate --no-input
 
-./bin/run.sh web
+
