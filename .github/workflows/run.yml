@@ -56,6 +56,8 @@ jobs:
           pngquant --version
           which pngquant
 
+      - run: ./bin/run.sh manage.py migrate --no-input
+
       - name: Run gunicorn server
         run: |
           ./scripts/ci-run.sh > /tmp/stdout.log 2> /tmp/stderr.log &
