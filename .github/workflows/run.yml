@@ -22,7 +22,6 @@ jobs:
       - name: Setup PostgreSQL
         uses: Harmon758/postgresql-action@v1.0.0
         with:
-          # Version of PostgreSQL to use
           postgresql version: "16"
           postgresql db: peterbecom
           postgresql user: user
@@ -67,12 +66,20 @@ jobs:
       - name: Navigate to the server
         run: |
           sleep 4
-          echo "HEALTHCHECK"
+          echo "HEALTHCHECK_____________________________"
+          echo ""
           curl --retry-connrefused --retry 4 --fail http://localhost:8000/api/v0/__healthcheck__
-          echo "WHOAMI"
+          echo ""
+
+          echo "WHOAMI__________________________________"
+          echo ""
           curl --fail http://localhost:8000/api/v0/whoami
-          echo "ROBOTS.TXT"
+          echo ""
+
+          echo "ROBOTS.TXT_______________________________"
+          echo ""
           curl --fail http://localhost:8000/robots.txt
+          echo ""
 
       - name: Debug any server outputs
         if: failure()
