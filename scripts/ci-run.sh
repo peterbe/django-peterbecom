@@ -33,4 +33,6 @@ ALLOWED_HOSTS = ["localhost"]
 CSRF_TRUSTED_ORIGINS = ["http://localhost:8000"]
 SETTINGS
 
+./bin/run.sh manage.py migrate --no-input
+
 ./bin/run.sh web
