@@ -62,9 +62,12 @@ jobs:
 
       - name: Navigate to the server
         run: |
-          sleep 2
-          curl --retry-connrefused --retry 4 http://localhost:8000/api/v0/__healthcheck__
+          sleep 3
+          echo "HEALTHCHECK"
+          curl --retry-connrefused --retry 4 --fail http://localhost:8000/api/v0/__healthcheck__
+          echo "WHOAMI"
           curl --fail http://localhost:8000/api/v0/whoami
+          echo "ROBOTS.TXT"
           curl --fail http://localhost:8000/robots.txt
 
       - name: Debug any server outputs
