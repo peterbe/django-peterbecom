@@ -11,7 +11,7 @@ from jsonschema import validate
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
+from urllib3 import Retry
 
 
 class PathJSONEncoder(DjangoJSONEncoder):
