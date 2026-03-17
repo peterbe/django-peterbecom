@@ -83,7 +83,7 @@ def custom_spam_patterns(text):
             upper_chars_count_r = upper_chars_count / (
                 lower_chars_count + upper_chars_count
             )
-            if lower_chars_count_r > 0.3 and upper_chars_count_r > 0.3:
+            if lower_chars_count_r > 0.25 and upper_chars_count_r > 0.25:
                 return True
 
     return False
