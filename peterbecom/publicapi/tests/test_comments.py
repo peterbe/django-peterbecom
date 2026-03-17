@@ -117,6 +117,7 @@ def test_spamy_comment(client):
         ("sckClraZlDBWdLce\n", 400),
         ("vjKPBFBmeqiursEcjQxUhGIN\n", 400),
         ("LondonUndergroundStation\n", 200),
+        ("qdMkHHzxEBaaacqngd\n", 400),
     ],
 )
 def test_spamy_custom_comment(client, comment, expected):
