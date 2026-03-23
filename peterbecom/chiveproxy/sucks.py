@@ -1,9 +1,11 @@
 import hashlib
 import re
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 import pyquery
 from django.conf import settings
 from django.core.cache import cache
+from django.utils import timezone
 
 from . import puppeteer
 
@@ -12,40 +14,70 @@ def make_it_more_iso(datestr):
     return re.sub(r"\b(\d)\b", r"0\1", datestr)
 
 
-def get_cards(limit=None, debug=False):
+def get_cards(limit=None, debug=False, html=None):
+    def log(*args):
+        if debug:
+            print(f"SUCKS ({timezone.now()}):", *args)
+
     base = "https://thechive.com/"
-    html = puppeteer.suck(base)
-    assert html, base
+    if html is None:
+        html = puppeteer.suck(base)
+        assert html, base
+        if debug:
+            with open("/tmp/chive.html", "w") as f:
+                f.write(html)
+            log("Wrote HTML to /tmp/chive.html for debugging")
     assert html.strip().endswith("</html>"), (base, html)
     doc = pyquery.PyQuery(html)
 
     if debug:
         for title in doc("title").items():
-            print("TITLE", title.text())
+            log("TITLE", title.text())
             break
         else:
-            print("no title!")
-        # for element in doc("h1.card-title").items():
-        #     print("h1", element.text())
+            log("no title!")
+
+    slots = list(doc("div.slot").items())
+    if debug:
+        log(f"Found {len(slots)} slots")
+    if not slots:
+        raise Exception("Busted DOM queries?")
 
     count = 0
-    for slot in doc("div.slot").items():
-        for a in slot("a.card-img-link").items():
+    for slot in slots:
+        for a in slot("a.full-card__image-link").items():
             href = a.attr("href")
             if not href.startswith(base):
                 continue
-            for img in a("img.card-thumb").items():
-                img = img.attr("src")
+            href = remove_utm_params(href)
+
+            for m in a('meta[itemprop="url"]').items():
+                # print("META", m.attr("content"))
+                img = m.attr("content")
+                if img:
+                    # print("GOT META", img)
+                    break
+                else:
+                    continue
+
+            if href and img:
+                log("Found card", href, img)
                 break
-            else:
-                continue
-            break
+
+            # # Old here
+            # for img in a("img.card-thumb").items():
+            #     img = img.attr("src")
+            #     break
+            # else:
+            #     continue
+            # break
         else:
             continue
 
         assert img.startswith("https"), img
-        for a in slot("h1.post-title a").items():
+        for a in slot('h1[itemprop="headline"] a').items():
             text = a.text().replace("\xa0", " ").strip()
+            log("HEADLINE TEXT", repr(text))
             if text.lower().endswith("(video)"):
                 continue
             if text.lower().endswith("(vote)"):
@@ -182,3 +214,22 @@ def get_card(url):
 
 def remove_html_comments(html_string):
     return re.sub("(<!--.*?-->)", "", html_string, flags=re.DOTALL)
+
+
+def remove_utm_params(url):
+    """Remove utm_postid and utm_editor from URL query string."""
+    parsed = urlparse(url)
+    params = parse_qs(parsed.query, keep_blank_values=True)
+
+    # Remove the specified keys
+    params.pop("utm_postid", None)
+    params.pop("utm_editor", None)
+
+    # Flatten the dict (parse_qs returns lists for values)
+    filtered_params = {k: v[0] if len(v) == 1 else v for k, v in params.items()}
+
+    # Reconstruct the URL
+    new_query = urlencode(filtered_params, doseq=True)
+    new_parsed = parsed._replace(query=new_query)
+
+    return urlunparse(new_parsed)
