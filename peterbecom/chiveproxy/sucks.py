@@ -1,5 +1,6 @@
 import hashlib
 import re
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 import pyquery
 from django.conf import settings
@@ -213,9 +214,6 @@ def get_card(url):
 
 def remove_html_comments(html_string):
     return re.sub("(<!--.*?-->)", "", html_string, flags=re.DOTALL)
-
-
-from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 
 def remove_utm_params(url):
