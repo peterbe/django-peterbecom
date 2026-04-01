@@ -41,6 +41,7 @@ def get_cards(limit=None, debug=False, html=None):
     if debug:
         log(f"Found {len(slots)} slots")
     if not slots:
+        print(html)
         raise Exception("Busted DOM queries?")
 
     count = 0
