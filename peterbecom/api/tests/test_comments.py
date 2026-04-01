@@ -1,3 +1,4 @@
+import datetime
 import json
 
 from django.core.serializers.json import DjangoJSONEncoder
@@ -380,3 +381,57 @@ def test_delete_comment(admin_client):
     assert not BlogComment.objects.filter(oid=blogcomment.oid).exists()
     assert not BlogComment.objects.filter(oid=child_comment.oid).exists()
     assert BlogComment.objects.filter(blogitem=blogitem).count() == 0
+
+
+def test_highlighted_comments(admin_client):
+    url = reverse("api:highlighted_comments")
+    response = admin_client.get(url)
+    assert response.status_code == 200
+    assert response.json() == {"comments": [], "count": 0}
+
+    blogitem = BlogItem.objects.create(
+        oid="hello-world",
+        title="Hello World",
+        pub_date=timezone.now(),
+        proper_keywords=["one", "two"],
+    )
+    blogcomment = BlogComment.objects.create(
+        oid="abc123",
+        blogitem=blogitem,
+        parent=None,
+        approved=True,
+        comment="Bla <bla>",
+        name="John Doe",
+        email="",
+    )
+    child_comment = BlogComment.objects.create(
+        oid="xyz123",
+        blogitem=blogitem,
+        parent=blogcomment,
+        approved=True,
+        comment="Bla <bla>",
+        name="Someone Else",
+        email="",
+        highlighted=timezone.now() - datetime.timedelta(days=1),
+    )
+
+    other_comment = BlogComment.objects.create(
+        oid="ccc111333",
+        blogitem=blogitem,
+        approved=False,
+        comment="Bla <bla>",
+        name="My Old Me",
+        email="",
+        highlighted=timezone.now(),  # latest but not approved
+    )
+
+    response = admin_client.get(url)
+    assert response.status_code == 200
+    assert response.json()["count"] == 2
+    first, second = response.json()["comments"]
+
+    assert first["oid"] == other_comment.oid
+    assert not first["approved"]
+
+    assert second["oid"] == child_comment.oid
+    assert second["approved"]
