@@ -57,7 +57,7 @@ dependencies = [
     "ruff==0.15.4",
     "sorl-thumbnail==13.0.0",
     "sql-metadata==2.19.0",
-    "tomli==2.4.0",
+    "tomli==2.4.1",
     "xmltodict==1.0.4",
     "zope-structuredtext==6.0",
     "zopfli==0.4.1",
