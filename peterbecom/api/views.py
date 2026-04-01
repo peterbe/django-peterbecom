@@ -2169,6 +2169,7 @@ def _get_highlighted_comments():
                 "add_date": comment["add_date"],
                 "highlighted": comment["highlighted"],
                 "parent_id": comment["parent_id"],
+                "approved": comment["approved"],
                 "is_first": not first.get(comment["blogitem_id"]),
                 "page": page,
                 "blogitem": get_blogitem(comment["blogitem_id"]),
