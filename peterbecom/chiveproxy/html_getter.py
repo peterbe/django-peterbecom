@@ -52,7 +52,6 @@ def suck(url, attempts=3, debug=False):
             f"The executable {executable} does not exist. Did you compile it?"
         )
     command = f'{executable} "{url}"'
-    print("COMMAND", command)
     if debug:
         print("Command:", command)
 
@@ -61,12 +60,9 @@ def suck(url, attempts=3, debug=False):
     while True:
         attempt += 1
         try:
-            # print("COMMAND:", command)
             output, _ = subprocess_execute(command, timeout_seconds=60)
-            # print("WORKED!", output[:100])
             break
         except subprocess.TimeoutExpired:
-            # print("ATTEMPTS", [attempt, attempts])
             if attempt >= attempts:
                 raise
     if debug:

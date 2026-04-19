@@ -1,4 +1,4 @@
-from peterbecom.chiveproxy.puppeteer import suck
+from peterbecom.chiveproxy.html_getter import suck
 
 
 def test_happy_path():

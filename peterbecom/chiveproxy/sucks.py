@@ -7,7 +7,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
 
-from . import puppeteer
+from . import html_getter
 
 
 def make_it_more_iso(datestr):
@@ -21,7 +21,7 @@ def get_cards(limit=None, debug=False, html=None):
 
     base = "https://thechive.com/"
     if html is None:
-        html = puppeteer.suck(base, debug=debug)
+        html = html_getter.suck(base, debug=debug)
         assert html, base
         if debug:
             with open("/tmp/chive.html", "w") as f:
