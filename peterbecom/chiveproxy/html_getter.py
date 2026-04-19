@@ -1,3 +1,4 @@
+import time
 import os
 import signal
 import subprocess
@@ -45,7 +46,7 @@ def subprocess_execute(command, timeout_seconds=30, shell=True):
 
 def suck(url, attempts=3, debug=False):
     here = Path(__file__).parent
-    executable = here / "out" / "puppeteer_sucks"
+    executable = here / "out" / "html_getter"
     if not executable.exists():
         raise FileNotFoundError(
             f"The executable {executable} does not exist. Did you compile it?"
@@ -54,18 +55,19 @@ def suck(url, attempts=3, debug=False):
     if debug:
         print("Command:", command)
 
+    t0 = time.monotonic()
     attempt = 0
     while True:
         attempt += 1
         try:
-            # print("COMMAND:", command)
             output, _ = subprocess_execute(command, timeout_seconds=60)
-            # print("WORKED!", output[:100])
             break
         except subprocess.TimeoutExpired:
-            # print("ATTEMPTS", [attempt, attempts])
             if attempt >= attempts:
                 raise
+    if debug:
+        t1 = time.monotonic()
+        print(f"Took: {t1 - t0:.2f}s to run: {command}")
 
     return output.decode("utf-8")
 
