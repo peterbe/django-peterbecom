@@ -10,7 +10,7 @@ To run:
 
 ```bash
 bun run compile
-/out/puppeteer_sucks https://www.peterbe.com
+/out/html_getter https://www.peterbe.com
 ```
 
 This project was created using `bun init` in bun v1.3.0. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.

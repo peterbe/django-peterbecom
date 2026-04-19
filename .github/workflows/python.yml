@@ -39,13 +39,13 @@ jobs:
         working-directory: peterbecom/chiveproxy
         run: bun install
 
-      - name: Compile puppeteer_sucks with bun
+      - name: Compile html_getter with bun
         working-directory: peterbecom/chiveproxy
         run: bun run compile
 
-      - name: Test compiled puppeteer_sucks
+      - name: Test compiled html_getter
         working-directory: peterbecom/chiveproxy
-        run: ./out/puppeteer_sucks https://www.example.com
+        run: ./out/html_getter https://www.example.com
 
       - name: Install uv
         id: setup-uv

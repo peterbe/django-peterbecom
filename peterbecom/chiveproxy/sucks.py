@@ -115,18 +115,18 @@ def get_card(url):
 
     # The cache is really just to assure we don't run it more than once
     # in a short timeframe. ...by some accident or local dev.
-    puppeteer_cache_key = "puppeteer_sucks:{}".format(
+    html_getter_cache_key = "html_getter_sucks:{}".format(
         hashlib.md5(url.encode("utf-8")).hexdigest()
     )
-    html = cache.get(puppeteer_cache_key)
+    html = cache.get(html_getter_cache_key)
     if html is None:
         print("Sucking", url)
-        html = puppeteer.suck(url)
+        html = html_getter.suck(url)
         assert html, url
         assert html.strip().endswith("</html>"), (url, html)
         print("Sucked", url)
         if html:
-            cache.set(puppeteer_cache_key, html, 60)
+            cache.set(html_getter_cache_key, html, 60)
     else:
         print("No need sucking", url, "(cached)")
 
