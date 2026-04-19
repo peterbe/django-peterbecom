@@ -21,7 +21,7 @@ def get_cards(limit=None, debug=False, html=None):
 
     base = "https://thechive.com/"
     if html is None:
-        html = puppeteer.suck(base)
+        html = puppeteer.suck(base, debug=debug)
         assert html, base
         if debug:
             with open("/tmp/chive.html", "w") as f:
