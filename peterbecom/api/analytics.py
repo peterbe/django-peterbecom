@@ -8,8 +8,13 @@ from functools import wraps
 from django import http
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import connection
+from django.db.models import Avg, Count, Sum
+from django.db.models.functions import TruncMonth
 from django.db.utils import DataError, ProgrammingError
 from sql_metadata import Parser
+
+from peterbecom.base.utils import json_response
+from peterbecom.llmcalls.models import LLMCall
 
 
 def api_superuser_required(view_func):
@@ -142,3 +147,31 @@ class CustomJSONEncoder(DjangoJSONEncoder):
         if isinstance(o, datetime.timedelta):
             return str(o)
         return super().default(o)
+
+
+@api_superuser_required
+def llmcalls(request):
+    context = {"aggregates": [], "sums": []}
+
+    query = LLMCall.objects.filter(status="success")
+    results = (
+        query.annotate(month=TruncMonth("created"))
+        .values("month", "model")
+        .annotate(count=Count("id"), avg_took_seconds=Avg("took_seconds"))
+        .order_by("month", "model")
+    )
+    for r in results:
+        context["aggregates"].append(r)
+
+    results = (
+        query.values("model")
+        .annotate(
+            count=Count("id"),
+            sum_took_seconds=Sum("took_seconds"),
+        )
+        .order_by("model")
+    )
+    for r in results:
+        context["sums"].append(r)
+
+    return json_response(context)

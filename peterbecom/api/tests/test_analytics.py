@@ -1,9 +1,12 @@
+import datetime
 import uuid
 
 from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
+from django.utils import timezone
 
 from peterbecom.base.models import AnalyticsEvent
+from peterbecom.llmcalls.models import LLMCall
 
 
 def generate_random_uuid():
@@ -93,3 +96,46 @@ def test_happy_path(admin_client):
     assert first["?column? (2)"] is None
     assert first["delta"]
     assert first["created"]
+
+
+def test_analytics_llmcalls(admin_client):
+    url = reverse("api:analytics_llmcalls")
+    response = admin_client.get(url)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["aggregates"] == []
+    assert data["sums"] == []
+
+    LLMCall.objects.create(
+        status="success",
+        messages=[{"role": "user", "content": "Hello"}],
+        response={"choices": [{"message": {"content": "Hi"}}]},
+        model="gpt-3.5-turbo",
+        took_seconds=1.23,
+        created=timezone.now() - datetime.timedelta(days=30),
+    )
+    LLMCall.objects.create(
+        status="success",
+        messages=[{"role": "user", "content": "Hello"}],
+        response={"choices": [{"message": {"content": "Hi"}}]},
+        model="gpt-3.5-nano",
+        took_seconds=15.6,
+        created=timezone.now() - datetime.timedelta(days=30),
+    )
+    LLMCall.objects.create(
+        status="success",
+        messages=[{"role": "user", "content": "Hello"}],
+        response={},
+        model="gpt-3.5-nano",
+        took_seconds=5.4,
+    )
+
+    response = admin_client.get(url)
+    assert response.status_code == 200
+    data = response.json()
+
+    assert len(data["aggregates"]) == 2  # 2 different months
+    assert [x["count"] for x in data["aggregates"]] == [2, 1]
+
+    assert len(data["sums"]) == 2  # 2 different models
+    assert [x["count"] for x in data["sums"]] == [2, 1]
