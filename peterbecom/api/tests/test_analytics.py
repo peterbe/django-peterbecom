@@ -104,7 +104,6 @@ def test_analytics_llmcalls(admin_client):
     assert response.status_code == 200
     data = response.json()
     assert data["aggregates"] == []
-    assert data["sums"] == []
 
     LLMCall.objects.create(
         status="success",
@@ -136,6 +135,8 @@ def test_analytics_llmcalls(admin_client):
 
     assert len(data["aggregates"]) == 2  # 2 different months
     assert [x["count"] for x in data["aggregates"]] == [2, 1]
-
-    assert len(data["sums"]) == 2  # 2 different models
-    assert [x["count"] for x in data["sums"]] == [2, 1]
+    first = data["aggregates"][0]
+    assert first["month"]
+    assert first["model"] == "gpt-3.5-nano"
+    assert first["avg_took_seconds"] == 10.5
+    assert first["sum_took_seconds"] == 21.0
