@@ -151,27 +151,20 @@ class CustomJSONEncoder(DjangoJSONEncoder):
 
 @api_superuser_required
 def llmcalls(request):
-    context = {"aggregates": [], "sums": []}
+    context = {"aggregates": []}
 
     query = LLMCall.objects.filter(status="success")
     results = (
         query.annotate(month=TruncMonth("created"))
         .values("month", "model")
-        .annotate(count=Count("id"), avg_took_seconds=Avg("took_seconds"))
+        .annotate(
+            count=Count("id"),
+            avg_took_seconds=Avg("took_seconds"),
+            sum_took_seconds=Sum("took_seconds"),
+        )
         .order_by("month", "model")
     )
     for r in results:
         context["aggregates"].append(r)
-
-    results = (
-        query.values("model")
-        .annotate(
-            count=Count("id"),
-            sum_took_seconds=Sum("took_seconds"),
-        )
-        .order_by("model")
-    )
-    for r in results:
-        context["sums"].append(r)
 
     return json_response(context)
