@@ -56,12 +56,10 @@ def spellcheck_markdown(request):
 def spellcheck_markdown_text(markdown_text):
     # Split the markdown text into paragraphs based on double newlines
     paragraphs = markdown_text.split("\n\n")
-    # spellcheck_results = []
 
     tasks = []
     in_code_block = False
     for i, paragraph in enumerate(paragraphs):
-        # print(repr(paragraph))
         if paragraph.strip().startswith("```"):
             in_code_block = True
         elif paragraph.strip().endswith("```"):
@@ -71,12 +69,10 @@ def spellcheck_markdown_text(markdown_text):
         elif len(paragraph.strip().split()) < 5:
             continue
         elif not in_code_block:
-            # print("PARAGRAPH TASK:", repr(paragraph))
-
             tasks.append(
                 {
                     "index": i,
-                    "before": paragraph,
+                    "before": paragraph.strip(),
                     "after": "",
                 }
             )
