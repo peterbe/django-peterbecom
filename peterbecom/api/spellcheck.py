@@ -46,7 +46,7 @@ def spellcheck_markdown(request):
 def spellcheck_markdown_text(markdown_text):
     # Split the markdown text into paragraphs based on double newlines
     paragraphs = markdown_text.split("\n\n")
-    spellcheck_results = []
+    # spellcheck_results = []
 
     tasks = []
     in_code_block = False
