@@ -1,8 +1,10 @@
+import datetime
 import json
 import time
 from functools import wraps
 
 from django import http
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from peterbecom.base.utils import json_response
@@ -30,16 +32,24 @@ def api_superuser_required(view_func):
 @api_superuser_required
 @require_POST
 def spellcheck_markdown(request):
-    context = {"spellcheck": [], "errors": []}
+    context = {
+        "spellcheck": [],
+        "errors": [],
+        "metadata": {
+            "took_seconds": None,
+        },
+    }
 
+    t0 = time.time()
     try:
         post_data = json.loads(request.body.decode("utf-8"))
         markdown_text = post_data["markdown"]
         paragraphs = spellcheck_markdown_text(markdown_text)
+        context["spellcheck"].append(paragraphs)
     except json.JSONDecodeError:
         return json_response(context, status=400)
 
-    context = {"spellcheck": paragraphs}
+    context["metadata"]["took_seconds"] = time.time() - t0
     return json_response(context)
 
 
@@ -61,7 +71,7 @@ def spellcheck_markdown_text(markdown_text):
         elif len(paragraph.strip().split()) < 5:
             continue
         elif not in_code_block:
-            print("PARAGRAPH TASK:", repr(paragraph))
+            # print("PARAGRAPH TASK:", repr(paragraph))
 
             tasks.append(
                 {
@@ -81,14 +91,14 @@ def spellcheck_markdown_text(markdown_text):
     while True:
         all_done = True
         for task, llm_call in llm_calls:
-            print("TASK:", task)
+            # print("TASK:", task)
             llm_call.refresh_from_db()
-            print("LLMCALL:", llm_call)
+            # print("LLMCALL:", llm_call)
             if llm_call.status == "success":
-                print("SUCCESS! Response...:")
-                from pprint import pprint
+                # print("SUCCESS! Response...:")
+                # from pprint import pprint
 
-                pprint(llm_call.response)
+                # pprint(llm_call.response)
                 task["after"] = (
                     llm_call.response.get("choices", [{}])[0]
                     .get("message", {})
@@ -119,8 +129,24 @@ def spellcheck_markdown_text(markdown_text):
     return tasks
 
 
-def start_spellcheck(paragraph):
-    model = "gpt-5"
+def start_spellcheck(paragraph, model="gpt-5"):
+    last_hour = timezone.now() - datetime.timedelta(hours=1)
+    recent_candidates = LLMCall.objects.filter(
+        model=model,
+        status__in=["progress", "success"],
+        error__isnull=True,
+        created__gt=last_hour,
+    )
+    # print(recent_candidates)
+    for candidate in recent_candidates:
+        # print("CANDIDATE?", repr(candidate))
+        # print("CANDIDATE PARAGRAPH?", repr(candidate.metadata.get("paragraph")))
+        # print("THIS PARAGRAPH?", repr(paragraph))
+        if candidate.metadata.get("paragraph") == paragraph:
+            print("Found recent candidate with same paragraph, reusing it...")
+            return candidate
+
+    print("No recent candidate found, creating a new one...")
 
     messages = []
     messages.append(
