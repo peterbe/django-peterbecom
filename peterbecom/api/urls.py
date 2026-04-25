@@ -1,5 +1,7 @@
 from django.urls import path, re_path
 
+from peterbecom.api import spellcheck
+
 from . import analytics, classification, rewrite, spam, views
 
 app_name = "api"
@@ -62,6 +64,9 @@ urlpatterns = [
         name="blogcomments_batch",
     ),
     path("plog/preview/", views.preview, name="preview"),
+    path(
+        "plog/spellcheck/", spellcheck.spellcheck_markdown, name="markdown_spellcheck"
+    ),
     path(
         "plog/<str:blogitem_oid>/comment/<str:oid>",
         views.blogcomment,
