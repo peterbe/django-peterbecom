@@ -7,6 +7,7 @@ from django import http
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from peterbecom.api.rewrite import generate_inline_diff_html
 from peterbecom.base.utils import json_response
 from peterbecom.llmcalls.models import LLMCall
 from peterbecom.llmcalls.tasks import execute_completion
@@ -101,12 +102,16 @@ def spellcheck_markdown_text(markdown_text):
                     .get("content", "")
                 )
                 task["total_time"] = time.time() - start_time
+                task["html_diff"] = generate_inline_diff_html(
+                    task["before"], task["after"]
+                )
                 task["error"] = None
 
             elif llm_call.status == "error":
                 task["after"] = task["before"]
                 task["error"] = True
                 task["total_time"] = time.time() - start_time
+                task["html_diff"] = None
             else:
                 all_done = False
 
