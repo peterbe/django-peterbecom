@@ -8,7 +8,7 @@ from peterbecom.llmcalls.models import LLMCall
 
 
 @task()
-def execute_completion(llm_call_id):
+def execute_completion(llm_call_id, timeout=60):
     llm_call = LLMCall.objects.get(id=llm_call_id)
 
     print("EXECUTING....")
@@ -24,6 +24,7 @@ def execute_completion(llm_call_id):
         messages=llm_call.messages,
         # temperature=0,
         # response_format={"type": "json_object"},
+        timeout=timeout,
     )
     try:
         print(llm_call, "succeeded")
