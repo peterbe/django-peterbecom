@@ -45,7 +45,7 @@ def spellcheck_markdown(request):
         post_data = json.loads(request.body.decode("utf-8"))
         markdown_text = post_data["markdown"]
         paragraphs = spellcheck_markdown_text(markdown_text)
-        context["spellcheck"].append(paragraphs)
+        context["spellcheck"] = paragraphs
     except json.JSONDecodeError:
         return json_response(context, status=400)
 
