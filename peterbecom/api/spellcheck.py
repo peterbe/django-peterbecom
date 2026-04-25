@@ -30,7 +30,6 @@ def api_superuser_required(view_func):
 @api_superuser_required
 @require_POST
 def spellcheck_markdown(request):
-
     context = {"spellcheck": [], "errors": []}
 
     try:
@@ -62,6 +61,8 @@ def spellcheck_markdown_text(markdown_text):
         elif len(paragraph.strip().split()) < 5:
             continue
         elif not in_code_block:
+            print("PARAGRAPH TASK:", repr(paragraph))
+
             tasks.append(
                 {
                     "index": i,
@@ -76,18 +77,30 @@ def spellcheck_markdown_text(markdown_text):
         llm_calls.append((task, llm_call))
 
     start_time = time.time()
+    time.sleep(3)
     while True:
         all_done = True
         for task, llm_call in llm_calls:
+            print("TASK:", task)
             llm_call.refresh_from_db()
+            print("LLMCALL:", llm_call)
             if llm_call.status == "success":
+                print("SUCCESS! Response...:")
+                from pprint import pprint
+
+                pprint(llm_call.response)
                 task["after"] = (
                     llm_call.response.get("choices", [{}])[0]
                     .get("message", {})
                     .get("content", "")
                 )
+                task["total_time"] = time.time() - start_time
+                task["error"] = None
+
             elif llm_call.status == "error":
                 task["after"] = task["before"]
+                task["error"] = True
+                task["total_time"] = time.time() - start_time
             else:
                 all_done = False
 
@@ -103,11 +116,10 @@ def spellcheck_markdown_text(markdown_text):
             break
         time.sleep(5)
 
-    return spellcheck_results
+    return tasks
 
 
 def start_spellcheck(paragraph):
-
     model = "gpt-5"
 
     messages = []
