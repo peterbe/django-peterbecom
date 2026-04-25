@@ -1,4 +1,5 @@
 import json
+import time
 from functools import wraps
 
 from django import http
@@ -73,6 +74,34 @@ def spellcheck_markdown_text(markdown_text):
     for task in tasks:
         llm_call = start_spellcheck(task["before"])
         llm_calls.append((task, llm_call))
+
+    start_time = time.time()
+    while True:
+        all_done = True
+        for task, llm_call in llm_calls:
+            llm_call.refresh_from_db()
+            if llm_call.status == "success":
+                task["after"] = (
+                    llm_call.response.get("choices", [{}])[0]
+                    .get("message", {})
+                    .get("content", "")
+                )
+            elif llm_call.status == "error":
+                task["after"] = task["before"]
+            else:
+                all_done = False
+
+        if all_done:
+            break
+
+        total_time = time.time() - start_time
+        if total_time > 120:
+            # If it takes more than 2 minutes, just give up and use the original text
+            for task, llm_call in llm_calls:
+                if llm_call.status == "progress":
+                    task["after"] = task["before"]
+            break
+        time.sleep(5)
 
     return spellcheck_results
 
