@@ -18,15 +18,16 @@ def execute_completion(llm_call_id, timeout=60):
 
     t0 = time.time()
 
-    response = litellm.completion(
-        model=llm_call.model,
-        api_key=settings.OPENAI_API_KEY,
-        messages=llm_call.messages,
-        # temperature=0,
-        # response_format={"type": "json_object"},
-        timeout=timeout,
-    )
     try:
+        response = litellm.completion(
+            model=llm_call.model,
+            api_key=settings.OPENAI_API_KEY,
+            messages=llm_call.messages,
+            # temperature=0,
+            # response_format={"type": "json_object"},
+            timeout=timeout,
+        )
+
         print(llm_call, "succeeded")
         LLMCall.objects.filter(id=llm_call_id).update(
             status="success",

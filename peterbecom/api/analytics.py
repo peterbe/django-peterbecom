@@ -3,7 +3,6 @@ import json
 import re
 import time
 from collections import Counter
-from functools import wraps
 
 from django import http
 from django.core.serializers.json import DjangoJSONEncoder
@@ -13,24 +12,9 @@ from django.db.models.functions import TruncMonth
 from django.db.utils import DataError, ProgrammingError
 from sql_metadata import Parser
 
+from peterbecom.api.view_utils import api_superuser_required
 from peterbecom.base.utils import json_response
 from peterbecom.llmcalls.models import LLMCall
-
-
-def api_superuser_required(view_func):
-    """Decorator that will return a 403 JSON response if the user
-    is *not* a superuser.
-    Use this decorator *after* others like api_login_required.
-    """
-
-    @wraps(view_func)
-    def inner(request, *args, **kwargs):
-        if not request.user.is_superuser:
-            error_msg = "Must be superuser to access this view."
-            return http.JsonResponse({"error": error_msg}, status=403)
-        return view_func(request, *args, **kwargs)
-
-    return inner
 
 
 @api_superuser_required

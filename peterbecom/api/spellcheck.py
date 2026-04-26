@@ -1,43 +1,31 @@
 import datetime
 import json
 import time
-from functools import wraps
 
-from django import http
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from peterbecom.api.rewrite import generate_inline_diff_html
+from peterbecom.api.view_utils import api_superuser_required
 from peterbecom.base.utils import json_response
 from peterbecom.llmcalls.models import LLMCall
 from peterbecom.llmcalls.tasks import execute_completion
-
-
-def api_superuser_required(view_func):
-    """Decorator that will return a 403 JSON response if the user
-    is *not* a superuser.
-    Use this decorator *after* others like api_login_required.
-    """
-
-    @wraps(view_func)
-    def inner(request, *args, **kwargs):
-        if not request.user.is_superuser:
-            error_msg = "Must be superuser to access this view."
-            # raise PermissionDenied(error_msg)
-            return http.JsonResponse({"error": error_msg}, status=403)
-        return view_func(request, *args, **kwargs)
-
-    return inner
+from peterbecom.plog.models import (
+    BlogItem,
+)
 
 
 @api_superuser_required
 @require_POST
-def spellcheck_markdown(request):
+def spellcheck_markdown(request, oid):
+    blogitem = get_object_or_404(BlogItem, oid=oid)
     context = {
         "spellcheck": [],
         "errors": [],
         "metadata": {
             "took_seconds": None,
+            "blogitem_oid": oid,
         },
     }
 
@@ -45,7 +33,7 @@ def spellcheck_markdown(request):
     try:
         post_data = json.loads(request.body.decode("utf-8"))
         markdown_text = post_data["markdown"]
-        paragraphs = spellcheck_markdown_text(markdown_text)
+        paragraphs = spellcheck_markdown_text(markdown_text, blogitem)
         context["spellcheck"] = paragraphs
     except json.JSONDecodeError:
         return json_response(context, status=400)
@@ -54,7 +42,7 @@ def spellcheck_markdown(request):
     return json_response(context)
 
 
-def spellcheck_markdown_text(markdown_text):
+def spellcheck_markdown_text(markdown_text, blogitem: BlogItem):
     # Split the markdown text into paragraphs based on double newlines
     paragraphs = markdown_text.split("\n\n")
 
@@ -80,22 +68,23 @@ def spellcheck_markdown_text(markdown_text):
 
     llm_calls = []
     for task in tasks:
-        llm_call = start_spellcheck(task["before"])
-        llm_calls.append((task, llm_call))
+        if llm_call := find_llm_call_for_paragraph(task["before"], blogitem):
+            llm_calls.append((task, llm_call))
+        else:
+            llm_calls.append((task, start_spellcheck(task["before"], blogitem)))
+
+    if not all([llm_call.status == "success" for _, llm_call in llm_calls]):
+        # At least one was not previously found
+        time.sleep(3)
 
     start_time = time.time()
-    time.sleep(3)
     while True:
         all_done = True
         for task, llm_call in llm_calls:
-            # print("TASK:", task)
-            llm_call.refresh_from_db()
-            # print("LLMCALL:", llm_call)
-            if llm_call.status == "success":
-                # print("SUCCESS! Response...:")
-                # from pprint import pprint
+            if llm_call.status == "progress":
+                llm_call.refresh_from_db()
 
-                # pprint(llm_call.response)
+            if llm_call.status == "success":
                 task["after"] = (
                     llm_call.response.get("choices", [{}])[0]
                     .get("message", {})
@@ -125,30 +114,26 @@ def spellcheck_markdown_text(markdown_text):
                 if llm_call.status == "progress":
                     task["after"] = task["before"]
             break
-        time.sleep(5)
+        time.sleep(3)
 
     return tasks
 
 
-def start_spellcheck(paragraph, model="gpt-5"):
+def find_llm_call_for_paragraph(paragraph: str, blogitem: BlogItem, model="gpt-5"):
     last_hour = timezone.now() - datetime.timedelta(hours=1)
     recent_candidates = LLMCall.objects.filter(
         model=model,
         status__in=["progress", "success"],
         error__isnull=True,
         created__gt=last_hour,
+        metadata__blogitem_oid=blogitem.oid,
     )
-    # print(recent_candidates)
     for candidate in recent_candidates:
-        # print("CANDIDATE?", repr(candidate))
-        # print("CANDIDATE PARAGRAPH?", repr(candidate.metadata.get("paragraph")))
-        # print("THIS PARAGRAPH?", repr(paragraph))
         if candidate.metadata.get("paragraph") == paragraph:
-            print("Found recent candidate with same paragraph, reusing it...")
             return candidate
 
-    print("No recent candidate found, creating a new one...")
 
+def start_spellcheck(paragraph: str, blogitem: BlogItem, model="gpt-5"):
     messages = []
     messages.append(
         {
@@ -205,7 +190,7 @@ def start_spellcheck(paragraph, model="gpt-5"):
             error=None,
             attempts=attempts,
             took_seconds=None,
-            metadata={"paragraph": paragraph},
+            metadata={"paragraph": paragraph, "blogitem_oid": blogitem.oid},
         )
 
         execute_completion(llm_call.id)

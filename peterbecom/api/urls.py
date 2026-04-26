@@ -65,9 +65,6 @@ urlpatterns = [
     ),
     path("plog/preview/", views.preview, name="preview"),
     path(
-        "plog/spellcheck/", spellcheck.spellcheck_markdown, name="markdown_spellcheck"
-    ),
-    path(
         "plog/<str:blogitem_oid>/comment/<str:oid>",
         views.blogcomment,
         name="blogcomment",
@@ -77,6 +74,11 @@ urlpatterns = [
     re_path(r"^plog/(.*)/hits$", views.hits, name="hits"),
     re_path(
         r"^plog/(.*)/open-graph-image$", views.open_graph_image, name="open_graph_image"
+    ),
+    re_path(
+        r"^plog/(.*)/spellcheck$",
+        spellcheck.spellcheck_markdown,
+        name="markdown_spellcheck",
     ),
     re_path(r"^plog/(.*)$", views.blogitem, name="blogitem"),
     path("categories", views.categories, name="categories"),
