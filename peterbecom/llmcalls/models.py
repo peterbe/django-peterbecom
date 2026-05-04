@@ -9,6 +9,7 @@ from django.dispatch import receiver
 class LLMCall(models.Model):
     id = models.AutoField(primary_key=True)
     status = models.CharField(max_length=255)
+    use_case = models.CharField(max_length=255, default="")
     messages = models.JSONField()
     message_hash = models.CharField(max_length=255, default="")
     temperature = models.IntegerField(null=True)

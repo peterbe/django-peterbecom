@@ -87,6 +87,7 @@ def get_llm_response_comment(comment: str, oid: str, model: str = VALID_MODELS[0
 
     def create_and_start(attempts=0):
         llm_call = LLMCall.objects.create(
+            use_case="admin_spellcheck_comment",
             status="progress",
             messages=messages,
             response={},
