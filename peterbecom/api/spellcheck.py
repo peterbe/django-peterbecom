@@ -178,6 +178,7 @@ def start_spellcheck(paragraph: str, blogitem: BlogItem, model="gpt-5"):
 
     def create_and_start(attempts=0):
         llm_call = LLMCall.objects.create(
+            use_case="admin_spellcheck_markdown",
             status="progress",
             messages=messages,
             response={},
