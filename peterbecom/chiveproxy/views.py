@@ -85,8 +85,12 @@ def _cards_log(*args):
 @periodic_task(crontab(hour="*", minute="1"))
 def update_cards_periodically():
     _cards_log("Updating cards periodically")
-    count_updated, count_tried = update_cards(limit=15)
-    _cards_log(f"Updated {count_updated} cards (tried {count_tried})")
+    try:
+        count_updated, count_tried = update_cards(limit=15)
+        _cards_log(f"Updated {count_updated} cards (tried {count_tried})")
+    except Exception as e:
+        _cards_log("Error in update_cards_periodically:", e)
+        raise e
 
 
 @periodic_task(crontab(hour="*", minute="10"))
