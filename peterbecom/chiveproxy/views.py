@@ -101,22 +101,22 @@ def update_cards_without_pictures_periodically():
         if card.data["pictures"]:
             continue
         retry_cache_key = "retried:{}".format(card.pk)
-        _cards_log("CARDS:", retry_cache_key, repr(card), "HAS NO PICTURES")
+        _cards_log("retry cache key:", retry_cache_key, repr(card), "HAS NO PICTURES")
 
         if not cache.get(retry_cache_key):
             _cards_log(f"Retrying card {card!r}...")
             try:
-                _cards_log(f"CARDS: Getting card (without pictures) {card.url}")
+                _cards_log(f"Getting card (without pictures) {card.url}")
                 t0 = time.time()
                 card.data = get_card(card.url)
                 card.save()
                 took_seconds = time.time() - t0
                 _cards_log(
-                    f"CARDS: Fixed {card!r}: {len(card.data['pictures'])} pictures "
+                    f"Fixed {card!r}: {len(card.data['pictures'])} pictures "
                     f"(took {took_seconds:.1f} seconds)"
                 )
             except Exception as e:
-                _cards_log(f"CARDS: Error on get_card({card.url!r}):", e)
+                _cards_log(f"Error on get_card({card.url!r}):", e)
             finally:
                 cache.set(
                     retry_cache_key,
@@ -135,7 +135,7 @@ def update_cards(limit=None, debug=False):
             previous_value = cache.get(key) or 0
             _cards_log(f"PREVIOUS FAILURES {url}: {previous_value}")
             try:
-                _cards_log(f"CARDS: Getting card {url}")
+                _cards_log(f"Getting card {url}")
                 t0 = time.time()
                 data = get_card(url)
                 if data:
@@ -144,7 +144,7 @@ def update_cards(limit=None, debug=False):
                     count_updated += 1
                 took_seconds = time.time() - t0
                 _cards_log(
-                    f"CARDS: Got card {url} ({'got data' if data else 'no data!'})"
+                    f"Got card {url} ({'got data' if data else 'no data!'})"
                     f" (took {took_seconds:.1f} seconds)"
                 )
             except TimeoutExpired:
