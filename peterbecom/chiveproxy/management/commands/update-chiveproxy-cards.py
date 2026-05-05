@@ -5,13 +5,17 @@ from peterbecom.chiveproxy.views import update_cards
 
 
 class Command(BaseCommand):
+    def add_arguments(self, parser):
+        parser.add_argument("--limit", default=100)
+
     def handle(self, **options):
+        limit = int(options["limit"])
         print(
             "Warning! This is run by a huey periodic task regularly already. "
             "Use the periodic task instead!"
         )
         try:
-            update_cards(debug=True)
+            update_cards(limit=limit, debug=True)
         except Exception as e:
             import sys
             import traceback
