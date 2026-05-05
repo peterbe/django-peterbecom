@@ -60,7 +60,7 @@ def suck(url, attempts=3, debug=False):
     while True:
         attempt += 1
         try:
-            output, _ = subprocess_execute(command, timeout_seconds=60)
+            output, _ = subprocess_execute(command, timeout_seconds=120)
             break
         except subprocess.TimeoutExpired:
             if attempt >= attempts:

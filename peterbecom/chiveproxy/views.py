@@ -1,3 +1,4 @@
+import time
 from subprocess import TimeoutExpired
 
 from django import http
@@ -77,30 +78,41 @@ def api_cards(request):
     return JsonResponse(context)
 
 
+def _cards_log(*args):
+    print("CARDS", *args, f"({timezone.now()})")
+
+
 @periodic_task(crontab(hour="*", minute="1"))
 def update_cards_periodically():
-    print(f"CARDS: Updating cards periodically ({timezone.now()})")
-    update_cards(limit=15)
+    _cards_log("Updating cards periodically")
+    count_updated, count_tried = update_cards(limit=15)
+    _cards_log(f"Updated {count_updated} cards (tried {count_tried})")
 
 
-# @periodic_task(crontab(hour="*", minute="10"))
-@periodic_task(crontab(minute="*/15"))
+@periodic_task(crontab(hour="*", minute="10"))
 def update_cards_without_pictures_periodically():
-    print(f"CARDS: Updating cards without pictures ({timezone.now()})")
+    _cards_log("Updating cards without pictures")
     qs = Card.objects
     for card in qs.order_by("-created")[:100]:
         if card.data["pictures"]:
             continue
         retry_cache_key = "retried:{}".format(card.pk)
-        print("CARDS:", retry_cache_key, repr(card), "HAS NO PICTURES")
+        _cards_log("CARDS:", retry_cache_key, repr(card), "HAS NO PICTURES")
+
         if not cache.get(retry_cache_key):
-            print(f"Retrying card {card!r}...")
+            _cards_log(f"Retrying card {card!r}...")
             try:
+                _cards_log(f"CARDS: Getting card (without pictures) {card.url}")
+                t0 = time.time()
                 card.data = get_card(card.url)
-                print(f"CARDS: Fixed {card!r}: {len(card.data['pictures'])} pictures")
                 card.save()
+                took_seconds = time.time() - t0
+                _cards_log(
+                    f"CARDS: Fixed {card!r}: {len(card.data['pictures'])} pictures "
+                    f"(took {took_seconds:.1f} seconds)"
+                )
             except Exception as e:
-                print(f"CARDS: Error on get_card({card.url!r}):", e)
+                _cards_log(f"CARDS: Error on get_card({card.url!r}):", e)
             finally:
                 cache.set(
                     retry_cache_key,
@@ -110,20 +122,31 @@ def update_cards_without_pictures_periodically():
 
 
 def update_cards(limit=None, debug=False):
+    count_updated = count_tried = 0
     for card in sorted(get_cards(limit=limit, debug=debug), key=lambda c: c["date"]):
         url = card.pop("url")
         if not Card.objects.filter(url=url).exists():
+            count_tried += 1
             key = f"get_card_failures:{url}"
             previous_value = cache.get(key) or 0
-            print(f"PREVIOUS FAILURES {url}: {previous_value}")
+            _cards_log(f"PREVIOUS FAILURES {url}: {previous_value}")
             try:
+                _cards_log(f"CARDS: Getting card {url}")
+                t0 = time.time()
                 data = get_card(url)
                 if data:
                     card.update(data)
                     Card.objects.create(url=url, data=card)
+                    count_updated += 1
+                took_seconds = time.time() - t0
+                _cards_log(
+                    f"CARDS: Got card {url} ({'got data' if data else 'no data!'})"
+                    f" (took {took_seconds:.1f} seconds)"
+                )
             except TimeoutExpired:
                 new_value = previous_value + 1
                 cache.set(key, new_value, 60 * 60)
+    return count_updated, count_tried
 
 
 @cache_control(max_age=settings.DEBUG and 10 or 60 * 60 * 6, public=True)
