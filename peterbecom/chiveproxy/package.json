@@ -14,8 +14,8 @@
   "license": "ISC",
   "private": true,
   "scripts": {
-    "compile": "bun build html-getter.ts --outfile out/html_getter --minify --sourcemap --bytecode --compile",
-    "compile:linux-x64": "bun build html-getter.ts --outfile out/html_getter --minify --sourcemap --bytecode --compile --target=bun-linux-x64"
+    "compile": "bun build html-getter.ts --outfile out/html_getter --bytecode --compile --target=bun",
+    "compile:linux-x64": "bun build html-getter.ts --outfile out/html_getter --minify --bytecode --compile --target=bun-linux-x64"
   },
   "dependencies": {
     "puppeteer": "^24.43.0"

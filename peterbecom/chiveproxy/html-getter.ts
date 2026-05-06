@@ -92,12 +92,17 @@ import puppeteer from 'puppeteer';
 https://hackernoon.com/tips-and-tricks-for-web-scraping-with-puppeteer-ed391a63d952
 */
 
-if (process.argv.length < 3) {
-  throw new Error('URL argument is required');
-  // console.warn('Missing URL argument');
-  // process.exit(1);
+const args = process.argv.slice(2);
+if (args.includes('--help') || args.includes('-h')) {
+  console.log('Usage: html_getter [options] <url>');
+  console.log('Options:');
+  process.exit(0);
 }
-const url = process.argv[2];
+
+if (args.length < 1) {
+  throw new Error('URL argument is required');
+}
+const url = args[0];
 
 (async (url) => {
   if (!url) throw new Error('URL is required');
@@ -105,10 +110,6 @@ const url = process.argv[2];
   const browser = await puppeteer.launch({
     // headless: 'new',
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu'],
-    // defaultViewport: {
-    //   width: 1920,
-    //   height: 2080,
-    // },
   });
   const page = await browser.newPage();
   await page.setViewport({ width: 1080, height: 1024 });
@@ -124,20 +125,10 @@ const url = process.argv[2];
       const html = await page.content();
       process.stdout.write(html);
     } else if (!response) {
-      // console.warn(`Response was null for ${url}`);
       throw new Error(`Response was null for ${url}`);
-      // exit = 3;
     } else {
-      // console.warn(`Response was ${response.status()} for ${url}`);
       throw new Error(`Response was ${response.status()} for ${url}`);
-      // exit = 4;
     }
-
-    // // Don't process.exit() if there wasn't a problem. Node might still be busy
-    // // writing to stdout.
-    // if (exit) {
-    //   process.exit(exit);
-    // }
   } finally {
     await browser.close();
   }
