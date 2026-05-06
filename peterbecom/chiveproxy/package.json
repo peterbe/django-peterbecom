@@ -16,5 +16,8 @@
   "scripts": {
     "compile": "bun build html-getter.ts --outfile out/html_getter --minify --sourcemap --bytecode --compile",
     "compile:linux-x64": "bun build html-getter.ts --outfile out/html_getter --minify --sourcemap --bytecode --compile --target=bun-linux-x64"
+  },
+  "dependencies": {
+    "puppeteer": "^24.43.0"
   }
 }

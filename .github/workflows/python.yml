@@ -63,7 +63,7 @@ jobs:
 
       - name: Make sure it's synced
         run: |
-
+          
           # If the uv.lock (dependencies and devDependencies) is
           # in correct sync with pyproject.toml running `uv sync`
           # should *not* make an edit to the uv.lock. I.e.
