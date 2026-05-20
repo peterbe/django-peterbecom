@@ -10,6 +10,7 @@ from django.utils import timezone
 from huey import crontab
 from huey.contrib.djhuey import periodic_task, task
 
+from peterbecom.llmcalls.rewrite import VALID_MODELS, get_llm_response_comment
 from peterbecom.plog.models import (
     BlogComment,
     BlogItem,
@@ -148,3 +149,37 @@ def delete_e2e_test_comment(blogcomment_id, delay=2):
     for blog_comment in BlogComment.objects.filter(id=blogcomment_id):
         time.sleep(delay)
         blog_comment.delete()
+
+
+@task()
+def prep_llm_rewrite(blogcomment_id):
+    blogcomment = BlogComment.objects.get(id=blogcomment_id)
+
+    print("COMMENT TEXT IN PREP LLM REWRITE:".center(30, "-"))
+    print(blogcomment.comment)
+    print("- " * 45)
+
+    no_lines = len(blogcomment.comment.strip().splitlines())
+    word_count = len(blogcomment.comment.strip().split())
+    if no_lines <= 1 and word_count <= 10:
+        print(
+            f"Comment {blogcomment_id} is a single line with {word_count} words, "
+            f"skipping LLM rewrite prep"
+        )
+        return
+    if word_count <= 5:
+        print(
+            f"Comment {blogcomment_id} is a short comment with {word_count} words, "
+            f"skipping LLM rewrite prep"
+        )
+        return
+
+    models = ("gpt-5", "gpt-5-mini")
+    assert all(m in VALID_MODELS for m in models), (
+        f"All models must be in VALID_MODELS: {VALID_MODELS}"
+    )
+    for model in models:
+        llm_call = get_llm_response_comment(
+            blogcomment.comment, blogcomment.oid, model=model
+        )
+        print(f"Created LLMCall for comment rewrite: {model=} {llm_call!r}")
