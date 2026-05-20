@@ -20,7 +20,12 @@ def rewrite_comment(comment: str, oid: str):
 VALID_MODELS = ("gpt-5", "gpt-5-mini", "gpt-5-nano")
 
 
-def get_llm_response_comment(comment: str, oid: str, model: str = VALID_MODELS[0]):
+def get_llm_response_comment(
+    comment: str,
+    oid: str,
+    model: str = VALID_MODELS[0],
+    use_case="admin_spellcheck_comment",
+) -> LLMCall:
     messages = []
     messages.append(
         {
@@ -87,7 +92,7 @@ def get_llm_response_comment(comment: str, oid: str, model: str = VALID_MODELS[0
 
     def create_and_start(attempts=0):
         llm_call = LLMCall.objects.create(
-            use_case="admin_spellcheck_comment",
+            use_case=use_case,
             status="progress",
             messages=messages,
             response={},

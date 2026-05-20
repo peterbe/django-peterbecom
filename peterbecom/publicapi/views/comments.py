@@ -17,7 +17,11 @@ from peterbecom.plog.spamprevention import (
     custom_spam_patterns,
     is_trash_commenter,
 )
-from peterbecom.plog.tasks import delete_e2e_test_comment, send_new_comment_email
+from peterbecom.plog.tasks import (
+    delete_e2e_test_comment,
+    prep_llm_rewrite,
+    send_new_comment_email,
+)
 from peterbecom.plog.utils import render_comment_text
 from peterbecom.publicapi.forms import SubmitForm
 
@@ -127,6 +131,8 @@ def submit_comment(request):
 
             if blogitem.oid != "blogitem-040601-1":
                 transaction.on_commit(lambda: send_new_comment_email(blog_comment.id))
+            else:
+                transaction.on_commit(lambda: prep_llm_rewrite(blog_comment.id))
 
             if (
                 blog_comment.name == "Playwright"
