@@ -1,6 +1,7 @@
 import time
 
 import litellm
+import anthropic
 from django.conf import settings
 from huey.contrib.djhuey import task
 
@@ -17,8 +18,15 @@ def execute_completion(llm_call_id, timeout=60):
     pprint(llm_call.messages)
 
     t0 = time.time()
+    if llm_call.model.startswith("claude"):
+        client = anthropic.Anthropic()
+        response = client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=1024,  # necessary??
+            messages=llm_call.messages,
+        )
 
-    try:
+    else:
         response = litellm.completion(
             model=llm_call.model,
             api_key=settings.OPENAI_API_KEY,
@@ -27,7 +35,7 @@ def execute_completion(llm_call_id, timeout=60):
             # response_format={"type": "json_object"},
             timeout=timeout,
         )
-
+    try:
         print(llm_call, "succeeded")
         LLMCall.objects.filter(id=llm_call_id).update(
             status="success",
