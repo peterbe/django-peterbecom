@@ -68,6 +68,7 @@ from .forms import (
     CommentCountsIntervalForm,
     EditBlogCommentForm,
     EditBlogForm,
+    LLMCallsForm,
     PreviewBlogForm,
     ProbeURLForm,
     SpamCommentPatternForm,
@@ -2187,10 +2188,43 @@ def _count_highlighted_comments():
 
 @api_superuser_required
 def llmcalls(request):
-    context = {"calls": []}
+
+    form = LLMCallsForm(request.GET)
+    if not form.is_valid():
+        return json_response({"errors": form.errors}, status=400)
+
+    batch_size = form.cleaned_data["batch_size"] or 100
+    context = {
+        "calls": [],
+        "metadata": {
+            "status": form.cleaned_data["status"],
+            "model": form.cleaned_data["model"],
+            "use_case": form.cleaned_data["use_case"],
+            "batch_size": batch_size,
+        },
+        "aggregates": {},
+    }
     query = LLMCall.objects.all()
+
+    status_counts = query.values("status").annotate(total=Count("status"))
+    context["aggregates"]["status"] = {x["status"]: x["total"] for x in status_counts}
+    model_counts = query.values("model").annotate(total=Count("model"))
+    context["aggregates"]["model"] = {x["model"]: x["total"] for x in model_counts}
+    use_case_counts = query.values("use_case").annotate(total=Count("use_case"))
+    context["aggregates"]["use_case"] = {
+        x["use_case"]: x["total"] for x in use_case_counts
+    }
+
+    if form.cleaned_data["model"]:
+        query = query.filter(model=form.cleaned_data["model"])
+    if form.cleaned_data["status"]:
+        query = query.filter(status=form.cleaned_data["status"])
+    if form.cleaned_data["use_case"]:
+        query = query.filter(use_case=form.cleaned_data["use_case"])
+
     context["count"] = query.count()
     qs = query.order_by("-created")
-    for call in qs.values()[:100]:
+
+    for call in qs.values()[:batch_size]:
         context["calls"].append(call)
     return json_response(context)
