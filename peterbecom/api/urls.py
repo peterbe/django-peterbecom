@@ -106,5 +106,6 @@ urlpatterns = [
     path("analytics/query", analytics.query, name="analytics_query"),
     path("analytics/llmcalls", analytics.llmcalls, name="analytics_llmcalls"),
     path("probe/url", views.probe_url, name="probe_url"),
+    path("llmcalls", views.llmcalls, name="llmcalls"),
     path("", views.catch_all, name="catch_all"),
 ]

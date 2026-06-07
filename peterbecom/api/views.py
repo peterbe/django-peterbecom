@@ -42,6 +42,7 @@ from peterbecom.base.models import (
 )
 from peterbecom.base.utils import do_healthcheck, fake_ip_address, json_response
 from peterbecom.base.xcache_analyzer import get_x_cache
+from peterbecom.llmcalls.models import LLMCall
 from peterbecom.plog.models import (
     BlogComment,
     BlogCommentClassification,
@@ -2182,3 +2183,14 @@ def _get_comment_page(comment: dict) -> int:
 
 def _count_highlighted_comments():
     return BlogComment.objects.filter(highlighted__isnull=False).count()
+
+
+@api_superuser_required
+def llmcalls(request):
+    context = {"calls": []}
+    query = LLMCall.objects.all()
+    context["count"] = query.count()
+    qs = query.order_by("-created")
+    for call in qs.values()[:100]:
+        context["calls"].append(call)
+    return json_response(context)
