@@ -65,6 +65,7 @@ dependencies = [
     "psycopg[binary,pool]>=3.2.9",
     "crawlerdetect>=0.3.0",
     "litellm==1.83.0",
+    "anthropic>=0.105.2",
 ]
 
 [tool.coverage.run]

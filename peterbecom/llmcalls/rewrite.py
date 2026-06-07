@@ -3,6 +3,7 @@ from django.utils import timezone
 
 from peterbecom.llmcalls.models import LLMCall
 from peterbecom.llmcalls.tasks import execute_completion
+from peterbecom.settings.base import VALID_LLM_MODELS
 
 
 def rewrite_comment(comment: str, oid: str):
@@ -17,13 +18,10 @@ def rewrite_comment(comment: str, oid: str):
     return None
 
 
-VALID_MODELS = ("gpt-5", "gpt-5-mini", "gpt-5-nano")
-
-
 def get_llm_response_comment(
     comment: str,
     oid: str,
-    model: str = VALID_MODELS[0],
+    model: str = VALID_LLM_MODELS[0],
     use_case="admin_spellcheck_comment",
 ) -> LLMCall:
     messages = []
