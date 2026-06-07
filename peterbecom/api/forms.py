@@ -284,3 +284,10 @@ class CommentRewriteForm(forms.Form):
                 f"Invalid model. Valid models are: {', '.join(self.valid_models)}"
             )
         return value
+
+
+class LLMCallsForm(forms.Form):
+    model = forms.CharField(required=False)
+    status = forms.CharField(required=False)
+    use_case = forms.CharField(required=False)
+    batch_size = forms.IntegerField(required=False)
