@@ -10,6 +10,10 @@ from peterbecom.llmcalls.models import LLMCall
 
 @task()
 def execute_completion(llm_call_id, timeout=60):
+    _execute_completion(llm_call_id, timeout=timeout)
+
+
+def _execute_completion(llm_call_id, timeout=60):
     llm_call = LLMCall.objects.get(id=llm_call_id)
 
     print("EXECUTING....")
@@ -19,11 +23,23 @@ def execute_completion(llm_call_id, timeout=60):
 
     t0 = time.time()
     if llm_call.model.startswith("claude"):
-        client = anthropic.Anthropic()
+        client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+
+        messages = []
+        system_prompt = None
+        for message in llm_call.messages:
+            if message["role"] == "system":
+                if system_prompt is not None:
+                    raise ValueError("Multiple system prompts not supported")
+                system_prompt = message["content"]
+            else:
+                messages.append(message)
+
         response = client.messages.create(
-            model="claude-sonnet-4-6",
-            max_tokens=1024,  # necessary??
-            messages=llm_call.messages,
+            model="claude-opus-4-8",
+            max_tokens=1000,  # necessary??
+            system=system_prompt,
+            messages=messages,
         )
 
     else:

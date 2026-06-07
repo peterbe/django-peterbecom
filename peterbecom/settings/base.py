@@ -423,3 +423,5 @@ NO_LIKIFY_EXCEPTIONS = {"will.i.am"}
 OPENAI_API_KEY = ""
 
 POPULATE_SONG_CACHE_BY_ID_BATCH_SIZE = 5
+
+VALID_LLM_MODELS = ("gpt-5", "gpt-5-mini", "gpt-5-nano", "claude-opus-4-8")

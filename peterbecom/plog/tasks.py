@@ -10,7 +10,7 @@ from django.utils import timezone
 from huey import crontab
 from huey.contrib.djhuey import periodic_task, task
 
-from peterbecom.llmcalls.rewrite import VALID_MODELS, get_llm_response_comment
+from peterbecom.llmcalls.rewrite import get_llm_response_comment
 from peterbecom.plog.models import (
     BlogComment,
     BlogItem,
@@ -18,6 +18,7 @@ from peterbecom.plog.models import (
     BlogItemDailyHitsExistingError,
     BlogItemHit,
 )
+from peterbecom.settings.base import VALID_LLM_MODELS
 
 from .analytics_to_blogitem_hits import analytics_to_blogitem_hits_backfill
 
@@ -174,9 +175,9 @@ def prep_llm_rewrite(blogcomment_id):
         )
         return
 
-    models = ("gpt-5", "gpt-5-mini")
-    assert all(m in VALID_MODELS for m in models), (
-        f"All models must be in VALID_MODELS: {VALID_MODELS}"
+    models = ("gpt-5", "gpt-5-mini", "claude-opus-4-8")
+    assert all(m in VALID_LLM_MODELS for m in models), (
+        f"All models must be in VALID_LLM_MODELS: {VALID_LLM_MODELS}"
     )
     for model in models:
         llm_call = get_llm_response_comment(

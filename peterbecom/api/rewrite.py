@@ -7,8 +7,9 @@ from django.views.decorators.http import require_POST
 from peterbecom.api.forms import CommentRewriteForm
 from peterbecom.api.views import api_superuser_required
 from peterbecom.base.utils import json_response
-from peterbecom.llmcalls.rewrite import VALID_MODELS, get_llm_response_comment
+from peterbecom.llmcalls.rewrite import get_llm_response_comment
 from peterbecom.plog.models import BlogComment
+from peterbecom.settings.base import VALID_LLM_MODELS
 
 
 @api_superuser_required
@@ -23,7 +24,7 @@ def comment_rewrite(request, oid):
         data = json.loads(request.body.decode("utf-8"))
     except json.decoder.JSONDecodeError:
         return json_response({"error": "Invalid JSON"}, status=400)
-    form = CommentRewriteForm(data, valid_models=VALID_MODELS)
+    form = CommentRewriteForm(data, valid_models=VALID_LLM_MODELS)
     if not form.is_valid():
         return json_response({"errors": form.errors}, status=400)
 
@@ -35,10 +36,19 @@ def comment_rewrite(request, oid):
     rewritten = None
     if llm_call.status == "success":
         response = llm_call.response
-        if "choices" in response and len(response["choices"]) > 0:
-            choice = response["choices"][0]
-            if "message" in choice and "content" in choice["message"]:
-                rewritten = choice["message"]["content"]
+        if llm_call.model.startswith("claude-"):
+            for content in response["content"]:
+                if content["type"] == "text":
+                    rewritten = content["text"]
+                    break
+        else:
+            if "choices" in response and len(response["choices"]) > 0:
+                choice = response["choices"][0]
+                if "message" in choice and "content" in choice["message"]:
+                    rewritten = choice["message"]["content"]
+
+        if rewritten is None:
+            raise ValueError("Could not extract rewritten comment from response")
 
     context = {
         "rewritten": rewritten,
