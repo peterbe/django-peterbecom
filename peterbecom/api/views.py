@@ -2206,14 +2206,9 @@ def llmcalls(request):
     }
     query = LLMCall.objects.all()
 
-    status_counts = query.values("status").annotate(total=Count("status"))
-    context["aggregates"]["status"] = {x["status"]: x["total"] for x in status_counts}
-    model_counts = query.values("model").annotate(total=Count("model"))
-    context["aggregates"]["model"] = {x["model"]: x["total"] for x in model_counts}
-    use_case_counts = query.values("use_case").annotate(total=Count("use_case"))
-    context["aggregates"]["use_case"] = {
-        x["use_case"]: x["total"] for x in use_case_counts
-    }
+    for key in ("status", "model", "use_case"):
+        status_counts = query.values(key).annotate(total=Count(key))
+        context["aggregates"][key] = {x[key]: x["total"] for x in status_counts}
 
     if form.cleaned_data["model"]:
         query = query.filter(model=form.cleaned_data["model"])

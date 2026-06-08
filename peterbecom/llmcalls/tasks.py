@@ -1,11 +1,31 @@
 import time
+from datetime import timedelta
 
 import anthropic
 import litellm
 from django.conf import settings
-from huey.contrib.djhuey import task
+from django.utils import timezone
+from huey import crontab
+from huey.contrib.djhuey import periodic_task, task
 
 from peterbecom.llmcalls.models import LLMCall
+
+
+@periodic_task(crontab(hour="*", minute="0"))
+def clean_stale_llm_calls():
+    stale_after = timezone.now() - timedelta(hours=24)
+    in_progress = LLMCall.objects.filter(status="progress", modified__lt=stale_after)
+    stale_count = in_progress.count()
+    print(f"LLMCalls cleanup: Found {stale_count} stale LLM calls still in progress")
+    if stale_count:
+        in_progress.delete()
+
+    very_old = timezone.now() - timedelta(days=365)
+    old_calls = LLMCall.objects.filter(created__lt=very_old)
+    old_count = old_calls.count()
+    print(f"LLMCalls cleanup: Found {old_count} very old LLM calls")
+    if old_count:
+        old_calls.delete()
 
 
 @task()
