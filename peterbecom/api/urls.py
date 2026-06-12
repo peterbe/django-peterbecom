@@ -107,5 +107,8 @@ urlpatterns = [
     path("analytics/llmcalls", analytics.llmcalls, name="analytics_llmcalls"),
     path("probe/url", views.probe_url, name="probe_url"),
     path("llmcalls", views.llmcalls, name="llmcalls"),
+    path(
+        "valid-llmcall-models", views.valid_llmcall_models, name="valid_llmcall_models"
+    ),
     path("", views.catch_all, name="catch_all"),
 ]
