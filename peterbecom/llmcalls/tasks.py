@@ -36,10 +36,7 @@ def execute_completion(llm_call_id, timeout=60):
 def _execute_completion(llm_call_id, timeout=60):
     llm_call = LLMCall.objects.get(id=llm_call_id)
 
-    print("EXECUTING....")
-    from pprint import pprint
-
-    pprint(llm_call.messages)
+    print(f"Executing LLMCall {llm_call!r}")
 
     t0 = time.time()
     if llm_call.model.startswith("claude"):
