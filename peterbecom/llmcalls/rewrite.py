@@ -37,30 +37,6 @@ def get_llm_response_comment(
             "content": "You have to look for common spelling mistakes, lack of spaces after full stops, incorrect capitalization.",
         }
     )
-    # schema = {
-    #     "type": "object",
-    #     "properties": {
-    #         "comment": {
-    #             "type": "string",
-    #             "description": "The rewritten comment with corrected grammar and punctuation.",
-    #         },
-    #     },
-    # }
-
-    # rendered_schema = json.dumps(schema, indent=4)
-    # messages.append(
-    #     {
-    #         "role": "user",
-    #         "content": f"""
-    # Your job is to rewrite the comment without changing the meaning, but correcting any grammar and punctuation mistakes. You should also try to make the comment more readable and easier to understand.
-    # Return your response in a JSON that conforms to the schema below.
-
-    # ```json
-    # {rendered_schema}
-    # ```
-    # """,
-    #     }
-    # )
     messages.append(
         {
             "role": "user",

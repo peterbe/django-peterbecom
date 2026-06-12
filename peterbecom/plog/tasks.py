@@ -156,10 +156,6 @@ def delete_e2e_test_comment(blogcomment_id, delay=2):
 def prep_llm_rewrite(blogcomment_id):
     blogcomment = BlogComment.objects.get(id=blogcomment_id)
 
-    print("COMMENT TEXT IN PREP LLM REWRITE:".center(30, "-"))
-    print(blogcomment.comment)
-    print("- " * 45)
-
     no_lines = len(blogcomment.comment.strip().splitlines())
     word_count = len(blogcomment.comment.strip().split())
     if no_lines <= 1 and word_count <= 10:

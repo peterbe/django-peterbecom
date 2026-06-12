@@ -57,6 +57,7 @@ def comment_rewrite(request, oid):
             "status": llm_call.status,
             "error": llm_call.error,
             "model": llm_call.model,
+            "created": llm_call.created,
         },
         "comment": blogcomment.comment,
         "html_diff": None,
