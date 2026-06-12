@@ -66,6 +66,7 @@ dependencies = [
     "crawlerdetect>=0.3.0",
     "litellm==1.88.0",
     "anthropic==0.107.1",
+    "openai>=2.41.0",
 ]
 
 [tool.coverage.run]
