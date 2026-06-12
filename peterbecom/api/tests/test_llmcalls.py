@@ -133,3 +133,10 @@ def test_aggregates_and_filtering(admin_client):
     assert filter_response.status_code == 200
     assert filter_response.json()["count"] == 1
     assert filter_response.json()["aggregates"] == response.json()["aggregates"]
+
+
+def test_valid_llmcall_models(admin_client):
+    url = reverse("api:valid_llmcall_models")
+    response = admin_client.get(url)
+    assert response.status_code == 200
+    assert response.json()["models"]

@@ -2223,3 +2223,8 @@ def llmcalls(request):
     for call in qs.values()[:batch_size]:
         context["calls"].append(call)
     return json_response(context)
+
+
+@api_superuser_required
+def valid_llmcall_models(request):
+    return json_response({"models": settings.VALID_LLM_MODELS})

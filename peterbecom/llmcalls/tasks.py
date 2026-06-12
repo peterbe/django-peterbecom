@@ -2,6 +2,7 @@ import time
 from datetime import timedelta
 
 import anthropic
+import openai
 import litellm
 from django.conf import settings
 from django.utils import timezone
@@ -59,6 +60,12 @@ def _execute_completion(llm_call_id, timeout=60):
             messages=messages,
         )
 
+    elif llm_call.model.startswith("openai-"):
+        client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
+        response = client.responses.create(
+            model=llm_call.model.replace("openai-", ""),
+            input=llm_call.messages,
+        )
     else:
         response = litellm.completion(
             model=llm_call.model,
