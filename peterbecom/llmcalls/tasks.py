@@ -2,8 +2,8 @@ import time
 from datetime import timedelta
 
 import anthropic
-import openai
 import litellm
+import openai
 from django.conf import settings
 from django.utils import timezone
 from huey import crontab
