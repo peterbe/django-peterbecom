@@ -46,6 +46,14 @@ def comment_rewrite(request, oid):
                 choice = response["choices"][0]
                 if "message" in choice and "content" in choice["message"]:
                     rewritten = choice["message"]["content"]
+            elif "output" in response:
+                for output in response["output"]:
+                    for content in output["content"]:
+                        if content["type"] == "output_text":
+                            rewritten = content["text"]
+                            break
+                    if rewritten is not None:
+                        break
 
         if rewritten is None:
             raise ValueError("Could not extract rewritten comment from response")

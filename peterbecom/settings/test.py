@@ -48,3 +48,4 @@ NUMBER_AVATARS_PREMADE = 10
 KEYCDN_HOST = "peterbecom.local"
 
 OPENAI_API_KEY = "shouldnotbeused"
+ANTHROPIC_API_KEY = "shouldnotbeused"
