@@ -70,16 +70,19 @@
           "type": "string"
         },
         "open_graph_image": {
-            "type": ["string", "null"]
+          "type": ["string", "null"]
         },
         "display_format": {
-            "type": "string"
+          "type": "string"
         },
         "disallow_comments": {
-            "type": "boolean"
+          "type": "boolean"
         },
         "hide_comments": {
-            "type": "boolean"
+          "type": "boolean"
+        },
+        "is_photo": {
+          "type": "boolean"
         }
       },
       "required": [

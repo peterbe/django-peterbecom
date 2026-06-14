@@ -36,7 +36,7 @@ def blogitems(request):
         approved_comments_count[count["blogitem_id"]] = count["count"]
 
     for item in (
-        BlogItem.objects.filter(pub_date__lt=now, archived__isnull=True)
+        BlogItem.objects.filter(pub_date__lt=now, archived__isnull=True, is_photo=False)
         .values("pub_date", "oid", "title", "pk")
         .order_by("-pub_date")
     ):

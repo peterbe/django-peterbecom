@@ -26,7 +26,9 @@ def homepage_blogitems(request):
     # TODO:
     # If the page is > max_next_page redirect to the last page
 
-    qs = BlogItem.objects.filter(pub_date__lt=timezone.now(), archived__isnull=True)
+    qs = BlogItem.objects.filter(
+        pub_date__lt=timezone.now(), archived__isnull=True, is_photo=False
+    )
 
     ocs = request.GET.getlist("oc")
     if ocs:
