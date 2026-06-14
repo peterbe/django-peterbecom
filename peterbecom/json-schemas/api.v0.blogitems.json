@@ -67,6 +67,12 @@
           },
           "disallow_comments": {
             "type": "boolean"
+          },
+          "is_photo": {
+            "type": "boolean"
+          },
+          "open_graph_image": {
+            "type": ["string", "null"]
           }
         },
         "required": [

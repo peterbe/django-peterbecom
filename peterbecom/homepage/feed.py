@@ -25,7 +25,12 @@ class PlogFeed(Feed):
         return parse_ocs_to_categories(oc)
 
     def items(self, categories):
-        qs = BlogItem.objects.filter(pub_date__lt=timezone.now())
+        qs = BlogItem.objects.filter(
+            pub_date__lt=timezone.now(),
+            archived__isnull=True,
+            # XXX fix this when photos have their own permalink pages
+            is_photo=False,
+        )
         if categories:
             cat_q = make_categories_q(categories)
             qs = qs.filter(cat_q)

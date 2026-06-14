@@ -97,10 +97,12 @@ def blogitems(request):
                 },
                 status=400,
             )
-        form = EditBlogForm(data)
+        is_photo = data.get("is_photo") or False
+        form = EditBlogForm(data, is_photo=is_photo)
         if form.is_valid():
             item = form.save()
-            assert item._render(refresh=True)
+            if not is_photo:
+                assert item._render(refresh=True)
             context = {"blogitem": {"id": item.id, "oid": item.oid}}
             return json_response(context, status=201)
         else:
@@ -241,6 +243,8 @@ def blogitems_all(request):
             "archived": item["archived"],
             "hide_comments": item["hide_comments"],
             "disallow_comments": item["disallow_comments"],
+            "is_photo": item["is_photo"],
+            "open_graph_image": item["open_graph_image"],
         }
 
     items = BlogItem.objects.all()
@@ -328,6 +332,7 @@ def blogitem(request, oid):
             "open_graph_image": item.open_graph_image,
             "_absolute_url": "/plog/{}".format(item.oid),
             "archived": item.archived,
+            "is_photo": item.is_photo,
         }
     }
     return json_response(context, schema="api.v0.blogitem")
