@@ -292,6 +292,23 @@ class CommentRewriteForm(forms.Form):
         return value
 
 
+class AICommentForm(forms.Form):
+    model = forms.CharField(required=True)
+    comment = forms.CharField(required=True)
+
+    def __init__(self, *args, valid_models=None, **kwargs):
+        super(AICommentForm, self).__init__(*args, **kwargs)
+        self.valid_models = valid_models
+
+    def clean_model(self):
+        value = self.cleaned_data["model"]
+        if self.valid_models and value not in self.valid_models:
+            raise forms.ValidationError(
+                f"Invalid model. Valid models are: {', '.join(self.valid_models)}"
+            )
+        return value
+
+
 class LLMCallsForm(forms.Form):
     model = forms.CharField(required=False)
     status = forms.CharField(required=False)
