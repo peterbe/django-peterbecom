@@ -2,7 +2,7 @@ from django.urls import path, re_path
 
 from peterbecom.api import spellcheck
 
-from . import analytics, classification, rewrite, spam, views
+from . import analytics, classification, rewrite, spam, views, comment_ai
 
 app_name = "api"
 
@@ -36,6 +36,11 @@ urlpatterns = [
         "plog/comments/<str:oid>/rewrite/",
         rewrite.comment_rewrite,
         name="comment_rewrite",
+    ),
+    path(
+        "plog/comments/<str:oid>/ai-comment/",
+        comment_ai.suggest_ai_comment,
+        name="ai_comment",
     ),
     path(
         "plog/comments/counts/",
