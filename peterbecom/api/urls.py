@@ -40,7 +40,7 @@ urlpatterns = [
     path(
         "plog/comments/<str:oid>/ai-comment/",
         comment_ai.suggest_ai_comment,
-        name="ai_comment",
+        name="suggest_ai_comment",
     ),
     path(
         "plog/comments/counts/",
