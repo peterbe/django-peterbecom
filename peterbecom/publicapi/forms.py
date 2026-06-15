@@ -5,6 +5,16 @@ from django import forms
 from peterbecom.plog.models import BlogComment, BlogItem
 
 
+class BlogitemsForm(forms.Form):
+    is_photo = forms.NullBooleanField(required=False)
+
+
+class HomepageForm(forms.Form):
+    page = forms.IntegerField(min_value=1, required=False)
+    is_photo = forms.NullBooleanField(required=False)
+    size = forms.IntegerField(min_value=1, max_value=20, required=False)
+
+
 class SubmitForm(forms.Form):
     oid = forms.CharField()
     comment = forms.CharField(max_length=10_000)
