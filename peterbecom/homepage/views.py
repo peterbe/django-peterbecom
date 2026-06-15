@@ -69,7 +69,12 @@ def sitemap(request):
             etree.SubElement(url, "changefreq").text = changefreq
 
     now = timezone.now()
-    blogitems = BlogItem.objects.filter(pub_date__lt=now, archived__isnull=True)
+    blogitems = BlogItem.objects.filter(
+        pub_date__lt=now,
+        archived__isnull=True,
+        # XXX fix this when photos have their own permalink pages
+        is_photo=False,
+    )
     latest_pub_date = blogitems.aggregate(pub_date=Max("pub_date"))["pub_date"]
     add("/", priority=1.0, changefreq="daily", lastmod=latest_pub_date)
     add("/about", changefreq="weekly", priority=0.5)

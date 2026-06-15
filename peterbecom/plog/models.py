@@ -1,5 +1,4 @@
 import datetime
-import functools
 import hashlib
 import os
 import random
@@ -146,6 +145,7 @@ class BlogItem(models.Model):
     open_graph_image = models.CharField(max_length=400, null=True)
     popularity = models.FloatField(default=0.0, null=True)
     archived = models.DateTimeField(null=True)
+    is_photo = models.BooleanField(default=False)
 
     def __repr__(self):
         return "<%s: %r>" % (self.__class__.__name__, self.oid)
@@ -321,7 +321,10 @@ class BlogItem(models.Model):
 
     @classmethod
     def _get_indexing_queryset(cls):
-        return cls.objects.filter(archived__isnull=True, pub_date__lt=timezone.now())
+        return cls.objects.filter(
+            archived__isnull=True,
+            pub_date__lt=timezone.now(),
+        )
 
     @classmethod
     def index_all_search_terms(cls, verbose=False):
@@ -626,15 +629,6 @@ def random_string(length):
     pool.extend("0123456789")
     random.shuffle(pool)
     return "".join(pool[:length])
-
-
-# XXX Can this be entirely deleted now?!
-class OneTimeAuthKey(models.Model):
-    key = models.CharField(max_length=16, default=functools.partial(random_string, 16))
-    blogitem = models.ForeignKey(BlogItem, on_delete=models.CASCADE)
-    blogcomment = models.ForeignKey(BlogComment, null=True, on_delete=models.CASCADE)
-    used = models.DateTimeField(null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
 
 
 @receiver(pre_delete, sender=BlogComment)

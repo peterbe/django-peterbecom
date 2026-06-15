@@ -7,10 +7,16 @@ from django.utils import timezone
 from django.views.decorators.cache import cache_page
 
 from peterbecom.plog.models import BlogComment, BlogItem, Category
+from peterbecom.publicapi.forms import BlogitemsForm
 
 
 @cache_page(10 if settings.DEBUG else 60 * 60, key_prefix="publicapi_cache_page")
 def blogitems(request):
+
+    form = BlogitemsForm(request.GET)
+    if not form.is_valid():
+        return http.HttpResponseBadRequest(str(form.errors))
+
     groups = defaultdict(list)
     now = timezone.now()
     group_dates = []
@@ -35,11 +41,14 @@ def blogitems(request):
     for count in blog_comments_count_qs:
         approved_comments_count[count["blogitem_id"]] = count["count"]
 
-    for item in (
-        BlogItem.objects.filter(pub_date__lt=now, archived__isnull=True)
-        .values("pub_date", "oid", "title", "pk")
-        .order_by("-pub_date")
-    ):
+    qs = BlogItem.objects.filter(
+        pub_date__lt=now,
+        archived__isnull=True,
+    )
+    if form.cleaned_data.get("is_photo") is not None:
+        qs = qs.filter(is_photo=form.cleaned_data["is_photo"])
+
+    for item in qs.values("pub_date", "oid", "title", "pk").order_by("-pub_date"):
         group = item["pub_date"].strftime("%Y.%m")
         item["categories"] = blogitem_categories[item["pk"]]
         item["comments"] = approved_comments_count.get(item["pk"], 0)

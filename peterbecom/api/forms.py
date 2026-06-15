@@ -59,9 +59,11 @@ class BlogForm(forms.ModelForm):
             "codesyntax",
             "disallow_comments",
             "hide_comments",
+            "is_photo",
         )
 
     def __init__(self, *args, **kwargs):
+        is_photo = kwargs.pop("is_photo", False)
         super(BlogForm, self).__init__(*args, **kwargs)
         self.fields["display_format"] = ChoiceField()
         self.fields["display_format"].choices = [
@@ -72,8 +74,12 @@ class BlogForm(forms.ModelForm):
         self.fields["summary"].required = False
         self.fields["proper_keywords"].required = False
 
-        # 10 was default
-        self.fields["text"].widget.attrs["rows"] = 20
+        if is_photo:
+            self.fields["text"].required = False
+            self.fields["categories"].required = False
+
+        # # 10 was default
+        # self.fields["text"].widget.attrs["rows"] = 20
 
         all_categories = dict(Category.objects.all().values_list("id", "name"))
         one_year = timezone.now() - datetime.timedelta(days=365)
@@ -92,7 +98,7 @@ class BlogForm(forms.ModelForm):
             used.append(pk)
 
         category_items = all_categories.items()
-        for pk, name in sorted(category_items, key=lambda x: x[1].lower()):
+        for pk, _ in sorted(category_items, key=lambda x: x[1].lower()):
             if pk in used:
                 continue
             combined = "{} (0)".format(all_categories[pk])

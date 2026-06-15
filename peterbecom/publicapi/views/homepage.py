@@ -9,11 +9,17 @@ from django.views.decorators.cache import cache_page
 from peterbecom.base.utils import json_response
 from peterbecom.homepage.utils import make_categories_q
 from peterbecom.plog.models import BlogComment, BlogItem, Category
+from peterbecom.publicapi.forms import HomepageForm
 
 
 @cache_page(10 if settings.DEBUG else 60 * 5, key_prefix="publicapi_cache_page")
 def homepage_blogitems(request):
     context = {}
+
+    form = HomepageForm(request.GET)
+    if not form.is_valid():
+        return http.HttpResponseBadRequest(str(form.errors))
+
     try:
         page = int(request.GET.get("page") or "1")
         if page <= 0:
@@ -27,6 +33,8 @@ def homepage_blogitems(request):
     # If the page is > max_next_page redirect to the last page
 
     qs = BlogItem.objects.filter(pub_date__lt=timezone.now(), archived__isnull=True)
+    if form.cleaned_data.get("is_photo") is not None:
+        qs = qs.filter(is_photo=form.cleaned_data["is_photo"])
 
     ocs = request.GET.getlist("oc")
     if ocs:
@@ -48,14 +56,15 @@ def homepage_blogitems(request):
     if request.method == "HEAD":
         return http.HttpResponse("")
 
-    try:
-        batch_size = int(request.GET.get("size") or settings.HOMEPAGE_BATCH_SIZE)
-        if batch_size > 20:
-            raise ValueError("size must be less than 20")
-        if batch_size <= 0:
-            raise ValueError("size must be more than 0")
-    except ValueError as exception:
-        return http.HttpResponseBadRequest(str(exception))
+    batch_size = form.cleaned_data.get("size") or settings.HOMEPAGE_BATCH_SIZE
+    # try:
+    #     batch_size = int(request.GET.get("size") or settings.HOMEPAGE_BATCH_SIZE)
+    #     if batch_size > 20:
+    #         raise ValueError("size must be less than 20")
+    #     if batch_size <= 0:
+    #         raise ValueError("size must be more than 0")
+    # except ValueError as exception:
+    #     return http.HttpResponseBadRequest(str(exception))
 
     page = page - 1
     n, m = page * batch_size, (page + 1) * batch_size
