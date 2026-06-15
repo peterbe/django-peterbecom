@@ -182,3 +182,41 @@ def test_misc_requests(client):
     assert response.status_code == 200
     payload = response.content.decode("utf-8")
     assert payload == ""
+
+
+@pytest.mark.django_db
+def test_is_photo_filter(client):
+    BlogItem.objects.create(
+        oid="photo1",
+        title="Photo 1",
+        text="Photo 1",
+        pub_date=timezone.now(),
+        is_photo=True,
+    )
+    BlogItem.objects.create(
+        oid="notphoto1",
+        title="Not Photo 1",
+        text="Not Photo 1",
+        pub_date=timezone.now(),
+        is_photo=False,
+    )
+
+    url = reverse("publicapi:homepage_blogitems")
+    response = client.get(url)
+    assert response.status_code == 200
+    posts = response.json()["posts"]
+    assert len(posts) == 2
+    oids = set([x["oid"] for x in posts])
+    assert oids == {"photo1", "notphoto1"}
+
+    response = client.get(url, {"is_photo": "false"})
+    assert response.status_code == 200
+    posts = response.json()["posts"]
+    assert len(posts) == 1
+    assert posts[0]["oid"] == "notphoto1"
+
+    response = client.get(url, {"is_photo": "true"})
+    assert response.status_code == 200
+    posts = response.json()["posts"]
+    assert len(posts) == 1
+    assert posts[0]["oid"] == "photo1"
