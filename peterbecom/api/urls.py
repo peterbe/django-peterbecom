@@ -2,7 +2,7 @@ from django.urls import path, re_path
 
 from peterbecom.api import spellcheck
 
-from . import analytics, classification, rewrite, spam, views, comment_ai
+from . import analytics, classification, comment_ai, rewrite, spam, views
 
 app_name = "api"
 

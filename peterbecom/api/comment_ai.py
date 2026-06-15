@@ -2,16 +2,14 @@ import json
 
 from django.utils import timezone
 from django.views.decorators.http import require_POST
-from django.conf import settings
 
 from peterbecom.api.forms import AICommentForm
 from peterbecom.api.views import api_superuser_required
 from peterbecom.base.utils import json_response
+from peterbecom.llmcalls.models import LLMCall
 from peterbecom.llmcalls.tasks import execute_completion
 from peterbecom.plog.models import BlogComment
 from peterbecom.settings.base import VALID_LLM_MODELS
-from peterbecom.llmcalls.models import LLMCall
-
 
 
 @api_superuser_required
@@ -33,9 +31,7 @@ def suggest_ai_comment(request, oid):
     model = form.cleaned_data["model"]
     comment = form.cleaned_data["comment"]
 
-    llm_call = get_llm_response_comment(
-        comment, blogcomment.oid, model=model
-    )
+    llm_call = get_llm_response_comment(comment, blogcomment.oid, model=model)
 
     comment_text = None
     if llm_call.status == "success":
@@ -78,10 +74,12 @@ def get_llm_response_comment(
     music and songs, but you don't have access to the internet.
     If you don't know the answer, say you don't know, but if you do know, give your best guess.
     """.strip()
-    messages.append({
-        "role": "system",
-        "content": system_prompt,
-    })
+    messages.append(
+        {
+            "role": "system",
+            "content": system_prompt,
+        }
+    )
 
     messages.append(
         {
