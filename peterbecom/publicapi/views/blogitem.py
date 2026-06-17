@@ -13,29 +13,30 @@ from peterbecom.plog.models import (
     count_approved_comments,
     count_approved_root_comments,
 )
+from peterbecom.publicapi.forms import BlogitemForm
 
 
 def blogitem(request, oid):
-    try:
-        page = int(request.GET.get("page") or 1)
-        if page <= 0:
-            raise ValueError()
-    except ValueError:
-        return http.HttpResponseBadRequest("invalid page")
+    form = BlogitemForm(request.GET)
+    if not form.is_valid():
+        return http.HttpResponseBadRequest(str(form.errors))
+
+    page = form.cleaned_data.get("page") or 1
+    is_photo = form.cleaned_data.get("is_photo") or False
 
     if page > settings.MAX_BLOGCOMMENT_PAGES:
         return http.HttpResponseNotFound("gone too far")
 
-    cache_key = f"publicapi_blogitem_{oid}:{page}"
+    cache_key = f"publicapi_blogitem_{oid}:{page}:{is_photo}"
     cached = cache.get(cache_key)
     if cached:
         return http.JsonResponse(cached)
 
     try:
-        blogitem = BlogItem.objects.get(oid=oid)
+        blogitem = BlogItem.objects.get(oid=oid, is_photo=is_photo)
     except BlogItem.DoesNotExist:
         try:
-            blogitem = BlogItem.objects.get(oid__iexact=oid)
+            blogitem = BlogItem.objects.get(oid__iexact=oid, is_photo=is_photo)
         except BlogItem.DoesNotExist:
             return http.HttpResponseNotFound(oid)
 

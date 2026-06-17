@@ -9,6 +9,11 @@ class BlogitemsForm(forms.Form):
     is_photo = forms.NullBooleanField(required=False)
 
 
+class BlogitemForm(forms.Form):
+    page = forms.IntegerField(min_value=1, required=False)
+    is_photo = forms.NullBooleanField(required=False)
+
+
 class HomepageForm(forms.Form):
     page = forms.IntegerField(min_value=1, required=False)
     is_photo = forms.NullBooleanField(required=False)

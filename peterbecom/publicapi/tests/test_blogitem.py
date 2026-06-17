@@ -555,3 +555,45 @@ def test_blogcomment_parent_and_replies(client):
     assert reply_replies[0]["oid"] == reply_reply_comment.oid
     assert reply_replies[0]["name"] == reply_reply_comment.name
     assert "email" not in reply_replies[0]["name"]
+
+
+@pytest.mark.django_db
+def test_blogitem_is_photo(client):
+    blogitem = BlogItem.objects.create(
+        oid="oid",
+        title="Title",
+        text="*Text*",
+        text_rendered=BlogItem.render("*Text*", "markdown", ""),
+        display_format="markdown",
+        summary="Summary",
+        pub_date=timezone.now(),
+        is_photo=False,
+    )
+    photo = BlogItem.objects.create(
+        oid="photooid",
+        title="Photo Title",
+        text="",
+        text_rendered="",
+        display_format="markdown",
+        summary="Summary",
+        pub_date=timezone.now(),
+        is_photo=True,
+    )
+
+    blogitem_url = reverse("publicapi:blogitem", args=[blogitem.oid])
+    photo_url = reverse("publicapi:blogitem", args=[photo.oid])
+
+    response = client.get(blogitem_url)
+    assert response.status_code == 200
+    response = client.get(photo_url)
+    assert response.status_code == 404
+
+    response = client.get(blogitem_url, {"is_photo": "true"})
+    assert response.status_code == 404
+    response = client.get(blogitem_url, {"is_photo": "false"})
+    assert response.status_code == 200
+
+    response = client.get(photo_url, {"is_photo": "true"})
+    assert response.status_code == 200
+    response = client.get(photo_url, {"is_photo": "false"})
+    assert response.status_code == 404
