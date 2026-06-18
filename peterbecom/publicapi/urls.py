@@ -30,6 +30,9 @@ urlpatterns = [
         name="submit_comment",
     ),
     path("plog/homepage", homepage.homepage_blogitems, name="homepage_blogitems"),
+    path(
+        "plog/<str:oid>.<str:extension>", blogitem.blogitem_webp, name="blogitem_webp"
+    ),
     path("plog/<str:oid>", blogitem.blogitem, name="blogitem"),
     path(
         "plog/<str:blogitem_oid>/comment/<str:oid>",
