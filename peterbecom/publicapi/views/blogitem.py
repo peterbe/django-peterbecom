@@ -1,11 +1,16 @@
 import datetime
 import math
 from collections import defaultdict
+from pathlib import Path
 
 from django import http
 from django.conf import settings
 from django.core.cache import cache
+from django.http import HttpResponse
+from django.shortcuts import redirect
 from django.utils import timezone
+from django.views.decorators.cache import cache_control
+from PIL import Image
 
 from peterbecom.plog.models import (
     BlogComment,
@@ -80,9 +85,9 @@ def blogitem(request, oid):
     post["previous_post"] = post["next_post"] = None
 
     if blogitem.oid != "blogitem-040601-1":
-        base_qs = BlogItem.objects.filter(archived__isnull=True).values(
-            "id", "oid", "title", "pub_date"
-        )
+        base_qs = BlogItem.objects.filter(
+            archived__isnull=True, is_photo=blogitem.is_photo
+        ).values("id", "oid", "title", "pub_date")
         for previous in (
             base_qs.filter(pub_date__lt=blogitem.pub_date)
             .order_by("-pub_date")
@@ -444,3 +449,41 @@ def _traverse_unhighlight(comments_tree, exception_id):
                 del comment["highlighted"]
         if comment.get("replies"):
             _traverse_unhighlight(comment["replies"], exception_id)
+
+
+@cache_control(max_age=settings.DEBUG and 60 or 60 * 60, public=True)
+def blogitem_dynamic_image(request, oid, extension="webp"):
+    if list(request.GET.items()):
+        # remove all query string params
+        return redirect(request.path)
+
+    if extension == "jpeg":
+        return redirect(request.path.replace(".jpeg", ".jpg"))
+
+    if extension not in ("webp", "png", "jpg"):
+        return http.HttpResponseBadRequest("Unsupported image format")
+
+    blogitem = BlogItem.objects.get(oid=oid)
+    open_graph_image = blogitem.open_graph_image
+    media_root = Path(settings.MEDIA_ROOT)
+    open_graph_image_path = media_root / (
+        open_graph_image[1:] if open_graph_image.startswith("/") else open_graph_image
+    )
+    if not open_graph_image_path.exists():
+        return http.HttpResponseNotFound("Open graph image not found")
+    destination_path = open_graph_image_path.with_suffix(f".{extension}")
+
+    if not destination_path.exists():
+        image = Image.open(open_graph_image_path)
+
+        if extension in ("jpg", "jpeg"):
+            image = image.convert("RGB")
+        image.save(destination_path, extension, quality=90)
+
+    if not destination_path.exists():
+        return http.HttpResponseNotFound(f"{extension.upper()} version not found")
+
+    print("OPENING AND SERVING", destination_path)
+    with open(destination_path, "rb") as f:
+        # Pass the binary data directly into the response
+        return HttpResponse(f.read(), content_type=f"image/{extension}")
