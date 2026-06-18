@@ -15,6 +15,7 @@ from cachetools import TTLCache, cached
 from django import http
 from django.conf import settings
 from django.core.cache import cache
+from django.db import transaction
 from django.db.models import Avg, Count, Max, Min, Q, Sum
 from django.db.models.functions import Trunc
 from django.db.utils import IntegrityError
@@ -101,7 +102,10 @@ def blogitems(request):
         form = EditBlogForm(data, is_photo=is_photo)
         if form.is_valid():
             item = form.save()
-            if not is_photo:
+            if is_photo:
+                if item.text:
+                    assert item._render(refresh=True)
+            else:
                 assert item._render(refresh=True)
             context = {"blogitem": {"id": item.id, "oid": item.oid}}
             return json_response(context, status=201)
@@ -304,7 +308,12 @@ def blogitem(request, oid):
             item.refresh_from_db()
         else:
             data["proper_keywords"] = data.pop("keywords")
-            form = EditBlogForm(data, instance=item, is_photo=item.is_photo)
+            form = EditBlogForm(
+                data,
+                instance=item,
+                is_photo=item.is_photo,
+                initial={"display_format": "markdown"},
+            )
             if form.is_valid():
                 form.save()
                 item.refresh_from_db()
@@ -336,6 +345,40 @@ def blogitem(request, oid):
         }
     }
     return json_response(context, schema="api.v0.blogitem")
+
+
+@api_superuser_required
+@require_POST
+def add_by_photo(request):
+    form = EditBlogForm(
+        request.POST,
+        is_photo=True,
+        initial={"display_format": "markdown", "is_photo": True},
+    )
+    if not form.is_valid():
+        return json_response({"errors": form.errors}, status=400)
+
+    with transaction.atomic():
+        item = form.save()
+        assert item.is_photo
+
+        form = BlogFileUpload(
+            dict(
+                request.POST,
+                blogitem=item.id,
+                title=item.title,
+            ),
+            request.FILES,
+        )
+        if form.is_valid():
+            blog_file = form.save()
+            print(f"{item=}")
+            print(f"{blog_file=}")
+            # TODO: Automatically setting the open_graph_image here and now
+            return json_response({"oid": item.oid})
+        else:
+            item.delete()
+            return json_response({"errors": form.errors}, status=400)
 
 
 def categories(request):

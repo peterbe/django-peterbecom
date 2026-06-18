@@ -74,6 +74,7 @@ urlpatterns = [
         views.blogcomment,
         name="blogcomment",
     ),
+    path("plog/add-by-photo/", views.add_by_photo, name="add_by_photo"),
     re_path(r"^plog/(.*)/images$", views.images, name="images"),
     re_path(r"^plog/(.*)/videos$", views.videos, name="videos"),
     re_path(r"^plog/(.*)/hits$", views.hits, name="hits"),
