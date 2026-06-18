@@ -452,7 +452,7 @@ def _traverse_unhighlight(comments_tree, exception_id):
 
 
 @cache_control(max_age=settings.DEBUG and 60 or 60 * 60, public=True)
-def blogitem_webp(request, oid, extension="webp"):
+def blogitem_dynamic_image(request, oid, extension="webp"):
     if list(request.GET.items()):
         # remove all query string params
         return redirect(request.path)

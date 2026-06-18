@@ -30,8 +30,10 @@ urlpatterns = [
         name="submit_comment",
     ),
     path("plog/homepage", homepage.homepage_blogitems, name="homepage_blogitems"),
-    path(
-        "plog/<str:oid>.<str:extension>", blogitem.blogitem_webp, name="blogitem_webp"
+    re_path(
+        r"plog/(?P<oid>[^/.]+)\.(?P<extension>webp|jpg|jpeg|png)",
+        blogitem.blogitem_dynamic_image,
+        name="blogitem_dynamic_image",
     ),
     path("plog/<str:oid>", blogitem.blogitem, name="blogitem"),
     path(
