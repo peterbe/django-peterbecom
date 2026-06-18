@@ -304,7 +304,7 @@ def blogitem(request, oid):
             item.refresh_from_db()
         else:
             data["proper_keywords"] = data.pop("keywords")
-            form = EditBlogForm(data, instance=item)
+            form = EditBlogForm(data, instance=item, is_photo=item.is_photo)
             if form.is_valid():
                 form.save()
                 item.refresh_from_db()
