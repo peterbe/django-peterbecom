@@ -85,9 +85,9 @@ def blogitem(request, oid):
     post["previous_post"] = post["next_post"] = None
 
     if blogitem.oid != "blogitem-040601-1":
-        base_qs = BlogItem.objects.filter(archived__isnull=True).values(
-            "id", "oid", "title", "pub_date"
-        )
+        base_qs = BlogItem.objects.filter(
+            archived__isnull=True, is_photo=blogitem.is_photo
+        ).values("id", "oid", "title", "pub_date")
         for previous in (
             base_qs.filter(pub_date__lt=blogitem.pub_date)
             .order_by("-pub_date")
