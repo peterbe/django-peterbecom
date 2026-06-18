@@ -66,6 +66,7 @@ class BlogForm(forms.ModelForm):
         is_photo = kwargs.pop("is_photo", False)
         super(BlogForm, self).__init__(*args, **kwargs)
         self.fields["display_format"] = ChoiceField()
+        self.fields["display_format"].required = False
         self.fields["display_format"].choices = [
             ("structuredtext", "structuredtext"),
             ("markdown", "markdown"),
