@@ -1,5 +1,7 @@
 import json
+from pathlib import Path
 
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
 from django.utils import timezone
@@ -247,3 +249,29 @@ def test_create_blogitem(admin_client):
     assert blogitem.text == "Some *text*"
     assert blogitem.display_format == "markdown"
     assert blogitem.categories.all().count() == 1
+
+
+def test_add_by_photo_happy_path(admin_client):
+    url = reverse("api:add_by_photo")
+    with open(Path(__file__).parent / "test_image.jpg", "rb") as f:
+        test_file = SimpleUploadedFile(
+            "test_image.jpg", f.read(), content_type="image/jpeg"
+        )
+        response = admin_client.post(
+            url,
+            {
+                "file": test_file,
+                "oid": "some-title",
+                "title": "Some title",
+                "pub_date": json_datetime(timezone.now()),
+            },
+            format="multipart",
+        )
+        print(response.content)
+        assert response.status_code == 201
+
+    blogitem = BlogItem.objects.get(title="Some title")
+    assert blogitem.text == ""
+    assert blogitem.oid == "some-title"
+    assert blogitem.is_photo
+    assert blogitem.display_format == "markdown"
