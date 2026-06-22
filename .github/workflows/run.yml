@@ -27,7 +27,7 @@ jobs:
           postgresql user: user
           postgresql password: secret
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Install uv
         id: setup-uv
