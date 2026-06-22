@@ -463,7 +463,17 @@ def blogitem_dynamic_image(request, oid, extension="webp"):
     if extension not in ("webp", "png", "jpg"):
         return http.HttpResponseBadRequest("Unsupported image format")
 
-    blogitem = BlogItem.objects.get(oid=oid)
+    try:
+        blogitem = BlogItem.objects.get(oid=oid, is_photo=True)
+    except BlogItem.DoesNotExist:
+        try:
+            blogitem = BlogItem.objects.get(oid__iexact=oid, is_photo=True)
+        except BlogItem.DoesNotExist:
+            return http.HttpResponseNotFound(oid)
+
+    if not blogitem.open_graph_image:
+        return http.HttpResponseNotFound("No open graph image for this blog item")
+
     open_graph_image = blogitem.open_graph_image
     media_root = Path(settings.MEDIA_ROOT)
     open_graph_image_path = media_root / (

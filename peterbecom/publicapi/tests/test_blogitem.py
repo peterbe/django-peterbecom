@@ -1,10 +1,14 @@
 import datetime
+from pathlib import Path
 
 import pytest
+from django.conf import settings
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.utils import timezone
+from sorl.thumbnail import get_thumbnail
 
-from peterbecom.plog.models import BlogComment, BlogItem, Category
+from peterbecom.plog.models import BlogComment, BlogFile, BlogItem, Category
 
 
 @pytest.mark.django_db
@@ -596,4 +600,71 @@ def test_blogitem_is_photo(client):
     response = client.get(photo_url, {"is_photo": "true"})
     assert response.status_code == 200
     response = client.get(photo_url, {"is_photo": "false"})
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db
+def test_blogitem_dynamic_image(client):
+    url = reverse("publicapi:blogitem_dynamic_image", args=["oid", "webp"])
+    response = client.get(url)
+    assert response.status_code == 404
+
+    blogitem = BlogItem.objects.create(
+        oid="oid",
+        title="Title",
+        text="*Text*",
+        text_rendered=BlogItem.render("*Text*", "markdown", ""),
+        display_format="markdown",
+        summary="Summary",
+        pub_date=timezone.now(),
+        is_photo=True,
+    )
+
+    response = client.get(url, {"foo": "bar"})
+    assert response.status_code == 302
+    assert response["Location"] == url
+
+    response = client.get(url)
+    assert response.status_code == 404
+
+    with open(Path(__file__).parent / "test_image.png", "rb") as f:
+        test_file = SimpleUploadedFile(
+            "test_image.png", f.read(), content_type="image/png"
+        )
+
+    blogfile = BlogFile.objects.create(
+        blogitem=blogitem, title="Some title", file=test_file
+    )
+
+    im = get_thumbnail(blogfile.file, "370x370", quality=81)
+    blogitem.open_graph_image = im.url
+    blogitem.save()
+
+    og_path = Path(settings.MEDIA_ROOT) / blogitem.open_graph_image[1:]
+    assert og_path.exists()
+
+    response = client.get(url)
+    assert response.status_code == 200
+    assert response["Content-Type"] == "image/webp"
+
+    webp_path = Path(settings.MEDIA_ROOT) / blogitem.open_graph_image[1:].replace(
+        ".jpg", ".webp"
+    )
+    assert webp_path.exists()
+
+    blogitem_not_photo = BlogItem.objects.create(
+        oid="notphoto",
+        title="Title Not Photo",
+        text="*Text*",
+        text_rendered=BlogItem.render("*Text*", "markdown", ""),
+        display_format="markdown",
+        summary="Summary",
+        pub_date=timezone.now(),
+        is_photo=False,
+    )
+
+    url = reverse(
+        "publicapi:blogitem_dynamic_image", args=[blogitem_not_photo.oid, "webp"]
+    )
+    response = client.get(url)
     assert response.status_code == 404
