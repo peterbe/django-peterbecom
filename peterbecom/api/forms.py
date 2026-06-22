@@ -65,6 +65,7 @@ class BlogForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         is_photo = kwargs.pop("is_photo", False)
         super(BlogForm, self).__init__(*args, **kwargs)
+
         self.fields["display_format"] = ChoiceField()
         self.fields["display_format"].required = False
         self.fields["display_format"].choices = [
@@ -126,6 +127,18 @@ class BlogForm(forms.ModelForm):
                 "You have a <!-- split --> but not a <!--split-->"
             )
         return text.strip()
+
+    def clean_is_photo(self):
+        value = self.cleaned_data["is_photo"]
+        if not self.instance.pk and "is_photo" in self.initial:
+            return self.initial["is_photo"]
+        return value
+
+    def clean_display_format(self):
+        value = self.cleaned_data["display_format"]
+        if not self.instance.pk and "display_format" in self.initial:
+            return self.initial["display_format"]
+        return value
 
 
 class PreviewBlogForm(forms.ModelForm):

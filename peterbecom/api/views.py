@@ -371,11 +371,9 @@ def add_by_photo(request):
             request.FILES,
         )
         if form.is_valid():
-            blog_file = form.save()
-            print(f"{item=}")
-            print(f"{blog_file=}")
+            form.save()
             # TODO: Automatically setting the open_graph_image here and now
-            return json_response({"oid": item.oid})
+            return json_response({"oid": item.oid}, status=201)
         else:
             item.delete()
             return json_response({"errors": form.errors}, status=400)
