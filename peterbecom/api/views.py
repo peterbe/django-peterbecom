@@ -1162,6 +1162,7 @@ def blogcomments(request):
                 "id": blogitem.id,
                 "oid": blogitem.oid,
                 "title": blogitem.title,
+                "is_photo": blogitem.is_photo,
                 "_absolute_url": blog_post_url(blogitem.oid),
             }
 
