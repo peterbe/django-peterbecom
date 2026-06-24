@@ -45,14 +45,19 @@ def blogitems(request):
         pub_date__lt=now,
         archived__isnull=True,
     )
-    if form.cleaned_data.get("is_photo") is not None:
-        qs = qs.filter(is_photo=form.cleaned_data["is_photo"])
+    photos = form.cleaned_data.get("is_photo")
+    if photos is not None:
+        qs = qs.filter(is_photo=photos)
 
-    for item in qs.values("pub_date", "oid", "title", "pk").order_by("-pub_date"):
+    for item in qs.values(
+        "pub_date", "oid", "title", "pk", "open_graph_image"
+    ).order_by("-pub_date"):
         group = item["pub_date"].strftime("%Y.%m")
         item["categories"] = blogitem_categories[item["pk"]]
         item["comments"] = approved_comments_count.get(item["pk"], 0)
         item["id"] = item.pop("pk")
+        if photos is None:
+            item.pop("open_graph_image", None)
         groups[group].append(item)
         tup = (group, item["pub_date"].strftime("%B, %Y"))
         if tup not in group_dates:
