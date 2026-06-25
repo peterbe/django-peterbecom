@@ -41,7 +41,9 @@ def spellcheck_markdown(request, oid):
     return json_response(context)
 
 
-def spellcheck_markdown_text(markdown_text, blogitem: BlogItem):
+def spellcheck_markdown_text(
+    markdown_text, blogitem: BlogItem, model="claude-opus-4-8"
+):
     # Split the markdown text into paragraphs based on double newlines
     paragraphs = markdown_text.split("\n\n")
 
@@ -67,14 +69,18 @@ def spellcheck_markdown_text(markdown_text, blogitem: BlogItem):
 
     llm_calls = []
     for task in tasks:
-        if llm_call := find_llm_call_for_paragraph(task["before"], blogitem):
+        if llm_call := find_llm_call_for_paragraph(
+            task["before"], blogitem, model=model
+        ):
             llm_calls.append((task, llm_call))
         else:
-            llm_calls.append((task, start_spellcheck(task["before"], blogitem)))
+            llm_calls.append(
+                (task, start_spellcheck(task["before"], blogitem, model=model))
+            )
 
     if not all([llm_call.status == "success" for _, llm_call in llm_calls]):
         # At least one was not previously found
-        time.sleep(3)
+        time.sleep(2)
 
     start_time = time.time()
     while True:
@@ -84,12 +90,21 @@ def spellcheck_markdown_text(markdown_text, blogitem: BlogItem):
                 llm_call.refresh_from_db()
 
             if llm_call.status == "success":
-                task["after"] = (
-                    llm_call.response.get("choices", [{}])[0]
-                    .get("message", {})
-                    .get("content", "")
-                )
+                if llm_call.model.startswith("claude"):
+                    for content in llm_call.response["content"]:
+                        if content["type"] == "text":
+                            text_content = content["text"]
+                            break
+
+                else:
+                    text_content = (
+                        llm_call.response.get("choices", [{}])[0]
+                        .get("message", {})
+                        .get("content", "")
+                    )
+                task["after"] = text_content
                 task["total_time"] = time.time() - start_time
+
                 task["error"] = None
 
             elif llm_call.status == "error":
@@ -116,12 +131,15 @@ def spellcheck_markdown_text(markdown_text, blogitem: BlogItem):
 
 def find_llm_call_for_paragraph(paragraph: str, blogitem: BlogItem, model="gpt-5"):
     last_hour = timezone.now() - datetime.timedelta(hours=1)
+    messages = _get_spellcheck_messages(paragraph, model=model)
+    message_hash = LLMCall.make_message_hash(messages)
     recent_candidates = LLMCall.objects.filter(
         model=model,
         status__in=["progress", "success"],
         error__isnull=True,
         created__gt=last_hour,
         metadata__blogitem_oid=blogitem.oid,
+        message_hash=message_hash,
     )
     for candidate in recent_candidates:
         if candidate.metadata.get("paragraph") == paragraph:
@@ -129,6 +147,30 @@ def find_llm_call_for_paragraph(paragraph: str, blogitem: BlogItem, model="gpt-5
 
 
 def start_spellcheck(paragraph: str, blogitem: BlogItem, model="gpt-5"):
+
+    messages = _get_spellcheck_messages(paragraph, model=model)
+
+    def create_and_start(attempts=0):
+        llm_call = LLMCall.objects.create(
+            use_case="admin_spellcheck_markdown",
+            status="progress",
+            messages=messages,
+            response={},
+            model=model,
+            error=None,
+            attempts=attempts,
+            took_seconds=None,
+            metadata={"paragraph": paragraph, "blogitem_oid": blogitem.oid},
+        )
+
+        execute_completion(llm_call.id)
+
+        return llm_call
+
+    return create_and_start()
+
+
+def _get_spellcheck_messages(paragraph: str, model="gpt-5"):
     messages = []
     messages.append(
         {
@@ -161,36 +203,35 @@ def start_spellcheck(paragraph: str, blogitem: BlogItem, model="gpt-5"):
         }
     )
 
-    paragraph_escaped = paragraph.replace('"', '\\"').replace("\n", "\\n")
+    if model.startswith("claude"):
+        paragraph_escaped = paragraph.replace('"', '\\"')
 
-    messages.append(
-        {
-            "role": "user",
-            "content": f"""
-    Here is the paragraph:
+    else:
+        paragraph_escaped = paragraph.replace('"', '\\"').replace("\n", "\\n")
 
-    ```
-    {paragraph_escaped}
-    ```
-    """.strip(),
-        }
-    )
+    if model.startswith("claude"):
+        messages.append(
+            {
+                "role": "user",
+                "content": f"""
+        Here is the paragraph:
 
-    def create_and_start(attempts=0):
-        llm_call = LLMCall.objects.create(
-            use_case="admin_spellcheck_markdown",
-            status="progress",
-            messages=messages,
-            response={},
-            model=model,
-            error=None,
-            attempts=attempts,
-            took_seconds=None,
-            metadata={"paragraph": paragraph, "blogitem_oid": blogitem.oid},
+        {paragraph_escaped}
+        """.strip(),
+            }
+        )
+    else:
+        messages.append(
+            {
+                "role": "user",
+                "content": f"""
+        Here is the paragraph:
+
+        ```
+        {paragraph_escaped}
+        ```
+        """.strip(),
+            }
         )
 
-        execute_completion(llm_call.id)
-
-        return llm_call
-
-    return create_and_start()
+    return messages
