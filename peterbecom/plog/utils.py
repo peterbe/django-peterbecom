@@ -32,10 +32,11 @@ def custom_toc_slugify(value: str, separator: str, unicode: bool = False) -> str
     return s
 
 
-def blog_post_url(oid, page=None):
+def blog_post_url(oid, page=None, is_photo=False):
+    prefix = "photos" if is_photo else "plog"
     if page and page != 1:
-        return f"/plog/{oid}/p{page}"
-    return f"/plog/{oid}"
+        return f"/{prefix}/{oid}/p{page}"
+    return f"/{prefix}/{oid}"
 
 
 # def is_bot(ua="", ip=None):

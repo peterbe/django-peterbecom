@@ -317,7 +317,8 @@ def blogitem(request, oid):
             if form.is_valid():
                 form.save()
                 item.refresh_from_db()
-                assert item._render(refresh=True)
+                if item.text:
+                    assert item._render(refresh=True)
             else:
                 return json_response({"errors": form.errors}, status=400)
 
@@ -1747,7 +1748,7 @@ def cdn_probe(request):
                 return json_response({"error": "OID not found"}, status=400)
 
         absolute_url = get_cdn_base_url()
-        absolute_url += blog_post_url(blogitem.oid)
+        absolute_url += blog_post_url(blogitem.oid, is_photo=blogitem.is_photo)
     else:
         return json_response({"error": "Invalid search"}, status=400)
 
@@ -1762,7 +1763,7 @@ def cdn_probe(request):
         for page in range(2, pages + 2):
             if page > settings.MAX_BLOGCOMMENT_PAGES:
                 break
-            url = blog_post_url(blogitem.oid, page)
+            url = blog_post_url(blogitem.oid, page, is_photo=blogitem.is_photo)
             other_pages.append(
                 {
                     "url": base_url + url,

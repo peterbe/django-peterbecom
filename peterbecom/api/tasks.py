@@ -39,7 +39,7 @@ def send_comment_reply_email(blogcomment_id):
 
 
 def _get_comment_reply_body(blogitem, blogcomment, parent):
-    comment_url = blog_post_url(blogitem.oid)
+    comment_url = blog_post_url(blogitem.oid, is_photo=blogitem.is_photo)
 
     domain = Site.objects.get_current().domain
     if domain == "peterbecom.local":
@@ -76,7 +76,7 @@ def _get_html_comment_body(blogitem, blogcomment, parent):
     if "peterbecom.local" in base_url:
         base_url = "http://localhost:4000"
 
-    post_url = blog_post_url(blogitem.oid)
+    post_url = blog_post_url(blogitem.oid, is_photo=blogitem.is_photo)
     full_post_url = f"{base_url}{post_url}"
 
     comment_url = f"{post_url}/comment/{parent.oid}"
