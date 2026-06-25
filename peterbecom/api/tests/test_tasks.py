@@ -46,6 +46,45 @@ def test_send_comment_reply_email_page_1():
 
 
 @pytest.mark.django_db
+def test_send_comment_reply_email_for_photo():
+    blogitem = BlogItem.objects.create(
+        oid="myoid",
+        title="TITLEX",
+        text="Test test",
+        display_format="markdown",
+        pub_date=timezone.now() - datetime.timedelta(seconds=10),
+        is_photo=True,
+    )
+    parent_comment = BlogComment.objects.create(
+        oid=BlogComment.next_oid(),
+        blogitem=blogitem,
+        name="Rooter",
+        email="rooter@example.com",
+        comment="This is the root comment",
+        approved=True,
+    )
+    blogcomment = BlogComment.objects.create(
+        oid=BlogComment.next_oid(),
+        blogitem=blogitem,
+        name="Rooter",
+        email="rooter@example.com",
+        comment="This is the root comment",
+        approved=True,
+        parent=parent_comment,
+    )
+    tasks.send_comment_reply_email(blogcomment.id)
+
+    sent = mail.outbox[-1]
+    assert "Reply to your comment" in sent.subject
+    assert sent.to == ["rooter@example.com"]
+
+    comment_absolute_url = "https://" + Site.objects.get_current().domain
+    comment_absolute_url += f"/photos/{blogitem.oid}"
+    comment_absolute_url += f"/comment/{blogcomment.oid}"
+    assert comment_absolute_url in sent.body
+
+
+@pytest.mark.django_db
 def test_send_comment_reply_email_page_2(settings):
     settings.MAX_RECENT_COMMENTS = 10
     blogitem = BlogItem.objects.create(

@@ -745,9 +745,9 @@ def invalidate_cdn_urls(sender, instance, **kwargs):
         if page >= settings.MAX_BLOGCOMMENT_PAGES:
             break
         if page > 1:
-            urls.append(blog_post_url(blogitem.oid, page))
+            urls.append(blog_post_url(blogitem.oid, page, is_photo=blogitem.is_photo))
         else:
-            urls.append(blog_post_url(blogitem.oid))
+            urls.append(blog_post_url(blogitem.oid, is_photo=blogitem.is_photo))
 
     if urls:
         CDNPurgeURL.add(urls)
