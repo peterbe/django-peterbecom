@@ -1,4 +1,5 @@
 import datetime
+import re
 from pathlib import Path
 
 import pytest
@@ -635,6 +636,8 @@ def test_blogitem_dynamic_image_happy_path(client):
     response = client.get(url)
     assert response.status_code == 200
     assert response["Content-Type"] == "image/webp"
+    assert "public" in response["cache-control"]
+    assert re.findall(r"max-age=[1-9]\d+", response["cache-control"])
 
     blogitem_not_photo = BlogItem.objects.create(
         oid="notphoto",
