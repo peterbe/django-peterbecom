@@ -12,8 +12,10 @@ from django.utils import timezone
 from django.views.decorators.cache import cache_control
 from PIL import Image
 
+from peterbecom.api.thumbnail import thumbnail
 from peterbecom.plog.models import (
     BlogComment,
+    BlogFile,
     BlogItem,
     count_approved_comments,
     count_approved_root_comments,
@@ -452,48 +454,71 @@ def _traverse_unhighlight(comments_tree, exception_id):
 
 
 @cache_control(max_age=settings.DEBUG and 60 or 60 * 60, public=True)
-def blogitem_dynamic_image(request, oid, extension="webp"):
+def blogitem_dynamic_image(request, oid, width=None, extension="webp"):
+    valid_widths = (400, 1000, 1500)
+    if width is None:
+        width = 1500
+    elif width.startswith(".w"):
+        width = width[2:]
+        try:
+            width = int(width)
+        except ValueError:
+            return http.HttpResponseBadRequest("Invalid width format")
+        if width not in valid_widths:
+            return http.HttpResponseBadRequest(
+                f"Invalid width specified ({width} not in {valid_widths})"
+            )
+    else:
+        return http.HttpResponseBadRequest("Invalid width format")
+
     if list(request.GET.items()):
         # remove all query string params
         return redirect(request.path)
 
-    if extension == "jpeg":
-        return redirect(request.path.replace(".jpeg", ".jpg"))
+    if extension == "jpg":
+        return redirect(request.path.replace(".jpg", ".jpeg"))
 
-    if extension not in ("webp", "png", "jpg"):
+    if extension not in ("webp", "png", "jpeg"):
         return http.HttpResponseBadRequest("Unsupported image format")
 
     try:
-        blogitem = BlogItem.objects.get(oid=oid, is_photo=True)
-    except BlogItem.DoesNotExist:
+        blogfile = BlogFile.objects.get(blogitem__oid=oid, blogitem__is_photo=True)
+    except BlogFile.DoesNotExist:
         try:
-            blogitem = BlogItem.objects.get(oid__iexact=oid, is_photo=True)
-        except BlogItem.DoesNotExist:
-            return http.HttpResponseNotFound(oid)
+            blogfile = BlogFile.objects.get(
+                blogitem__oid__iexact=oid, blogitem__is_photo=True
+            )
+        except BlogFile.DoesNotExist:
+            return http.HttpResponseNotFound(
+                f"Blog item {oid} not found or is not a photo"
+            )
 
-    if not blogitem.open_graph_image:
-        return http.HttpResponseNotFound("No open graph image for this blog item")
+    file_path = Path(blogfile.file.path)
+    if not file_path.is_file():
+        return http.HttpResponseNotFound("File not found")
 
-    open_graph_image = blogitem.open_graph_image
+    geometry = f"{width}x{width}"
+    im = thumbnail(blogfile.file, geometry, upscale=False, quality=100)
+
+    image_path = im.url
     media_root = Path(settings.MEDIA_ROOT)
-    open_graph_image_path = media_root / (
-        open_graph_image[1:] if open_graph_image.startswith("/") else open_graph_image
+    full_image_path = media_root / (
+        image_path[1:] if image_path.startswith("/") else image_path
     )
-    if not open_graph_image_path.exists():
+    if not full_image_path.exists():
         return http.HttpResponseNotFound("Open graph image not found")
-    destination_path = open_graph_image_path.with_suffix(f".{extension}")
+    destination_path = full_image_path.with_suffix(f".{extension}")
 
     if not destination_path.exists():
-        image = Image.open(open_graph_image_path)
+        image = Image.open(full_image_path)
 
-        if extension in ("jpg", "jpeg"):
+        if extension == "jpeg":
             image = image.convert("RGB")
         image.save(destination_path, extension, quality=90)
 
     if not destination_path.exists():
         return http.HttpResponseNotFound(f"{extension.upper()} version not found")
 
-    print("OPENING AND SERVING", destination_path)
     with open(destination_path, "rb") as f:
         # Pass the binary data directly into the response
         return HttpResponse(f.read(), content_type=f"image/{extension}")

@@ -1,12 +1,11 @@
 import datetime
+import re
 from pathlib import Path
 
 import pytest
-from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.utils import timezone
-from sorl.thumbnail import get_thumbnail
 
 from peterbecom.plog.models import BlogComment, BlogFile, BlogItem, Category
 
@@ -604,7 +603,7 @@ def test_blogitem_is_photo(client):
 
 
 @pytest.mark.django_db
-def test_blogitem_dynamic_image(client):
+def test_blogitem_dynamic_image_happy_path(client):
     url = reverse("publicapi:blogitem_dynamic_image", args=["oid", "webp"])
     response = client.get(url)
     assert response.status_code == 404
@@ -632,25 +631,13 @@ def test_blogitem_dynamic_image(client):
             "test_image.png", f.read(), content_type="image/png"
         )
 
-    blogfile = BlogFile.objects.create(
-        blogitem=blogitem, title="Some title", file=test_file
-    )
-
-    im = get_thumbnail(blogfile.file, "370x370", quality=81)
-    blogitem.open_graph_image = im.url
-    blogitem.save()
-
-    og_path = Path(settings.MEDIA_ROOT) / blogitem.open_graph_image[1:]
-    assert og_path.exists()
+    BlogFile.objects.create(blogitem=blogitem, title="Some title", file=test_file)
 
     response = client.get(url)
     assert response.status_code == 200
     assert response["Content-Type"] == "image/webp"
-
-    webp_path = Path(settings.MEDIA_ROOT) / blogitem.open_graph_image[1:].replace(
-        ".jpg", ".webp"
-    )
-    assert webp_path.exists()
+    assert "public" in response["cache-control"]
+    assert re.findall(r"max-age=[1-9]\d+", response["cache-control"])
 
     blogitem_not_photo = BlogItem.objects.create(
         oid="notphoto",
@@ -668,3 +655,66 @@ def test_blogitem_dynamic_image(client):
     )
     response = client.get(url)
     assert response.status_code == 404
+
+
+@pytest.mark.django_db
+def test_blogitem_dynamic_image_different_formats(client):
+
+    blogitem = BlogItem.objects.create(
+        oid="oid",
+        title="Title",
+        text="*Text*",
+        text_rendered=BlogItem.render("*Text*", "markdown", ""),
+        display_format="markdown",
+        summary="Summary",
+        pub_date=timezone.now(),
+        is_photo=True,
+    )
+
+    with open(Path(__file__).parent / "test_image.png", "rb") as f:
+        test_file = SimpleUploadedFile(
+            "test_image.png", f.read(), content_type="image/png"
+        )
+
+    BlogFile.objects.create(blogitem=blogitem, title="Some title", file=test_file)
+
+    for extension in ["webp", "png", "jpeg"]:
+        url = reverse("publicapi:blogitem_dynamic_image", args=["oid", extension])
+        response = client.get(url)
+        assert response.status_code == 200
+        assert response["Content-Type"] == f"image/{extension}"
+
+
+@pytest.mark.django_db
+def test_blogitem_dynamic_image_different_widths(client):
+
+    blogitem = BlogItem.objects.create(
+        oid="oid",
+        title="Title",
+        text="*Text*",
+        text_rendered=BlogItem.render("*Text*", "markdown", ""),
+        display_format="markdown",
+        summary="Summary",
+        pub_date=timezone.now(),
+        is_photo=True,
+    )
+
+    with open(Path(__file__).parent / "test_image.png", "rb") as f:
+        test_file = SimpleUploadedFile(
+            "test_image.png", f.read(), content_type="image/png"
+        )
+
+    BlogFile.objects.create(blogitem=blogitem, title="Some title", file=test_file)
+
+    url_name = "publicapi:blogitem_dynamic_image"
+    for width in ["400", "1000", "", "12345"]:
+        if width:
+            url = reverse(url_name, args=["oid", f".w{width}", "webp"])
+        else:
+            url = reverse(url_name, args=["oid", "webp"])
+        response = client.get(url)
+        if width == "12345":
+            assert response.status_code == 400
+        else:
+            assert response.status_code == 200
+            assert response["Content-Type"] == "image/webp"

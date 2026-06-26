@@ -18,7 +18,6 @@ from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Avg, Count, Max, Min, Q, Sum
 from django.db.models.functions import Trunc
-from django.db.utils import IntegrityError
 from django.middleware.csrf import get_token
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -26,8 +25,8 @@ from django.utils.timesince import timesince as django_timesince
 from django.views.decorators.cache import cache_control, never_cache
 from django.views.decorators.http import require_http_methods, require_POST
 from requests.exceptions import ConnectionError
-from sorl.thumbnail import get_thumbnail
 
+from peterbecom.api.thumbnail import thumbnail
 from peterbecom.api.view_utils import api_superuser_required
 from peterbecom.base.cdn import (
     get_cdn_base_url,
@@ -621,29 +620,6 @@ def _post_thumbnails(blogitem):
             }
         images.append(image)
     return images
-
-
-def thumbnail(imagefile, geometry, **options):
-    if not options.get("format"):
-        # then let's try to do it by the file name
-        filename = imagefile
-        if hasattr(imagefile, "name"):
-            # it's an ImageFile object
-            filename = imagefile.name
-        if filename.lower().endswith(".png"):
-            options["format"] = "PNG"
-        elif filename.lower().endswith(".gif"):
-            pass
-        else:
-            options["format"] = "JPEG"
-    try:
-        return get_thumbnail(imagefile, geometry, **options)
-    except IntegrityError:
-        # The write is not transactional, and since this is most likely
-        # used in a write-view, we might get conflicts trying to write and a
-        # remember. Just try again a little bit later.
-        time.sleep(1)
-        return thumbnail(imagefile, geometry, **options)
 
 
 @api_superuser_required
