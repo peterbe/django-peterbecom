@@ -2275,4 +2275,7 @@ def llmcalls(request):
 
 @api_superuser_required
 def valid_llmcall_models(request):
+    usecase = request.GET.get("use_case")
+    if usecase == "ai-suggest-comment":
+        return json_response({"models": settings.VALID_LLM_SUGGEST_COMMENT_MODELS})
     return json_response({"models": settings.VALID_LLM_MODELS})
