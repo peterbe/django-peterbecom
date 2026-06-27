@@ -132,7 +132,7 @@ def test_open_graph_image(admin_client):
         url,
         json.dumps(
             {
-                "src": "garbage",
+                "id": "0",
             }
         ),
         content_type="application/json",
@@ -144,7 +144,9 @@ def test_open_graph_image(admin_client):
             "test_image.png", f.read(), content_type="image/png"
         )
 
-    BlogFile.objects.create(blogitem=blogitem, title="Some title", file=test_file)
+    blogfile = BlogFile.objects.create(
+        blogitem=blogitem, title="Some title", file=test_file
+    )
     response = admin_client.get(url)
     assert response.status_code == 200
     images = response.json()["images"]
@@ -154,11 +156,12 @@ def test_open_graph_image(admin_client):
         url,
         json.dumps(
             {
-                "src": images[0]["src"],
+                "id": images[0]["id"],
             }
         ),
         content_type="application/json",
     )
     assert response.status_code == 200
-    blogitem.refresh_from_db()
-    assert blogitem.open_graph_image
+
+    blogfile.refresh_from_db()
+    assert blogfile.is_open_graph_image

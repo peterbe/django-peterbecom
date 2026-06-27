@@ -367,12 +367,14 @@ def add_by_photo(request):
                 request.POST,
                 blogitem=item.id,
                 title=item.title,
+                is_open_graph_image=True,
             ),
             request.FILES,
         )
         if form.is_valid():
-            form.save()
-            # TODO: Automatically setting the open_graph_image here and now
+            blogfile = form.save()
+            assert blogfile.is_open_graph_image
+
             return json_response({"oid": item.oid}, status=201)
         else:
             item.delete()
@@ -521,27 +523,28 @@ def open_graph_image(request, oid):
 
         options.append(
             {
-                "label": "Thumbnail #{}".format(i + 1),
+                "id": image["id"],
+                "label": f"Thumbnail #{i + 1}",
                 "src": image["full_url"],
                 "size": image["full_size"],
-                "current": (
-                    blogitem.open_graph_image
-                    and image["full_url"] == blogitem.open_graph_image
-                ),
                 "used_in_text": full_url_path in images_used_paths,
+                "is_open_graph_image": image["is_open_graph_image"],
             }
         )
 
     if request.method == "POST":
         post = json.loads(request.body.decode("utf-8"))
-        src = post.get("src")
-        if not src or src not in [x["src"] for x in options]:
-            return http.HttpResponseBadRequest("No src")
-        if blogitem.open_graph_image and blogitem.open_graph_image == src:
-            blogitem.open_graph_image = None
+        if id := post.get("id"):
+            try:
+                blogfile = BlogFile.objects.get(blogitem=blogitem, id=id)
+            except BlogFile.DoesNotExist:
+                return http.HttpResponseBadRequest("Invalid id")
         else:
-            blogitem.open_graph_image = src
-        blogitem.save()
+            return http.HttpResponseBadRequest("No id")
+        blogfile.is_open_graph_image = True
+        blogfile.save()
+        others = BlogFile.objects.filter(blogitem=blogitem).exclude(id=blogfile.id)
+        others.update(is_open_graph_image=False)
         return json_response({"ok": True})
 
     context["images"] = options
@@ -603,7 +606,12 @@ def _post_thumbnails(blogitem):
             continue
         full_im = thumbnail(blogfile.file, "1500x1500", upscale=False, quality=100)
         full_url = full_im.url
-        image = {"id": blogfile.id, "full_url": full_url, "full_size": full_im.size}
+        image = {
+            "id": blogfile.id,
+            "full_url": full_url,
+            "full_size": full_im.size,
+            "is_open_graph_image": blogfile.is_open_graph_image,
+        }
         formats = (
             ("small", "120x120"),
             ("big", "230x230"),

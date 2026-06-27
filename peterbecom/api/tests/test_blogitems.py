@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from peterbecom.plog.models import (
+    BlogFile,
     BlogItem,
     Category,
 )
@@ -275,3 +276,6 @@ def test_add_by_photo_happy_path(admin_client):
     assert blogitem.oid == "some-title"
     assert blogitem.is_photo
     assert blogitem.display_format == "markdown"
+
+    blogfile = BlogFile.objects.get(blogitem=blogitem)
+    assert blogfile.is_open_graph_image

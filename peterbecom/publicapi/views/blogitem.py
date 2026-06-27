@@ -53,12 +53,14 @@ def blogitem(request, oid):
     if blogitem.archived:
         return http.HttpResponseNotFound("blog post archived")
 
+    open_graph_image_url = get_open_graph_image_url(blogitem)
+
     post = {
         "oid": blogitem.oid,
         "title": blogitem.title,
         "body": blogitem.text_rendered,
         "pub_date": blogitem.pub_date,
-        "open_graph_image": blogitem.open_graph_image,
+        "open_graph_image": open_graph_image_url,
         "url": blogitem.url,
         "summary": blogitem.summary,
         "categories": [x.name for x in blogitem.categories.all()],
@@ -216,6 +218,15 @@ def blogitem(request, oid):
     context = {"post": post, "comments": comments}
     cache.set(cache_key, context, 5 if settings.DEBUG else 60 * 60 * 12)
     return http.JsonResponse(context)
+
+
+def get_open_graph_image_url(blogitem: BlogItem) -> str | None:
+    blogfiles = BlogFile.objects.filter(blogitem=blogitem, is_open_graph_image=True)
+    if blogfiles.exists():
+        return f"/api/v1/plog/{blogitem.oid}.webp"
+
+    # Deprecated but still here for backwards compatibility
+    return blogitem.open_graph_image
 
 
 def get_category_overlap(blogitem_base, blogitem):
@@ -481,16 +492,16 @@ def blogitem_dynamic_image(request, oid, width=None, extension="webp"):
     if extension not in ("webp", "png", "jpeg"):
         return http.HttpResponseBadRequest("Unsupported image format")
 
-    try:
-        blogfile = BlogFile.objects.get(blogitem__oid=oid, blogitem__is_photo=True)
-    except BlogFile.DoesNotExist:
-        try:
-            blogfile = BlogFile.objects.get(
-                blogitem__oid__iexact=oid, blogitem__is_photo=True
-            )
-        except BlogFile.DoesNotExist:
+    qs = BlogFile.objects.filter(blogitem__oid=oid, is_open_graph_image=True)
+    for blogfile in qs:
+        break
+    else:
+        qs = BlogFile.objects.filter(blogitem__oid=oid, blogitem__is_photo=True)
+        for blogfile in qs:
+            break
+        else:
             return http.HttpResponseNotFound(
-                f"Blog item {oid} not found or is not a photo"
+                "No open graph image found for this blog item"
             )
 
     file_path = Path(blogfile.file.path)
