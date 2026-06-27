@@ -77,9 +77,20 @@
             },
             "required": ["url", "alt", "width", "height"],
             "additionalProperties": false
+          },
+          "is_open_graph_image": {
+            "type": ["null", "boolean"]
           }
         },
-        "required": ["id", "full_url", "full_size", "small", "big", "bigger"],
+        "required": [
+          "id",
+          "full_url",
+          "full_size",
+          "small",
+          "big",
+          "bigger",
+          "is_open_graph_image"
+        ],
         "additionalProperties": false
       }
     }
