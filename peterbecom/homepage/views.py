@@ -68,6 +68,7 @@ def sitemap(request):
         if changefreq:
             etree.SubElement(url, "changefreq").text = changefreq
 
+    t0 = time.monotonic()
     now = timezone.now()
     blogitems = BlogItem.objects.filter(
         pub_date__lt=now,
@@ -81,6 +82,8 @@ def sitemap(request):
 
     for page in range(2, settings.MAX_BLOGCOMMENT_PAGES + 1):
         add(f"/plog/blogitem-040601-1/p{page}", changefreq="daily", priority=0.9)
+
+    t1 = time.monotonic()
 
     # So when querying in various ways, we can skip some that are
     # already added.
@@ -108,6 +111,8 @@ def sitemap(request):
             lastmod=comment["modify_date"],
             changefreq="daily",
         )
+
+    t2 = time.monotonic()
 
     # Most popular pages that haven't got recent comments
     for days_back in range(2, 5):
@@ -137,6 +142,8 @@ def sitemap(request):
                 changefreq="weekly",
             )
 
+    t3 = time.monotonic()
+
     # Now for all the rest
     blogitem_qs = (
         BlogItem.objects.exclude(id__in=already_ids)
@@ -155,6 +162,18 @@ def sitemap(request):
             lastmod=item["pub_date"],
         )
 
+    t4 = time.monotonic()
+
+    print(
+        "SITEMAP Lyrics:",
+        t1 - t0,
+        "Recent comments:",
+        t2 - t1,
+        "Popular:",
+        t3 - t2,
+        "Rest:",
+        t4 - t3,
+    )
     xml_output = b'<?xml version="1.0" encoding="utf-8"?>\n'
     xml_output += etree.tostring(root, pretty_print=True)
     return http.HttpResponse(xml_output, content_type="text/xml")
