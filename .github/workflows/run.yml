@@ -85,13 +85,3 @@ jobs:
           echo ""
           curl --fail http://localhost:8000/robots.txt
           echo ""
-
-      - name: Debug any server outputs
-        if: failure()
-        run: |
-          echo "___NETSTAT___"
-          netstat -nplt
-          echo "____STDOUT____"
-          cat /tmp/stdout.log
-          echo "____STDERR____"
-          cat /tmp/stderr.log
