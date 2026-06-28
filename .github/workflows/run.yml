@@ -63,7 +63,8 @@ jobs:
         id: run-server
         background: true
         run: |
-          ./bin/run.sh web > /tmp/stdout.log 2> /tmp/stderr.log
+          #./bin/run.sh web > /tmp/stdout.log 2> /tmp/stderr.log
+          ./bin/run.sh web
 
       - name: Wait for the server step to finish
         wait: run-server
