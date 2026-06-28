@@ -8,6 +8,7 @@ from peterbecom.plog.models import BlogItem
 from .utils import make_categories_q, parse_ocs_to_categories
 
 smart_static_urls = re.compile(r'src="//')
+relative_static_urls = re.compile(r'src="/cache/')
 
 
 class PlogFeed(Feed):
@@ -28,8 +29,6 @@ class PlogFeed(Feed):
         qs = BlogItem.objects.filter(
             pub_date__lt=timezone.now(),
             archived__isnull=True,
-            # XXX fix this when photos have their own permalink pages
-            is_photo=False,
         )
         if categories:
             cat_q = make_categories_q(categories)
@@ -43,6 +42,9 @@ class PlogFeed(Feed):
     def item_pubdate(self, item):
         return item.pub_date
 
+    def item_link(self, item):
+        return f"/{'photos' if item.is_photo else 'plog'}/{item.oid}"
+
     def item_description(self, item):
         summary = item.summary
         if not summary:
@@ -52,6 +54,13 @@ class PlogFeed(Feed):
             # should default to
             #  <img src="http://aoisjdeqwd.cloudfront/oijsdfa.jpg"
             summary = smart_static_urls.sub('src="https://', summary)
+            # content that has
+            #  <img src="/cache/foo/bar.jpg"
+            # should default to
+            #  <img src="https://www.peterbe.com/cache/foo/bar.jpg"
+            summary = relative_static_urls.sub(
+                'src="https://www.peterbe.com/cache/', summary
+            )
             # this is to please
             # http://validator.w3.org/feed/check.cgi?url=http%3A%2F%2Fwww.peterbe.com%2Frss.xml
         return summary
