@@ -33,19 +33,19 @@ jobs:
 
       - uses: actions/checkout@v7
 
-      # - uses: oven-sh/setup-bun@v2
+      - uses: oven-sh/setup-bun@v2
 
-      # - name: Install bun packages
-      #   working-directory: peterbecom/chiveproxy
-      #   run: bun install
+      - name: Install bun packages
+        working-directory: peterbecom/chiveproxy
+        run: bun install
 
-      # - name: Compile html_getter with bun
-      #   working-directory: peterbecom/chiveproxy
-      #   run: bun run compile
+      - name: Compile html_getter with bun
+        working-directory: peterbecom/chiveproxy
+        run: bun run compile
 
-      # - name: Test compiled html_getter
-      #   working-directory: peterbecom/chiveproxy
-      #   run: ./out/html_getter https://www.example.com
+      - name: Test compiled html_getter
+        working-directory: peterbecom/chiveproxy
+        run: ./out/html_getter https://www.example.com
 
       - name: Install uv
         id: setup-uv
@@ -91,13 +91,14 @@ jobs:
       - name: Download NLTK dependencies
         run: uv run python scripts/nltk-downloads.py
 
-      - name: Run Lints
-        run: |
-          # Linting
-          uv run ruff check .
-          # Formatting
-          uv run ruff format --check .
+      - parallel:
+          - name: Run Lints
+            run: |
+              # Linting
+              uv run ruff check .
+              # Formatting
+              uv run ruff format --check .
 
-      - name: Run Tests
-        run: |
-          ./scripts/ci-test.sh
+          - name: Run Tests
+            run: |
+              ./scripts/ci-test.sh
