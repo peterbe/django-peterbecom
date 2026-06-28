@@ -20,6 +20,7 @@ from django.db.models import Avg, Count, Max, Min, Q, Sum
 from django.db.models.functions import Trunc
 from django.middleware.csrf import get_token
 from django.shortcuts import get_object_or_404
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.timesince import timesince as django_timesince
 from django.views.decorators.cache import cache_control, never_cache
@@ -225,6 +226,13 @@ def blogitems_all(request):
     if not form.is_valid():
         return json_response({"errors": form.errors}, status=400)
 
+    open_graph_images: dict[int, int] = {}
+    if not form.cleaned_data["minimal_fields"]:
+        for blogitem_id, blogfile_id in BlogFile.objects.filter(
+            is_open_graph_image=True
+        ).values_list("blogitem_id", "id"):
+            open_graph_images[blogitem_id] = blogfile_id
+
     def _serialize_blogitem(item: dict):
         if form.cleaned_data["minimal_fields"]:
             return {
@@ -232,6 +240,15 @@ def blogitems_all(request):
                 "oid": item["oid"],
                 "title": item["title"],
             }
+
+        if item["id"] in open_graph_images:
+            open_graph_image = reverse(
+                "publicapi:blogitem_dynamic_image", args=[item["id"], "webp"]
+            )
+        elif item["open_graph_image"]:  # legacy
+            open_graph_image = item["open_graph_image"]
+        else:
+            open_graph_image = None
 
         return {
             "id": item["id"],
@@ -247,7 +264,7 @@ def blogitems_all(request):
             "hide_comments": item["hide_comments"],
             "disallow_comments": item["disallow_comments"],
             "is_photo": item["is_photo"],
-            "open_graph_image": item["open_graph_image"],
+            "open_graph_image": open_graph_image,
         }
 
     items = BlogItem.objects.all()
