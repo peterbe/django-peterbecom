@@ -60,14 +60,13 @@ jobs:
           ./scripts/ci-run.sh
 
       - name: Run gunicorn server
-        id: run-server
+        id: server
         background: true
         run: |
-          #./bin/run.sh web > /tmp/stdout.log 2> /tmp/stderr.log
           ./bin/run.sh web
 
       - name: Wait for the server step to finish
-        wait: run-server
+        wait: server
 
       - name: Navigate to the server
         run: |
