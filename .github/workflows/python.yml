@@ -63,7 +63,7 @@ jobs:
 
       - name: Make sure it's synced
         run: |
-          
+
           # If the uv.lock (dependencies and devDependencies) is
           # in correct sync with pyproject.toml running `uv sync`
           # should *not* make an edit to the uv.lock. I.e.
@@ -91,13 +91,14 @@ jobs:
       - name: Download NLTK dependencies
         run: uv run python scripts/nltk-downloads.py
 
-      - name: Run Lints
-        run: |
-          # Linting
-          uv run ruff check .
-          # Formatting
-          uv run ruff format --check .
+      - parallel:
+          - name: Run Lints
+            run: |
+              # Linting
+              uv run ruff check .
+              # Formatting
+              uv run ruff format --check .
 
-      - name: Run Tests
-        run: |
-          ./scripts/ci-test.sh
+          - name: Run Tests
+            run: |
+              ./scripts/ci-test.sh
