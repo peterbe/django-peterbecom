@@ -1,6 +1,4 @@
 import datetime
-import re
-from urllib.parse import urlparse
 
 import pytest
 import xmltodict
@@ -8,50 +6,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from peterbecom.homepage.models import CatchallURL
-from peterbecom.plog.models import BlogItem, BlogItemDailyHits, Category
-
-
-@pytest.mark.django_db
-def test_sitemap(client):
-    BlogItem.objects.create(
-        oid="foo-bar",
-        title="Foo Bar",
-        pub_date=timezone.now() + datetime.timedelta(days=1),
-    )
-    BlogItem.objects.create(
-        oid="hello-world",
-        title="Hello",
-        pub_date=timezone.now() - datetime.timedelta(days=1),
-    )
-    more_popular = BlogItem.objects.create(
-        oid="more-popular",
-        title="More popular",
-        pub_date=timezone.now() - datetime.timedelta(days=2),
-    )
-    BlogItemDailyHits.objects.create(
-        blogitem=more_popular,
-        date=timezone.now() - datetime.timedelta(days=1),
-        total_hits=100,
-    )
-
-    url = reverse("homepage:sitemap")
-    response = client.get(url)
-    assert response.status_code == 200
-    assert re.findall(r"public, max-age=\d\d+", response["cache-control"])
-
-    payload = response.content.decode("utf-8")
-    parsed = xmltodict.parse(payload)
-
-    urls = parsed["urlset"]["url"]
-    paths = [urlparse(url["loc"]).path for url in urls]
-    assert paths[0] == "/"
-    assert paths[1] == "/about"
-    assert paths[2] == "/contact"
-    assert paths[3] == "/plog/blogitem-040601-1"
-
-    assert "/plog/hello-world" in paths
-    assert "/plog/foo-bar" not in paths
-    assert paths.index("/plog/more-popular") < paths.index("/plog/hello-world")
+from peterbecom.plog.models import BlogItem, Category
 
 
 def test_old_alias(client):

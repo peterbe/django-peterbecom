@@ -72,8 +72,6 @@ def sitemap(request):
     blogitems = BlogItem.objects.filter(
         pub_date__lt=now,
         archived__isnull=True,
-        # XXX fix this when photos have their own permalink pages
-        is_photo=False,
     )
     latest_pub_date = blogitems.aggregate(pub_date=Max("pub_date"))["pub_date"]
     add("/", priority=1.0, changefreq="daily", lastmod=latest_pub_date)
@@ -90,7 +88,9 @@ def sitemap(request):
 
     # All blog items with a recent comment
     comments_qs = (
-        BlogComment.objects.filter(approved=True, blogitem__isnull=False)
+        BlogComment.objects.filter(
+            approved=True, blogitem__isnull=False, blogitem__archived__isnull=True
+        )
         .exclude(
             # exception since it's handled (earlier) manually
             blogitem__oid="blogitem-040601-1"
@@ -98,11 +98,13 @@ def sitemap(request):
         .order_by("-modify_date")
     )
     for comment in comments_qs.select_related("blogitem").values(
-        "blogitem__id", "blogitem__oid", "modify_date"
+        "blogitem__id", "blogitem__oid", "blogitem__is_photo", "modify_date"
     )[:100]:
         already_ids.add(comment["blogitem__id"])
+        oid = comment["blogitem__oid"]
+        uri = f"/{'photos' if comment['blogitem__is_photo'] else 'plog'}/{oid}"
         add(
-            f"/plog/{comment['blogitem__oid']}",
+            uri,
             lastmod=comment["modify_date"],
             changefreq="daily",
         )
@@ -110,10 +112,13 @@ def sitemap(request):
     # Most popular pages that haven't got recent comments
     for days_back in range(2, 5):
         popular_qs = (
-            BlogItemDailyHits.objects.exclude(blogitem__id__in=already_ids)
+            BlogItemDailyHits.objects.exclude(
+                blogitem__id__in=already_ids,
+            )
             # This gives us the most popular, in recent days
             .filter(
                 date__gt=timezone.now() - timezone.timedelta(days=days_back),
+                blogitem__archived__isnull=True,
             )
             .order_by("-total_hits")
         )
@@ -122,23 +127,30 @@ def sitemap(request):
             "total_hits",
             "blogitem__id",
             "blogitem__oid",
+            "blogitem__is_photo",
         )[:100]:
             already_ids.add(daily_hit["blogitem__id"])
+            oid = daily_hit["blogitem__oid"]
+            uri = f"/{'photos' if daily_hit['blogitem__is_photo'] else 'plog'}/{oid}"
             add(
-                f"/plog/{daily_hit['blogitem__oid']}",
+                uri,
                 changefreq="weekly",
             )
 
     # Now for all the rest
     blogitem_qs = (
         BlogItem.objects.exclude(id__in=already_ids)
-        .filter(pub_date__lt=timezone.now())
+        .filter(
+            pub_date__lt=timezone.now(),
+            archived__isnull=True,
+        )
         .order_by("-pub_date")
     )
-    for item in blogitem_qs.values("id", "oid", "pub_date")[:1000]:
+    for item in blogitem_qs.values("id", "oid", "pub_date", "is_photo")[:1000]:
         already_ids.add(item["id"])
+        uri = f"/{'photos' if item['is_photo'] else 'plog'}/{item['oid']}"
         add(
-            f"/plog/{item['oid']}",
+            uri,
             changefreq="monthly",
             lastmod=item["pub_date"],
         )
