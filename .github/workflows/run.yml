@@ -65,8 +65,10 @@ jobs:
         run: |
           ./bin/run.sh web > /tmp/stdout.log 2> /tmp/stderr.log
 
-      - name: Navigate to the server
+      - name: Wait for the server step to finish
         wait: run-server
+
+      - name: Navigate to the server
         run: |
           sleep 4
           echo "HEALTHCHECK_____________________________"
