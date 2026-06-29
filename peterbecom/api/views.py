@@ -1737,7 +1737,7 @@ def cdn_probe(request):
         absolute_url = url.split("#")[0]
         if (
             urlparse(absolute_url).netloc == host
-            and ("/plog/" in absolute_url or "/photos" in absolute_url)
+            and ("/plog/" in absolute_url or "/photos/" in absolute_url)
             and urlparse(absolute_url).path
             not in ("/plog/", "/plog", "/photos/", "/photos")
         ):
