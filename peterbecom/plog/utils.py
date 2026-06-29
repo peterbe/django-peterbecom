@@ -39,6 +39,14 @@ def blog_post_url(oid, page=None, is_photo=False):
     return f"/{prefix}/{oid}"
 
 
+def blog_index_url(page=None, is_photos=False):
+    prefix = "photos" if is_photos else "plog"
+
+    if page:
+        raise NotImplementedError("Pagination for index pages is not implemented yet.")
+    return f"/{prefix}"
+
+
 # def is_bot(ua="", ip=None):
 #     if "bot" not in ua.lower() and "download-all-plogs.py" not in ua:
 #         return False
