@@ -1722,7 +1722,13 @@ def cdn_probe(request):
     base_url = "http"
     if request.is_secure():
         base_url += "s"
-    base_url += "://" + request.get_host()
+
+    host = request.get_host()
+    if host == "admin.peterbe.com":
+        host = "www.peterbe.com"
+    elif host == "localhost:8000":
+        host = "localhost:3000"
+    base_url += "://" + host
 
     if url.startswith("/"):  # rewrite to absolute URL
         url = base_url + url
@@ -1730,9 +1736,10 @@ def cdn_probe(request):
     if url.startswith("http://") or url.startswith("https://"):
         absolute_url = url.split("#")[0]
         if (
-            urlparse(absolute_url).netloc == request.get_host()
-            and "/plog/" in absolute_url
-            and urlparse(absolute_url).path not in ("/plog/", "/plog")
+            urlparse(absolute_url).netloc == host
+            and ("/plog/" in absolute_url or "/photos/" in absolute_url)
+            and urlparse(absolute_url).path
+            not in ("/plog/", "/plog", "/photos/", "/photos")
         ):
             oid = urlparse(absolute_url).path.split("/")[-1]
             try:
