@@ -22,6 +22,7 @@ from lxml import etree
 
 from peterbecom.base.decorators import lock_decorator
 from peterbecom.base.utils import get_base_url
+from peterbecom.disallow_querystrings import disallow_querystrings
 from peterbecom.plog.models import BlogComment, BlogItem, BlogItemDailyHits
 
 from .models import CatchallURL
@@ -46,6 +47,7 @@ def home(request, oc=None, page=1):
     return http.HttpResponse(f"deprecated (user={request.user})")
 
 
+@disallow_querystrings()
 @cache_control(public=True, max_age=ONE_WEEK)
 def sitemap(request):
     base_url = get_base_url(request)
