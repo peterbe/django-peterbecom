@@ -28,7 +28,7 @@ from peterbecom.base.models import CDNPurgeURL
 from peterbecom.base.utils import generate_search_terms
 
 from . import utils
-from .utils import blog_post_url
+from .utils import blog_index_url, blog_post_url
 
 # This is where we can cache counts of comments per blogitem id.
 count_comments_cache = TTLCache(maxsize=1000, ttl=60)  # XXX increase TTL
@@ -731,9 +731,13 @@ def update_modify_date(sender, instance, **kwargs):
 def invalidate_cdn_urls(sender, instance, **kwargs):
     if kwargs["raw"]:
         return
-    urls = []
+    urls: list[str] = []
     if sender is BlogItem:
         blogitem = instance
+
+        if blogitem.is_photo:
+            urls.append(blog_index_url(is_photos=blogitem.is_photo))
+
     elif sender is BlogComment:
         # Only invalidate if the comment is approved!
         if not instance.approved:
