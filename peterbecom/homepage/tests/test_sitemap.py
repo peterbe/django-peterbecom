@@ -53,6 +53,13 @@ def test_sitemap_happy_path(client):
     assert paths.index("/plog/more-popular") < paths.index("/plog/hello-world")
 
 
+def test_sitemap_redirects_on_query_strings(client):
+    url = reverse("homepage:sitemap")
+    response = client.get(url, {"foo": "bar"})
+    assert response.status_code == 302
+    assert response["location"] == f"http://testserver{url}"
+
+
 @pytest.mark.django_db
 def test_sitemap_include_photos(client):
     BlogItem.objects.create(
