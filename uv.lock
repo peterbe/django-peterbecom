@@ -527,7 +527,7 @@ requires-dist = [
     { name = "rollbar", specifier = "==1.3.0" },
     { name = "ruff", specifier = "==0.15.20" },
     { name = "sorl-thumbnail", specifier = "==13.0.0" },
-    { name = "sql-metadata", specifier = "==2.20.0" },
+    { name = "sql-metadata", specifier = "==3.0.1" },
     { name = "tomli", specifier = "==2.4.1" },
     { name = "xmltodict", specifier = "==1.0.4" },
     { name = "zope-structuredtext", specifier = "==6.0" },
@@ -1606,14 +1606,23 @@ wheels = [
 
 [[package]]
 name = "sql-metadata"
-version = "2.20.0"
+version = "3.0.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "sqlparse" },
+    { name = "sqlglot" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/0e/7d/5fd64d153e93001387693ede6fbdb223a519a982b1d513ad4774ad6dda3f/sql_metadata-2.20.0.tar.gz", hash = "sha256:d680dc58a82daa30e50c136b61463b2cc49c3fc092d251f21e327a327bb91dc1", size = 22275, upload-time = "2026-03-04T20:35:13.554Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e0/47/310341f7d21df7cc73e6f66bb8c10f87919e9723bf1341387544ed36e5dd/sql_metadata-3.0.1.tar.gz", hash = "sha256:4c83a48ddd1c6c4076eec2021347cb1311f0a190f18aabef7c2c6fd64d3afbc2", size = 48642, upload-time = "2026-06-30T22:10:18.821Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1d/75/a18df908807154008f565d2ab6e9a835c986da965f5af530b6ad08930544/sql_metadata-2.20.0-py3-none-any.whl", hash = "sha256:86a47cc0a7c2d715c92328fe0c87926fba07e70c8280f9d96f77f8c771fb43a6", size = 22687, upload-time = "2026-03-04T20:35:12.176Z" },
+    { url = "https://files.pythonhosted.org/packages/c7/71/4b1029ab855e9ff79a907cf0b8e3ea08346ab0aa4d3b268042461667bde0/sql_metadata-3.0.1-py3-none-any.whl", hash = "sha256:33b17891a149bfd851f5927d38fe6f133c63fca5955c016925dbc67113a07f7d", size = 52797, upload-time = "2026-06-30T22:10:17.445Z" },
+]
+
+[[package]]
+name = "sqlglot"
+version = "30.12.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/43/ed/a6c45aec29353b6392ea34548c40af3ac6ffd6bc5572cf23b2ce250876fc/sqlglot-30.12.0.tar.gz", hash = "sha256:6b8369704662d4f654bc934cea4dd31c916c2a571b389210cb9e951a275e5fd9", size = 5905110, upload-time = "2026-06-26T14:09:40.408Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/db/9e/82a390ecc85f066ff80affa01d195f744e3de60ad4d695b8de31c9a66da3/sqlglot-30.12.0-py3-none-any.whl", hash = "sha256:86cccc610073c645c03e72b55b60ae0518aa3253a7fc3bd56551370d003c6554", size = 707583, upload-time = "2026-06-26T14:09:38.525Z" },
 ]
 
 [[package]]
