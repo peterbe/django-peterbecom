@@ -167,14 +167,12 @@ def sitemap(request):
     t4 = time.monotonic()
 
     print(
-        "SITEMAP Lyrics:",
-        t1 - t0,
-        "Recent comments:",
-        t2 - t1,
-        "Popular:",
-        t3 - t2,
-        "Rest:",
-        t4 - t3,
+        f"SITEMAP Lyrics:"
+        f"{t1 - t0:.3f}, "
+        f"Recent comments: {t2 - t1:.3f}, "
+        f"Popular: {t3 - t2:.3f}, "
+        f"Rest: {t4 - t3:.3f} "
+        f"date: {timezone.now()}"
     )
     xml_output = b'<?xml version="1.0" encoding="utf-8"?>\n'
     xml_output += etree.tostring(root, pretty_print=True)
