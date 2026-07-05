@@ -466,7 +466,7 @@ def _traverse_unhighlight(comments_tree, exception_id):
 
 @cache_control(max_age=settings.DEBUG and 60 or 60 * 60, public=True)
 def blogitem_dynamic_image(request, oid, width=None, extension="webp"):
-    valid_widths = (400, 1000, 1500)
+    valid_widths = (400, 1000, 1500, 3000)
     if width is None:
         width = 1500
     elif width.startswith(".w"):
