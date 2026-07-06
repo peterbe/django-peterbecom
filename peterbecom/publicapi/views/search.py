@@ -296,6 +296,7 @@ def _pg_search(
         "categories",
         "title_headline",
         "text_headline",
+        "is_photo",
     )
 
     t0 = time.time()
@@ -335,6 +336,7 @@ def _pg_search(
             "popularity": result["popularity"] or 0.0,
             "comment": False,
             "categories": result["categories"],
+            "is_photo": result["is_photo"],
         }
         documents.append(document)
 

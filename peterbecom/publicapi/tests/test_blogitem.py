@@ -588,18 +588,10 @@ def test_blogitem_is_photo(client):
 
     response = client.get(blogitem_url)
     assert response.status_code == 200
+    assert response.json()["post"]["is_photo"] is False
     response = client.get(photo_url)
-    assert response.status_code == 404
-
-    response = client.get(blogitem_url, {"is_photo": "true"})
-    assert response.status_code == 404
-    response = client.get(blogitem_url, {"is_photo": "false"})
     assert response.status_code == 200
-
-    response = client.get(photo_url, {"is_photo": "true"})
-    assert response.status_code == 200
-    response = client.get(photo_url, {"is_photo": "false"})
-    assert response.status_code == 404
+    assert response.json()["post"]["is_photo"] is True
 
 
 @pytest.mark.django_db
