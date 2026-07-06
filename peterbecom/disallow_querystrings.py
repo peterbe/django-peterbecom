@@ -3,6 +3,8 @@ from urllib.parse import parse_qsl, urlencode, urlsplit
 
 from django.shortcuts import redirect
 
+from peterbecom.base.utils import get_base_url
+
 
 def disallow_querystrings(except_keys=()):
     """
@@ -19,7 +21,10 @@ def disallow_querystrings(except_keys=()):
             if request.GET:
                 not_allowed = set(request.GET.keys()) - set(except_keys)
                 if not_allowed:
-                    url_parts = urlsplit(request.build_absolute_uri())
+                    # Don't use `request.build_absolute_uri()` because it might
+                    # not know the server is behind a CDN.
+                    base_url = get_base_url(request)
+                    url_parts = urlsplit(base_url + request.get_full_path())
                     query_pairs = parse_qsl(url_parts.query, keep_blank_values=True)
                     query_dict = dict(query_pairs)
                     for key in not_allowed:
