@@ -7,14 +7,11 @@ from collections import Counter
 from django import http
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import connection
-from django.db.models import Avg, Count, Sum
-from django.db.models.functions import TruncMonth
 from django.db.utils import DataError, ProgrammingError
 from sql_metadata import Parser
 
 from peterbecom.api.view_utils import api_superuser_required
 from peterbecom.base.utils import json_response
-from peterbecom.llmcalls.models import LLMCall
 
 
 @api_superuser_required
@@ -137,18 +134,34 @@ class CustomJSONEncoder(DjangoJSONEncoder):
 def llmcalls(request):
     context = {"aggregates": []}
 
-    query = LLMCall.objects.filter(status="success")
-    results = (
-        query.annotate(month=TruncMonth("created"))
-        .values("month", "model")
-        .annotate(
-            count=Count("id"),
-            avg_took_seconds=Avg("took_seconds"),
-            sum_took_seconds=Sum("took_seconds"),
-        )
-        .order_by("month", "model")
-    )
-    for r in results:
-        context["aggregates"].append(r)
+    raw_sql_query = """
+        select
+            model,
+            date_trunc('month', created) as month,
+            count(*) as count,
+            avg(took_seconds) as avg_took_seconds,
+            sum(took_seconds) as sum_took_seconds,
+            percentile_cont(0.5) WITHIN GROUP (
+                order by
+                    took_seconds
+            ) as p50_took_seconds,
+            percentile_cont(0.9) WITHIN GROUP (
+                order by
+                    took_seconds
+            ) as p90_took_seconds
+        from
+            llmcalls_llmcall
+        where
+            status = 'success'
+        group by
+            month,
+            model
+    """
+    with connection.cursor() as cursor:
+        cursor.execute(raw_sql_query)
+        columns = [col[0] for col in cursor.description]
+        for row in cursor.fetchall():
+            row_dict = dict(zip(columns, row))
+            context["aggregates"].append(row_dict)
 
     return json_response(context)
