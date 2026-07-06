@@ -87,6 +87,7 @@ class SearchDoc(models.Model):
     date = models.DateTimeField()
     keywords = ArrayField(models.CharField(max_length=100), default=list)
     categories = ArrayField(models.CharField(max_length=100), default=list)
+    is_photo = models.BooleanField(default=False)
 
     # meta data
     add_date = models.DateTimeField(auto_now=True)
@@ -257,6 +258,7 @@ class BlogItem(models.Model):
             "categories": categories,
             "keywords": self.proper_keywords,
             "modify_date": self.modify_date,
+            "is_photo": self.is_photo,
         }
 
         return doc
@@ -301,6 +303,7 @@ class BlogItem(models.Model):
                     keywords=to_search_doc["keywords"],
                     popularity=to_search_doc["popularity"] or 0.0,
                     categories=to_search_doc["categories"],
+                    is_photo=to_search_doc["is_photo"],
                     index_version=index_version,
                     source_modify_date=to_search_doc["modify_date"],
                 )
@@ -775,6 +778,7 @@ def update_search_doc(sender, instance, **kwargs):
             popularity=as_search_doc["popularity"],
             categories=as_search_doc["categories"],
             source_modify_date=as_search_doc["modify_date"],
+            is_photo=as_search_doc["is_photo"],
         )
         if not updated:
             current_index_version = (
@@ -790,6 +794,7 @@ def update_search_doc(sender, instance, **kwargs):
                 popularity=as_search_doc["popularity"],
                 categories=as_search_doc["categories"],
                 source_modify_date=as_search_doc["modify_date"],
+                is_photo=as_search_doc["is_photo"],
                 index_version=current_index_version,
             )
 

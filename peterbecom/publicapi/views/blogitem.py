@@ -40,10 +40,10 @@ def blogitem(request, oid):
         return http.JsonResponse(cached)
 
     try:
-        blogitem = BlogItem.objects.get(oid=oid, is_photo=is_photo)
+        blogitem = BlogItem.objects.get(oid=oid)
     except BlogItem.DoesNotExist:
         try:
-            blogitem = BlogItem.objects.get(oid__iexact=oid, is_photo=is_photo)
+            blogitem = BlogItem.objects.get(oid__iexact=oid)
         except BlogItem.DoesNotExist:
             return http.HttpResponseNotFound(oid)
 
@@ -66,6 +66,7 @@ def blogitem(request, oid):
         "categories": [x.name for x in blogitem.categories.all()],
         "disallow_comments": blogitem.disallow_comments,
         "hide_comments": blogitem.hide_comments,
+        "is_photo": blogitem.is_photo,
     }
 
     def serialize_related(post_object):
