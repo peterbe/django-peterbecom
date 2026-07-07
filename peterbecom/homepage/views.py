@@ -117,32 +117,34 @@ def sitemap(request):
     t2 = time.monotonic()
 
     # Most popular pages that haven't got recent comments
-    for days_back in range(2, 5):
-        popular_qs = (
-            BlogItemDailyHits.objects.exclude(
-                blogitem__id__in=already_ids,
-            )
-            # This gives us the most popular, in recent days
-            .filter(
-                date__gt=timezone.now() - timezone.timedelta(days=days_back),
-                blogitem__archived__isnull=True,
-            )
-            .order_by("-total_hits")
+    # for days_back in range(2, 5):
+    popular_qs = (
+        BlogItemDailyHits.objects.exclude(
+            blogitem__id__in=already_ids,
         )
-        for daily_hit in popular_qs.values(
-            "date",
-            "total_hits",
-            "blogitem__id",
-            "blogitem__oid",
-            "blogitem__is_photo",
-        )[:100]:
-            already_ids.add(daily_hit["blogitem__id"])
-            oid = daily_hit["blogitem__oid"]
-            uri = f"/{'photos' if daily_hit['blogitem__is_photo'] else 'plog'}/{oid}"
-            add(
-                uri,
-                changefreq="weekly",
-            )
+        # This gives us the most popular, in recent days
+        .filter(
+            date__gt=timezone.now() - timezone.timedelta(days=5),
+            date__lt=timezone.now() - timezone.timedelta(days=1),
+            blogitem__archived__isnull=True,
+            total_hits__gt=1,
+        )
+        .order_by("-date", "-total_hits")
+    )
+    for daily_hit in popular_qs.values(
+        "date",
+        "total_hits",
+        "blogitem__id",
+        "blogitem__oid",
+        "blogitem__is_photo",
+    )[:100]:
+        already_ids.add(daily_hit["blogitem__id"])
+        oid = daily_hit["blogitem__oid"]
+        uri = f"/{'photos' if daily_hit['blogitem__is_photo'] else 'plog'}/{oid}"
+        add(
+            uri,
+            changefreq="weekly",
+        )
 
     t3 = time.monotonic()
 

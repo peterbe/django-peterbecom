@@ -29,7 +29,7 @@ def test_sitemap_happy_path(client):
     )
     BlogItemDailyHits.objects.create(
         blogitem=more_popular,
-        date=timezone.now() - datetime.timedelta(days=1),
+        date=timezone.now() - datetime.timedelta(days=1.5),
         total_hits=100,
     )
 
