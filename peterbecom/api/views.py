@@ -2287,3 +2287,15 @@ def valid_llmcall_models(request):
     if usecase == "ai-suggest-comment":
         return json_response({"models": settings.VALID_LLM_SUGGEST_COMMENT_MODELS})
     return json_response({"models": settings.VALID_LLM_MODELS})
+
+
+@api_superuser_required
+def valid_llmcall_use_cases(request):
+    context = {"use_cases": []}
+    query = LLMCall.objects.values("use_case").annotate(count=Count("use_case"))
+    for item in query:
+        context["use_cases"].append(
+            {"use_case": item["use_case"], "count": item["count"]}
+        )
+    context["use_cases"].sort(key=lambda x: x["count"], reverse=True)
+    return json_response(context)

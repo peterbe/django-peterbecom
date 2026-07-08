@@ -135,8 +135,63 @@ def test_aggregates_and_filtering(admin_client):
     assert filter_response.json()["aggregates"] == response.json()["aggregates"]
 
 
-def test_valid_llmcall_models(admin_client):
+def test_valid_llmcall_models(admin_client, settings):
+    settings.VALID_LLM_MODELS = ("foo", "bar")
+    settings.VALID_LLM_SUGGEST_COMMENT_MODELS = ("foo",)
     url = reverse("api:valid_llmcall_models")
     response = admin_client.get(url)
     assert response.status_code == 200
-    assert response.json()["models"]
+    data = response.json()
+    assert set(data["models"]) == set(["foo", "bar"])
+
+    response = admin_client.get(url, {"use_case": "ai-suggest-comment"})
+    assert response.status_code == 200
+    data = response.json()
+    assert set(data["models"]) == set(["foo"])
+
+
+def test_valid_llmcall_use_cases(admin_client):
+    messages = [
+        {"role": "system", "content": "bla"},
+        {"role": "user", "content": "Ble Ble"},
+    ]
+    LLMCall.objects.create(
+        status="success",
+        messages=messages,
+        message_hash=LLMCall.make_message_hash(messages),
+        temperature=0,
+        response={"choices": [{"message": {"content": "Hi"}}]},
+        model="claude-stable-100k",
+        took_seconds=1.23,
+        use_case="fooing",
+    )
+    LLMCall.objects.create(
+        status="success",
+        messages=messages,
+        message_hash=LLMCall.make_message_hash(messages),
+        temperature=0,
+        response={"choices": [{"message": {"content": "Hi"}}]},
+        model="claude-stable-100k",
+        took_seconds=1.23,
+        use_case="baring",
+    )
+    messages.append({"role": "user", "content": "Blue"})
+    LLMCall.objects.create(
+        status="success",
+        messages=messages,
+        message_hash=LLMCall.make_message_hash(messages),
+        temperature=0,
+        response={"choices": [{"message": {"content": "Ho"}}]},
+        model="claude-stable-100k",
+        took_seconds=1,
+        use_case="baring",
+    )
+
+    url = reverse("api:valid_llmcall_use_cases")
+    response = admin_client.get(url)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["use_cases"] == [
+        {"use_case": "baring", "count": 2},
+        {"use_case": "fooing", "count": 1},
+    ]
