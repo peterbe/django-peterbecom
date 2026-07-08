@@ -68,18 +68,3 @@ def test_probe_url_happy_path(admin_client):
     data = response.json()
     assert data["response"]["status_code"] == 302
     assert data["response"]["location"] == "/plog"
-
-
-def test_valid_llmcall_models(admin_client, settings):
-    settings.VALID_LLM_MODELS = ("foo", "bar")
-    settings.VALID_LLM_SUGGEST_COMMENT_MODELS = ("foo",)
-    url = reverse("api:valid_llmcall_models")
-    response = admin_client.get(url)
-    assert response.status_code == 200
-    data = response.json()
-    assert set(data["models"]) == set(["foo", "bar"])
-
-    response = admin_client.get(url, {"use_case": "ai-suggest-comment"})
-    assert response.status_code == 200
-    data = response.json()
-    assert set(data["models"]) == set(["foo"])

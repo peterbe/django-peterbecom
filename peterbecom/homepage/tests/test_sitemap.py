@@ -29,7 +29,7 @@ def test_sitemap_happy_path(client):
     )
     BlogItemDailyHits.objects.create(
         blogitem=more_popular,
-        date=timezone.now() - datetime.timedelta(days=1.5),
+        date=timezone.now() - datetime.timedelta(days=2),
         total_hits=100,
     )
 
@@ -44,11 +44,13 @@ def test_sitemap_happy_path(client):
     urls = parsed["urlset"]["url"]
     paths = [urlparse(url["loc"]).path for url in urls]
     assert paths[0] == "/"
-    assert paths[1] == "/about"
-    assert paths[2] == "/contact"
-    assert paths[3] == "/plog/blogitem-040601-1"
+    assert paths[1] == "/photos"
+    assert paths[2] == "/about"
+    assert paths[3] == "/contact"
+    assert paths[4] == "/plog/blogitem-040601-1"
 
     assert "/plog/hello-world" in paths
+    assert "/plog/more-popular" in paths
     assert "/plog/foo-bar" not in paths
     assert paths.index("/plog/more-popular") < paths.index("/plog/hello-world")
 
