@@ -78,6 +78,7 @@ def sitemap(request):
     )
     latest_pub_date = blogitems.aggregate(pub_date=Max("pub_date"))["pub_date"]
     add("/", priority=1.0, changefreq="daily", lastmod=latest_pub_date)
+    add("/photos", changefreq="weekly", priority=0.5)
     add("/about", changefreq="weekly", priority=0.5)
     add("/contact", changefreq="weekly", priority=0.5)
     add("/plog/blogitem-040601-1", changefreq="daily", priority=1.0)  # exception
@@ -138,6 +139,7 @@ def sitemap(request):
         "blogitem__oid",
         "blogitem__is_photo",
     )[:100]:
+        print((daily_hit["date"], daily_hit["total_hits"], daily_hit["blogitem__oid"]))
         already_ids.add(daily_hit["blogitem__id"])
         oid = daily_hit["blogitem__oid"]
         uri = f"/{'photos' if daily_hit['blogitem__is_photo'] else 'plog'}/{oid}"
@@ -168,12 +170,14 @@ def sitemap(request):
 
     t4 = time.monotonic()
 
+    def fmt(d):
+        return f"{d * 1000:.1f}ms"
+
     print(
-        f"SITEMAP Lyrics:"
-        f"{t1 - t0:.3f}, "
-        f"Recent comments: {t2 - t1:.3f}, "
-        f"Popular: {t3 - t2:.3f}, "
-        f"Rest: {t4 - t3:.3f} "
+        f"SITEMAP\tLyrics: {fmt(t1 - t0)}, "
+        f"Recent_comments: {fmt(t2 - t1)}, "
+        f"Popular: {fmt(t3 - t2)}, "
+        f"Rest: {fmt(t4 - t3)} "
         f"date: {timezone.now()}"
     )
     xml_output = b'<?xml version="1.0" encoding="utf-8"?>\n'
