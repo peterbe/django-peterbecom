@@ -68,17 +68,17 @@ jobs:
           sleep 4
           echo "HEALTHCHECK_____________________________"
           echo ""
-          curl --retry-connrefused --retry 4 --fail http://localhost:8000/api/v0/__healthcheck__
+          curl --retry-connrefused --retry 4 --fail http://localhost:8888/api/v0/__healthcheck__
           echo ""
 
           echo "WHOAMI__________________________________"
           echo ""
-          curl --fail http://localhost:8000/api/v0/whoami
+          curl --fail http://localhost:8888/api/v0/whoami
           echo ""
 
           echo "ROBOTS.TXT_______________________________"
           echo ""
-          curl --fail http://localhost:8000/robots.txt
+          curl --fail http://localhost:8888/robots.txt
           echo ""
 
       - name: Debug any server outputs

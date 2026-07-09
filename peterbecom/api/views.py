@@ -1726,7 +1726,7 @@ def cdn_probe(request):
     host = request.get_host()
     if host == "admin.peterbe.com":
         host = "www.peterbe.com"
-    elif host == "localhost:8000":
+    elif host == "localhost:8888":
         host = "localhost:3000"
     base_url += "://" + host
 
@@ -1894,7 +1894,7 @@ def spam_comment_patterns(request, id=None):
 
 @cache_control(max_age=60, public=True)
 def lyrics_page_healthcheck(request):
-    if request.get_host() == "localhost:8000":
+    if request.get_host() == "localhost:8888":
         BASE_URL = "http://peterbecom.local"
     else:
         BASE_URL = "https://www.peterbe.com"

@@ -40,7 +40,7 @@ ONE_MONTH = ONE_WEEK * 4
 def home(request, oc=None, page=1):
     if (
         request.GET.get("login")
-        and request.get_host() == "localhost:8000"
+        and request.get_host() == "localhost:8888"
         and request.user.is_authenticated
     ):
         return http.HttpResponseRedirect("http://localhost:4001")

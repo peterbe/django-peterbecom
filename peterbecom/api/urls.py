@@ -117,7 +117,7 @@ urlpatterns = [
         "valid-llmcall-models", views.valid_llmcall_models, name="valid_llmcall_models"
     ),
     path(
-        "valid-llmcall-usecases",
+        "valid-llmcall-use-cases",
         views.valid_llmcall_use_cases,
         name="valid_llmcall_use_cases",
     ),
