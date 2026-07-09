@@ -30,7 +30,7 @@ ROLLBAR = {
     "enabled": False,  # NOTE!
 }
 ALLOWED_HOSTS = ["localhost"]
-CSRF_TRUSTED_ORIGINS = ["http://localhost:8000"]
+CSRF_TRUSTED_ORIGINS = ["http://localhost:8888"]
 SETTINGS
 
 ./bin/run.sh manage.py migrate --no-input

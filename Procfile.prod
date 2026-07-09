@@ -1,2 +1,2 @@
-web: PORT=8000 ./bin/run.sh web
+web: PORT=8888 ./bin/run.sh web
 huey: ./bin/huey-isnt-running.sh && ./bin/run.sh huey

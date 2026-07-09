@@ -2,6 +2,6 @@
 # export DATABASE_URL=postgres://REALUSERNAME:REALPASSWORD@localhost:6432/peterbecom
 
 pg: ssh django@45.55.35.119 -L 6432:localhost:5432 -N
-web: ./bin/wait-for-pg.sh && source tunneling.sh && PORT=8000 ./bin/run.sh web-dev
+web: ./bin/wait-for-pg.sh && source tunneling.sh && PORT=8888 ./bin/run.sh web-dev
 # minimalcss: cd minimalcss && PORT=5555 yarn run start
 huey: ./bin/wait-for-pg.sh && ./bin/huey-isnt-running.sh && source tunneling.sh && ./bin/run.sh huey

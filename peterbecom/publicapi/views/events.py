@@ -60,7 +60,7 @@ def event(request):
     if (
         ip_address == "127.0.0.1"
         and settings.DEBUG
-        and request.get_host().endswith("127.0.0.1:8000")
+        and request.get_host().endswith("127.0.0.1:8888")
     ):
         ip_address = fake_ip_address(str(time.time()))
     if ip_address:
