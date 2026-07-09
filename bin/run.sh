@@ -2,7 +2,7 @@
 set -eo pipefail
 
 # default variables
-: "${PORT:=8000}"
+: "${PORT:=8888}"
 # How many Gunicorn workers should you use?
 # According to https://docs.gunicorn.org/en/stable/design.html#how-many-workers
 # the formula is simple: (2 x $num_cores) + 1
