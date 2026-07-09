@@ -9,6 +9,11 @@ def clear_cache():
     cache.clear()
 
 
+@pytest.fixture(autouse=True)
+def fast_password_hashing(settings):
+    settings.PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+
+
 @pytest.fixture
 def requestsmock():
     """Return a context where requests are all mocked.

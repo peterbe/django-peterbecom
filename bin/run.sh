@@ -36,15 +36,8 @@ setup_python() {
   # This makes it so we only run if you have brew installed.
   if command -v brew >/dev/null 2>&1; then
     # Needed for importing cairocffi
-    export DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib  # Silicon?
-    export DYLD_FALLBACK_LIBRARY_PATH=/usr/local/lib  # Intel?
     export DYLD_FALLBACK_LIBRARY_PATH=`brew --prefix`/lib  # Both?
-
-    # python -c 'import django; print(django.get_version())'
-    # python -c 'import sys; print(sys.base_prefix)'
-    # python -c 'import cairocffi; print(cairocffi.version)'
   fi
-
 }
 
 
