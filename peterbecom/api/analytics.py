@@ -132,9 +132,11 @@ class CustomJSONEncoder(DjangoJSONEncoder):
 
 @api_superuser_required
 def llmcalls(request):
+    use_cases = request.GET.getlist("use_cases")
     context = {"aggregates": []}
 
-    raw_sql_query = """
+    ors = ["use_case = %s" for _ in use_cases]
+    raw_sql_query = f"""
         select
             model,
             date_trunc('month', created) as month,
@@ -153,12 +155,14 @@ def llmcalls(request):
             llmcalls_llmcall
         where
             status = 'success'
+            {f"AND ({' or '.join(ors)})" if use_cases else ""}
         group by
             month,
             model
     """
     with connection.cursor() as cursor:
-        cursor.execute(raw_sql_query)
+        params = use_cases
+        cursor.execute(raw_sql_query, params)
         columns = [col[0] for col in cursor.description]
         for row in cursor.fetchall():
             row_dict = dict(zip(columns, row))
