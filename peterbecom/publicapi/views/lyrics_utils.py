@@ -24,7 +24,7 @@ class NonJSONError(Exception):
 
 
 DEFAULT_REQUEST_RETRIES = 2
-GET_SONG_TTL_SECONDS = 60 * 60 * 24 * 7 * 8
+GET_SONG_TTL_SECONDS = 60 * 60 * 24 * 7 * 6
 
 
 def get_song(id, request_retries=DEFAULT_REQUEST_RETRIES, refresh_cache=False):
@@ -82,9 +82,10 @@ def refresh_song_cache(
         return f"{seconds:.1f} seconds"
 
     keys = cache.keys("lyrics_song_*")
-    print(len(keys), "keys")
+    log_prefix = "REFRESH-SONGCACHE"
+    print(log_prefix, len(keys), "keys")
 
-    print("TOTAL/MAX TTL:", s_print(GET_SONG_TTL_SECONDS))
+    print(log_prefix, "TOTAL/MAX TTL:", s_print(GET_SONG_TTL_SECONDS))
 
     key_age = []
     for key in random.sample(keys, min(random_sample_size, len(keys))):
@@ -100,17 +101,18 @@ def refresh_song_cache(
         if percent_left < min_percent_left:
             refresh_ids.append((age_left, key, song_id))
             if len(refresh_ids) >= max_refresh_count:
-                print("Reached max_refresh_count of possible candidates")
+                print(log_prefix, "Reached max_refresh_count of possible candidates")
                 break
 
-    print(len(refresh_ids), "up for refresh")
+    print(log_prefix, len(refresh_ids), "up for refresh")
     if len(refresh_ids) > max_refresh_count:
-        print(f"Max {max_refresh_count} to refresh this time.")
+        print(log_prefix, f"Max {max_refresh_count} to refresh this time.")
 
     for i, (age, _, song_id) in enumerate(refresh_ids[:max_refresh_count]):
-        print(i + 1, "Refreshing song_id", song_id)
+        print(log_prefix, i + 1, "Refreshing song_id", song_id)
         song = get_song(int(song_id), refresh_cache=True, request_retries=0)
         print(
+            log_prefix,
             "Refreshed",
             repr(song["song"]["name"]),
             "by",
