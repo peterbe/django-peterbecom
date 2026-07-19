@@ -67,6 +67,7 @@ dependencies = [
     "litellm==1.93.0",
     "anthropic==0.117.0",
     "openai==2.46.0",
+    "pyzstd>=0.19.1",
 ]
 
 [tool.coverage.run]
