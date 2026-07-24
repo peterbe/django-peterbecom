@@ -694,14 +694,16 @@ def invalidate_latest_post_modify_date(sender, instance, **kwargs):
 def invalidate_publicapi_blogitem_by_oid(sender, instance, **kwargs):
     if sender is BlogItem:
         oid = instance.oid
+        is_photo = instance.is_photo
     elif sender is BlogComment:
         oid = instance.blogitem.oid
+        is_photo = instance.blogitem.is_photo
     else:
         raise NotImplementedError(sender)
 
     pages = settings.MAX_BLOGCOMMENT_PAGES if oid == "blogitem-040601-1" else 1
     for i in range(1, pages + 1):
-        cache_key = f"publicapi_blogitem_{oid}:{i}"
+        cache_key = f"publicapi_blogitem_{oid}:{i}:{is_photo}"
         if cache.get(cache_key):
             print(f"Purged publicapi cache key {cache_key!r}")
         cache.delete(cache_key)
