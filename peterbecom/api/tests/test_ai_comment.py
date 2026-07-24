@@ -29,7 +29,7 @@ def test_rewrite_claude(admin_client, monkeypatch):
                     "id": "msg_0000001",
                     "role": "assistant",
                     "type": "message",
-                    "model": "claude-opus-4-8",
+                    "model": "claude-opus-5",
                     "usage": {
                         "input_tokens": 204,
                         "service_tier": "standard",

@@ -41,9 +41,7 @@ def spellcheck_markdown(request, oid):
     return json_response(context)
 
 
-def spellcheck_markdown_text(
-    markdown_text, blogitem: BlogItem, model="claude-opus-4-8"
-):
+def spellcheck_markdown_text(markdown_text, blogitem: BlogItem, model="claude-opus-5"):
     # Split the markdown text into paragraphs based on double newlines
     paragraphs = markdown_text.split("\n\n")
 

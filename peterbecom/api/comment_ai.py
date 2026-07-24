@@ -66,6 +66,10 @@ def get_llm_response_comment(
     use_case="ai_comment_suggestion",
 ) -> LLMCall:
 
+    assert model in VALID_LLM_MODELS, (
+        f"Invalid model: {model}. Valid models: {VALID_LLM_MODELS}"
+    )
+
     messages = []
     system_prompt = """
     You are a reader of blog post comments where people write about seeking names of songs and their artists

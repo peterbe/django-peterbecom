@@ -428,8 +428,22 @@ VALID_LLM_MODELS = (
     "gpt-5",
     "gpt-5-mini",
     "claude-opus-4-8",
+    "claude-opus-5",
     "openai-gpt-5",
     "openai-gpt-5-mini",
 )
 
-VALID_LLM_SUGGEST_COMMENT_MODELS = ("claude-opus-4-8",)
+VALID_LLM_SUGGEST_COMMENT_MODELS = (
+    "claude-opus-4-8",
+    "claude-opus-5",
+)
+
+
+DEFAULT_PREP_COMMENT_LLM_REWRITE_MODELS = (
+    # "claude-opus-4-8",
+    "claude-opus-5",
+    # "openai-gpt-5",
+)
+
+for model in VALID_LLM_SUGGEST_COMMENT_MODELS + DEFAULT_PREP_COMMENT_LLM_REWRITE_MODELS:
+    assert model in VALID_LLM_MODELS
