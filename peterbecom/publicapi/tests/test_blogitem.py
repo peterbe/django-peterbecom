@@ -710,3 +710,27 @@ def test_blogitem_dynamic_image_different_widths(client):
         else:
             assert response.status_code == 200
             assert response["Content-Type"] == "image/webp"
+
+
+@pytest.mark.django_db
+def test_blogitem_caching(client):
+    blogitem = BlogItem.objects.create(
+        oid="oid",
+        title="Title",
+        text="*Text*",
+        text_rendered=BlogItem.render("*Text*", "markdown", ""),
+        display_format="markdown",
+        summary="Summary",
+        pub_date=timezone.now(),
+    )
+    blogitem.categories.add(Category.objects.create(name="Category"))
+    url = reverse("publicapi:blogitem", args=["oid"])
+    response = client.get(url)
+    assert response.status_code == 200
+    assert response.json()["post"]["body"] == blogitem.text_rendered
+
+    blogitem.text_rendered += "..."
+    blogitem.save()
+    response = client.get(url)
+    assert response.status_code == 200
+    assert response.json()["post"]["body"] == blogitem.text_rendered
