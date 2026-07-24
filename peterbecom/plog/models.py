@@ -607,7 +607,16 @@ def update_comment_rendered(sender, instance, **kwargs):
 
 def _uploader_dir(instance, filename):
     def fp(filename):
-        return os.path.join("plog", instance.blogitem.oid, filename)
+        oid = instance.blogitem.oid
+        name = os.path.join("plog", oid, filename)
+        while len(name) > 100:
+            len_before = len(oid)
+            oid = "-".join(oid.split("-")[:-1])
+            len_after = len(oid)
+            if len_after == len_before:
+                oid = oid[:-1]
+            name = os.path.join("plog", oid, filename)
+        return name
 
     a, b = os.path.splitext(filename)
     if isinstance(a, str):
