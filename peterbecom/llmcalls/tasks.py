@@ -54,7 +54,7 @@ def _execute_completion(llm_call_id, timeout=60):
                 messages.append(message)
 
         response = client.messages.create(
-            model="claude-opus-4-8",
+            model="claude-opus-5",
             max_tokens=1000,  # necessary??
             system=system_prompt,
             messages=messages,

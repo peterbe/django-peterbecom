@@ -171,8 +171,7 @@ def prep_llm_rewrite(blogcomment_id):
         )
         return
 
-    # models = ("gpt-5", "gpt-5-mini", "claude-opus-4-8", "openai-gpt-5")
-    models = ("claude-opus-4-8", "openai-gpt-5")
+    models = settings.DEFAULT_PREP_COMMENT_LLM_REWRITE_MODELS
     assert all(m in VALID_LLM_MODELS for m in models), (
         f"All models must be in VALID_LLM_MODELS: {VALID_LLM_MODELS}"
     )
