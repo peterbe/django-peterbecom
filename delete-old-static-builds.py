@@ -70,9 +70,7 @@ def _clean(directory):
     for size, fn in to_delete:
         print("del", fn, f"{size / 1024:.1f}K")
         os.remove(fn)
-    print(
-        f"DELETED {len(deleted):,} FILES. SAVED {sum(deleted) / 1024:.1f}KB"
-    )
+    print(f"DELETED {len(deleted):,} FILES. SAVED {sum(deleted) / 1024:.1f}KB")
 
 
 if __name__ == "__main__":
