@@ -46,7 +46,7 @@ def run(url, times=100):
         for _, x_local in sizes:
             count_x_locals[x_local] += 1
         for key, count in count_x_locals.items():
-            print(key, "{:.1f}%".format(100 * count / sum(count_x_locals.values())))
+            print(key, f"{100 * count / sum(count_x_locals.values()):.1f}%")
     return 0
 
 
