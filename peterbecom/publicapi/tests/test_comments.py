@@ -408,7 +408,7 @@ def test_submit_comment_twice(client):
         },
     )
     assert response.status_code == 200
-    BlogComment.objects.filter(blogitem=blogitem).count() == 1
+    assert BlogComment.objects.filter(blogitem=blogitem).count() == 1
 
     response = client.post(
         url,
@@ -419,7 +419,7 @@ def test_submit_comment_twice(client):
         },
     )
     assert response.status_code == 200
-    BlogComment.objects.filter(blogitem=blogitem).count() == 1  # still!
+    assert BlogComment.objects.filter(blogitem=blogitem).count() == 1  # still!
 
 
 @pytest.mark.django_db

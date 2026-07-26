@@ -20,8 +20,8 @@ def test_cdnpurgeurl_basics():
     assert models.CDNPurgeURL.get() == ["/uri1"]
 
     try:
-        1 / 0
-    except Exception:
+        1 / 0  # noqa: B018
+    except Exception:  # noqa: BLE001
         models.CDNPurgeURL.failed("/uri1")
 
     (failed,) = models.CDNPurgeURL.objects.filter(exception__isnull=False)

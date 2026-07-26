@@ -29,13 +29,11 @@ class Command(BaseCommand):
                 sum_, count = BlogItemDailyHits.rollup_date(date)
                 t1 = time.time()
                 self.stdout.write(
-                    "Took {:.2f}s to update daily hits for {} "
-                    "({:,} blogitems, sum total {:,} hits)".format(
-                        t1 - t0, date.date(), count, sum_
-                    )
+                    f"Took {t1 - t0:.2f}s to update daily hits for {date.date()} "
+                    f"({count:,} blogitems, sum total {sum_:,} hits)"
                 )
             except BlogItemDailyHitsExistingError:
-                self.stdout.write("Daily hits for {} already done".format(date.date()))
+                self.stdout.write(f"Daily hits for {date.date()} already done")
 
         if options["verbosity"] > 1:
             print()

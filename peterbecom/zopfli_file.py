@@ -21,7 +21,7 @@ def benchmark(fp):
     print("Original size:", orig_size)
 
     for i in [1, 5, 15, 25, 100, 500]:
-        fpi = "/tmp/zopfli_file_benchmark.{}.{}".format(i, os.path.basename(fp))
+        fpi = f"/tmp/zopfli_file_benchmark.{i}.{os.path.basename(fp)}"
         shutil.copy(fp, fpi)
         t0 = time.time()
         zopfli_file(fpi, i)
@@ -29,10 +29,10 @@ def benchmark(fp):
         new_size = os.stat(fpi + ".gz").st_size
         print(
             str(i).ljust(3),
-            "{:.2f}s".format(t1 - t0),
+            f"{t1 - t0:.2f}s",
             str(new_size).ljust(10),
             str(prev_size - new_size).ljust(10),
-            "{:.1f}%".format(100 * new_size / orig_size),
+            f"{100 * new_size / orig_size:.1f}%",
         )
         prev_size = new_size
 

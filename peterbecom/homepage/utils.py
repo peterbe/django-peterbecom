@@ -26,7 +26,7 @@ def split_search(q, keywords):
     if re.findall(r"[^\w]", "".join(keywords)):
         raise ValueError("keywords can not contain non \\w characters")
 
-    regex = re.compile(r"\b(%s):" % "|".join(keywords), re.I)
+    regex = re.compile(rf"\b({'|'.join(keywords)}):", re.IGNORECASE)
     bits = regex.split(q)
     if len(bits) == 1:
         # there was no keyword at all

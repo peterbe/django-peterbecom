@@ -83,7 +83,7 @@ def _execute_completion(llm_call_id, timeout=60):
             took_seconds=time.time() - t0,
         )
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(llm_call, "errored", e)
         LLMCall.objects.filter(id=llm_call_id).update(
             status="error",

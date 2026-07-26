@@ -10,6 +10,10 @@ from django.utils import timezone
 from . import html_getter
 
 
+class DomBusted(Exception):
+    pass
+
+
 def make_it_more_iso(datestr):
     return re.sub(r"\b(\d)\b", r"0\1", datestr)
 
@@ -42,7 +46,7 @@ def get_cards(limit=None, debug=False, html=None):
         log(f"Found {len(slots)} slots")
     if not slots:
         print(html)
-        raise Exception("Busted DOM queries?")
+        raise DomBusted("Busted DOM queries?")
 
     count = 0
     for slot in slots:
@@ -139,7 +143,7 @@ def get_card(url):
     else:
         print("NO 'h1#post-title'", url)
         if settings.DEBUG:
-            raise Exception("Busted DOM queries?")
+            raise DomBusted("Busted DOM queries?")
         return
 
     date = None

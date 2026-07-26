@@ -52,9 +52,11 @@ def spellcheck_markdown_text(markdown_text, blogitem: BlogItem, model="claude-op
             in_code_block = True
         elif paragraph.strip().endswith("```"):
             in_code_block = False
-        elif paragraph.strip().startswith("<") and paragraph.strip().endswith(">"):
-            continue
-        elif len(paragraph.strip().split()) < 5:
+        elif (
+            paragraph.strip().startswith("<")
+            and paragraph.strip().endswith(">")
+            or len(paragraph.strip().split()) < 5
+        ):
             continue
         elif not in_code_block:
             tasks.append(
@@ -76,7 +78,7 @@ def spellcheck_markdown_text(markdown_text, blogitem: BlogItem, model="claude-op
                 (task, start_spellcheck(task["before"], blogitem, model=model))
             )
 
-    if not all([llm_call.status == "success" for _, llm_call in llm_calls]):
+    if not all(llm_call.status == "success" for _, llm_call in llm_calls):
         # At least one was not previously found
         time.sleep(2)
 

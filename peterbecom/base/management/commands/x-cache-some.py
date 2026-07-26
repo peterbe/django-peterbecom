@@ -1,8 +1,8 @@
-import datetime
 import os
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.utils import timezone
 
 from peterbecom.base.xcache_analyzer import get_x_cache
 
@@ -15,7 +15,7 @@ class Command(BaseCommand):
             if page == 1:
                 url = URL
             else:
-                url = URL + "/p{}".format(page)
+                url = URL + f"/p{page}"
             urls.append(url)
 
         state_fn = os.path.join(
@@ -39,7 +39,7 @@ class Command(BaseCommand):
         print("RUN", url)
 
         with open(state_fn, "w") as f:
-            f.write("# {}\n".format(datetime.datetime.utcnow()))
+            f.write(f"# {timezone.now()}\n")
             f.write(url)
             f.write("\n")
 

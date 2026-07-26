@@ -43,7 +43,7 @@ class Category(models.Model):
     name = models.CharField(max_length=100)
 
     def __repr__(self):
-        return "<%s: %r>" % (self.__class__.__name__, self.name)
+        return f"<{self.__class__.__name__}: {self.name!r}>"
 
     def __str__(self):
         return self.name
@@ -110,7 +110,8 @@ class SearchDoc(models.Model):
 def _upload_path_tagged(tag, instance, filename):
     if isinstance(filename, str):
         filename = unicodedata.normalize("NFD", filename).encode("ascii", "ignore")
-    now = datetime.datetime.utcnow()
+    # now = datetime.datetime.utcnow()
+    now = timezone.now()
     path = os.path.join(now.strftime("%Y"), now.strftime("%m"), now.strftime("%d"))
     hashed_filename = hashlib.md5(
         filename + str(now.microsecond).encode("utf-8")
@@ -151,7 +152,7 @@ class BlogItem(models.Model):
     open_graph_image = models.CharField(max_length=400, null=True)
 
     def __repr__(self):
-        return "<%s: %r>" % (self.__class__.__name__, self.oid)
+        return f"<{self.__class__.__name__}: {self.oid!r}>"
 
     def get_absolute_url(self):
         return blog_post_url(self.oid)
@@ -189,7 +190,7 @@ class BlogItem(models.Model):
         return text_rendered
 
     def count_comments(self, refresh=False):
-        cache_key = "nocomments:%s" % self.pk
+        cache_key = f"nocomments:{self.pk}"
         count = cache.get(cache_key)
         if count is None or refresh:
             count = self._count_comments()
@@ -203,12 +204,12 @@ class BlogItem(models.Model):
         return self.title
 
     def get_or_create_inbound_hashkey(self):
-        cache_key = "inbound_hashkey_%s" % self.pk
+        cache_key = f"inbound_hashkey_{self.pk}"
         value = cache.get(cache_key)
         if not value:
             value = self._new_inbound_hashkey(5)
             cache.set(cache_key, value, 60 * 60 * 60)
-            hash_cache_key = "hashkey-%s" % value
+            hash_cache_key = f"hashkey-{value}"
             cache.set(hash_cache_key, self.pk, 60 * 60 * 60)
         return value
 
@@ -223,13 +224,13 @@ class BlogItem(models.Model):
             return s
 
         key = mk()
-        while cache.get("hashkey-%s" % key):
+        while cache.get(f"hashkey-{key}"):
             key = mk()
         return key
 
     @classmethod
     def get_by_inbound_hashkey(cls, hashkey):
-        cache_key = "hashkey-%s" % hashkey
+        cache_key = f"hashkey-{hashkey}"
         value = cache.get(cache_key)
         if not value:
             raise cls.DoesNotExist("not found")
@@ -278,7 +279,7 @@ class BlogItem(models.Model):
         t0 = time.time()
         if ids_only:
             iterator = iterator.filter(id__in=ids_only)
-        category_names = dict((x.id, x.name) for x in Category.objects.all())
+        category_names = {x.id: x.name for x in Category.objects.all()}
         categories = defaultdict(list)
         for e in BlogItem.categories.through.objects.all():
             categories[e.blogitem_id].append(category_names[e.category_id])
@@ -356,9 +357,9 @@ class BlogItem(models.Model):
                 # Some keywords are NOT present in the title or text.
                 # That means if we suggested it and the user proceeds to search
                 # it might not find anything.
-                if re.findall(rf"\b{re.escape(keyword)}\b", text, re.I) or re.findall(
-                    rf"\b{re.escape(keyword)}\b", title, re.I
-                ):
+                if re.findall(
+                    rf"\b{re.escape(keyword)}\b", text, re.IGNORECASE
+                ) or re.findall(rf"\b{re.escape(keyword)}\b", title, re.IGNORECASE):
                     p = popularity or 0.0
                     # Reduce it by 10% to make it ever so slightly less important
                     # that the term as it's derived from a title.
@@ -504,6 +505,7 @@ class BlogComment(models.Model):
     highlighted = models.DateTimeField(null=True)
 
     class Meta:
+        # ruff: noqa: RUF012
         indexes = [
             models.Index(
                 name="add_date_when_parent_null",
@@ -533,10 +535,10 @@ class BlogComment(models.Model):
 
     @classmethod
     def next_oid(cls):
-        return "c" + uuid.uuid4().hex[:6]
+        return f"c{uuid.uuid4().hex[:6]}"
 
     def get_absolute_url(self):
-        return self.blogitem.get_absolute_url() + "#%s" % self.oid
+        return f"{self.blogitem.get_absolute_url()}#{self.oid}"
 
     def correct_blogitem_parent(self):
         assert self.blogitem is None
@@ -622,7 +624,7 @@ def _uploader_dir(instance, filename):
     if isinstance(a, str):
         a = a.encode("ascii", "ignore")
     a = hashlib.md5(a).hexdigest()[:10]
-    filename = "%s.%s%s" % (a, int(time.time()), b)
+    filename = f"{a}.{int(time.time())}{b}"
     return fp(filename)
 
 
@@ -635,7 +637,7 @@ class BlogFile(models.Model):
     modify_date = models.DateTimeField(default=utils.utc_now)
 
     def __repr__(self):
-        return "<%s: %r>" % (self.__class__.__name__, self.blogitem.oid)
+        return f"<{self.__class__.__name__}: {self.blogitem.oid!r}>"
 
 
 def random_string(length):
@@ -660,7 +662,7 @@ def invalidate_blogitem_comment_count(sender, instance, **kwargs):
         pk = instance.blogitem_id
     else:
         raise NotImplementedError(sender)
-    cache_key = "nocomments:%s" % pk
+    cache_key = f"nocomments:{pk}"
     cache.delete(cache_key)
 
 
@@ -676,8 +678,8 @@ def invalidate_latest_comment_add_dates(sender, instance, **kwargs):
         oid = instance.blogitem.oid
     else:
         raise NotImplementedError(sender)
-    cache_key = "latest_comment_add_date:%s" % (
-        hashlib.md5(oid.encode("utf-8")).hexdigest()
+    cache_key = (
+        f"latest_comment_add_date:{hashlib.md5(oid.encode('utf-8')).hexdigest()}"
     )
     cache.delete(cache_key)
 
@@ -718,8 +720,8 @@ def invalidate_latest_comment_add_date_by_oid(sender, instance, **kwargs):
         oid = instance.blogitem.oid
     else:
         raise NotImplementedError(sender)
-    cache_key = "latest_comment_add_date:%s" % (
-        hashlib.md5(oid.encode("utf-8")).hexdigest()
+    cache_key = (
+        f"latest_comment_add_date:{hashlib.md5(oid.encode('utf-8')).hexdigest()}"
     )
     cache.delete(cache_key)
 

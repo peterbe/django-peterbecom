@@ -91,7 +91,7 @@ class Command(BaseCommand):
             print("Writing bulk of", len(bulk))
             BlogComment.objects.bulk_create(bulk)
 
-        print("ALREADY:             {}".format(already))
-        print("NOTFOUND (blogitem): {}".format(notfound))
-        print("NOTFOUND (parent):   {}".format(notfound_parent))
-        print("IMPORTED NEW:        {}".format(new))
+        print(f"ALREADY:             {already}")
+        print(f"NOTFOUND (blogitem): {notfound}")
+        print(f"NOTFOUND (parent):   {notfound_parent}")
+        print(f"IMPORTED NEW:        {new}")

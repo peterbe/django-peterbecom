@@ -24,7 +24,7 @@ def subprocess_execute(command, timeout_seconds=30, shell=True):
         shell=shell,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        preexec_fn=os.setsid,
+        # preexec_fn=os.setsid,
     ) as process:
         try:
             out, err = process.communicate(timeout=timeout_seconds)

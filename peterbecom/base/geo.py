@@ -7,7 +7,7 @@ assert HAS_GEOIP2
 geoip_looker_upper = GeoIP2()
 
 
-@lru_cache()
+@lru_cache
 def ip_to_city(ip_address):
     if ip_address == "127.0.0.1":
         return
@@ -17,7 +17,7 @@ def ip_to_city(ip_address):
         return
 
 
-@lru_cache()
+@lru_cache
 def ip_to_country_code(ip_address):
     if ip_address == "127.0.0.1":
         return

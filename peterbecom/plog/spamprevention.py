@@ -21,7 +21,7 @@ def contains_spam_url_patterns(text):
 
     qs = SpamCommentPattern.objects.filter(is_url_pattern=True).values("pattern", "id")
     patterns_map = {x["pattern"]: x["id"] for x in qs}
-    regex = re.compile(r"|".join([re.escape(x) for x in patterns_map.keys()]))
+    regex = re.compile(r"|".join([re.escape(x) for x in patterns_map]))
 
     def scrutinize_link(attrs, new, **kwargs):
         href_key = (None, "href")
@@ -32,10 +32,10 @@ def contains_spam_url_patterns(text):
             problems.append("no href attribute")
             return
 
-        if href.startswith("mailto:") or href.startswith("tel:"):
+        if href.startswith(("mailto:", "tel:")):
             # Leave untouched
             return
-        if not (href.startswith("http://") or href.startswith("https://")):
+        if not href.startswith(("http://", "https://")):
             # Bail if it's not a HTTP URL, such as ssh:// or ftp://
             return
 
@@ -91,14 +91,20 @@ def custom_spam_patterns(text):
 
 def is_trash_commenter(name, email):
     for signature in SpamCommentSignature.objects.all().values("id", "name", "email"):
-        if signature["name"] is not None and name is not None:
-            if signature["name"] == name:
-                increment_signature(signature["id"])
-                return True
+        if (
+            signature["name"] is not None
+            and name is not None
+            and signature["name"] == name
+        ):
+            increment_signature(signature["id"])
+            return True
 
-        if signature["email"] is not None and email is not None:
-            if signature["email"] == email:
-                increment_signature(signature["id"])
-                return True
+        if (
+            signature["email"] is not None
+            and email is not None
+            and signature["email"] == email
+        ):
+            increment_signature(signature["id"])
+            return True
 
     return False

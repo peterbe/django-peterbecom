@@ -142,12 +142,12 @@ def test_valid_llmcall_models(admin_client, settings):
     response = admin_client.get(url)
     assert response.status_code == 200
     data = response.json()
-    assert set(data["models"]) == set(["foo", "bar"])
+    assert set(data["models"]) == {"foo", "bar"}
 
     response = admin_client.get(url, {"use_case": "ai-suggest-comment"})
     assert response.status_code == 200
     data = response.json()
-    assert set(data["models"]) == set(["foo"])
+    assert set(data["models"]) == {"foo"}
 
 
 def test_valid_llmcall_use_cases(admin_client):

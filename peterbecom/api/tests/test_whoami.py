@@ -34,4 +34,4 @@ def test_whoami_with_picture(mortal_client, mortal_user):
     response = mortal_client.get(url)
     assert response.status_code == 200
     assert response.json()["is_authenticated"]
-    response.json()["user"]["picture_url"] == "https://avatars.example.com/pic"
+    assert response.json()["user"]["picture_url"] == "https://avatars.example.com/pic"

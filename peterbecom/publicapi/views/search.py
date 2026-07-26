@@ -258,11 +258,11 @@ def _pg_search(
 
     if keyword_search.get("category"):
         # This turns 'python' into 'Python'
-        categories = []
-        for name in Category.objects.filter(
-            name__iexact=keyword_search["category"]
-        ).values_list("name", flat=True):
-            categories.append(name)
+        categories = list(
+            Category.objects.filter(
+                name__iexact=keyword_search["category"]
+            ).values_list("name", flat=True)
+        )
         search_query = search_query.filter(categories__contains=categories)
 
     title_search_query = _get_search_query(q)
@@ -379,10 +379,10 @@ def _get_search_query(q: str) -> SearchQuery:
 
     qs = re.split(r"[\s-]+", q.lower())
     new_qs: list[str] = []
-    for q in qs:
-        if q not in new_qs:
-            new_qs.append(q)
-        for synonym in _get_synonyms(q):
+    for qkey in qs:
+        if qkey not in new_qs:
+            new_qs.append(qkey)
+        for synonym in _get_synonyms(qkey):
             if synonym not in new_qs:
                 new_qs.append(synonym)
 

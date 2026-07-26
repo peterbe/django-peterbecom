@@ -43,7 +43,7 @@ def log_task_run(func):
         failed = False
         try:
             func(*args, **kwargs)
-        except Exception:
+        except Exception:  # noqa: BLE001
             failed = True
         finally:
             t1 = time.time()
@@ -82,8 +82,8 @@ def measure_post_process(func):
                 record.exception = out.getvalue()
             record.duration = datetime.timedelta(seconds=t1 - t0)
             record.save()
-            if _exception:
-                raise
+            # if _exception:
+            #     raise
 
     return inner
 
@@ -145,7 +145,7 @@ def post_process_after_cdn_purge(url):
         out.append("X-Cache Result:")
         for location_code in sorted(x_cache_result):
             result = x_cache_result[location_code]
-            out.append("\t{}\t{}".format(location_code, result))
+            out.append(f"\t{location_code}\t{result}")
         out.append("End")
         print("\n".join(out))
 

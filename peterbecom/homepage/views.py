@@ -66,7 +66,7 @@ def sitemap(request):
         if lastmod:
             etree.SubElement(url, "lastmod").text = lastmod.strftime("%Y-%m-%d")
         if priority:
-            etree.SubElement(url, "priority").text = "{:.1f}".format(priority)
+            etree.SubElement(url, "priority").text = f"{priority:.1f}"
         if changefreq:
             etree.SubElement(url, "changefreq").text = changefreq
 
@@ -422,7 +422,7 @@ def huey_test(request):
             if result is not None:
                 return http.HttpResponse(str(result))
     elif wait:
-        fp = "/tmp/huey.result.{}".format(time.time())
+        fp = f"/tmp/huey.result.{time.time()}"
         try:
             task_function(a, b, crash=crash, output_filepath=fp, sleep=sleep)
             slept = 0
@@ -436,7 +436,7 @@ def huey_test(request):
                         result = f.read()
                 except FileNotFoundError:
                     continue
-                return http.HttpResponse("{} after {}s".format(result, slept))
+                return http.HttpResponse(f"{result} after {slept}s")
         finally:
             if os.path.isfile(fp):
                 os.remove(fp)
@@ -459,7 +459,7 @@ def sample_huey_task(a, b, crash=None, output_filepath=None, sleep=0):
     result = a * b
     if output_filepath:
         with open(output_filepath, "w") as f:
-            f.write("{}".format(result))
+            f.write(f"{result}")
     else:
         return result
 
@@ -473,13 +473,13 @@ def sample_huey_task_with_orm(a, b, crash=None, output_filepath=None, sleep=0):
     result = BlogComment.objects.all().count()
     if output_filepath:
         with open(output_filepath, "w") as f:
-            f.write("{}".format(result))
+            f.write(f"{result}")
     else:
         return result
 
 
 def dynamic_page(request):
-    return http.HttpResponse("Current time is: {}\n".format(timezone.now()))
+    return http.HttpResponse(f"Current time is: {timezone.now()}\n")
 
 
 # NOTE: This is no longer linked to. Can delete in 2023.
@@ -494,7 +494,7 @@ short_term_random_avatar = None
 def avatar_image(request, seed=None):
     # If there's any query string in the URL that isn't recognized, 301 redirect
     # it away so it can't be cache bypassed.
-    querystring_keys = [x for x in request.GET.keys() if x != "seed"]
+    querystring_keys = [x for x in request.GET if x != "seed"]
     if querystring_keys:
         return redirect(reverse("homepage:avatar_image_seed", args=("random",)))
 

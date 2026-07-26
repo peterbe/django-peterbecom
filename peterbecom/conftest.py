@@ -1,4 +1,5 @@
-import mock
+from unittest import mock
+
 import pytest
 import requests_mock
 from django.core.cache import cache

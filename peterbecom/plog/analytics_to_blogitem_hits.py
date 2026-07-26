@@ -21,8 +21,8 @@ def analytics_to_blogitem_hits_backfill():
         path = url_parsed.path
         if not path.startswith("/plog/"):
             continue
-        if path.startswith("/plog/blogitem-040601-1/song/") or path.startswith(
-            "/plog/blogitem-040601-1/q/"
+        if path.startswith(
+            ("/plog/blogitem-040601-1/song/", "/plog/blogitem-040601-1/q/")
         ):
             continue
         page = None

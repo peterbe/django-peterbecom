@@ -51,9 +51,7 @@ def set_previous(sender, instance, **kwargs):
 def truncate_long_notes(sender, instance, **kwargs):
     for i, note in enumerate(instance.notes):
         if len(note) > 400:
-            print(
-                "WARNING! Note ({}) was too long [{}] ({!r})".format(i, len(note), note)
-            )
+            print(f"WARNING! Note ({i}) was too long [{len(note)}] ({note!r})")
             instance.notes[i] = note[:400]
 
 
@@ -84,7 +82,7 @@ class CDNPurgeURL(models.Model):
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        s = "{} id={}".format(self.url, self.id)
+        s = f"{self.url} id={self.id}"
         facts = []
         if self.processed:
             facts.append("processed")
@@ -93,7 +91,7 @@ class CDNPurgeURL(models.Model):
         if self.attempted:
             facts.append("attempted")
         if self.attempts:
-            facts.append("{} attempts".format(self.attempts))
+            facts.append(f"{self.attempts} attempts")
         if self.exception:
             facts.append("has exception!")
         if facts:
@@ -178,7 +176,7 @@ class UserProfile(models.Model):
 
 
 class AnalyticsEvent(models.Model):
-    VALID_TYPES = {
+    VALID_TYPES = {  # noqa: RUF012
         "lyrics-featureflag",
         "publicapi-pageview",
         "songsearch-autocomplete",
