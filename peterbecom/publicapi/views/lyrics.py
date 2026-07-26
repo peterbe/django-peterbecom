@@ -221,7 +221,7 @@ def feature_flag(request):
         # X-Forwarded-For might be a comma separated list of IP addresses
         # coming from the CDN. The first is the client.
         # https://www.keycdn.com/blog/x-forwarded-for-cdn
-        ip_address = next([x.strip() for x in ip_addresses.split(",") if x.strip()])
+        ip_address = next(x.strip() for x in ip_addresses.split(",") if x.strip())
         if (
             ip_address == "127.0.0.1"
             and settings.DEBUG
