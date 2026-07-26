@@ -27,16 +27,14 @@ class MultilineTextarea(Textarea):
                 value = "\n".join(value)
             else:
                 raise NotImplementedError(type(value))
-        return super(MultilineTextarea, self).render(
-            name, value, attrs=attrs, renderer=renderer
-        )
+        return super().render(name, value, attrs=attrs, renderer=renderer)
 
 
 class ISODateTimeField(DateTimeField):
     def strptime(self, value, format):
         try:
             return parse_datetime(value)
-        except Exception:
+        except Exception:  # noqa: BLE001
             return super().strptime(value, format)
 
 
@@ -64,7 +62,7 @@ class BlogForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         is_photo = kwargs.pop("is_photo", False)
-        super(BlogForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.fields["display_format"] = ChoiceField()
         self.fields["display_format"].required = False
@@ -103,7 +101,7 @@ class BlogForm(forms.ModelForm):
         for pk, _ in sorted(category_items, key=lambda x: x[1].lower()):
             if pk in used:
                 continue
-            combined = "{} (0)".format(all_categories[pk])
+            combined = f"{all_categories[pk]} (0)"
             category_choices.append((pk, combined))
         self.fields["categories"].choices = category_choices
 
@@ -258,7 +256,7 @@ class SpamCommentSignatureForm(forms.Form):
     email_null = forms.BooleanField(required=False)
 
     def clean(self):
-        cleaned_data = super(SpamCommentSignatureForm, self).clean()
+        cleaned_data = super().clean()
 
         if not cleaned_data.get("name") and not cleaned_data.get("email"):
             raise forms.ValidationError("Either name or email is required")
@@ -294,7 +292,7 @@ class CommentRewriteForm(forms.Form):
     model = forms.CharField(required=True)
 
     def __init__(self, *args, valid_models=None, **kwargs):
-        super(CommentRewriteForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.valid_models = valid_models
 
     def clean_model(self):
@@ -311,7 +309,7 @@ class AICommentForm(forms.Form):
     comment = forms.CharField(required=True)
 
     def __init__(self, *args, valid_models=None, **kwargs):
-        super(AICommentForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.valid_models = valid_models
 
     def clean_model(self):

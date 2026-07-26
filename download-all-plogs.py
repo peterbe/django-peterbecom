@@ -11,10 +11,11 @@ import requests
 from pyquery import PyQuery
 
 
-def get_urls(base_url, exclude=set()):
+def get_urls(base_url, exclude=None):
+    if exclude is None:
+        exclude = set()
     urls = []
-    if base_url.endswith("/"):
-        base_url = base_url[:-1]
+    base_url = base_url.removesuffix("/")
     doc = PyQuery(base_url + "/plog/")
     doc.make_links_absolute(base_url=base_url)
     for a in doc("dd a"):
@@ -32,7 +33,7 @@ def get_urls(base_url, exclude=set()):
             pass
         if not href.startswith(base_url):
             continue
-        if href.endswith(".html") or href.endswith(".png"):
+        if href.endswith((".html", ".png")):
             continue
         if href.endswith("/search"):
             continue
@@ -129,7 +130,7 @@ if __name__ == "__main__":
     state_file = None
     if args.remember:
         # What we did we do last time (in the last 24h)?
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(tz=datetime.UTC)
         state_file_name_prefix = Path(__file__).stem
         state_file_name = f"{state_file_name_prefix}.{now.strftime('%Y%m%d')}.json"
         state_file = Path("/tmp") / state_file_name

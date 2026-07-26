@@ -71,7 +71,7 @@ class PublicAPIPageviewsMiddleware:
                 )
             except Exception as err:
                 if settings.DEBUG:
-                    raise err
+                    raise
                 print(f"WARNING! Unable to save 'publicapi-pageview': {err}")
 
         return response

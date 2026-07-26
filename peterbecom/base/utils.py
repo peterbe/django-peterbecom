@@ -69,7 +69,7 @@ def requests_retry_session(
     A default of retries=3 and backoff_factor=0.3 means it will sleep like::
 
         [0.3, 0.6, 1.2]
-    """  # noqa
+    """
     session = session or requests.Session()
     retry = Retry(
         total=retries,
@@ -144,7 +144,7 @@ def json_response(context, status=200, safe=False, schema=None):
                 print("_" * 80)
                 print(json.dumps(context, cls=DjangoJSONEncoder, indent=2)[:1000])
                 print("_" * 80)
-            except Exception:
+            except Exception:  # noqa: BLE001
                 print("** Couldn't print JSON preview **")
             return http.HttpResponse(
                 "Bad JSON Schema file. See server output for details.",
@@ -157,7 +157,7 @@ def json_response(context, status=200, safe=False, schema=None):
                 print("_" * 80)
                 print(exception)
                 print("_" * 80)
-            except Exception:
+            except Exception:  # noqa: BLE001
                 print("** Couldn't JSON decode error **")
             return http.HttpResponse(
                 "Bad JSON Schema file. See server output for details.",

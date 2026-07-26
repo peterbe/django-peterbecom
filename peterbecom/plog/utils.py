@@ -47,15 +47,6 @@ def blog_index_url(page=None, is_photos=False):
     return f"/{prefix}"
 
 
-# def is_bot(ua="", ip=None):
-#     if "bot" not in ua.lower() and "download-all-plogs.py" not in ua:
-#         return False
-#     if "HeadlessChrome/" in ua:
-#         return True
-
-#     return True
-
-
 def make_prefix(request_dict, max_length=100, hash_request_values=False):
     _get = dict(request_dict)
 
@@ -93,7 +84,7 @@ def valid_email(value):
         return False
 
 
-whitespace_start_regex = re.compile(r"^\n*(\s+)", re.M)
+whitespace_start_regex = re.compile(r"^\n*(\s+)", re.MULTILINE)
 
 
 def render_comment_text(text):
@@ -106,10 +97,10 @@ def render_comment_text(text):
             return attrs
 
         href = attrs[href_key]
-        if href.startswith("mailto:") or href.startswith("tel:"):
+        if href.startswith(("mailto:", "tel:")):
             # Leave untouched
             return attrs
-        if not (href.startswith("http:") or href.startswith("https:")):
+        if not href.startswith(("http:", "https:")):
             # Bail if it's not a HTTP URL, such as ssh:// or ftp://
             return None
 
@@ -184,6 +175,10 @@ def stx_to_html(text, codesyntax):
     return _regex.sub(match, rendered)
 
 
+class HyliteError(Exception):
+    pass
+
+
 def hylite_wrapper(code, language):
     aliases = {"emacslisp": "lisp"}
     language = aliases.get(language) or language
@@ -204,13 +199,13 @@ def hylite_wrapper(code, language):
     # Check the return code to see if the command was successful
     return_code = process.returncode
     if return_code != 0:
-        raise Exception(error or output)
+        raise HyliteError(error or output)
 
     return output
 
 
 _codesyntax_regex = re.compile(r"```(\w+)")
-_markdown_pre_regex = re.compile(r"(```(.*?)```)", re.M | re.DOTALL)
+_markdown_pre_regex = re.compile(r"(```(.*?)```)", re.MULTILINE | re.DOTALL)
 
 
 def markdown_to_html(text):
@@ -324,11 +319,11 @@ def view_function_timer(prefix="", writeto=print):
                 t1 = time.time()
                 writeto(
                     "View Function",
-                    "({})".format(prefix) if prefix else "",
+                    f"({prefix})" if prefix else "",
                     func.__name__,
                     args[1:],
                     "Took",
-                    "{:.2f}ms".format(1000 * (t1 - t0)),
+                    f"{1000 * (t1 - t0):.2f}ms",
                     args[0].build_absolute_uri(),
                 )
 
@@ -373,7 +368,7 @@ def rate_blog_comment(comment):
             OK_DOMAINS.append("youtu.be")
             OK_DOMAINS.append("www.youtube.com")
             MAX_LENGTH = 2000
-            result["good"]["deep"] = "on page {}".format(page)
+            result["good"]["deep"] = f"on page {page}"
         elif comment.parent:
             # It's a reply!
             # If it's really short and has no bad, it should be fine as is!
@@ -393,7 +388,7 @@ def rate_blog_comment(comment):
         result["bad"]["links"] = links
 
     if len(comment.comment) > MAX_LENGTH:
-        result["bad"]["length"] = ">{} characters".format(MAX_LENGTH)
+        result["bad"]["length"] = f">{MAX_LENGTH} characters"
 
     if profanity.contains_profanity(comment.comment):
         result["bad"]["profanity"] = "contains profanities"

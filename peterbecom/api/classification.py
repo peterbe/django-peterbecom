@@ -24,8 +24,7 @@ def comment_classify(request, oid):
         ):
             obj.delete()
             return json_response({"ok": True})
-        else:
-            return json_response({"error": "Not found"}, status=404)
+        return json_response({"error": "Not found"}, status=404)
 
     if request.method == "POST":
         try:

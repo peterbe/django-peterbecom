@@ -29,4 +29,4 @@ class Command(BaseCommand):
             guesser.save_handler(f)
             bayes_data.pickle_data = zlib.compress(f.getvalue())
             bayes_data.save()
-            self.stdout.write(self.style.SUCCESS("{!r} created".format(bayes_data)))
+            self.stdout.write(self.style.SUCCESS(f"{bayes_data!r} created"))

@@ -11,7 +11,7 @@ def hash_email(email):
     return hashlib.md5(email).hexdigest()[:30]
 
 
-class AuthBackend(object):
+class AuthBackend:
     """inspired by django_auth0.auth_backend.Auth0Backend"""
 
     def authenticate(self, request, **kwargs):

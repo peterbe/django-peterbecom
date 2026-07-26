@@ -8,7 +8,7 @@ class CalendarDataForm(forms.Form):
     end = forms.DateTimeField()
 
     def clean(self):
-        cleaned_data = super(CalendarDataForm, self).clean()
+        cleaned_data = super().clean()
         if "start" in cleaned_data and "end" in cleaned_data:
             if cleaned_data["start"] > cleaned_data["end"]:
                 raise forms.ValidationError("start > end")

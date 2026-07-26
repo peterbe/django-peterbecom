@@ -35,10 +35,8 @@ class Command(BaseCommand):
             print("There are no comments to auto-approve.")
         elif count_would_approve < min_to_execute:
             print(
-                "There are only {} comments to auto-approve,"
-                "which is less than minimum of {}".format(
-                    count_would_approve, min_to_execute
-                )
+                f"There are only {count_would_approve} comments to auto-approve,"
+                f"which is less than minimum of {min_to_execute}"
             )
 
         if not dry_run and count_would_approve >= min_to_execute:
@@ -53,10 +51,10 @@ class Command(BaseCommand):
         )
 
         def print_comment(comment):
-            line = " NAME: {!r}  EMAIL: {!r} ".format(comment.name, comment.email)
+            line = f" NAME: {comment.name!r}  EMAIL: {comment.email!r} "
             print(line.center(100, "-"))
             print(comment.comment)
-            line = " LENGTH: {}  CLUES: {} ".format(len(comment.comment), clues)
+            line = f" LENGTH: {len(comment.comment)}  CLUES: {clues} "
             print(line.center(100, "-"))
             print()
 
@@ -74,9 +72,9 @@ class Command(BaseCommand):
 
                 if not dry_run:
                     actually_approve_comment(comment, auto_approved=True)
-                    self.stdout.write("Actually approved comment: {!r}".format(comment))
+                    self.stdout.write(f"Actually approved comment: {comment!r}")
                 else:
-                    self.stdout.write("*Would* approved comment: {!r}".format(comment))
+                    self.stdout.write(f"*Would* approved comment: {comment!r}")
                 print("\n")
                 count_approved += 1
                 if count_approved >= limit:

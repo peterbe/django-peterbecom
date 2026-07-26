@@ -67,7 +67,7 @@ def purge_cdn_urls(urls, api=None):
         try:
             cachebr = config["data"]["zone"]["cachebr"] == "enabled"
         except KeyError:
-            raise BrokenKeyCDNConfig("Config={!r}".format(config))
+            raise BrokenKeyCDNConfig(f"Config={config!r}")
         all_urls = []
 
         # For KeyCDN we need to do some transformations. Our URLs are different
@@ -84,7 +84,7 @@ def purge_cdn_urls(urls, api=None):
                 original_urls[url + "br"] = absolute_url
 
         # Make absolutely sure nothing's repeated.
-        all_all_urls.extend(sorted(list(set(all_urls))))
+        all_all_urls.extend(sorted(set(all_urls)))
 
         def get_original_urls(cdn_urls):
             original = set()
@@ -136,29 +136,24 @@ def keycdn_zone_check(refresh=False):
     So this is an attempt at a backoff-able check but done manually.
     """
 
-    cache_key = "keycdn_check:{}".format(settings.KEYCDN_ZONE_ID)
+    cache_key = f"keycdn_check:{settings.KEYCDN_ZONE_ID}"
     works = cache.get(cache_key)
     if works is None or refresh:
         with open("/tmp/keycdn_zone_check.log", "a") as f:
-            f.write("{}\t{}\n".format(timezone.now(), get_stack_signature()))
+            f.write(f"{timezone.now()}\t{get_stack_signature()}\n")
         session = get_requests_retry_session()
         try:
             response = session.get(
-                "https://api.keycdn.com/"
-                + "zones/{}.json".format(settings.KEYCDN_ZONE_ID),
+                "https://api.keycdn.com/" + f"zones/{settings.KEYCDN_ZONE_ID}.json",
                 auth=(settings.KEYCDN_API_KEY, ""),
             )
             response.raise_for_status()
             works = timezone.now()
         except RetryError as exception:
-            print("WARNING! Retry error checking KeyCDN Zone: {}".format(exception))
+            print(f"WARNING! Retry error checking KeyCDN Zone: {exception}")
             works = False
         except RequestException as exception:
-            print(
-                "WARNING! RequestException error checking KeyCDN Zone: {}".format(
-                    exception
-                )
-            )
+            print(f"WARNING! RequestException error checking KeyCDN Zone: {exception}")
             works = False
         cache.set(cache_key, works, 60)
 

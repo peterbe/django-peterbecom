@@ -11,7 +11,7 @@ def score_to_popularity(score):
 
 def update_all(verbose=False, limit=1000, dry_run=False, reindex=False):
     query = BlogItem.objects.raw(
-        """
+        f"""
             WITH counts AS (
                 SELECT
                     blogitem_id, count(blogitem_id) AS count
@@ -27,7 +27,7 @@ def update_all(verbose=False, limit=1000, dry_run=False, reindex=False):
                 blogitem_id = b.id AND (NOW() - b.pub_date) > INTERVAL '1 day'
             ORDER BY score desc
             LIMIT {limit}
-        """.format(limit=limit)
+        """
     )
 
     ids = []

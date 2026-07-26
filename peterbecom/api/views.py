@@ -356,7 +356,7 @@ def blogitem(request, oid):
             "hide_comments": item.hide_comments,
             "modify_date": item.modify_date,
             "open_graph_image": item.open_graph_image,
-            "_absolute_url": "/plog/{}".format(item.oid),
+            "_absolute_url": f"/plog/{item.oid}",
             "archived": item.archived,
             "is_photo": item.is_photo,
         }
@@ -491,7 +491,7 @@ def preview_by_data(data):
     if not form.is_valid():
         raise PreviewValidationError(form.errors)
 
-    class MockPost(object):
+    class MockPost:
         def count_comments(self):
             return 0
 
@@ -805,7 +805,7 @@ def _postprocessing_statistics(request_GET):
     )
 
     def fmt_seconds(s):
-        return "{:.1f}".format(s)
+        return f"{s:.1f}"
 
     try:
         (last,) = base_qs.filter(exception__isnull=True).order_by("-created")[:1]
@@ -975,7 +975,7 @@ def _searchresults_statistics(request_GET):
     )
 
     def fmt_seconds(s):
-        return "{:.1f}".format(s * 1000)
+        return f"{s * 1000:.1f}"
 
     try:
         (last,) = base_qs.order_by("-created")[:1]
@@ -1094,7 +1094,7 @@ def blogcomments(request):
         all_parent_ids.add(each["parent_id"])
 
     def make_commenter_hash_key(name, email):
-        return "{}:{}".format(name, email)
+        return f"{name}:{email}"
 
     commenters = defaultdict(list)
     all_commenters_qs = BlogComment.objects.exclude(name="", email="")
@@ -1132,10 +1132,9 @@ def blogcomments(request):
     def _serialize_comment(item, blogitem=None):
         all_ids.add(item.id)
         geo_lookup = item.geo_lookup
-        if item.ip_address and not geo_lookup:
-            if item.create_geo_lookup():
-                item.refresh_from_db()
-                geo_lookup = item.geo_lookup
+        if item.ip_address and not geo_lookup and item.create_geo_lookup():
+            item.refresh_from_db()
+            geo_lookup = item.geo_lookup
         record = {
             "id": item.id,
             "oid": item.oid,
@@ -1266,8 +1265,7 @@ def blogcomments(request):
     oldest = timezone.now()
     if not count_only:
         for item in items[:batch_size]:
-            if item.add_date < oldest:
-                oldest = item.add_date
+            oldest = min(oldest, item.add_date)
             context["comments"].append(_serialize_comment(item, blogitem=item.blogitem))
 
         comment_cache = {}
@@ -1287,8 +1285,7 @@ def blogcomments(request):
         # Latest not-root comments that haven't been included yet...
         new_replies = base_qs.filter(parent__isnull=False).exclude(id__in=all_ids)
         for comment in new_replies.order_by("-add_date")[:batch_size]:
-            if comment.add_date < oldest:
-                oldest = comment.add_date
+            oldest = min(oldest, comment.add_date)
             if comment.id in all_ids:
                 continue
             while comment.parent_id:
@@ -1334,8 +1331,8 @@ def get_local_url_oid(search):
     if search.startswith("/plog/") and " " not in search:
         return search.split("/plog/")[1].split("?")[0].split("#")[0]
 
-    if search.startswith("https://www.peterbe.com/plog/") or search.startswith(
-        "http://localhost:3000/plog/"
+    if search.startswith(
+        ("https://www.peterbe.com/plog/", "http://localhost:3000/plog/")
     ):
         parsed = urlparse(search)
         return parsed.path.split("/plog/")[1]
@@ -1349,8 +1346,9 @@ def get_local_comment_url_oid(search):
         return search.split("/comment/")[1].split("?")[0].split("#")[0]
 
     if (
-        search.startswith("https://www.peterbe.com/plog/")
-        or search.startswith("http://localhost:3000/plog/")
+        search.startswith(
+            ("https://www.peterbe.com/plog/", "http://localhost:3000/plog/")
+        )
     ) and "/comment/" in search:
         parsed = urlparse(search)
         return parsed.path.split("/comment/")[1]
@@ -1506,9 +1504,9 @@ def blogitem_hits(request):
     today = request.GET.get("today", False)
     if today == "false":
         today = False
-    _category_names = dict(
-        (x["id"], x["name"]) for x in Category.objects.all().values("id", "name")
-    )
+    _category_names = {
+        x["id"]: x["name"] for x in Category.objects.all().values("id", "name")
+    }
     categories = defaultdict(list)
     qs = BlogItem.categories.through.objects.all().values("blogitem_id", "category_id")
     for each in qs:
@@ -1518,7 +1516,7 @@ def blogitem_hits(request):
     # XXX REFACTOR THIS TO USE THE ORM IF POSSIBLE
     if today:
         query = BlogItem.objects.raw(
-            """
+            f"""
             WITH counts AS (
                 SELECT
                     blogitem_id, count(blogitem_id) AS count
@@ -1536,11 +1534,11 @@ def blogitem_hits(request):
                 blogitem_id = b.id AND (NOW() - b.pub_date) > INTERVAL '1 day'
             ORDER BY score desc
             LIMIT {limit}
-        """.format(limit=limit)
+        """
         )
     else:
         query = BlogItem.objects.raw(
-            """
+            f"""
             WITH counts AS (
                 SELECT
                     blogitem_id, sum(total_hits) AS count
@@ -1556,7 +1554,7 @@ def blogitem_hits(request):
                 blogitem_id = b.id AND (NOW() - b.pub_date) > INTERVAL '1 day'
             ORDER BY score desc
             LIMIT {limit}
-        """.format(limit=limit)
+        """
         )
     context["all_hits"] = []
     category_scores = defaultdict(list)
@@ -1645,7 +1643,7 @@ def blogitem_realtimehits(request):
                     "title": hit.blogitem.title,
                     "pub_date": hit.blogitem.pub_date,
                     "_is_published": hit.blogitem.pub_date < today,
-                    "_absolute_url": "/plog/{}".format(hit.blogitem.oid),
+                    "_absolute_url": f"/plog/{hit.blogitem.oid}",
                 },
                 # 'http_user_agent': hit.http_user_agent,
                 # 'http_referer': hit.http_referer,
@@ -1733,7 +1731,7 @@ def cdn_probe(request):
     if url.startswith("/"):  # rewrite to absolute URL
         url = base_url + url
 
-    if url.startswith("http://") or url.startswith("https://"):
+    if url.startswith(("http://", "https://")):
         absolute_url = url.split("#")[0]
         if (
             urlparse(absolute_url).netloc == host
@@ -1915,7 +1913,7 @@ def lyrics_page_healthcheck(request):
             if page == 1:
                 url = URL
             else:
-                url = URL + "/p{}".format(page)
+                url = URL + f"/p{page}"
             t0 = time.time()
             result = check_url(url)
             t1 = time.time()
@@ -1929,7 +1927,7 @@ def lyrics_page_healthcheck(request):
             try:
                 return f(url)
             except requests.exceptions.RequestException as exception:
-                return (False, "{} on {}".format(exception, url))
+                return (False, f"{exception} on {url}")
 
         return inner
 
@@ -1937,12 +1935,12 @@ def lyrics_page_healthcheck(request):
     def check_url(url):
         r = session.get(url, headers={"User-Agent": USER_AGENT}, timeout=3)
         if r.status_code != 200:
-            return False, "Status code: {}".format(r.status_code)
+            return False, f"Status code: {r.status_code}"
 
         # The CDN origin's absolute shouldn't be in there
         count = r.text.count("www-origin.peterbe.com")
         if count:
-            return False, "Origin domain in HTML ({} times)".format(count)
+            return False, f"Origin domain in HTML ({count} times)"
 
         count = r.text.count("<!-- /songsearch-autocomplete -->")
         if not count:
@@ -1999,7 +1997,7 @@ def lyrics_page_healthcheck(request):
         )
         if r3.text != r.text:
             # This MIGHT fail because Nginx proxy caching not working locally.
-            return True, "Plain content different from Gzip content ({})".format(url)
+            return True, f"Plain content different from Gzip content ({url})"
 
         # if "Stats from using github.com/peterbe/minimalcss" not in r.text:
         #     return False, "minimalcss not run on HTML"
@@ -2010,9 +2008,7 @@ def lyrics_page_healthcheck(request):
         if r.text.count(css_bit) != 1:
             return (
                 False,
-                "Not exactly 1 ({}) CSS bits about inline css".format(
-                    r.text.count(css_bit)
-                ),
+                f"Not exactly 1 ({r.text.count(css_bit)}) CSS bits about inline css",
             )
 
         return True, None
@@ -2087,7 +2083,7 @@ def whereami(request):
     # X-Forwarded-For might be a comma separated list of IP addresses
     # coming from the CDN. The first is the client.
     # https://www.keycdn.com/blog/x-forwarded-for-cdn
-    ip_address = [x.strip() for x in ip_addresses.split(",") if x.strip()][0]
+    ip_address = next(x.strip() for x in ip_addresses.split(",") if x.strip())
     if not ip_address:
         return json_response({"error": "No remote IP address"}, status=412)
     context = {}
@@ -2104,7 +2100,7 @@ def healthcheck(request):
     try:
         do_healthcheck()
     except Exception as exception:
-        logger.exception("Healthcheck failed: %s", exception)
+        logger.exception("Healthcheck failed")
         print(f"Healthcheck failed: {exception}")
         raise
     return http.HttpResponse("OK\n")

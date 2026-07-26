@@ -20,7 +20,7 @@ class PlogFeed(Feed):
         if request.GET.get("oc"):
             if not oc:
                 oc = ""
-            oc += "/".join("oc-%s" % x for x in request.GET.getlist("oc"))
+            oc += "/".join(f"oc-{x}" for x in request.GET.getlist("oc"))
         if not oc:
             return
         return parse_ocs_to_categories(oc)

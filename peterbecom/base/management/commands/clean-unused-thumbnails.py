@@ -69,7 +69,7 @@ def formatseconds(seconds):
     days = hours / 24
     years = days / 365
     if years > 1:
-        return "{} years".format(int(years))
+        return f"{int(years)} years"
     if days > 1:
-        return "{} days".format(int(days))
-    return "{} hours".format(int(hours))
+        return f"{int(days)} days"
+    return f"{int(hours)} hours"

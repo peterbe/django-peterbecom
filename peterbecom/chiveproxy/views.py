@@ -59,17 +59,16 @@ def api_cards(request):
             continue
 
         context["cards"].append(
-            dict(
-                # card.data,
-                text=card.data["text"],
-                img=card.data["img"],
-                url=card.url,
-                id=card.id,
-                created=card.created,
-                human_time=human_time,
+            {
+                "text": card.data["text"],
+                "img": card.data["img"],
+                "url": card.url,
+                "id": card.id,
+                "created": card.created,
+                "human_time": human_time,
                 # This last one is for legacy backwards compat
-                uri=card.id,
-            )
+                "uri": card.id,
+            }
         )
 
     context["_oldest_card"] = Card.objects.all().aggregate(oldest=Min("created"))[
@@ -90,7 +89,7 @@ def update_cards_periodically():
         _cards_log(f"Updated {count_updated} cards (tried {count_tried})")
     except Exception as e:
         _cards_log("Error in update_cards_periodically:", e)
-        raise e
+        raise
 
 
 @periodic_task(crontab(hour="*", minute="10"))
@@ -100,7 +99,7 @@ def update_cards_without_pictures_periodically():
     for card in qs.order_by("-created")[:100]:
         if card.data["pictures"]:
             continue
-        retry_cache_key = "retried:{}".format(card.pk)
+        retry_cache_key = f"retried:{card.pk}"
         _cards_log("retry cache key:", retry_cache_key, repr(card), "HAS NO PICTURES")
 
         if not cache.get(retry_cache_key):
@@ -115,7 +114,7 @@ def update_cards_without_pictures_periodically():
                     f"Fixed {card!r}: {len(card.data['pictures'])} pictures "
                     f"(took {took_seconds:.1f} seconds)"
                 )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 _cards_log(f"Error on get_card({card.url!r}):", e)
             finally:
                 cache.set(
@@ -156,9 +155,8 @@ def update_cards(limit=None, debug=False):
 @cache_control(max_age=settings.DEBUG and 10 or 60 * 60 * 6, public=True)
 def api_card(request, pk):
     card = get_object_or_404(Card, pk=pk)
-    if request.GET.get("url"):
-        if request.GET["url"] != card.url:
-            return http.HttpResponseBadRequest("wrong URL")
+    if request.GET.get("url") and request.GET["url"] != card.url:
+        return http.HttpResponseBadRequest("wrong URL")
     if not card.data["pictures"]:
         return http.Http404("Card has no pictures")
     return JsonResponse(

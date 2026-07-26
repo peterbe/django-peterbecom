@@ -15,10 +15,11 @@ DEFAULT_SLEEPTIME = 1.0
 DEFAULT_REPORT_EVERY = 20
 
 
-def get_urls(base_url, top_urls, exclude=set()):
+def get_urls(base_url, top_urls, exclude=None):
+    if exclude is None:
+        exclude = set()
     urls = []
-    if base_url.endswith("/"):
-        base_url = base_url[:-1]
+    base_url = base_url.removesuffix("/")
     doc = PyQuery(base_url + "/plog/")
     doc.make_links_absolute(base_url=base_url)
     for a in doc("dd a"):
@@ -45,22 +46,22 @@ def stats(responses, last=100):
         return ("\t" + s).ljust(20)
 
     def f(s):
-        return "{:.2f}ms".format(s * 1000)
+        return f"{s * 1000:.2f}ms"
 
     values = responses
     if len(values) < 3:
         print("\tNot enough data")
         return
     if len(values) > last:
-        print(t("COUNT"), len(values), "(but only using the last {})".format(last))
+        print(t("COUNT"), len(values), f"(but only using the last {last})")
         values = values[-last:]
     else:
         print(t("COUNT"), len(values))
 
-    if any([x["cache"] for x in values]):
+    if any(x["cache"] for x in values):
         hits = len([x for x in values if x["cache"] == "HIT"])
         misses = len([x for x in values if x["cache"] == "MISS"])
-        print(t("HIT RATIO"), "{:.1f}%".format(100 * hits / (hits + misses)))
+        print(t("HIT RATIO"), f"{100 * hits / (hits + misses):.1f}%")
         print(t("AVERAGE (all)"), f(statistics.mean([x["took"] for x in values])))
         print(t("MEDIAN (all)"), f(statistics.median([x["took"] for x in values])))
         try:
@@ -93,7 +94,7 @@ def stats(responses, last=100):
     else:
         hits = len([x for x in values if x["link"]])
         misses = len([x for x in values if not x["link"]])
-        print(t("HIT RATIO"), "{:.1f}%".format(100 * hits / (hits + misses)))
+        print(t("HIT RATIO"), f"{100 * hits / (hits + misses):.1f}%")
         print(t("AVERAGE"), f(statistics.mean([x["took"] for x in values])))
         print(t("MEDIAN"), f(statistics.median([x["took"] for x in values])))
 
@@ -114,7 +115,7 @@ def probe(url):
     t1 = time.time()
     print(
         urlparse(url).path.ljust(70),
-        "{:.2f}ms".format((t1 - t0) * 1000),
+        f"{(t1 - t0) * 1000:.2f}ms",
         str(r.headers.get("x-cache")).ljust(6),
         "Nginx" if r.headers.get("link") and not r.headers.get("x-cache") else "",
     )
@@ -145,7 +146,7 @@ def run(
         try:
             with open("cdn-crawler-stats.json") as f:
                 responses = json.load(f)
-                print("Continuing with {} responses".format(len(responses)))
+                print(f"Continuing with {len(responses)} responses")
         except FileNotFoundError:
             pass
 
@@ -153,9 +154,7 @@ def run(
     for _ in range(cycles):
         try:
             random.shuffle(urls)
-            c = 0
-            for url in urls:
-                c += 1
+            for c, url in enumerate(urls):
                 responses.append(probe(url))
                 time.sleep(get_sleeptime())
                 if not c % get_report_every(default_report_every):
@@ -184,7 +183,7 @@ def main():
         action="store",
         type=int,
         default=DEFAULT_CYCLES,
-        help="Cycles to repeat (default {})".format(DEFAULT_CYCLES),
+        help=f"Cycles to repeat (default {DEFAULT_CYCLES})",
         nargs="?",
     )
     parser.add_argument(
@@ -192,7 +191,7 @@ def main():
         action="store",
         type=int,
         default=DEFAULT_TOP_URLS,
-        help="Top URLs to pick (default {})".format(DEFAULT_TOP_URLS),
+        help=f"Top URLs to pick (default {DEFAULT_TOP_URLS})",
         nargs="?",
     )
     parser.add_argument(
@@ -200,7 +199,7 @@ def main():
         action="store",
         type=float,
         default=DEFAULT_SLEEPTIME,
-        help="Sleeptime between each probe (default {:.1f})".format(DEFAULT_SLEEPTIME),
+        help=f"Sleeptime between each probe (default {DEFAULT_SLEEPTIME:.1f})",
         nargs="?",
     )
     parser.add_argument(
@@ -208,7 +207,7 @@ def main():
         action="store",
         type=int,
         default=DEFAULT_REPORT_EVERY,
-        help="How often to display report (default {})".format(DEFAULT_REPORT_EVERY),
+        help=f"How often to display report (default {DEFAULT_REPORT_EVERY})",
         nargs="?",
     )
     args = parser.parse_args()

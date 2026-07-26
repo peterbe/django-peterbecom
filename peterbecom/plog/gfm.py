@@ -9,7 +9,7 @@ def gfm(text):
     def pre_extraction_callback(matchobj):
         digest = md5(matchobj.group(0).encode("utf8")).hexdigest()
         extractions[digest] = matchobj.group(0)
-        return "{gfm-extraction-%s}" % digest
+        return f"{{gfm-extraction-{digest}}}"
 
     pattern = re.compile(r"<pre>.*?</pre>", re.MULTILINE | re.DOTALL)
     text = re.sub(pattern, pre_extraction_callback, text)

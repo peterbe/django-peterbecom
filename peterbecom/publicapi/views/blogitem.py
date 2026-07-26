@@ -170,9 +170,8 @@ def blogitem(request, oid):
     count_comments = count_approved_comments(blogitem.id)
     root_comments_count = count_approved_root_comments(blogitem.id)
 
-    if page > 1:
-        if (page - 1) * settings.MAX_RECENT_COMMENTS > root_comments_count:
-            raise http.Http404("Gone too far")
+    if page > 1 and (page - 1) * settings.MAX_RECENT_COMMENTS > root_comments_count:
+        raise http.Http404("Gone too far")
 
     slice_m, slice_n = get_blogcomment_slice(root_comments_count, page)
     root_comments = root_comments[slice_m:slice_n]
@@ -211,10 +210,13 @@ def blogitem(request, oid):
     _unhighlight_others(comments["tree"])
 
     comments["next_page"] = comments["previous_page"] = None
-    if page < settings.MAX_BLOGCOMMENT_PAGES:
+    if (
+        page < settings.MAX_BLOGCOMMENT_PAGES
+        and
         # But is there even a next page?!
-        if page * settings.MAX_RECENT_COMMENTS < root_comments_count:
-            comments["next_page"] = page + 1
+        page * settings.MAX_RECENT_COMMENTS < root_comments_count
+    ):
+        comments["next_page"] = page + 1
     if page > 1:
         comments["previous_page"] = page - 1
 
@@ -259,11 +261,11 @@ def traverse_and_serialize_comments(all_comments, comment=None, depth=None):
     else:
         iterator = all_comments[comment["id"]]
     depth = depth or 0
-    for comment in iterator:
-        serialized = serialize_comment(comment)
+    for sub_comment in iterator:
+        serialized = serialize_comment(sub_comment)
         serialized["depth"] = depth
         replies = traverse_and_serialize_comments(
-            all_comments, comment=comment, depth=depth + 1
+            all_comments, comment=sub_comment, depth=depth + 1
         )
         if replies:
             serialized["replies"] = replies
@@ -475,9 +477,8 @@ def _traverse_highlights(comments_tree):
 
 def _traverse_unhighlight(comments_tree, exception_id):
     for comment in comments_tree:
-        if comment.get("highlighted"):
-            if comment["id"] != exception_id:
-                del comment["highlighted"]
+        if comment.get("highlighted") and comment["id"] != exception_id:
+            del comment["highlighted"]
         if comment.get("replies"):
             _traverse_unhighlight(comment["replies"], exception_id)
 
@@ -531,9 +532,7 @@ def blogitem_dynamic_image(request, oid, width=None, extension="webp"):
 
     image_path = im.url
     media_root = Path(settings.MEDIA_ROOT)
-    full_image_path = media_root / (
-        image_path[1:] if image_path.startswith("/") else image_path
-    )
+    full_image_path = media_root / (image_path.removeprefix("/"))
     if not full_image_path.exists():
         return http.HttpResponseNotFound("Open graph image not found")
     destination_path = full_image_path.with_suffix(f".{extension}")

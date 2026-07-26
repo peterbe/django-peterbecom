@@ -21,10 +21,10 @@ class BayesData(dict):
         return item in self.training
 
     def __repr__(self):
-        return "<BayesDict: %s, %s tokens>" % (self.name, self.token_count)
+        return f"<BayesDict: {self.name}, {self.token_count} tokens>"
 
 
-class Bayes(object):
+class Bayes:
     def __init__(
         self, tokenizer=None, combiner=None, data_class=None, training_data=None
     ):
@@ -321,10 +321,10 @@ class Bayes(object):
         nth = 1.0 / len(probs)
         P = (
             1.0
-            - functools.reduce(operator.mul, map(lambda p: 1.0 - p[1], probs), 1.0)
+            - functools.reduce(operator.mul, map(lambda p: 1.0 - p[1], probs), 1.0)  # noqa: C417
             ** nth
         )
-        Q = 1.0 - functools.reduce(operator.mul, map(lambda p: p[1], probs)) ** nth
+        Q = 1.0 - functools.reduce(operator.mul, map(lambda p: p[1], probs)) ** nth  # noqa: C417
         S = (P - Q) / (P + Q)
         return (1 + S) / 2
 
@@ -341,7 +341,7 @@ class Bayes(object):
             H = chi_2_p(
                 -2.0
                 * math.log(
-                    functools.reduce(operator.mul, map(lambda p: p[1], probs), 1.0)
+                    functools.reduce(operator.mul, map(lambda p: p[1], probs), 1.0)  # noqa: C417
                 ),
                 2 * n,
             )
@@ -352,7 +352,9 @@ class Bayes(object):
                 -2.0
                 * math.log(
                     functools.reduce(
-                        operator.mul, map(lambda p: 1.0 - p[1], probs), 1.0
+                        operator.mul,
+                        map(lambda p: 1.0 - p[1], probs),  # noqa: C417
+                        1.0,
                     )
                 ),
                 2 * n,
@@ -375,7 +377,7 @@ class Tokenizer:
     or in their existing case.
     """
 
-    WORD_RE = re.compile("\\w+", re.U)
+    WORD_RE = re.compile("\\w+", re.UNICODE)
 
     def __init__(self, lower=False):
         self.lower = lower

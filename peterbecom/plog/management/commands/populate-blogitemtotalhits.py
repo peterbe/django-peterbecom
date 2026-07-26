@@ -12,7 +12,5 @@ class Command(BaseCommand):
         t1 = time.time()
 
         self.stdout.write(
-            "Took {:.2f}s to update total hits for {} blogs".format(
-                t1 - t0, count_records
-            )
+            f"Took {t1 - t0:.2f}s to update total hits for {count_records} blogs"
         )

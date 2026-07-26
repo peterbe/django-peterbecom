@@ -27,7 +27,7 @@ from .analytics_to_blogitem_hits import analytics_to_blogitem_hits_backfill
 def send_new_comment_email(blogcomment_id):
     blogcomment = BlogComment.objects.get(id=blogcomment_id)
     tos = [x[1] for x in settings.MANAGERS]
-    from_ = ["%s <%s>" % x for x in settings.MANAGERS][0]
+    from_ = next(f"{name} <{email}>" for name, email in settings.MANAGERS)
     body = _get_comment_body(blogcomment.blogitem, blogcomment)
     html_body = _get_html_comment_body(blogcomment.blogitem, blogcomment)
 
@@ -42,7 +42,7 @@ def send_new_comment_email(blogcomment_id):
 
 
 def _get_comment_body(blogitem, blogcomment):
-    base_url = "https://%s" % Site.objects.get_current().domain
+    base_url = f"https://{Site.objects.get_current().domain}"
     if "peterbecom.local" in base_url:
         base_url = "http://localhost:4000"
     admin_url = base_url.replace("www.", "admin.")
@@ -63,7 +63,7 @@ Comment:
 
 
 def _get_html_comment_body(blogitem, blogcomment):
-    base_url = "https://%s" % Site.objects.get_current().domain
+    base_url = f"https://{Site.objects.get_current().domain}"
     if "peterbecom.local" in base_url:
         base_url = "http://localhost:4000"
     admin_url_base = base_url.replace("www.", "admin.")

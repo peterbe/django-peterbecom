@@ -199,7 +199,7 @@ def logo(request):
     return response
 
 
-@lru_cache()
+@lru_cache
 def _get_image_file():
     image_path = settings.LOGO_IMAGE_PATH
     if not image_path.exists():

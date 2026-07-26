@@ -16,7 +16,7 @@ class Command(BaseCommand):
         )
         try:
             update_cards(limit=limit, debug=True)
-        except Exception as e:
+        except Exception:
             import sys
             import traceback
 
@@ -26,7 +26,7 @@ class Command(BaseCommand):
             print("type:", etype)
             print("value:", evalue)
             print()
-            raise e
+            raise
 
         previous = None
         qs = Card.objects.all().order_by("-created")

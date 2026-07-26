@@ -206,7 +206,7 @@ def test_is_photo_filter(client):
     assert response.status_code == 200
     posts = response.json()["posts"]
     assert len(posts) == 2
-    oids = set([x["oid"] for x in posts])
+    oids = {x["oid"] for x in posts}
     assert oids == {"photo1", "notphoto1"}
 
     response = client.get(url, {"is_photo": "false"})

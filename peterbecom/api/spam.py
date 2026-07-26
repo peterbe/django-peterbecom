@@ -20,8 +20,7 @@ def patterns(request):
         for signature in SpamCommentPattern.objects.filter(id=id):
             signature.delete()
             return json_response({"ok": True})
-        else:
-            return json_response({"error": "Not found"}, status=404)
+        return json_response({"error": "Not found"}, status=404)
 
     if request.method == "POST":
         try:
@@ -64,8 +63,7 @@ def signatures(request):
         for signature in SpamCommentSignature.objects.filter(id=id):
             signature.delete()
             return json_response({"ok": True})
-        else:
-            return json_response({"error": "Not found"}, status=404)
+        return json_response({"error": "Not found"}, status=404)
 
     if request.method == "POST":
         try:

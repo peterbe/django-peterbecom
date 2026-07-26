@@ -39,6 +39,4 @@ class BlogCommentTraining(models.Model):
     modified = models.DateTimeField(auto_now=True)
 
     def __repr__(self):
-        return "<{}: {} on {!r} in {!r}>".format(
-            self.__class__.__name__, self.tag, self.song, self.bayes_data
-        )
+        return f"<{self.__class__.__name__}: {self.tag} on {self.song!r} in {self.bayes_data!r}>"

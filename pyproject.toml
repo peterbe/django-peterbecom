@@ -8,6 +8,9 @@ exclude = [
 line-length = 88
 
 [tool.ruff.lint]
+ignore = [
+    "N999",  # Invalid module name (e.g. django management commands)
+]
 
 [project]
 name = "django-peterbecom"
@@ -19,7 +22,7 @@ dependencies = [
     "backoff==2.2.1",
     "bleach==6.4.0",
     "brotli==1.2.0",
-    "cachetools==7.1.4",
+    "cachetools==7.1.6",
     "cssselect==1.4.0",
     "delegator-py==0.1.1",
     "dj-database-url==3.1.2",
@@ -54,7 +57,7 @@ dependencies = [
     "requests-mock==1.12.1",
     "requests==2.34.2",
     "rollbar==1.4.0",
-    "ruff==0.15.22",
+    "ruff==0.16.0",
     "sorl-thumbnail==13.0.0",
     "sql-metadata==3.0.1",
     "tomli==2.4.1",
@@ -65,8 +68,8 @@ dependencies = [
     "psycopg[binary,pool]>=3.3.4",
     "crawlerdetect>=0.3.0",
     "litellm==1.93.0",
-    "anthropic==0.117.0",
-    "openai==2.46.0",
+    "anthropic==0.120.0",
+    "openai==2.48.0",
 ]
 
 [tool.coverage.run]

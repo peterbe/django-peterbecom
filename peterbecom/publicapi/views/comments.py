@@ -1,5 +1,6 @@
 import hashlib
 import time
+from functools import partial
 
 from django import http
 from django.conf import settings
@@ -75,7 +76,7 @@ def submit_comment(request):
     # X-Forwarded-For might be a comma separated list of IP addresses
     # coming from the CDN. The first is the client.
     # https://www.keycdn.com/blog/x-forwarded-for-cdn
-    ip_address = [x.strip() for x in ip_addresses.split(",") if x.strip()][0]
+    ip_address = next(x.strip() for x in ip_addresses.split(",") if x.strip())
 
     if ip_address == "127.0.0.1" and settings.FAKE_BLOG_COMMENT_IP_ADDRESS:
         ip_address = fake_ip_address(f"{name}{email}")
@@ -130,9 +131,9 @@ def submit_comment(request):
                 print(f"WARNING! {exception!r} create_geo_lookup failed")
 
             if blogitem.oid != "blogitem-040601-1":
-                transaction.on_commit(lambda: send_new_comment_email(blog_comment.id))
+                transaction.on_commit(partial(send_new_comment_email, blog_comment.id))
             else:
-                transaction.on_commit(lambda: prep_llm_rewrite(blog_comment.id))
+                transaction.on_commit(partial(prep_llm_rewrite, blog_comment.id))
 
             if (
                 blog_comment.name == "Playwright"
@@ -144,7 +145,7 @@ def submit_comment(request):
         # Generate a non-cryptographic hash that the user can user to edit their
         # comment after they posted it.
         blog_comment_hash = hashlib.md5(
-            f"{blog_comment.oid}{time.time()}".encode("utf-8")
+            f"{blog_comment.oid}{time.time()}".encode()
         ).hexdigest()
         cache_key = make_cache_key(blog_comment_hash)
         hash_expiration_seconds = 60 * 60

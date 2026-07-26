@@ -221,7 +221,7 @@ CACHES = {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": REDIS_URL,
         "OPTIONS": {
-            "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",  # noqa
+            "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
             # Not using the msgpack serializer because msgpack can't
             # serialize a HttpResponse object.
         },

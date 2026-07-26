@@ -2,7 +2,7 @@ import os
 
 from django.http import Http404
 
-from peterbecom.settings import *  # noqa
+from peterbecom.settings import *
 
 ES_INDEX = "test_peterbecom"
 
@@ -25,7 +25,7 @@ AUTH0_DOMAIN = "peterbecom.auth0.example.com"
 
 OIDC_USER_ENDPOINT = "https://peterbecom.auth0.example.com/userinfooo"
 
-HUEY["immediate"] = True  # noqa
+HUEY["immediate"] = True
 
 MINIMALCSS_SERVER_URL = "http://localhost:55555"
 
@@ -34,7 +34,7 @@ MANAGERS = (("Peter", "test@example.com"),)
 SPAM_URL_PATTERNS = ["http://mustbesomething.example.com"]
 
 # From https://github.com/maxmind/MaxMind-DB/tree/master/test-data
-GEOIP_PATH = path("GeoIP2-City-Test.mmdb")  # noqa
+GEOIP_PATH = path("GeoIP2-City-Test.mmdb")
 assert os.path.isfile(GEOIP_PATH), GEOIP_PATH
 
 

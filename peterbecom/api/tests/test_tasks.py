@@ -97,7 +97,7 @@ def test_send_comment_reply_email_page_2(settings):
     bulk = []
     max_ = settings.MAX_RECENT_COMMENTS
     for i in range(max_):
-        comment = "Comment number {}".format(i + 1)
+        comment = f"Comment number {i + 1}"
         bulk.append(
             BlogComment(
                 oid=BlogComment.next_oid(),
