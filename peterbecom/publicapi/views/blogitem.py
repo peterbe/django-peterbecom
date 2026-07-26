@@ -37,7 +37,9 @@ def blogitem(request, oid):
     cache_key = f"publicapi_blogitem_{oid}:{page}:{is_photo}"
     cached = cache.get(cache_key)
     if cached:
+        print(f"BLOGITEM CACHE HIT {oid=}\t{cache_key}\t{timezone.now()}")
         return http.JsonResponse(cached)
+    print(f"BLOGITEM CACHE MISS {oid=}\t{cache_key}\t{timezone.now()}")
 
     try:
         blogitem = BlogItem.objects.get(oid=oid)
@@ -217,7 +219,22 @@ def blogitem(request, oid):
         comments["previous_page"] = page - 1
 
     context = {"post": post, "comments": comments}
-    cache.set(cache_key, context, 5 if settings.DEBUG else 60 * 60 * 12)
+
+    ttl = 60 * 60 * 1
+    # If the blogitem hasn't changed in a week, make it cache longer
+    modify_age_days = (timezone.now() - blogitem.modify_date).total_seconds() / (
+        60 * 60 * 24
+    )
+    if modify_age_days > 365:
+        ttl *= 24 * 7
+    elif modify_age_days > 30:
+        ttl *= 24 * 2
+    elif modify_age_days > 7:
+        ttl *= 24
+
+    ttl = 5 if settings.DEBUG else ttl
+    cache.set(cache_key, context, ttl)
+
     return http.JsonResponse(context)
 
 
