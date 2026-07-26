@@ -68,10 +68,10 @@ def _clean(directory):
     names = [x[1] for x in to_delete]
     assert len(names) == len(set(names)), (len(names), len(set(names)))
     for size, fn in to_delete:
-        print("del", fn, "{:.1f}K".format(size / 1024))
+        print("del", fn, f"{size / 1024:.1f}K")
         os.remove(fn)
     print(
-        "DELETED {:,} FILES. SAVED {:.1f}KB".format(len(deleted), sum(deleted) / 1024)
+        f"DELETED {len(deleted):,} FILES. SAVED {sum(deleted) / 1024:.1f}KB"
     )
 
 
