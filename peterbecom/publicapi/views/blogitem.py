@@ -71,6 +71,9 @@ def blogitem(request, oid):
         "is_photo": blogitem.is_photo,
     }
 
+    if blogitem.is_photo:
+        post["photo_count"] = BlogFile.objects.filter(blogitem=blogitem).count()
+
     def serialize_related(post_object):
         if isinstance(post_object, dict):
             return {
@@ -483,8 +486,8 @@ def _traverse_unhighlight(comments_tree, exception_id):
             _traverse_unhighlight(comment["replies"], exception_id)
 
 
-@cache_control(max_age=settings.DEBUG and 60 or 60 * 60, public=True)
-def blogitem_dynamic_image(request, oid, width=None, extension="webp"):
+@cache_control(max_age=settings.DEBUG and 6 or 60 * 60, public=True)
+def blogitem_dynamic_image(request, oid, width=None, photo=None, extension="webp"):
     valid_widths = (400, 1000, 1500, 3000)
     if width is None:
         width = 1500
@@ -511,17 +514,66 @@ def blogitem_dynamic_image(request, oid, width=None, extension="webp"):
     if extension not in ("webp", "png", "jpeg"):
         return http.HttpResponseBadRequest("Unsupported image format")
 
-    qs = BlogFile.objects.filter(blogitem__oid=oid, is_open_graph_image=True)
-    for blogfile in qs:
-        break
+    print("PHOTO:", repr(photo))
+    photo_number = None
+    if photo and photo.startswith(".p"):
+        photo_number = photo[2:]
+        try:
+            photo_number = int(photo_number)
+        except ValueError:
+            return http.HttpResponseBadRequest("Invalid photo format")
+        if photo_number < 1:
+            return http.HttpResponseBadRequest("Invalid photo number")
+
+    base_blogfile_qs = BlogFile.objects.filter(blogitem__oid=oid)  # .order_by("id")
+    # qs = BlogFile.objects.filter(blogitem__oid=oid, is_open_graph_image=True).order_by(
+    #     "id"
+    # )
+    # photos_list = list(base_blogfile_qs.filter(is_open_graph_image=True))
+    # if not photos_list:
+    photos_list = list(
+        base_blogfile_qs.filter(blogitem__is_photo=True).order_by(
+            # first open graph
+            "-is_open_graph_image",
+            # then, by youngest first
+            "add_date",
+        )
+    )
+    if photo_number is None:
+        blogfile = photos_list[0]
     else:
-        qs = BlogFile.objects.filter(blogitem__oid=oid, blogitem__is_photo=True)
-        for blogfile in qs:
-            break
-        else:
+        if photo_number > len(photos_list):
             return http.HttpResponseNotFound(
-                "No open graph image found for this blog item"
+                f"Photo number {photo_number} not found for this blog item"
             )
+        blogfile = photos_list[photo_number - 1]
+
+    # if photo_number is not None:
+    #     if photo_number > len(photos_list):
+    #         return http.HttpResponseNotFound(
+    #             f"Photo number {photo_number} not found for this blog item"
+    #         )
+    #     blogfile = photos_list[photo_number - 1]
+    # else:
+    #     if not photos_list:
+    #         return http.HttpResponseNotFound(
+    #             "No open graph image found for this blog item"
+    #         )
+    #     blogfile = photos_list[0]
+    # for i, blogfile in enumerate(qs):
+    #     print(f"COMPARE {i=} {photo_number=}")
+    #     break
+    # else:
+    #     qs = BlogFile.objects.filter(
+    #         blogitem__oid=oid, blogitem__is_photo=True
+    #     ).order_by("id")
+    #     for i, blogfile in enumerate(qs):
+    #         print(f"xxx COMPARE {i=} {photo_number=}")
+    #         break
+    #     else:
+    #         return http.HttpResponseNotFound(
+    #             "No open graph image found for this blog item"
+    #         )
 
     file_path = Path(blogfile.file.path)
     if not file_path.is_file():
