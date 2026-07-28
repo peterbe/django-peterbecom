@@ -650,6 +650,59 @@ def test_blogitem_dynamic_image_happy_path(client):
 
 
 @pytest.mark.django_db
+def test_blogitem_dynamic_image_multiple_photos(client):
+    url = reverse("publicapi:blogitem_dynamic_image", args=["oid", "webp"])
+
+    blogitem = BlogItem.objects.create(
+        oid="oid",
+        title="Title",
+        text="*Text*",
+        text_rendered=BlogItem.render("*Text*", "markdown", ""),
+        display_format="markdown",
+        summary="Summary",
+        pub_date=timezone.now(),
+        is_photo=True,
+    )
+
+    with open(Path(__file__).parent / "test_image.png", "rb") as f:
+        test_file = SimpleUploadedFile(
+            "test_image.png", f.read(), content_type="image/png"
+        )
+
+    BlogFile.objects.create(blogitem=blogitem, title="Some title", file=test_file)
+
+    with open(Path(__file__).parent / "test_image.png", "rb") as f:
+        second_test_file = SimpleUploadedFile(
+            "test_image.png", f.read(), content_type="image/png"
+        )
+
+    BlogFile.objects.create(
+        blogitem=blogitem, title="Second one", file=second_test_file
+    )
+
+    response = client.get(url)
+    assert response.status_code == 200
+    assert response["Content-Type"] == "image/webp"
+    assert "public" in response["cache-control"]
+    assert re.findall(r"max-age=[1-9]\d+", response["cache-control"])
+
+    url = reverse(
+        "publicapi:blogitem_dynamic_image",
+        kwargs={"oid": "oid", "photo": ".p2", "extension": "webp"},
+    )
+    response = client.get(url)
+    assert response.status_code == 200
+    assert response["Content-Type"] == "image/webp"
+
+    url = reverse(
+        "publicapi:blogitem_dynamic_image",
+        kwargs={"oid": "oid", "photo": ".p3", "extension": "webp"},
+    )
+    response = client.get(url)
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db
 def test_blogitem_dynamic_image_different_formats(client):
 
     blogitem = BlogItem.objects.create(
