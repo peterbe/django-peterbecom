@@ -32,7 +32,7 @@ dependencies = [
     "ftfy==6.3.1",
     "geoip2==5.3.0",
     "gunicorn==25.3.0",
-    "huey==3.2.1",
+    "huey==3.3.0",
     "ipaddress==1.0.23",
     "jsonschema==4.26.0",
     "keycdn==0.4.3",
