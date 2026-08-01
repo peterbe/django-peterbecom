@@ -23,7 +23,7 @@ dependencies = [
     "bleach==6.4.0",
     "brotli==1.2.0",
     "cachetools==7.1.6",
-    "cssselect==1.4.0",
+    "cssselect==1.5.0",
     "delegator-py==0.1.1",
     "dj-database-url==3.1.2",
     "django-redis==7.0.0",
