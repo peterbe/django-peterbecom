@@ -89,7 +89,7 @@ jobs:
           which pngquant
 
       - name: Download NLTK dependencies
-        run: uv run python -P scripts/nltk-downloads.py
+        run: uv run python scripts/nltk-downloads.py
 
       - name: Run Lints
         run: |
