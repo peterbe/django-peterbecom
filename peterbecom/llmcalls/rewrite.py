@@ -47,20 +47,33 @@ def get_llm_response_comment(
         }
     )
 
-    comment_escaped = comment.replace('"', '\\"').replace("\n", "\\n")
+    comment_escaped = comment.replace('"', '\\"')
+    if model.startswith("claude"):
+        messages.append(
+            {
+                "role": "user",
+                "content": f"""
+Here is the comment:
 
-    messages.append(
-        {
-            "role": "user",
-            "content": f"""
-    Here is the comment:
+{comment_escaped}
+""".strip(),
+            }
+        )
+    else:
+        comment_escaped = comment_escaped.replace("\n", "\\n")
 
-    ```
-    {comment_escaped}
-    ```
-    """.strip(),
-        }
-    )
+        messages.append(
+            {
+                "role": "user",
+                "content": f"""
+Here is the comment:
+
+```
+{comment_escaped}
+```
+""".strip(),
+            }
+        )
 
     assert settings.OPENAI_API_KEY, "OPENAI_API_KEY must be set"
 

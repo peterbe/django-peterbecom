@@ -203,11 +203,7 @@ def _get_spellcheck_messages(paragraph: str, model="gpt-5"):
         }
     )
 
-    if model.startswith("claude"):
-        paragraph_escaped = paragraph.replace('"', '\\"')
-
-    else:
-        paragraph_escaped = paragraph.replace('"', '\\"').replace("\n", "\\n")
+    paragraph_escaped = paragraph.replace('"', '\\"')
 
     if model.startswith("claude"):
         messages.append(
@@ -221,6 +217,7 @@ def _get_spellcheck_messages(paragraph: str, model="gpt-5"):
             }
         )
     else:
+        paragraph_escaped = paragraph_escaped.replace("\n", "\\n")
         messages.append(
             {
                 "role": "user",
