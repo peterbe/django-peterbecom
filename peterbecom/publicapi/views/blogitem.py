@@ -38,7 +38,7 @@ def blogitem(request, oid):
     cache_key = f"publicapi_blogitem_{oid}:{page}:{is_photo}"
     cached = cache.get(cache_key)
     if cached:
-        print(f"BLOGITEM CACHE HIT {oid=}\t{cache_key}\t{timezone.now()}")
+        print(f"BLOGITEM CACHE HIT {oid=}\t{cache_key!r}\t{timezone.now()}")
         return http.JsonResponse(cached)
 
     t0 = time.time()
@@ -245,7 +245,7 @@ def blogitem(request, oid):
     t1 = time.time()
 
     print(
-        f"BLOGITEM CACHE MISS {oid=}\t{cache_key}\t{ttl=}\t{t1 - t0:.3f}\t{timezone.now()}"
+        f"BLOGITEM CACHE MISS {oid=}\t{cache_key!r}\t{ttl=}\t{t1 - t0:.3f}\t{timezone.now()}"
     )
 
     return http.JsonResponse(context)
