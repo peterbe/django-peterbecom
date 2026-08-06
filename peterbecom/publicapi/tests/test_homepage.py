@@ -66,6 +66,7 @@ def test_homepage_blogitems_happy_path(client, settings):
     assert first["oid"] == "oid-1"
     assert first["title"] == "Title 1"
     assert first["html"] == "<p><strong>Text</strong> <code>1</code></p>"
+    assert first["is_photo"] is False
 
     response = client.get(url, {"page": "2"})
     assert response.status_code == 200
@@ -197,7 +198,7 @@ def test_is_photo_filter(client):
         oid="notphoto1",
         title="Not Photo 1",
         text="Not Photo 1",
-        pub_date=timezone.now(),
+        pub_date=timezone.now() - timezone.timedelta(seconds=1),
         is_photo=False,
     )
 
@@ -208,6 +209,8 @@ def test_is_photo_filter(client):
     assert len(posts) == 2
     oids = {x["oid"] for x in posts}
     assert oids == {"photo1", "notphoto1"}
+    assert posts[0]["is_photo"] is True
+    assert posts[1]["is_photo"] is False
 
     response = client.get(url, {"is_photo": "false"})
     assert response.status_code == 200
