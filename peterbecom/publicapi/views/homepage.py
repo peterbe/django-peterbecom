@@ -125,13 +125,22 @@ def homepage_blogitems(request):
             "url": blogitem["url"],
             "disallow_comments": blogitem["disallow_comments"],
             "split": split,
+            "is_photo": blogitem["is_photo"],
         }
         return serialized
 
     dedupe = set()
-    for blogitem in blogitems.values(
-        "id", "oid", "title", "pub_date", "text_rendered", "url", "disallow_comments"
-    ):
+    values = (
+        "id",
+        "oid",
+        "title",
+        "pub_date",
+        "text_rendered",
+        "url",
+        "disallow_comments",
+        "is_photo",
+    )
+    for blogitem in blogitems.values(*values):
         if blogitem["oid"] in dedupe:
             continue
         dedupe.add(blogitem["oid"])
