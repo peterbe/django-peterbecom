@@ -1,7 +1,7 @@
 import json
 
 import anthropic
-import litellm
+import openai
 import pytest
 from django.urls import reverse
 from django.utils import timezone
@@ -21,21 +21,57 @@ class Completion:
 
 
 @pytest.mark.django_db
-def test_rewrite_litellm(admin_client, monkeypatch):
-    def mock_completion(*args, **kwargs):
-        return Completion(
-            {
-                "choices": [
-                    {
-                        "message": {
-                            "content": "This is the rewritten comment.",
-                        }
-                    }
-                ]
-            }
-        )
+def test_rewrite_openai(admin_client, monkeypatch):
 
-    monkeypatch.setattr(litellm, "completion", mock_completion)
+    class FakeResponsesAPI:
+        def create(self, **kwargs):
+            return Completion(
+                {
+                    "id": "chatcmpl-E9aBlvFmVg8RKOh4NFAoYR9aDijRC",
+                    "model": "gpt-5-2025-08-07",
+                    "usage": {
+                        "total_tokens": 854,
+                        "prompt_tokens": 157,
+                        "completion_tokens": 697,
+                        "prompt_tokens_details": {
+                            "audio_tokens": 0,
+                            "cached_tokens": 0,
+                        },
+                        "completion_tokens_details": {
+                            "audio_tokens": 0,
+                            "reasoning_tokens": 640,
+                            "accepted_prediction_tokens": 0,
+                            "rejected_prediction_tokens": 0,
+                        },
+                    },
+                    "object": "chat.completion",
+                    "choices": [
+                        {
+                            "index": 0,
+                            "message": {
+                                "role": "assistant",
+                                "content": "This is the rewritten comment.",
+                                "tool_calls": None,
+                                "annotations": [],
+                                "function_call": None,
+                                "provider_specific_fields": {"refusal": None},
+                            },
+                            "finish_reason": "stop",
+                            "provider_specific_fields": {},
+                        }
+                    ],
+                    "created": 1785952769,
+                    "moderation": None,
+                    "service_tier": "default",
+                    "system_fingerprint": None,
+                }
+            )
+
+    class FakeClient:
+        def __init__(self, *args, **kwargs):
+            self.responses = FakeResponsesAPI()
+
+    monkeypatch.setattr(openai, "OpenAI", FakeClient)
     blogitem = BlogItem.objects.create(
         oid="hello-world",
         title="Hello World",
@@ -58,7 +94,7 @@ def test_rewrite_litellm(admin_client, monkeypatch):
 
     response = admin_client.post(
         url,
-        json.dumps({"model": "gpt-5"}),
+        json.dumps({"model": "openai-gpt-5"}),
         content_type="application/json",
     )
 
@@ -73,7 +109,7 @@ def test_rewrite_litellm(admin_client, monkeypatch):
     url = reverse("api:comment_rewrite", args=[blogcomment.oid])
     response = admin_client.post(
         url,
-        json.dumps({"model": "gpt-5"}),
+        json.dumps({"model": "openai-gpt-5"}),
         content_type="application/json",
     )
 

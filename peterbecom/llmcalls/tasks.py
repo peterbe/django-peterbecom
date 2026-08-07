@@ -2,7 +2,6 @@ import time
 from datetime import timedelta
 
 import anthropic
-import litellm
 import openai
 from django.conf import settings
 from django.utils import timezone
@@ -58,6 +57,7 @@ def _execute_completion(llm_call_id, timeout=60):
             max_tokens=1000,  # necessary??
             system=system_prompt,
             messages=messages,
+            timeout=timeout,
         )
 
     elif llm_call.model.startswith("openai-"):
@@ -65,16 +65,11 @@ def _execute_completion(llm_call_id, timeout=60):
         response = client.responses.create(
             model=llm_call.model.replace("openai-", ""),
             input=llm_call.messages,
-        )
-    else:
-        response = litellm.completion(
-            model=llm_call.model,
-            api_key=settings.OPENAI_API_KEY,
-            messages=llm_call.messages,
-            # temperature=0,
-            # response_format={"type": "json_object"},
             timeout=timeout,
         )
+    else:
+        raise NotImplementedError(f"Model {llm_call.model} not supported")
+
     try:
         print(llm_call, "succeeded")
         LLMCall.objects.filter(id=llm_call_id).update(
