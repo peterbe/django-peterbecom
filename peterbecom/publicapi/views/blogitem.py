@@ -10,7 +10,7 @@ from django.core.cache import cache
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.utils import timezone
-from django.views.decorators.cache import cache_control
+from django.utils.cache import patch_cache_control
 from PIL import Image
 
 from peterbecom.api.thumbnail import thumbnail
@@ -494,7 +494,7 @@ def _traverse_unhighlight(comments_tree, exception_id):
             _traverse_unhighlight(comment["replies"], exception_id)
 
 
-@cache_control(max_age=settings.DEBUG and 6 or 60 * 60, public=True)
+# @cache_control(max_age=settings.DEBUG and 6 or 60 * 60, public=True)
 def blogitem_dynamic_image(request, oid, width=None, photo=None, extension="webp"):
     valid_widths = (400, 1000, 1500, 3000)
     if width is None:
@@ -591,4 +591,18 @@ def blogitem_dynamic_image(request, oid, width=None, photo=None, extension="webp
 
     with open(destination_path, "rb") as f:
         # Pass the binary data directly into the response
-        return HttpResponse(f.read(), content_type=f"image/{extension}")
+        response = HttpResponse(f.read(), content_type=f"image/{extension}")
+
+    blogfile_age = (timezone.now() - blogfile.modify_date).total_seconds()
+    blogfile_age_days = blogfile_age / (60 * 60 * 24)
+    ttl = 60 * 60
+    if blogfile_age_days > 100:
+        ttl = 60 * 60 * 24 * 7 * 10  # 10 weeks
+    elif blogfile_age_days > 10:
+        ttl = 60 * 60 * 24 * 7  # 1 week
+    elif blogfile_age_days > 1:
+        ttl = 60 * 60 * 24  # 1 day
+
+    patch_cache_control(response, max_age=settings.DEBUG and 6 or ttl, public=True)
+
+    return response

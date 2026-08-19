@@ -2,7 +2,6 @@ import functools
 import hashlib
 
 from django.core.cache import cache
-from django.utils.cache import patch_cache_control
 from django.utils.encoding import force_bytes
 
 
@@ -26,23 +25,23 @@ def lock_decorator(key_maker=None):
     return decorator
 
 
-def variable_cache_control(**kwargs):
-    """Same as django.views.decorators.cache.cache_control except this one will
-    allow the `max_age` parameter be a callable.
-    """
+# def variable_cache_control(**kwargs):
+#     """Same as django.views.decorators.cache.cache_control except this one will
+#     allow the `max_age` parameter be a callable.
+#     """
 
-    def _cache_controller(viewfunc):
-        @functools.wraps(viewfunc)
-        def _cache_controlled(request, *args, **kw):
-            response = viewfunc(request, *args, **kw)
-            copied = kwargs
-            if kwargs.get("max_age") and callable(kwargs["max_age"]):
-                max_age = kwargs["max_age"](request, *args, **kw)
-                # Can't re-use, have to create a shallow clone.
-                copied = dict(kwargs, max_age=max_age)
-            patch_cache_control(response, **copied)
-            return response
+#     def _cache_controller(viewfunc):
+#         @functools.wraps(viewfunc)
+#         def _cache_controlled(request, *args, **kw):
+#             response = viewfunc(request, *args, **kw)
+#             copied = kwargs
+#             if kwargs.get("max_age") and callable(kwargs["max_age"]):
+#                 max_age = kwargs["max_age"](request, *args, **kw)
+#                 # Can't re-use, have to create a shallow clone.
+#                 copied = dict(kwargs, max_age=max_age)
+#             patch_cache_control(response, **copied)
+#             return response
 
-        return _cache_controlled
+#         return _cache_controlled
 
-    return _cache_controller
+#     return _cache_controller
