@@ -67,7 +67,7 @@ dependencies = [
     "ffmpeg-python==0.2.0",
     "psycopg[binary,pool]>=3.3.4",
     "crawlerdetect==0.4.2",
-    "anthropic==0.122.0",
+    "anthropic==1.2.0",
     "openai==3.3.0",
 ]
 
