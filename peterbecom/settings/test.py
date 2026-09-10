@@ -49,3 +49,6 @@ KEYCDN_HOST = "peterbecom.local"
 
 OPENAI_API_KEY = "shouldnotbeused"
 ANTHROPIC_API_KEY = "shouldnotbeused"
+
+CHIVEPROXY_NETLOC = "choive.com"
+CHIVEPROXY_PATH_PREFIX = "/content"

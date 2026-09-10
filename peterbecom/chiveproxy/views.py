@@ -1,7 +1,10 @@
+import hashlib
 import time
 from subprocess import TimeoutExpired
+from urllib.parse import urlparse
 
-from django import http
+import requests
+from django import forms, http
 from django.conf import settings
 from django.core.cache import cache
 from django.db.models import Min
@@ -11,6 +14,7 @@ from django.utils.timesince import timesince
 from django.views.decorators.cache import cache_control
 from huey import crontab
 from huey.contrib.djhuey import periodic_task
+from PIL import Image
 
 from .models import Card
 from .sucks import get_card, get_cards
@@ -167,3 +171,76 @@ def api_card(request, pk):
             "pictures": card.data["pictures"],
         }
     )
+
+
+class ImageProxyForm(forms.Form):
+    url = forms.URLField(required=True)
+
+    def clean_url(self):
+        url = self.cleaned_data.get("url")
+        parsed = urlparse(url)
+        if not parsed.scheme or not parsed.netloc:
+            raise forms.ValidationError("Invalid URL")
+        if parsed.scheme != "https":
+            raise forms.ValidationError("Invalid URL (not https)")
+
+        if settings.CHIVEPROXY_NETLOC not in parsed.netloc:
+            raise forms.ValidationError("Invalid netloc")
+
+        if not parsed.path.startswith(settings.CHIVEPROXY_PATH_PREFIX):
+            raise forms.ValidationError("Invalid path prefix")
+
+        path_lowered = parsed.path.lower()
+        if not (path_lowered.endswith((".jpg", ".png"))):
+            raise forms.ValidationError(f"Invalid file extension ({path_lowered})")
+
+        return url
+
+
+@cache_control(max_age=settings.DEBUG and 10 or 60 * 60 * 6, public=True)
+def image_proxy(request):
+    form = ImageProxyForm(request.GET)
+    if not form.is_valid():
+        return http.HttpResponseBadRequest(form.errors.as_text())
+    url = form.cleaned_data["url"]
+
+    cache_root = settings.BASE_DIR / "cache" / "image_proxy"
+    if not cache_root.exists():
+        cache_root.mkdir(parents=True)
+
+    seed = f"{settings.SECRET_KEY}:{url}"
+    file_extension = urlparse(url).path.split(".")[-1]
+    prefix = ""
+    if settings.RUNNING_TESTS:
+        prefix = "test-"
+    origin_destination_file_name = (
+        cache_root / f"{prefix}{seeded_token(seed)}.{file_extension}"
+    )
+    destination_file_name = cache_root / f"{prefix}{seeded_token(seed)}.webp"
+    if not destination_file_name.exists():
+        if not origin_destination_file_name.exists():
+            with open(origin_destination_file_name, "wb") as f:
+                f.write(fetch_image(url))
+
+        image = Image.open(origin_destination_file_name)
+        image.save(destination_file_name, "webp", quality=99)
+
+        origin_destination_file_name.unlink()
+
+    response = http.HttpResponse()
+    response["Content-Type"] = "image/webp"
+    with open(destination_file_name, "rb") as f:
+        image_data = f.read()
+    response.write(image_data)
+    return response
+
+
+def fetch_image(url: str) -> bytes:
+    response = requests.get(url)
+    response.raise_for_status()
+    return response.content
+
+
+def seeded_token(seed: str, length=12) -> str:
+    digest = hashlib.sha256(seed.encode("utf-8")).hexdigest()
+    return digest[:length]
