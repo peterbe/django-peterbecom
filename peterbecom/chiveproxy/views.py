@@ -209,21 +209,41 @@ def image_proxy(request):
         cache_root.mkdir(parents=True)
 
     seed = f"{settings.SECRET_KEY}:{url}"
+    seeded = seeded_token(seed)
     file_extension = urlparse(url).path.split(".")[-1]
     prefix = ""
     if settings.RUNNING_TESTS:
         prefix = "test-"
-    origin_destination_file_name = (
-        cache_root / f"{prefix}{seeded_token(seed)}.{file_extension}"
+    origin_destination_file_name = cache_root / f"{prefix}{seeded}.{file_extension}"
+    destination_file_name = (
+        cache_root / seeded[:2] / seeded[2:4] / f"{prefix}{seeded[4:]}.webp"
     )
-    destination_file_name = cache_root / f"{prefix}{seeded_token(seed)}.webp"
+    if not destination_file_name.parent.exists():
+        destination_file_name.parent.mkdir(parents=True)
     if not destination_file_name.exists():
+
+        def file_size(b: int) -> str:
+            for unit in ["bytes", "KB", "MB", "GB"]:
+                if b < 1024.0:
+                    return f"{b:.2f} {unit}"
+                b /= 1024.0
+            return f"{b:.2f} TB"
+
         if not origin_destination_file_name.exists():
             with open(origin_destination_file_name, "wb") as f:
                 f.write(fetch_image(url))
+            print(
+                f"IMAGE_PROXY: Fetched image from URL: {url} -> {origin_destination_file_name} "
+                f"({file_size(origin_destination_file_name.stat().st_size)})"
+            )
 
         image = Image.open(origin_destination_file_name)
         image.save(destination_file_name, "webp", quality=99)
+        print(
+            f"IMAGE_PROXY: Converted fetched image from URL: "
+            f"{origin_destination_file_name} -> {destination_file_name} "
+            f"({file_size(destination_file_name.stat().st_size)})"
+        )
 
         origin_destination_file_name.unlink()
 
