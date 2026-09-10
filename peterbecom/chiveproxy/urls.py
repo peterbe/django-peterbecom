@@ -7,4 +7,5 @@ app_name = "chiveproxy"
 urlpatterns = [
     path("api/cards/", views.api_cards, name="api_cards"),
     path("api/cards/<int:pk>/", views.api_card, name="api_card"),
+    path("imageproxy", views.image_proxy, name="image_proxy"),
 ]
