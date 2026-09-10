@@ -514,7 +514,7 @@ requires-dist = [
     { name = "requests-mock", specifier = "==1.12.1" },
     { name = "rollbar", specifier = "==1.4.0" },
     { name = "ruff", specifier = "==0.16.6" },
-    { name = "sorl-thumbnail", specifier = "==13.0.0" },
+    { name = "sorl-thumbnail", specifier = "==13.1.0" },
     { name = "sql-metadata", specifier = "==3.0.1" },
     { name = "tomli", specifier = "==2.4.1" },
     { name = "xmltodict", specifier = "==1.0.4" },
@@ -1455,11 +1455,11 @@ wheels = [
 
 [[package]]
 name = "sorl-thumbnail"
-version = "13.0.0"
+version = "13.1.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/c4/d8/038201e8fc4bda7f7905c41155af70fc0d15f94f90baac52f04ea66ad3af/sorl_thumbnail-13.0.0.tar.gz", hash = "sha256:75f1f22fa742846917ca4774cd4c578cd802ff5e4f6f53328735c3a38264ee49", size = 668977, upload-time = "2026-01-22T15:20:51.624Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/75/d5/1b12e3c06866e979070b4f9b13361a530a4b6710e97f4b5119d0481fff60/sorl_thumbnail-13.1.0.tar.gz", hash = "sha256:4bf2d3e5c211f9d3d754273af067c7664df361bfcc4722f778acef054352eefa", size = 672147, upload-time = "2026-08-19T19:31:50.755Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ea/8b/04d8eaaffbdfc17792b008d7bdf0b379e6bb2648ce262e96c95f76f4ba7c/sorl_thumbnail-13.0.0-py3-none-any.whl", hash = "sha256:8035d218b2b90511326c9a73dbf6e8a829f9ea808e448e98332190a0e2c0ee18", size = 43136, upload-time = "2026-01-22T15:20:37.103Z" },
+    { url = "https://files.pythonhosted.org/packages/5c/88/fb47437f6e8c707b138974effe4cb44ee833d2bdbe150a719b79304943fc/sorl_thumbnail-13.1.0-py3-none-any.whl", hash = "sha256:ddd8b359dbf98c806c88702986a819f77f48e0a68c9d719b9faf692216ebd219", size = 43314, upload-time = "2026-08-19T19:31:38.322Z" },
 ]
 
 [[package]]
