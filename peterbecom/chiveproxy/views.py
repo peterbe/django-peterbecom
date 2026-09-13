@@ -10,11 +10,12 @@ from django.core.cache import cache
 from django.db.models import Min
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.utils.cache import patch_cache_control
 from django.utils.timesince import timesince
 from django.views.decorators.cache import cache_control
 from huey import crontab
 from huey.contrib.djhuey import periodic_task
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 
 from .models import Card
 from .sucks import get_card, get_cards
@@ -198,7 +199,6 @@ class ImageProxyForm(forms.Form):
         return url
 
 
-@cache_control(max_age=settings.DEBUG and 10 or 60 * 60 * 6, public=True)
 def image_proxy(request):
     form = ImageProxyForm(request.GET)
     if not form.is_valid():
@@ -232,19 +232,29 @@ def image_proxy(request):
 
         if not origin_destination_file_name.exists():
             with open(origin_destination_file_name, "wb") as f:
+                print("IMAGE_PROXY: FETCHING", url)
                 f.write(fetch_image(url))
             print(
                 f"IMAGE_PROXY: Fetched image from URL: {url} -> {origin_destination_file_name} "
                 f"({file_size(origin_destination_file_name.stat().st_size)})"
             )
 
-        image = Image.open(origin_destination_file_name)
-        image.save(destination_file_name, "webp", quality=99)
-        print(
-            f"IMAGE_PROXY: Converted fetched image from URL: "
-            f"{origin_destination_file_name} -> {destination_file_name} "
-            f"({file_size(destination_file_name.stat().st_size)})"
-        )
+        try:
+            image = Image.open(origin_destination_file_name)
+            image.save(destination_file_name, "webp", quality=99)
+            print(
+                f"IMAGE_PROXY: Converted fetched image from URL: "
+                f"{origin_destination_file_name} -> {destination_file_name} "
+                f"({file_size(destination_file_name.stat().st_size)})"
+            )
+        except UnidentifiedImageError:
+            print(
+                f"IMAGE_PROXY: Failed to identify image from URL: {origin_destination_file_name} "
+                f"(file size: {file_size(origin_destination_file_name.stat().st_size)})"
+                if origin_destination_file_name.exists()
+                else " (file does not exist)"
+            )
+            return http.HttpResponseBadRequest("Bad image")
 
         origin_destination_file_name.unlink()
 
@@ -253,6 +263,10 @@ def image_proxy(request):
     with open(destination_file_name, "rb") as f:
         image_data = f.read()
     response.write(image_data)
+
+    ttl = settings.DEBUG and 10 or 60 * 60 * 6
+    patch_cache_control(response, max_age=ttl, public=True)
+
     return response
 
 
