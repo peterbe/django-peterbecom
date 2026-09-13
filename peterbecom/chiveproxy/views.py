@@ -72,6 +72,7 @@ def api_cards(request):
                 "human_time": human_time,
                 # This last one is for legacy backwards compat
                 "uri": card.id,
+                "count_pictures": len(card.data["pictures"]),
             }
         )
 
