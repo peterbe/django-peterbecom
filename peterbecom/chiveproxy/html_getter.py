@@ -4,6 +4,8 @@ import subprocess
 import time
 from pathlib import Path
 
+from django.conf import settings
+
 
 class SubprocessError(Exception):
     """Happens when the subprocess fails"""
@@ -45,12 +47,14 @@ def subprocess_execute(command, timeout_seconds=30, shell=True):
 
 
 def suck(url, attempts=3, debug=False):
-    here = Path(__file__).parent
-    executable = here / "out" / "html_getter"
-    if not executable.exists():
-        raise FileNotFoundError(
-            f"The executable {executable} does not exist. Did you compile it?"
-        )
+    executable = settings.HTML_GETTER_EXECUTABLE
+    if not executable:
+        here = Path(__file__).parent
+        executable = here / "out" / "html_getter"
+        if not executable.exists():
+            raise FileNotFoundError(
+                f"The executable {executable} does not exist. Did you compile it?"
+            )
     command = f'{executable} "{url}"'
     if debug:
         print("Command:", command)
