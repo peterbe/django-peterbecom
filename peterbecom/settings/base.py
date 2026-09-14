@@ -453,4 +453,4 @@ CHIVEPROXY_NETLOC = "thechive.com"
 CHIVEPROXY_PATH_PREFIX = "/wp-content/uploads/"
 
 # If not set, becomes `peterbecom/chiveproxy/out/html_getter` by default.
-HTML_GETTER_EXECUTABLE = None
+HTML_GETTER_EXECUTABLE = config("HTML_GETTER_EXECUTABLE", default=None)
