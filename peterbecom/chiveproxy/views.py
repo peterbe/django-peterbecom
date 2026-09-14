@@ -130,7 +130,7 @@ def update_cards_without_pictures_periodically():
                 )
 
 
-def update_cards(limit=None, debug=False):
+def update_cards(limit=None, debug=False, dry_run=False):
     count_updated = count_tried = 0
     for card in sorted(get_cards(limit=limit, debug=debug), key=lambda c: c["date"]):
         url = card.pop("url")
@@ -145,7 +145,8 @@ def update_cards(limit=None, debug=False):
                 data = get_card(url)
                 if data:
                     card.update(data)
-                    Card.objects.create(url=url, data=card)
+                    if not dry_run:
+                        Card.objects.create(url=url, data=card)
                     count_updated += 1
                 took_seconds = time.time() - t0
                 _cards_log(
