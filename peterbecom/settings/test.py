@@ -52,3 +52,6 @@ ANTHROPIC_API_KEY = "shouldnotbeused"
 
 CHIVEPROXY_NETLOC = "choive.com"
 CHIVEPROXY_PATH_PREFIX = "/content"
+
+
+IMAGE_PROXY_CACHE_ROOT = BASE_DIR / "cache" / "test__image_proxy"

@@ -454,3 +454,6 @@ CHIVEPROXY_PATH_PREFIX = "/wp-content/uploads/"
 
 # If not set, becomes `peterbecom/chiveproxy/out/html_getter` by default.
 HTML_GETTER_EXECUTABLE = config("HTML_GETTER_EXECUTABLE", default=None)
+
+
+IMAGE_PROXY_CACHE_ROOT = BASE_DIR / "cache" / "image_proxy"

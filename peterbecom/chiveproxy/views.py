@@ -1,4 +1,5 @@
 import hashlib
+import shutil
 import time
 from subprocess import TimeoutExpired
 from urllib.parse import urlparse
@@ -194,7 +195,7 @@ class ImageProxyForm(forms.Form):
             raise forms.ValidationError("Invalid path prefix")
 
         path_lowered = parsed.path.lower()
-        if not (path_lowered.endswith((".jpg", ".png"))):
+        if not (path_lowered.endswith((".jpg", ".png", ".webp"))):
             raise forms.ValidationError(f"Invalid file extension ({path_lowered})")
 
         return url
@@ -206,7 +207,7 @@ def image_proxy(request):
         return http.HttpResponseBadRequest(form.errors.as_text())
     url = form.cleaned_data["url"]
 
-    cache_root = settings.BASE_DIR / "cache" / "image_proxy"
+    cache_root = settings.IMAGE_PROXY_CACHE_ROOT
     if not cache_root.exists():
         cache_root.mkdir(parents=True)
 
@@ -240,22 +241,32 @@ def image_proxy(request):
                 f"({file_size(origin_destination_file_name.stat().st_size)})"
             )
 
-        try:
-            image = Image.open(origin_destination_file_name)
-            image.save(destination_file_name, "webp", quality=99)
-            print(
-                f"IMAGE_PROXY: Converted fetched image from URL: "
-                f"{origin_destination_file_name} -> {destination_file_name} "
-                f"({file_size(destination_file_name.stat().st_size)})"
-            )
-        except UnidentifiedImageError:
-            print(
-                f"IMAGE_PROXY: Failed to identify image from URL: {origin_destination_file_name} "
-                f"(file size: {file_size(origin_destination_file_name.stat().st_size)})"
-                if origin_destination_file_name.exists()
-                else " (file does not exist)"
-            )
-            return http.HttpResponseBadRequest("Bad image")
+        if origin_destination_file_name.name.endswith(".webp"):
+            shutil.copy(origin_destination_file_name, destination_file_name)
+        else:
+            try:
+                print(
+                    "\nCONVERTING",
+                    origin_destination_file_name,
+                    "TO",
+                    destination_file_name,
+                    "\n",
+                )
+                image = Image.open(origin_destination_file_name)
+                image.save(destination_file_name, "webp", quality=99)
+                print(
+                    f"IMAGE_PROXY: Converted fetched image from URL: "
+                    f"{origin_destination_file_name} -> {destination_file_name} "
+                    f"({file_size(destination_file_name.stat().st_size)})"
+                )
+            except UnidentifiedImageError:
+                print(
+                    f"IMAGE_PROXY: Failed to identify image from URL: {origin_destination_file_name} "
+                    f"(file size: {file_size(origin_destination_file_name.stat().st_size)})"
+                    if origin_destination_file_name.exists()
+                    else " (file does not exist)"
+                )
+                return http.HttpResponseBadRequest("Bad image")
 
         origin_destination_file_name.unlink()
 
