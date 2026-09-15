@@ -6,6 +6,32 @@ from pathlib import Path
 
 from django.conf import settings
 
+"""
+Comparing doing this with obscura vs doing this with puppeteer:
+
+PUPPETEER
+Elapsed Time: 0:09.17
+Peak RAM: 255196 KB
+
+Elapsed Time: 0:09.16
+Peak RAM: 256152 KB
+
+Elapsed Time: 0:09.86
+Peak RAM: 255772 KB
+
+
+OBSCURA
+Elapsed Time: 0:03.91
+Peak RAM: 174564 KB
+
+Elapsed Time: 0:03.76
+Peak RAM: 174432 KB
+
+Elapsed Time: 0:03.63
+Peak RAM: 174304 KB
+
+"""
+
 
 class SubprocessError(Exception):
     """Happens when the subprocess fails"""
