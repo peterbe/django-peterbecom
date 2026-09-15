@@ -35,3 +35,27 @@ def test_image_proxy_happy_path(client, requestsmock):
     assert "public" in response["Cache-Control"]
     assert "max-age=" in response["Cache-Control"]
     assert "max-age=0" not in response["Cache-Control"]
+
+
+def test_image_proxy_png(client, requestsmock):
+    with open("peterbecom/chiveproxy/tests/test_image.png", "rb") as f:
+        requestsmock.get("https://choive.com/content/test.png", content=f.read())
+    url = reverse("chiveproxy:image_proxy")
+    response = client.get(url, {"url": "https://choive.com/content/test.png"})
+    assert response.status_code == 200
+    assert response["Content-Type"] == "image/webp"
+    assert "public" in response["Cache-Control"]
+    assert "max-age=" in response["Cache-Control"]
+    assert "max-age=0" not in response["Cache-Control"]
+
+
+def test_image_proxy_webp(client, requestsmock):
+    with open("peterbecom/chiveproxy/tests/test_image.webp", "rb") as f:
+        requestsmock.get("https://choive.com/content/test.webp", content=f.read())
+    url = reverse("chiveproxy:image_proxy")
+    response = client.get(url, {"url": "https://choive.com/content/test.webp"})
+    assert response.status_code == 200
+    assert response["Content-Type"] == "image/webp"
+    assert "public" in response["Cache-Control"]
+    assert "max-age=" in response["Cache-Control"]
+    assert "max-age=0" not in response["Cache-Control"]
