@@ -1,4 +1,16 @@
+import shutil
+
+import pytest
+from django.conf import settings
 from django.urls import reverse
+
+
+@pytest.fixture(scope="module", autouse=True)
+def after_tests():
+    yield
+
+    assert settings.IMAGE_PROXY_CACHE_ROOT.name.startswith("test_")
+    shutil.rmtree(settings.IMAGE_PROXY_CACHE_ROOT)
 
 
 def test_image_proxy_errors(client):
