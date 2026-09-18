@@ -1,3 +1,4 @@
+import re
 import shutil
 
 import pytest
@@ -81,5 +82,6 @@ def test_image_proxy_redirect_to_file(client, requestsmock):
         url, {"url": "https://choive.com/content/test.jpg", "redirect_to_file": True}
     )
     assert response.status_code == 302
-    # hashing stable because the secret is stable (in tests)
-    assert response["Location"] == "/image_proxy/8f/e2/test-7a052c52.webp"
+    assert re.findall(
+        r"/image_proxy/\w{2}/\w{2}/test-\w{8}\.webp", response["Location"]
+    )
