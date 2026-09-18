@@ -179,6 +179,7 @@ def api_card(request, pk):
 
 class ImageProxyForm(forms.Form):
     url = forms.URLField(required=True)
+    redirect_to_file = forms.BooleanField(required=False)
 
     def clean_url(self):
         url = self.cleaned_data.get("url")
@@ -269,6 +270,11 @@ def image_proxy(request):
                 return http.HttpResponseBadRequest("Bad image")
 
         origin_destination_file_name.unlink()
+
+    if form.cleaned_data["redirect_to_file"]:
+        return http.HttpResponseRedirect(
+            f"/image_proxy/{destination_file_name.relative_to(settings.IMAGE_PROXY_CACHE_ROOT)}"
+        )
 
     response = http.HttpResponse()
     response["Content-Type"] = "image/webp"

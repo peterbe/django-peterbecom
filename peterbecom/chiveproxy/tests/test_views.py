@@ -71,3 +71,15 @@ def test_image_proxy_webp(client, requestsmock):
     assert "public" in response["Cache-Control"]
     assert "max-age=" in response["Cache-Control"]
     assert "max-age=0" not in response["Cache-Control"]
+
+
+def test_image_proxy_redirect_to_file(client, requestsmock):
+    with open("peterbecom/chiveproxy/tests/test_image.jpg", "rb") as f:
+        requestsmock.get("https://choive.com/content/test.jpg", content=f.read())
+    url = reverse("chiveproxy:image_proxy")
+    response = client.get(
+        url, {"url": "https://choive.com/content/test.jpg", "redirect_to_file": True}
+    )
+    assert response.status_code == 302
+    # hashing stable because the secret is stable (in tests)
+    assert response["Location"] == "/image_proxy/8f/e2/test-7a052c52.webp"
