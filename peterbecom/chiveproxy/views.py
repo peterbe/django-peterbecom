@@ -196,7 +196,7 @@ class ImageProxyForm(forms.Form):
             raise forms.ValidationError("Invalid path prefix")
 
         path_lowered = parsed.path.lower()
-        if not (path_lowered.endswith((".jpg", ".png", ".webp", ".jpeg"))):
+        if not (path_lowered.endswith((".jpg", ".png", ".webp", ".jpeg", ".mp4"))):
             raise forms.ValidationError(f"Invalid file extension ({path_lowered})")
 
         return url
@@ -219,8 +219,13 @@ def image_proxy(request):
     if settings.RUNNING_TESTS:
         prefix = "test-"
     origin_destination_file_name = cache_root / f"{prefix}{seeded}.{file_extension}"
+
+    destination_file_extension = "mp4" if file_extension == "mp4" else "webp"
     destination_file_name = (
-        cache_root / seeded[:2] / seeded[2:4] / f"{prefix}{seeded[4:]}.webp"
+        cache_root
+        / seeded[:2]
+        / seeded[2:4]
+        / f"{prefix}{seeded[4:]}.{destination_file_extension}"
     )
     if not destination_file_name.parent.exists():
         destination_file_name.parent.mkdir(parents=True)
@@ -242,7 +247,10 @@ def image_proxy(request):
                 f"({file_size(origin_destination_file_name.stat().st_size)})"
             )
 
-        if origin_destination_file_name.name.endswith(".webp"):
+        if (
+            origin_destination_file_name.name.endswith(".webp")
+            or destination_file_extension == "mp4"
+        ):
             shutil.copy(origin_destination_file_name, destination_file_name)
         else:
             try:
@@ -277,7 +285,10 @@ def image_proxy(request):
         )
     else:
         response = http.HttpResponse()
-        response["Content-Type"] = "image/webp"
+        if destination_file_extension == "mp4":
+            response["Content-Type"] = "video/mp4"
+        else:
+            response["Content-Type"] = "image/webp"
         with open(destination_file_name, "rb") as f:
             image_data = f.read()
         response.write(image_data)
