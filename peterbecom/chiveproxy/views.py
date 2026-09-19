@@ -196,7 +196,7 @@ class ImageProxyForm(forms.Form):
             raise forms.ValidationError("Invalid path prefix")
 
         path_lowered = parsed.path.lower()
-        if not (path_lowered.endswith((".jpg", ".png", ".webp"))):
+        if not (path_lowered.endswith((".jpg", ".png", ".webp", ".jpeg"))):
             raise forms.ValidationError(f"Invalid file extension ({path_lowered})")
 
         return url
