@@ -272,17 +272,17 @@ def image_proxy(request):
         origin_destination_file_name.unlink()
 
     if form.cleaned_data["redirect_to_file"]:
-        return http.HttpResponseRedirect(
+        response = http.HttpResponseRedirect(
             f"/image_proxy/{destination_file_name.relative_to(settings.IMAGE_PROXY_CACHE_ROOT)}"
         )
+    else:
+        response = http.HttpResponse()
+        response["Content-Type"] = "image/webp"
+        with open(destination_file_name, "rb") as f:
+            image_data = f.read()
+        response.write(image_data)
 
-    response = http.HttpResponse()
-    response["Content-Type"] = "image/webp"
-    with open(destination_file_name, "rb") as f:
-        image_data = f.read()
-    response.write(image_data)
-
-    ttl = settings.DEBUG and 10 or 60 * 60 * 6
+    ttl = settings.DEBUG and 10 or 60 * 60 * 24
     patch_cache_control(response, max_age=ttl, public=True)
 
     return response

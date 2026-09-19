@@ -85,3 +85,6 @@ def test_image_proxy_redirect_to_file(client, requestsmock):
     assert re.findall(
         r"/image_proxy/\w{2}/\w{2}/test-\w{8}\.webp", response["Location"]
     )
+    assert "public" in response["Cache-Control"]
+    assert "max-age=" in response["Cache-Control"]
+    assert "max-age=0" not in response["Cache-Control"]
