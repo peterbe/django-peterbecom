@@ -100,3 +100,15 @@ def test_image_proxy_redirect_to_file(client, requestsmock):
     assert "public" in response["Cache-Control"]
     assert "max-age=" in response["Cache-Control"]
     assert "max-age=0" not in response["Cache-Control"]
+
+
+def test_image_proxy_mp4(client, requestsmock):
+    with open("peterbecom/chiveproxy/tests/test_video.mp4", "rb") as f:
+        requestsmock.get("https://choive.com/content/test.mp4", content=f.read())
+    url = reverse("chiveproxy:image_proxy")
+    response = client.get(url, {"url": "https://choive.com/content/test.mp4"})
+    assert response.status_code == 200
+    assert response["Content-Type"] == "video/mp4"
+    assert "public" in response["Cache-Control"]
+    assert "max-age=" in response["Cache-Control"]
+    assert "max-age=0" not in response["Cache-Control"]
