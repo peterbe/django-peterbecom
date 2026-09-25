@@ -147,6 +147,7 @@ def song(request):
         )
 
     song_data = res["song"]
+    _url = song_data.get("_url")
 
     image = song_data.get("image")
     if image:
@@ -162,6 +163,7 @@ def song(request):
 
     song = {
         "image": image,
+        "_url": _url,
         "artist": {
             "name": song_data["artist"]["name"],
         },
