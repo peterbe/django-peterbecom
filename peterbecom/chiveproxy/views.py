@@ -196,7 +196,9 @@ class ImageProxyForm(forms.Form):
             raise forms.ValidationError("Invalid path prefix")
 
         path_lowered = parsed.path.lower()
-        if not (path_lowered.endswith((".jpg", ".png", ".webp", ".jpeg", ".mp4"))):
+        if not (
+            path_lowered.endswith((".jpg", ".png", ".webp", ".jpeg", ".mp4", ".avif"))
+        ):
             raise forms.ValidationError(f"Invalid file extension ({path_lowered})")
 
         return url
@@ -220,7 +222,10 @@ def image_proxy(request):
         prefix = "test-"
     origin_destination_file_name = cache_root / f"{prefix}{seeded}.{file_extension}"
 
-    destination_file_extension = "mp4" if file_extension == "mp4" else "webp"
+    no_convert_file_extensions = ("mp4", "avif")
+    destination_file_extension = (
+        file_extension if file_extension in no_convert_file_extensions else "webp"
+    )
     destination_file_name = (
         cache_root
         / seeded[:2]
@@ -229,7 +234,10 @@ def image_proxy(request):
     )
     if not destination_file_name.parent.exists():
         destination_file_name.parent.mkdir(parents=True)
-    if not destination_file_name.exists():
+
+    if destination_file_name.exists():
+        print(f"IMAGE_PROXY: Destination file already exists: {destination_file_name}")
+    else:
 
         def file_size(b: int) -> str:
             for unit in ["bytes", "KB", "MB", "GB"]:
@@ -249,8 +257,12 @@ def image_proxy(request):
 
         if (
             origin_destination_file_name.name.endswith(".webp")
-            or destination_file_extension == "mp4"
+            or destination_file_extension in no_convert_file_extensions
         ):
+            print(
+                "IMAGE_PROXY: Copying "
+                f"{origin_destination_file_name} -> {destination_file_name}"
+            )
             shutil.copy(origin_destination_file_name, destination_file_name)
         else:
             try:
@@ -287,6 +299,8 @@ def image_proxy(request):
         response = http.HttpResponse()
         if destination_file_extension == "mp4":
             response["Content-Type"] = "video/mp4"
+        elif destination_file_extension == "avif":
+            response["Content-Type"] = "image/avif"
         else:
             response["Content-Type"] = "image/webp"
         with open(destination_file_name, "rb") as f:

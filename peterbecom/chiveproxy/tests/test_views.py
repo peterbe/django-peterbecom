@@ -86,6 +86,27 @@ def test_image_proxy_jpeg(client, requestsmock):
     assert "max-age=0" not in response["Cache-Control"]
 
 
+def test_image_proxy_avif(client, requestsmock):
+    with open("peterbecom/chiveproxy/tests/test_image.avif", "rb") as f:
+        requestsmock.get("https://choive.com/content/test.avif", content=f.read())
+    url = reverse("chiveproxy:image_proxy")
+    response = client.get(url, {"url": "https://choive.com/content/test.avif"})
+    assert response.status_code == 200
+    assert response["Content-Type"] == "image/avif"
+    assert "public" in response["Cache-Control"]
+    assert "max-age=" in response["Cache-Control"]
+    assert "max-age=0" not in response["Cache-Control"]
+
+    # request it again and it request mock should not be needed
+    requestsmock.reset_mock()
+    response = client.get(url, {"url": "https://choive.com/content/test.avif"})
+    assert response.status_code == 200
+    assert response["Content-Type"] == "image/avif"
+    assert "public" in response["Cache-Control"]
+    assert "max-age=" in response["Cache-Control"]
+    assert "max-age=0" not in response["Cache-Control"]
+
+
 def test_image_proxy_redirect_to_file(client, requestsmock):
     with open("peterbecom/chiveproxy/tests/test_image.jpg", "rb") as f:
         requestsmock.get("https://choive.com/content/test.jpg", content=f.read())
