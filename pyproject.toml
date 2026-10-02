@@ -58,7 +58,7 @@ dependencies = [
     "requests==2.34.2",
     "rollbar==1.4.0",
     "ruff==0.16.6",
-    "sorl-thumbnail==13.0.0",
+    "sorl-thumbnail==13.1.0",
     "sql-metadata==3.0.1",
     "tomli==2.4.1",
     "xmltodict==1.0.4",
