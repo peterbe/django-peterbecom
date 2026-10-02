@@ -55,3 +55,8 @@ CHIVEPROXY_PATH_PREFIX = "/content"
 
 
 IMAGE_PROXY_CACHE_ROOT = BASE_DIR / "cache" / "test__image_proxy"
+
+BANNED_CHIVE_URL_PARTS = [
+    "Thisisalsobanned.mp4",
+    "this-is-banned.png",
+]
