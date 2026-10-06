@@ -1,3 +1,5 @@
+import re
+
 from django.conf import settings
 from huey import crontab
 from huey.contrib.djhuey import periodic_task
@@ -11,7 +13,7 @@ def filter_pictures(pictures):
         keep = True
         for banned_part in settings.BANNED_CHIVE_URL_PARTS:
             needles = [x for x in (picture.get("mp4src"), picture.get("img")) if x]
-            if any(banned_part in needle for needle in needles):
+            if any(_is_banned(banned_part, needle) for needle in needles):
                 print("SKIP THIS PICTURE!!!!")
                 print(picture)
                 keep = False
@@ -21,7 +23,15 @@ def filter_pictures(pictures):
     return filtered_pictures
 
 
-def remove_banned_pictures(limit=10):
+def _is_banned(banned_part: str | re.Pattern, needle: str) -> bool:
+    if isinstance(banned_part, str):
+        return banned_part in needle
+    elif isinstance(banned_part, re.Pattern):
+        return bool(banned_part.search(needle))
+    return False
+
+
+def remove_banned_pictures(limit=10, dry_run=False):
     for card in Card.objects.all().order_by("-created")[:limit]:
         updated_pictures = filter_pictures(card.data["pictures"])
         if updated_pictures != card.data["pictures"]:
@@ -29,8 +39,9 @@ def remove_banned_pictures(limit=10):
                 "REMOVED",
                 [p for p in card.data["pictures"] if p not in updated_pictures],
             )
-            card.data["pictures"] = updated_pictures
-            card.save()
+            if not dry_run:
+                card.data["pictures"] = updated_pictures
+                card.save()
 
 
 @periodic_task(crontab(hour="*", minute="10"))
