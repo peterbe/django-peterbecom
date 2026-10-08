@@ -1,3 +1,6 @@
+import base64
+from pathlib import Path
+
 from django.conf import settings
 from django.utils import timezone
 
@@ -6,8 +9,8 @@ from peterbecom.llmcalls.tasks import execute_completion
 from peterbecom.settings.base import VALID_LLM_MODELS
 
 
-def rewrite_comment(comment: str, oid: str):
-    llm_call = get_llm_response_comment(comment, oid)
+def get_image_transcript(image_path: Path):
+    llm_call = get_llm_response_image_transcript(image_path)
     if llm_call.status == "success":
         response = llm_call.response
         if "choices" in response and len(response["choices"]) > 0:
@@ -18,67 +21,48 @@ def rewrite_comment(comment: str, oid: str):
     return None
 
 
-def get_llm_response_comment(
-    comment: str,
-    oid: str,
+def get_llm_response_image_transcript(
+    image_path: Path,
+    # model="claude-sonnet-5-5",
     model: str = VALID_LLM_MODELS[0],
-    use_case="admin_spellcheck_comment",
+    use_case="chiveproxy_image_transcript",
 ) -> LLMCall:
-    messages = []
-    messages.append(
-        {
-            "role": "system",
-            "content": "You are a helpful editor that reads blog post comments and corrects grammar and punctuations.",
-        }
-    )
-    messages.append(
-        {
-            "role": "user",
-            "content": "You have to look for common spelling mistakes, lack of spaces after full stops, incorrect capitalization.",
-        }
-    )
-    messages.append(
-        {
-            "role": "user",
-            "content": """
-    Your job is to rewrite the comment without changing the meaning, but correcting any grammar and punctuation mistakes. Only return the rewritten comment and nothing else.
-    Avoid using Unicode quotation marks, use regular ASCII quotes instead.
-    """,
-        }
-    )
+    with open(image_path, "rb") as f:
+        image_data = base64.standard_b64encode(f.read()).decode("utf-8")
 
-    comment_escaped = comment.replace('"', '\\"')
-    if model.startswith("claude"):
-        messages.append(
+    if image_path.suffix.lower() == ".webp":
+        media_type = "image/webp"
+    elif image_path.suffix.lower() == ".png":
+        media_type = "image/png"
+    elif image_path.suffix.lower() == ".jpg" or image_path.suffix.lower() == ".jpeg":
+        media_type = "image/jpeg"
+    else:
+        raise ValueError(f"Unsupported image format: {image_path.suffix}")
+
+    messages = (
+        [
             {
                 "role": "user",
-                "content": f"""
-Here is the comment:
-
-{comment_escaped}
-""".strip(),
+                "content": [
+                    {
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": media_type,
+                            "data": image_data,
+                        },
+                    },
+                    {
+                        "type": "text",
+                        "text": "Extract all text from this image exactly as it appears. "
+                        "Preserve line breaks and layout where possible. "
+                        "Output only the extracted text, with no commentary.",
+                    },
+                ],
             }
-        )
-    else:
-        comment_escaped = comment_escaped.replace("\n", "\\n")
-
-        messages.append(
-            {
-                "role": "user",
-                "content": f"""
-Here is the comment:
-
-```
-{comment_escaped}
-```
-""".strip(),
-            }
-        )
-
-    if model.startswith("claude"):
-        assert settings.ANTHROPIC_API_KEY, "ANTHROPIC_API_KEY must be set"
-    else:
-        assert settings.OPENAI_API_KEY, "OPENAI_API_KEY must be set"
+        ],
+    )
+    assert settings.ANTHROPIC_API_KEY, "ANTHROPIC_API_KEY must be set"
 
     def create_and_start(attempts=0):
         llm_call = LLMCall.objects.create(
@@ -90,7 +74,7 @@ Here is the comment:
             error=None,
             attempts=attempts,
             took_seconds=None,
-            metadata={"comment": comment, "oid": oid},
+            metadata={"image_path": str(image_path)},
         )
 
         execute_completion(llm_call.id)

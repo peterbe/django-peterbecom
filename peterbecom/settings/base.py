@@ -427,8 +427,8 @@ POPULATE_SONG_CACHE_BY_ID_BATCH_SIZE = 5
 VALID_LLM_MODELS = (
     # "gpt-5",
     # "gpt-5-mini",
-    "claude-opus-4-8",
     "claude-opus-5",
+    "claude-opus-4-8",
     "openai-gpt-5",
     "openai-gpt-5-mini",
 )
