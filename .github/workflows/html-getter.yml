@@ -1,0 +1,31 @@
+name: HTML Getter
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  html-getter:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install bun packages
+        working-directory: peterbecom/chiveproxy
+        run: bun install
+
+      - name: Compile html_getter with bun
+        working-directory: peterbecom/chiveproxy
+        run: bun run compile
+
+      - name: Test compiled html_getter
+        working-directory: peterbecom/chiveproxy
+        run: ./out/html_getter https://www.example.com
