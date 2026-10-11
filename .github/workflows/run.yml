@@ -60,8 +60,13 @@ jobs:
           ./scripts/ci-run.sh
 
       - name: Run gunicorn server
+        id: server
+        background: true
         run: |
-          ./bin/run.sh web > /tmp/stdout.log 2> /tmp/stderr.log &
+          ./bin/run.sh web
+
+      - name: Wait for the server step to finish
+        wait: server
 
       - name: Navigate to the server
         run: |
@@ -80,13 +85,3 @@ jobs:
           echo ""
           curl --fail http://localhost:8888/robots.txt
           echo ""
-
-      - name: Debug any server outputs
-        if: failure()
-        run: |
-          echo "___NETSTAT___"
-          netstat -nplt
-          echo "____STDOUT____"
-          cat /tmp/stdout.log
-          echo "____STDERR____"
-          cat /tmp/stderr.log
