@@ -9,7 +9,7 @@ from peterbecom.llmcalls.tasks import execute_completion
 from peterbecom.settings.base import VALID_LLM_MODELS
 
 
-def get_image_transcript(image_path: Path):
+def get_image_transcript(image_path: Path) -> LLMCall:
     llm_call = get_llm_response_image_transcript(image_path)
     if llm_call.status == "success":
         response = llm_call.response
@@ -18,12 +18,11 @@ def get_image_transcript(image_path: Path):
             if "message" in choice and "content" in choice["message"]:
                 return choice["message"]["content"]
 
-    return None
+    return llm_call
 
 
 def get_llm_response_image_transcript(
     image_path: Path,
-    # model="claude-sonnet-5-5",
     model: str = VALID_LLM_MODELS[0],
     use_case="chiveproxy_image_transcript",
 ) -> LLMCall:
@@ -39,29 +38,27 @@ def get_llm_response_image_transcript(
     else:
         raise ValueError(f"Unsupported image format: {image_path.suffix}")
 
-    messages = (
-        [
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "image",
-                        "source": {
-                            "type": "base64",
-                            "media_type": media_type,
-                            "data": image_data,
-                        },
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": media_type,
+                        "data": image_data,
                     },
-                    {
-                        "type": "text",
-                        "text": "Extract all text from this image exactly as it appears. "
-                        "Preserve line breaks and layout where possible. "
-                        "Output only the extracted text, with no commentary.",
-                    },
-                ],
-            }
-        ],
-    )
+                },
+                {
+                    "type": "text",
+                    "text": "Extract all text from this image exactly as it appears. "
+                    "Preserve line breaks and layout where possible. "
+                    "Output only the extracted text, with no commentary.",
+                },
+            ],
+        }
+    ]
     assert settings.ANTHROPIC_API_KEY, "ANTHROPIC_API_KEY must be set"
 
     def create_and_start(attempts=0):
