@@ -52,13 +52,27 @@ def _execute_completion(llm_call_id, timeout=60):
             else:
                 messages.append(message)
 
-        response = client.messages.create(
-            model="claude-opus-5",
-            max_tokens=1000,  # necessary??
-            system=system_prompt,
-            messages=messages,
-            timeout=timeout,
-        )
+        if system_prompt is None:
+            # When the system prompt is not needed, you get this error
+            # even if you pass it as None:
+            #   anthropic.BadRequestError: Error code: 400 - \
+            #    {'type': 'error', 'error': {'type': 'invalid_request_error',
+            #    'message': 'system: Input should be a valid array'},
+            #    'request_id': 'xxxx'}
+            response = client.messages.create(
+                model="claude-opus-5",
+                max_tokens=1000,  # necessary??
+                messages=messages,
+                timeout=timeout,
+            )
+        else:
+            response = client.messages.create(
+                model="claude-opus-5",
+                max_tokens=1000,  # necessary??
+                system=system_prompt,
+                messages=messages,
+                timeout=timeout,
+            )
 
     elif llm_call.model.startswith("openai-"):
         client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)

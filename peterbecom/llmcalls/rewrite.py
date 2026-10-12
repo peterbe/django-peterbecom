@@ -75,7 +75,10 @@ Here is the comment:
             }
         )
 
-    assert settings.OPENAI_API_KEY, "OPENAI_API_KEY must be set"
+    if model.startswith("claude"):
+        assert settings.ANTHROPIC_API_KEY, "ANTHROPIC_API_KEY must be set"
+    else:
+        assert settings.OPENAI_API_KEY, "OPENAI_API_KEY must be set"
 
     def create_and_start(attempts=0):
         llm_call = LLMCall.objects.create(
