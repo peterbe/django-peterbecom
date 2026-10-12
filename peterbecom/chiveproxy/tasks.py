@@ -2,9 +2,7 @@ import re
 
 from django.conf import settings
 from huey import crontab
-from huey.contrib.djhuey import periodic_task
-
-from .models import Card
+from huey.contrib.djhuey import periodic_task, task
 
 
 def filter_pictures(pictures):
@@ -32,6 +30,9 @@ def _is_banned(banned_part: str | re.Pattern, needle: str) -> bool:
 
 
 def remove_banned_pictures(limit=10, dry_run=False):
+    # deliberately lazy import
+    from peterbecom.chiveproxy.models import Card
+
     for card in Card.objects.all().order_by("-created")[:limit]:
         updated_pictures = filter_pictures(card.data["pictures"])
         if updated_pictures != card.data["pictures"]:
@@ -47,3 +48,14 @@ def remove_banned_pictures(limit=10, dry_run=False):
 @periodic_task(crontab(hour="*", minute="10"))
 def remove_banned_pictures_periodically():
     remove_banned_pictures()
+
+
+@task()
+def preload_image_proxies_task(card_id: int, sleep_delay: float = 1):
+    print("Preloading image proxies for", repr(card_id))
+    # deliberately lazy import
+    from peterbecom.chiveproxy.models import Card
+    from peterbecom.chiveproxy.preload_image_proxies import load_all_image_proxies
+
+    card = Card.objects.get(id=card_id)
+    load_all_image_proxies(card, sleep_delay=sleep_delay)
