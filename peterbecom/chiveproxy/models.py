@@ -1,6 +1,10 @@
 from django.db import models
-from django.db.models.signals import pre_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
+
+from peterbecom.chiveproxy.tasks import preload_image_proxies_task
+
+# from peterbecom.chiveproxy.tasks import preload_image_proxies_task
 
 
 class Card(models.Model):
@@ -21,3 +25,9 @@ class Card(models.Model):
 def set_text(sender, instance, **kwargs):
     if not instance.text and instance.data:
         instance.text = instance.data.get("text") or ""
+
+
+@receiver(post_save, sender=Card)
+def preload_image_proxies(sender, instance, **kwargs):
+    print(f"Preloading image proxies for {instance}")
+    preload_image_proxies_task(instance.id, sleep_delay=1)
