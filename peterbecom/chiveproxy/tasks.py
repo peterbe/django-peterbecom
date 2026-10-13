@@ -65,12 +65,14 @@ def _delete_old_image_proxy_files():
 
     count = 0
     MAX_COUNT = 10
+    MIN_AGE_DAYS = 100
+
     for file_path in cache_root.rglob("*"):
         if file_path.is_file():
             age_seconds = time.time() - file_path.stat().st_mtime
             age_hours = age_seconds / 3600
             age_days = age_hours / 24
-            if age_days > 27:
+            if age_days > MIN_AGE_DAYS:
                 print(
                     f"Deleting old image proxy file: {file_path}, "
                     f"Age: {age_days:.1f} days"
