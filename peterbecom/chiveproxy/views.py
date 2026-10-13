@@ -210,6 +210,8 @@ def image_proxy(request):
         return http.HttpResponseBadRequest(form.errors.as_text())
     url = form.cleaned_data["url"]
 
+    destination_cache: list[str] = []
+
     cache_root = settings.IMAGE_PROXY_CACHE_ROOT
     if not cache_root.exists():
         cache_root.mkdir(parents=True)
@@ -228,16 +230,20 @@ def image_proxy(request):
     )
     destination_file_name = (
         cache_root
-        / seeded[:2]
-        / seeded[2:4]
-        / f"{prefix}{seeded[4:]}.{destination_file_extension}"
+        / seeded[:4]
+        / seeded[4:6]
+        / seeded[6:8]
+        / seeded[8:9]
+        / f"{prefix}{seeded[9:]}.{destination_file_extension}"
     )
     if not destination_file_name.parent.exists():
         destination_file_name.parent.mkdir(parents=True)
 
     if destination_file_name.exists():
         print(f"IMAGE_PROXY: Destination file already exists: {destination_file_name}")
+        destination_cache.append("hit")
     else:
+        destination_cache.append("miss")
 
         def file_size(b: int) -> str:
             for unit in ["bytes", "KB", "MB", "GB"]:
@@ -254,6 +260,7 @@ def image_proxy(request):
                 f"IMAGE_PROXY: Fetched image from URL: {url} -> {origin_destination_file_name} "
                 f"({file_size(origin_destination_file_name.stat().st_size)})"
             )
+            destination_cache.append("fetched")
 
         if (
             origin_destination_file_name.name.endswith(".webp")
@@ -264,6 +271,8 @@ def image_proxy(request):
                 f"{origin_destination_file_name} -> {destination_file_name}"
             )
             shutil.copy(origin_destination_file_name, destination_file_name)
+
+            destination_cache.append("copied")
         else:
             try:
                 print(
@@ -280,6 +289,7 @@ def image_proxy(request):
                     f"{origin_destination_file_name} -> {destination_file_name} "
                     f"({file_size(destination_file_name.stat().st_size)})"
                 )
+                destination_cache.append("converted")
             except UnidentifiedImageError:
                 print(
                     f"IMAGE_PROXY: Failed to identify image from URL: {origin_destination_file_name} "
@@ -307,6 +317,8 @@ def image_proxy(request):
             image_data = f.read()
         response.write(image_data)
 
+    response["x-destination-cache"] = ", ".join(destination_cache)
+
     ttl = settings.DEBUG and 10 or 60 * 60 * 24
     patch_cache_control(response, max_age=ttl, public=True)
 
@@ -319,6 +331,7 @@ def fetch_image(url: str) -> bytes:
     return response.content
 
 
-def seeded_token(seed: str, length=12) -> str:
+def seeded_token(seed: str, length=16) -> str:
     digest = hashlib.sha256(seed.encode("utf-8")).hexdigest()
-    return digest[:length]
+    date_prefix = timezone.now().strftime("%Y%m%d")
+    return f"{date_prefix}{digest}"[:length]

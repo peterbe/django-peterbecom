@@ -36,11 +36,12 @@ def load_all_image_proxies(card: Card, sleep_delay: float = 0.1):
             wrapped_urls.append(wrapped_url)
 
         for wrapped_url in wrapped_urls:
-            print(f"Loading image proxy URL: {wrapped_url}")
+            print(f"Loading image proxy URL {wrapped_url}")
             response = _fetch_image(wrapped_url)
             print(f"Fetched image response: {response}")
-            print("URL:           ", response.url)
-            print("Content-Length:", response.headers["content-length"])
-            print("Content-Type:  ", response.headers["content-type"])
+            print("URL:                 ", response.url)
+            print("Content-Length:      ", response.headers["content-length"])
+            print("Content-Type:        ", response.headers["content-type"])
+            print("X-Destination-Cache: ", response.headers.get("x-destination-cache"))
             if sleep_delay:
                 time.sleep(sleep_delay)
