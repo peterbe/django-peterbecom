@@ -252,10 +252,20 @@ def image_proxy(request):
                 b /= 1024.0
             return f"{b:.2f} TB"
 
+        if (
+            origin_destination_file_name.exists()
+            and origin_destination_file_name.st_size == 0
+        ):
+            origin_destination_file_name.unlink()
+
         if not origin_destination_file_name.exists():
             with open(origin_destination_file_name, "wb") as f:
                 print("IMAGE_PROXY: FETCHING", url)
-                f.write(fetch_image(url))
+                response = requests.get(url)
+                if response.status_code == 404:
+                    return http.HttpNotFound("Image not found")
+                response.raise_for_status()
+                f.write(response.content)
             print(
                 f"IMAGE_PROXY: Fetched image from URL: {url} -> {origin_destination_file_name} "
                 f"({file_size(origin_destination_file_name.stat().st_size)})"
