@@ -230,9 +230,11 @@ def image_proxy(request):
     )
     destination_file_name = (
         cache_root
-        / seeded[:2]
-        / seeded[2:4]
-        / f"{prefix}{seeded[4:]}.{destination_file_extension}"
+        / seeded[:4]
+        / seeded[4:6]
+        / seeded[6:8]
+        / seeded[8:9]
+        / f"{prefix}{seeded[9:]}.{destination_file_extension}"
     )
     if not destination_file_name.parent.exists():
         destination_file_name.parent.mkdir(parents=True)
@@ -329,6 +331,7 @@ def fetch_image(url: str) -> bytes:
     return response.content
 
 
-def seeded_token(seed: str, length=12) -> str:
+def seeded_token(seed: str, length=16) -> str:
     digest = hashlib.sha256(seed.encode("utf-8")).hexdigest()
-    return digest[:length]
+    date_prefix = timezone.now().strftime("%Y%m%d")
+    return f"{date_prefix}{digest}"[:length]
