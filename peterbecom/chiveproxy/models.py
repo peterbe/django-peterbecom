@@ -2,10 +2,6 @@ from django.db import models
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
-from peterbecom.chiveproxy.tasks import preload_image_proxies_task
-
-# from peterbecom.chiveproxy.tasks import preload_image_proxies_task
-
 
 class Card(models.Model):
     url = models.URLField(max_length=400, db_index=True)
@@ -30,4 +26,8 @@ def set_text(sender, instance, **kwargs):
 @receiver(post_save, sender=Card)
 def preload_image_proxies(sender, instance, **kwargs):
     print(f"Preloading image proxies for {instance}")
+
+    # deliberately lazy import to avoid circular import issues
+    from peterbecom.chiveproxy.tasks import preload_image_proxies_task
+
     preload_image_proxies_task(instance.id, sleep_delay=1)
