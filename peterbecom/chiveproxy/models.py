@@ -24,7 +24,10 @@ def set_text(sender, instance, **kwargs):
 
 
 @receiver(post_save, sender=Card)
-def preload_image_proxies(sender, instance, **kwargs):
+def preload_image_proxies(sender, instance, created, **kwargs):
+    if not created:
+        return
+
     print(f"Preloading image proxies for {instance}")
 
     # deliberately lazy import to avoid circular import issues
