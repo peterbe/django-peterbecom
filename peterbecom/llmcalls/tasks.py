@@ -1,5 +1,5 @@
 import time
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import anthropic
 import openai
@@ -31,9 +31,7 @@ def clean_stale_llm_calls():
 @periodic_task(crontab(minute="58"))
 def delete_old_llm_calls():
     DAYS = 200
-    qs = LLMCall.objects.filter(
-        created__lt=timezone.now() - datetime.timedelta(days=DAYS)
-    )
+    qs = LLMCall.objects.filter(created__lt=timezone.now() - timedelta(days=DAYS))
     print("LLM CALLS", qs.count(), "ARE OLDER THAN", DAYS, "DAYS")
     qs.delete()
 
