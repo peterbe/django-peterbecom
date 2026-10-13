@@ -1,4 +1,5 @@
 import time
+from urllib.parse import urlencode
 
 import requests
 
@@ -6,8 +7,6 @@ from .models import Card
 
 
 def _wrap_url(url: str) -> str:
-    from urllib.parse import urlencode
-
     # qs = urlencode({"url": url, "redirect_to_file": "true"})
     qs = urlencode({"url": url})
     return f"https://chive.peterbe.com/api/imageproxy?{qs}"
