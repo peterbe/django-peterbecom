@@ -20,7 +20,6 @@ from peterbecom.plog.spamprevention import (
 )
 from peterbecom.plog.tasks import (
     delete_e2e_test_comment,
-    prep_llm_rewrite,
     send_new_comment_email,
 )
 from peterbecom.plog.utils import render_comment_text
@@ -133,7 +132,8 @@ def submit_comment(request):
             if blogitem.oid != "blogitem-040601-1":
                 transaction.on_commit(partial(send_new_comment_email, blog_comment.id))
             else:
-                transaction.on_commit(partial(prep_llm_rewrite, blog_comment.id))
+                print("prep_llm_rewrite currently disabled")
+                # transaction.on_commit(partial(prep_llm_rewrite, blog_comment.id))
 
             if (
                 blog_comment.name == "Playwright"
