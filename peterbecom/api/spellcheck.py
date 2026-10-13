@@ -2,6 +2,7 @@ import datetime
 import json
 import time
 
+from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -41,7 +42,10 @@ def spellcheck_markdown(request, oid):
     return json_response(context)
 
 
-def spellcheck_markdown_text(markdown_text, blogitem: BlogItem, model="claude-opus-5"):
+def spellcheck_markdown_text(
+    markdown_text, blogitem: BlogItem, model: str | None = None
+):
+    model = model or settings.DEFAULT_SPELLCHECK_MODEL
     # Split the markdown text into paragraphs based on double newlines
     paragraphs = markdown_text.split("\n\n")
 
