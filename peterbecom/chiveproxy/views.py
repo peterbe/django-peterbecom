@@ -210,6 +210,8 @@ def image_proxy(request):
         return http.HttpResponseBadRequest(form.errors.as_text())
     url = form.cleaned_data["url"]
 
+    destination_cache: list[str] = []
+
     cache_root = settings.IMAGE_PROXY_CACHE_ROOT
     if not cache_root.exists():
         cache_root.mkdir(parents=True)
@@ -237,7 +239,9 @@ def image_proxy(request):
 
     if destination_file_name.exists():
         print(f"IMAGE_PROXY: Destination file already exists: {destination_file_name}")
+        destination_cache.append("hit")
     else:
+        destination_cache.append("miss")
 
         def file_size(b: int) -> str:
             for unit in ["bytes", "KB", "MB", "GB"]:
@@ -254,6 +258,7 @@ def image_proxy(request):
                 f"IMAGE_PROXY: Fetched image from URL: {url} -> {origin_destination_file_name} "
                 f"({file_size(origin_destination_file_name.stat().st_size)})"
             )
+            destination_cache.append("fetched")
 
         if (
             origin_destination_file_name.name.endswith(".webp")
@@ -264,6 +269,8 @@ def image_proxy(request):
                 f"{origin_destination_file_name} -> {destination_file_name}"
             )
             shutil.copy(origin_destination_file_name, destination_file_name)
+
+            destination_cache.append("copied")
         else:
             try:
                 print(
@@ -280,6 +287,7 @@ def image_proxy(request):
                     f"{origin_destination_file_name} -> {destination_file_name} "
                     f"({file_size(destination_file_name.stat().st_size)})"
                 )
+                destination_cache.append("converted")
             except UnidentifiedImageError:
                 print(
                     f"IMAGE_PROXY: Failed to identify image from URL: {origin_destination_file_name} "
@@ -306,6 +314,8 @@ def image_proxy(request):
         with open(destination_file_name, "rb") as f:
             image_data = f.read()
         response.write(image_data)
+
+    response["x-destination-cache"] = ", ".join(destination_cache)
 
     ttl = settings.DEBUG and 10 or 60 * 60 * 24
     patch_cache_control(response, max_age=ttl, public=True)
