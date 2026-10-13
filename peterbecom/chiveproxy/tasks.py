@@ -1,7 +1,9 @@
+import datetime
 import re
 import time
 
 from django.conf import settings
+from django.utils import timezone
 from huey import crontab
 from huey.contrib.djhuey import periodic_task, task
 
@@ -94,3 +96,12 @@ def preload_image_proxies_task(card_id: int, sleep_delay: float = 1):
     print("Preloading image proxies for", repr(card_id))
     card = Card.objects.get(id=card_id)
     load_all_image_proxies(card, sleep_delay=sleep_delay)
+
+
+@periodic_task(crontab(minute="55"))
+def delete_old_cards(dry_run=False):
+    DAYS = 600
+    qs = Card.objects.filter(created__lt=timezone.now() - datetime.timedelta(days=DAYS))
+    print("CHIVEPROXY CARDS", qs.count(), "ARE OLDER THAN", DAYS, "DAYS")
+    if not dry_run:
+        qs.delete()
