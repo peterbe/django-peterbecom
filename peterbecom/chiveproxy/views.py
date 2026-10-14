@@ -207,6 +207,10 @@ class ImageProxyForm(forms.Form):
 def image_proxy(request):
     form = ImageProxyForm(request.GET)
     if not form.is_valid():
+        print(
+            f"IMAGE_PROXY: Invalid form: {form.errors.as_json()}  "
+            f"Query string: {list(request.GET.items())}"
+        )
         return http.HttpResponseBadRequest(form.errors.as_text())
     url = form.cleaned_data["url"]
 
@@ -238,6 +242,12 @@ def image_proxy(request):
     )
     if not destination_file_name.parent.exists():
         destination_file_name.parent.mkdir(parents=True)
+
+    print(
+        f"IMAGE_PROXY {url=} --> "
+        f"{origin_destination_file_name=} --> "
+        f"{destination_file_name=}"
+    )
 
     if destination_file_name.exists():
         print(f"IMAGE_PROXY: Destination file already exists: {destination_file_name}")
@@ -300,13 +310,15 @@ def image_proxy(request):
                     f"({file_size(destination_file_name.stat().st_size)})"
                 )
                 destination_cache.append("converted")
-            except UnidentifiedImageError:
+            except UnidentifiedImageError as error:
+                print(f"IMAGE_PROXY: UnidentifiedImageError: {error}")
                 print(
                     f"IMAGE_PROXY: Failed to identify image from URL: {origin_destination_file_name} "
                     f"(file size: {file_size(origin_destination_file_name.stat().st_size)})"
                     if origin_destination_file_name.exists()
                     else " (file does not exist)"
                 )
+                origin_destination_file_name.unlink()
                 return http.HttpResponseBadRequest("Bad image")
 
         origin_destination_file_name.unlink()
