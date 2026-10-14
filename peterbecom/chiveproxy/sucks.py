@@ -194,11 +194,15 @@ def get_card(url):
             # assert gifsrc.startswith("https://")
 
         combined_caption = "\n".join(
-            [x.strip() for x in caption if x.replace("\xa0", " ").strip()]
+            [
+                x.replace("\xa0", " ").strip()
+                for x in caption
+                if x.replace("\xa0", " ").strip()
+            ]
         )
         combined_caption_html = "<br>".join(
             [
-                x.strip()
+                x.replace("\xa0", " ").strip()
                 for x in caption_html
                 if remove_html_comments(x).replace("\xa0", " ").strip()
             ]
