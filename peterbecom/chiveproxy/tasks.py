@@ -74,14 +74,23 @@ def _delete_old_image_proxy_files():
             age_seconds = time.time() - file_path.stat().st_mtime
             age_hours = age_seconds / 3600
             age_days = age_hours / 24
+
+            deleted = False
             if age_days > MIN_AGE_DAYS:
                 print(
                     f"Deleting old image proxy file: {file_path}, "
                     f"Age: {age_days:.1f} days"
                 )
                 file_path.unlink()
+                deleted = True
+                count += 1
+            elif file_path.stat().st_size == 0:
+                print(f"Deleting empty image proxy file: {file_path}")
+                file_path.unlink()
+                deleted = True
                 count += 1
 
+            if deleted:
                 count_files_in_dir = len(list(file_path.parent.glob("*")))
                 if not count_files_in_dir:
                     print("No more files in this directory")
