@@ -130,7 +130,7 @@ def spellcheck_markdown_text(
             break
         time.sleep(3)
 
-    return tasks
+    return [task for task in tasks if task["after"] != task["before"]]
 
 
 def find_llm_call_for_paragraph(paragraph: str, blogitem: BlogItem, model="gpt-5"):
