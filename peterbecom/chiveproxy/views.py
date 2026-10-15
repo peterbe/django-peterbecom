@@ -249,7 +249,7 @@ def image_proxy(request):
         f"{destination_file_name=}"
     )
 
-    if destination_file_name.exists():
+    if destination_file_name.exists() and destination_file_name.stat().st_size > 0:
         print(f"IMAGE_PROXY: Destination file already exists: {destination_file_name}")
         destination_cache.append("hit")
     else:

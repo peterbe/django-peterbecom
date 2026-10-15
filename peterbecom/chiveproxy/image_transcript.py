@@ -9,8 +9,11 @@ from peterbecom.llmcalls.tasks import execute_completion
 from peterbecom.settings.base import VALID_LLM_MODELS
 
 
-def get_image_transcript(image_path: Path) -> LLMCall:
-    llm_call = get_llm_response_image_transcript(image_path)
+def get_image_transcript(
+    image_path: Path | str,
+    model: str = VALID_LLM_MODELS[0],
+) -> LLMCall:
+    llm_call = get_llm_response_image_transcript(image_path, model=model)
     if llm_call.status == "success":
         response = llm_call.response
         if "choices" in response and len(response["choices"]) > 0:
@@ -22,10 +25,13 @@ def get_image_transcript(image_path: Path) -> LLMCall:
 
 
 def get_llm_response_image_transcript(
-    image_path: Path,
+    image_path: Path | str,
     model: str = VALID_LLM_MODELS[0],
     use_case="chiveproxy_image_transcript",
 ) -> LLMCall:
+    if isinstance(image_path, str):
+        image_path = Path(image_path)
+
     with open(image_path, "rb") as f:
         image_data = base64.standard_b64encode(f.read()).decode("utf-8")
 
