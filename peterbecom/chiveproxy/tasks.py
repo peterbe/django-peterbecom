@@ -54,7 +54,7 @@ def remove_banned_pictures_periodically():
     remove_banned_pictures()
 
 
-@periodic_task(crontab(minute="30"))
+@periodic_task(crontab(minute="20"))
 def delete_old_image_proxy_files():
     _delete_old_image_proxy_files()
 
@@ -66,7 +66,7 @@ def _delete_old_image_proxy_files():
         return
 
     count = 0
-    MAX_COUNT = 10
+    MAX_COUNT = 20
     MIN_AGE_DAYS = 100
 
     for file_path in cache_root.rglob("*"):
