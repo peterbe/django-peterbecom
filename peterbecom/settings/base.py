@@ -101,6 +101,7 @@ MIDDLEWARE = (
     "rollbar.contrib.django.middleware.RollbarNotifierMiddleware",
     "peterbecom.api.middleware.AuthenticationMiddleware",
     "peterbecom.base.middleware.NoNewlineRequestPaths",
+    "peterbecom.base.compressionmiddleware.CompressionMiddleware",
     # Important that this is last
     "peterbecom.base.middleware.PublicAPIPageviewsMiddleware",
     "peterbecom.base.middleware.StatsMiddleware",

@@ -1,135 +1,97 @@
-import re
-import shutil
-
 import pytest
-from django.conf import settings
 from django.urls import reverse
 
-
-@pytest.fixture(scope="module", autouse=True)
-def after_tests():
-    yield
-
-    assert settings.IMAGE_PROXY_CACHE_ROOT.name.startswith("test_")
-    shutil.rmtree(settings.IMAGE_PROXY_CACHE_ROOT)
+from peterbecom.chiveproxy.models import Card
 
 
-def test_image_proxy_errors(client):
-    url = reverse("chiveproxy:image_proxy")
+@pytest.mark.django_db
+def test_cards_empty(client):
+    url = reverse("chiveproxy:api_cards")
     response = client.get(url)
-    assert response.status_code == 400
-    response = client.get(url, {"url": ""})
-    assert "This field is required" in response.content.decode("utf-8")
-    assert response.status_code == 400
-    response = client.get(url, {"url": "junk"})
-    assert "Enter a valid URL" in response.content.decode("utf-8")
-    assert response.status_code == 400
-
-    response = client.get(url, {"url": "https://www.example.com/uploads/test.jpg"})
-    assert response.status_code == 400
-    assert "Invalid netloc" in response.content.decode("utf-8")
-
-    response = client.get(url, {"url": "http://choive.com/content/test.jpg"})
-    assert response.status_code == 400
-    assert "not https" in response.content.decode("utf-8")
-
-    response = client.get(url, {"url": "https://choive.com/content/test.bmp"})
-    assert response.status_code == 400
-    assert "Invalid file extension" in response.content.decode("utf-8")
-
-
-def test_image_proxy_happy_path(client, requestsmock):
-    with open("peterbecom/chiveproxy/tests/test_image.jpg", "rb") as f:
-        requestsmock.get("https://choive.com/content/test.jpg", content=f.read())
-    url = reverse("chiveproxy:image_proxy")
-    response = client.get(url, {"url": "https://choive.com/content/test.jpg"})
     assert response.status_code == 200
-    assert response["Content-Type"] == "image/webp"
-    assert "public" in response["Cache-Control"]
-    assert "max-age=" in response["Cache-Control"]
-    assert "max-age=0" not in response["Cache-Control"]
+    assert "cards" in response.json()
+    assert response.json()["cards"] == []
 
 
-def test_image_proxy_png(client, requestsmock):
-    with open("peterbecom/chiveproxy/tests/test_image.png", "rb") as f:
-        requestsmock.get("https://choive.com/content/test.png", content=f.read())
-    url = reverse("chiveproxy:image_proxy")
-    response = client.get(url, {"url": "https://choive.com/content/test.png"})
+def _create_card():
+    card = Card.objects.create(url="http://example.com", text="Bla bla", data={})
+    card.data = {
+        "text": "Example card",
+        "img": "http://example.com/image.jpg",
+        "pictures": [
+            {
+                "img": "https://example.com/yourself-lead.png",
+                "uri": str(card.id),
+                "date": card.created.strftime("%Y-%m-%d"),
+                "text": "Example card",
+                "pictures": [
+                    {
+                        "img": "https://example.com/image.jpg",
+                        "gifsrc": None,
+                        "mp4src": None,
+                        "caption": "Bla\nbla\n",
+                        "caption_html": "Bla<br>bla<br>",
+                    },
+                ],
+            }
+        ],
+    }
+    card.save()
+    return card
+
+
+@pytest.mark.django_db
+def test_cards_happy_path(client):
+    card = _create_card()
+
+    url = reverse("chiveproxy:api_cards")
+    response = client.get(url)
     assert response.status_code == 200
-    assert response["Content-Type"] == "image/webp"
-    assert "public" in response["Cache-Control"]
-    assert "max-age=" in response["Cache-Control"]
-    assert "max-age=0" not in response["Cache-Control"]
+    cards = response.json()["cards"]
+    assert cards[0]["count_pictures"] == 1
+    assert cards[0]["id"] == card.id
+    assert cards[0]["img"] == "http://example.com/image.jpg"
+    assert cards[0]["uri"] == card.id
+    assert cards[0]["url"] == "http://example.com"
 
 
-def test_image_proxy_webp(client, requestsmock):
-    with open("peterbecom/chiveproxy/tests/test_image.webp", "rb") as f:
-        requestsmock.get("https://choive.com/content/test.webp", content=f.read())
-    url = reverse("chiveproxy:image_proxy")
-    response = client.get(url, {"url": "https://choive.com/content/test.webp"})
+@pytest.mark.django_db
+def test_card_happy_path(client):
+    card = _create_card()
+
+    url = reverse("chiveproxy:api_card", args=[card.id])
+    response = client.get(url)
     assert response.status_code == 200
-    assert response["Content-Type"] == "image/webp"
-    assert "public" in response["Cache-Control"]
-    assert "max-age=" in response["Cache-Control"]
-    assert "max-age=0" not in response["Cache-Control"]
+
+    card_json = response.json()
+
+    assert card_json["date"]
+    assert card_json["id"] == card.id
+    assert card_json["text"] == "Example card"
+    assert card_json["pictures"] == card.data["pictures"]
 
 
-def test_image_proxy_jpeg(client, requestsmock):
-    with open("peterbecom/chiveproxy/tests/test_image.jpeg", "rb") as f:
-        requestsmock.get("https://choive.com/content/test.jpeg", content=f.read())
-    url = reverse("chiveproxy:image_proxy")
-    response = client.get(url, {"url": "https://choive.com/content/test.jpeg"})
+@pytest.mark.django_db
+def test_card_brotli_compressed(client):
+    card = _create_card()
+    for i in range(15):
+        card.data["pictures"][0]["pictures"].append(
+            {
+                "img": f"https://example.com/image{i}.jpg",
+                "gifsrc": None,
+                "mp4src": None,
+                "caption": "it gets dark at like 3 PM in the winter.",
+                "caption_html": "Bla<br>bla<br>",
+            },
+        )
+    card.save()
+
+    url = reverse("chiveproxy:api_card", args=[card.id])
+    response = client.get(url, HTTP_ACCEPT_ENCODING="br")
     assert response.status_code == 200
-    assert response["Content-Type"] == "image/webp"
-    assert "public" in response["Cache-Control"]
-    assert "max-age=" in response["Cache-Control"]
-    assert "max-age=0" not in response["Cache-Control"]
+    assert response.headers.get("Content-Encoding") == "br"
 
-
-def test_image_proxy_avif(client, requestsmock):
-    with open("peterbecom/chiveproxy/tests/test_image.avif", "rb") as f:
-        requestsmock.get("https://choive.com/content/test.avif", content=f.read())
-    url = reverse("chiveproxy:image_proxy")
-    response = client.get(url, {"url": "https://choive.com/content/test.avif"})
+    url = reverse("chiveproxy:api_card", args=[card.id])
+    response = client.get(url, HTTP_ACCEPT_ENCODING="zstd")
     assert response.status_code == 200
-    assert response["Content-Type"] == "image/avif"
-    assert "public" in response["Cache-Control"]
-    assert "max-age=" in response["Cache-Control"]
-    assert "max-age=0" not in response["Cache-Control"]
-
-    # request it again and it request mock should not be needed
-    requestsmock.reset_mock()
-    response = client.get(url, {"url": "https://choive.com/content/test.avif"})
-    assert response.status_code == 200
-    assert response["Content-Type"] == "image/avif"
-    assert "public" in response["Cache-Control"]
-    assert "max-age=" in response["Cache-Control"]
-    assert "max-age=0" not in response["Cache-Control"]
-
-
-def test_image_proxy_redirect_to_file(client, requestsmock):
-    with open("peterbecom/chiveproxy/tests/test_image.jpg", "rb") as f:
-        requestsmock.get("https://choive.com/content/test.jpg", content=f.read())
-    url = reverse("chiveproxy:image_proxy")
-    response = client.get(
-        url, {"url": "https://choive.com/content/test.jpg", "redirect_to_file": True}
-    )
-    assert response.status_code == 302
-    assert re.findall(
-        r"/image_proxy/\w{4}/\w{2}/\w{2}/\w/test-\w{7}\.webp", response["Location"]
-    )
-    assert "public" in response["Cache-Control"]
-    assert "max-age=" in response["Cache-Control"]
-    assert "max-age=0" not in response["Cache-Control"]
-
-
-def test_image_proxy_mp4(client, requestsmock):
-    with open("peterbecom/chiveproxy/tests/test_video.mp4", "rb") as f:
-        requestsmock.get("https://choive.com/content/test.mp4", content=f.read())
-    url = reverse("chiveproxy:image_proxy")
-    response = client.get(url, {"url": "https://choive.com/content/test.mp4"})
-    assert response.status_code == 200
-    assert response["Content-Type"] == "video/mp4"
-    assert "public" in response["Cache-Control"]
-    assert "max-age=" in response["Cache-Control"]
-    assert "max-age=0" not in response["Cache-Control"]
+    assert response.headers.get("Content-Encoding") == "zstd"
