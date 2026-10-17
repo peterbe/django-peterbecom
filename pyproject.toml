@@ -69,6 +69,7 @@ dependencies = [
     "crawlerdetect==0.4.2",
     "anthropic==1.13.0",
     "openai==3.31.0",
+    "zstandard>=0.25.0",
 ]
 
 [tool.coverage.run]
