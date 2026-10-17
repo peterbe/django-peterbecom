@@ -39,7 +39,6 @@ try:
 except ImportError:
     zstandard = None
 
-print((std_zstd, zstandard))
 COMPRESSIBLE_TYPES = {"application/json"}
 
 
