@@ -273,7 +273,8 @@ def image_proxy(request):
                 print("IMAGE_PROXY: FETCHING", url)
                 response = requests.get(url)
                 if response.status_code == 404:
-                    return http.HttpNotFound("Image not found")
+                    print("IMAGE_PROXY WARNING: Image not found ", url)
+                    return http.HttpResponseNotFound("Image not found")
                 response.raise_for_status()
                 f.write(response.content)
             print(
