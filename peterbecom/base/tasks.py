@@ -21,6 +21,7 @@ from peterbecom.base.models import (
     AnalyticsEvent,
     AnalyticsRollupCommentsReferrerDaily,
     AnalyticsRollupsDaily,
+    AnalyticsRollupsPathnameByBotDaily,
     AnalyticsRollupsPathnameDaily,
     CDNPurgeURL,
     PostProcessing,
@@ -245,6 +246,12 @@ def analytics_rollups_daily():
 @log_task_run
 def analytics_rollups_pathname_daily():
     AnalyticsRollupsPathnameDaily.rollup()
+
+
+@periodic_task(crontab(minute="*/15") if settings.DEBUG else crontab(hour=0, minute=0))
+@log_task_run
+def analytics_rollups_pathname_by_bot_daily():
+    AnalyticsRollupsPathnameByBotDaily.rollup()
 
 
 @periodic_task(crontab(minute="*/15") if settings.DEBUG else crontab(hour=10))
