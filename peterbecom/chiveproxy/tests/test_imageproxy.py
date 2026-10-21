@@ -62,6 +62,13 @@ def test_image_proxy_png(client, requestsmock):
     assert "max-age=0" not in response["Cache-Control"]
 
 
+def test_image_proxy_not_found(client, requestsmock):
+    requestsmock.get("https://choive.com/content/test_not_found.png", status_code=404)
+    url = reverse("chiveproxy:image_proxy")
+    response = client.get(url, {"url": "https://choive.com/content/test_not_found.png"})
+    assert response.status_code == 404
+
+
 def test_image_proxy_webp(client, requestsmock):
     with open("peterbecom/chiveproxy/tests/test_image.webp", "rb") as f:
         requestsmock.get("https://choive.com/content/test.webp", content=f.read())
