@@ -281,7 +281,7 @@ class AnalyticsRollupsPathnameDaily(models.Model):
                         day=day,
                         count=agg["count"],
                         type=agg["type"],
-                        pathname=agg["data__pathname"],
+                        pathname=agg["data__pathname"][:300],
                     )
                 )
                 if len(bulk) > 100:
@@ -335,7 +335,7 @@ class AnalyticsRollupsPathnameByBotDaily(models.Model):
                         day=day,
                         count=agg["count"],
                         type=agg["type"],
-                        pathname=agg["data__pathname"],
+                        pathname=agg["data__pathname"][:300],
                         is_bot=agg["data__is_bot"],
                     )
                 )
@@ -395,7 +395,7 @@ class AnalyticsRollupCommentsReferrerDaily(models.Model):
                         count=agg["count"],
                         referrer=agg["meta__referrer"] or "",
                         is_bot=agg["data__is_bot"],
-                        pathname=agg["data__pathname"],
+                        pathname=agg["data__pathname"][:300],
                     )
                 )
                 if len(bulk) > 100:
