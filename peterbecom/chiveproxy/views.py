@@ -264,7 +264,7 @@ def image_proxy(request):
 
         if (
             origin_destination_file_name.exists()
-            and origin_destination_file_name.st_size == 0
+            and origin_destination_file_name.stat().st_size == 0
         ):
             origin_destination_file_name.unlink()
 
