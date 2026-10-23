@@ -12,7 +12,6 @@ from django.db.models import Min
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.cache import patch_cache_control
-from django.utils.timesince import timesince
 from django.views.decorators.cache import cache_control
 from huey import crontab
 from huey.contrib.djhuey import periodic_task
@@ -49,14 +48,7 @@ def api_cards(request):
         qs = qs.filter(text__search=search)
         context["search"] = {"string": search, "count": qs.count()}
 
-    now = timezone.now()
     for card in qs.order_by("-created")[:batch_size]:
-        human_time = timesince(card.created).replace("\xa0", " ")
-        age = (now - card.created).total_seconds()
-        if age < 60:
-            human_time = f"{int(age)} seconds ago"
-        else:
-            human_time += " ago"
         if "img" not in card.data:
             continue
 
@@ -71,7 +63,7 @@ def api_cards(request):
                 "url": card.url,
                 "id": card.id,
                 "created": card.created,
-                "human_time": human_time,
+                "human_time": "",
                 "count_pictures": len(card.data["pictures"]),
                 # This last one is for legacy backwards compat
                 "uri": card.id,
