@@ -150,6 +150,9 @@ def llmcalls(request):
             count(*) as count,
             avg(took_seconds) as avg_took_seconds,
             sum(took_seconds) as sum_took_seconds,
+            sum(took_seconds) as sum_took_seconds,
+            sum((response->'usage'->>'input_tokens')::int) as sum_input_tokens,
+            sum((response->'usage'->>'output_tokens')::int) as sum_output_tokens,
             percentile_cont(0.5) WITHIN GROUP (
                 order by
                     took_seconds
