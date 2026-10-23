@@ -27,7 +27,6 @@ def test_remove_banned_pictures():
                 "caption_html": "",
             },
         ],
-        "human_time": "10 hours ago",
     }
     card1 = Card.objects.create(url="http://example.com/1", data=data)
 
@@ -52,7 +51,6 @@ def test_remove_banned_pictures():
                 "caption_html": "",
             },
         ],
-        "human_time": "10 hours ago",
     }
     card2 = Card.objects.create(url="http://example.com/2", data=data)
     remove_banned_pictures()

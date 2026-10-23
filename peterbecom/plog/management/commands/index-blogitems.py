@@ -25,7 +25,7 @@ class Command(BaseCommand):
         keep = kwargs["keep_index"]
         self._index_blogitems(keep, verbose=verbose)
         self._index_search_terms(keep, verbose=verbose)
-        self._index_blogcomments(keep, verbose=verbose)
+        # self._index_blogcomments(keep, verbose=verbose)
 
     def _index_blogitems(self, keep, verbose=False):
         count, took, index_name = BlogItem.index_all_blogitems(verbose=verbose)

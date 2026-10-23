@@ -92,11 +92,9 @@ def get_cards(limit=None, debug=False, html=None):
             continue
 
         date = None
-        human_time = None
         for time_ in slot("time[datetime]").items():
             date = time_.attr("datetime")
             date = make_it_more_iso(date)
-            human_time = time_.text()  # Not needed?
             break
 
         uri = hashlib.md5(href.encode("utf-8")).hexdigest()[:8]
@@ -106,7 +104,6 @@ def get_cards(limit=None, debug=False, html=None):
             "text": text,
             "img": img,
             "date": date,
-            "human_time": human_time,
         }
         count += 1
         if limit and count >= limit:
