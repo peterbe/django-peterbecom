@@ -21,7 +21,7 @@ requires-python = "==3.12.*"
 dependencies = [
     "backoff==2.2.1",
     "bleach==6.4.0",
-    "brotli==1.2.0",
+    "brotli==1.2.1",
     "cachetools==7.2.4",
     "cssselect==1.6.0",
     "delegator-py==0.1.1",
