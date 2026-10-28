@@ -60,7 +60,8 @@ def get_llm_response_image_transcript(
                     "type": "text",
                     "text": "Extract all text from this image exactly as it appears. "
                     "Preserve line breaks and layout where possible. "
-                    "Output only the extracted text, with no commentary.",
+                    "Output only the extracted text, with no commentary. "
+                    "If no text is found, respond with an empty string.",
                 },
             ],
         }
