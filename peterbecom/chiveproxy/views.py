@@ -8,6 +8,7 @@ import requests
 from django import forms, http
 from django.conf import settings
 from django.core.cache import cache
+from django.db import transaction
 from django.db.models import Min
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -17,7 +18,7 @@ from huey import crontab
 from huey.contrib.djhuey import periodic_task
 from PIL import Image, UnidentifiedImageError
 
-from .models import Card
+from .models import Card, Picture
 from .sucks import get_card, get_cards
 
 
@@ -136,10 +137,27 @@ def update_cards(limit=None, debug=False, dry_run=False):
                 _cards_log(f"Getting card {url}")
                 t0 = time.time()
                 data = get_card(url)
-                if data:
+                if data and data.get("pictures"):
+                    pictures = data.pop("pictures")
                     card.update(data)
                     if not dry_run:
-                        Card.objects.create(url=url, data=card)
+                        with transaction.atomic():
+                            card_obj = Card.objects.create(url=url, data=card)
+
+                            pictures_objs = []
+                            for order_index, picture in enumerate(pictures):
+                                pictures_objs.append(
+                                    Picture(
+                                        card=card_obj,
+                                        img=picture["img"],
+                                        gifsrc=picture["gifsrc"] or "",
+                                        mp4src=picture["mp4src"] or "",
+                                        caption=picture["caption"],
+                                        caption_html=picture["caption_html"],
+                                        order_index=order_index,
+                                    )
+                                )
+                            Picture.objects.bulk_create(pictures_objs)
                     count_updated += 1
                 took_seconds = time.time() - t0
                 _cards_log(
