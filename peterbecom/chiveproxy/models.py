@@ -17,6 +17,19 @@ class Card(models.Model):
         return self.url
 
 
+class Picture(models.Model):
+    card = models.ForeignKey(Card, on_delete=models.CASCADE, related_name="pictures")
+    order_index = models.PositiveIntegerField(default=0)
+    img = models.URLField(max_length=400)
+    gifsrc = models.URLField(max_length=400)
+    mp4src = models.URLField(max_length=400)
+    caption = models.TextField(default="")
+    caption_html = models.TextField(default="")
+    transcription = models.TextField(default="")
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+
 @receiver(pre_save, sender=Card)
 def set_text(sender, instance, **kwargs):
     if not instance.text and instance.data:
