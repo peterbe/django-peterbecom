@@ -3,7 +3,7 @@ from urllib.parse import urlencode
 
 import requests
 
-from .models import Card
+from .models import Card, Picture
 
 
 def _wrap_url(url: str) -> str:
@@ -37,9 +37,36 @@ def get_all_image_proxies(card: Card):
             yield wrapped_url
 
 
+def get_image_proxies(picture: Picture):
+    wrapped_urls = []
+    if mp4 := picture.mp4src:
+        wrapped_url = _wrap_url(mp4)
+        wrapped_urls.append(wrapped_url)
+    if img := picture.img:
+        wrapped_url = _wrap_url(img)
+        wrapped_urls.append(wrapped_url)
+
+    for wrapped_url in wrapped_urls:
+        yield wrapped_url
+
+
 def load_all_image_proxies(card: Card, sleep_delay: float = 0.1):
     print(f"Loading all image proxies for {card}")
     for wrapped_url in get_all_image_proxies(card):
+        print(f"Loading image proxy URL {wrapped_url}")
+        response = _fetch_image(wrapped_url)
+        print(f"Fetched image response: {response}")
+        print("URL:                 ", response.url)
+        print("Content-Length:      ", response.headers["content-length"])
+        print("Content-Type:        ", response.headers["content-type"])
+        print("X-Destination-Cache: ", response.headers.get("x-destination-cache"))
+        if sleep_delay:
+            time.sleep(sleep_delay)
+
+
+def load_image_proxy(picture, sleep_delay: float = 0.1):
+    print(f"Loading all image proxies for {picture} on {picture.card}")
+    for wrapped_url in get_image_proxies(picture):
         print(f"Loading image proxy URL {wrapped_url}")
         response = _fetch_image(wrapped_url)
         print(f"Fetched image response: {response}")

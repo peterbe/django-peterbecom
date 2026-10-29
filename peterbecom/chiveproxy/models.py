@@ -36,14 +36,14 @@ def set_text(sender, instance, **kwargs):
         instance.text = instance.data.get("text") or ""
 
 
-@receiver(post_save, sender=Card)
+@receiver(post_save, sender=Picture)
 def preload_image_proxies(sender, instance, created, **kwargs):
     if not created:
         return
 
-    print(f"Preloading image proxies for {instance}")
+    print(f"Preloading image proxies for {instance} on card {instance.card}")
 
     # deliberately lazy import to avoid circular import issues
-    from peterbecom.chiveproxy.tasks import preload_image_proxies_task
+    from peterbecom.chiveproxy.tasks import preload_image_proxy_task
 
-    preload_image_proxies_task(instance.id, sleep_delay=1)
+    preload_image_proxy_task(instance.id, sleep_delay=1)
