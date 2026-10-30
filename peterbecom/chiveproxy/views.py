@@ -1,4 +1,3 @@
-import hashlib
 import shutil
 import time
 from subprocess import TimeoutExpired
@@ -18,6 +17,10 @@ from huey import crontab
 from huey.contrib.djhuey import periodic_task
 from PIL import Image, UnidentifiedImageError
 
+from .image_proxy_utils import (
+    NO_CONVERT_FILE_EXTENSIONS,
+    url_to_destination,
+)
 from .models import Card, Picture
 from .sucks import get_card, get_cards
 
@@ -284,31 +287,10 @@ def image_proxy(request):
     url = form.cleaned_data["url"]
 
     destination_cache: list[str] = []
-
-    cache_root = settings.IMAGE_PROXY_CACHE_ROOT
-    if not cache_root.exists():
-        cache_root.mkdir(parents=True)
-
-    seed = f"{settings.SECRET_KEY}:{url}"
-    seeded = seeded_token(seed)
-    file_extension = urlparse(url).path.split(".")[-1]
-    prefix = ""
-    if settings.RUNNING_TESTS:
-        prefix = "test-"
-    origin_destination_file_name = cache_root / f"{prefix}{seeded}.{file_extension}"
-
-    no_convert_file_extensions = ("mp4", "avif")
-    destination_file_extension = (
-        file_extension if file_extension in no_convert_file_extensions else "webp"
+    destination_file_extension, origin_destination_file_name, destination_file_name = (
+        url_to_destination(url)
     )
-    destination_file_name = (
-        cache_root
-        / seeded[:4]
-        / seeded[4:6]
-        / seeded[6:8]
-        / seeded[8:9]
-        / f"{prefix}{seeded[9:]}.{destination_file_extension}"
-    )
+
     if not destination_file_name.parent.exists():
         destination_file_name.parent.mkdir(parents=True)
 
@@ -354,7 +336,7 @@ def image_proxy(request):
 
         if (
             origin_destination_file_name.name.endswith(".webp")
-            or destination_file_extension in no_convert_file_extensions
+            or destination_file_extension in NO_CONVERT_FILE_EXTENSIONS
         ):
             print(
                 "IMAGE_PROXY: Copying "
@@ -421,9 +403,3 @@ def fetch_image(url: str) -> bytes:
     response = requests.get(url)
     response.raise_for_status()
     return response.content
-
-
-def seeded_token(seed: str, length=16) -> str:
-    digest = hashlib.sha256(seed.encode("utf-8")).hexdigest()
-    date_prefix = timezone.now().strftime("%Y%m%d")
-    return f"{date_prefix}{digest}"[:length]

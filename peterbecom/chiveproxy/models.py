@@ -26,6 +26,7 @@ class Picture(models.Model):
     caption = models.TextField(default="")
     caption_html = models.TextField(default="")
     transcription = models.TextField(default="")
+    image_proxy_file_path = models.CharField(max_length=400, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
