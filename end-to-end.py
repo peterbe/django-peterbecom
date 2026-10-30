@@ -125,3 +125,11 @@ def test_sitemap_paginated():
             if r.headers["x-cache"] != "HIT":
                 print("Not cached", r.headers["x-cache"], url)
                 time.sleep(1)
+
+
+def test_chive_proxy_cards():
+    r = get("/chiveproxy/api/cards/")
+    assert r.status_code == 200
+    data = r.json()
+    assert "cards" in data
+    assert isinstance(data["cards"], list)
