@@ -53,7 +53,14 @@ def api_cards(request):
         if "img" not in card.data:
             continue
 
-        if not card.data["pictures"]:
+        count_pictures = Picture.objects.filter(card=card).count()
+
+        # TEMPORARY CODE
+        if not count_pictures and card.data.get("pictures"):
+            _migrate_legacy_card(card)
+            count_pictures = Picture.objects.filter(card=card).count()
+
+        if not count_pictures:
             print(f"WARNING! {card!r} does not have any pictures")
             continue
 
@@ -65,7 +72,7 @@ def api_cards(request):
                 "id": card.id,
                 "created": card.created,
                 "human_time": "",
-                "count_pictures": len(card.data["pictures"]),
+                "count_pictures": count_pictures,
                 # This last one is for legacy backwards compat
                 "uri": card.id,
             }
@@ -108,7 +115,20 @@ def update_cards_without_pictures_periodically():
                 _cards_log(f"Getting card (without pictures) {card.url}")
                 t0 = time.time()
                 card.data = get_card(card.url)
-                card.save()
+                pictures = card.data.pop("pictures")
+                with transaction.atomic():
+                    for order_index, picture in enumerate(pictures):
+                        Picture.objects.create(
+                            card=card,
+                            img=picture["img"],
+                            gifsrc=picture["gifsrc"] or None,
+                            mp4src=picture["mp4src"] or None,
+                            caption=picture["caption"],
+                            caption_html=picture["caption_html"],
+                            order_index=order_index,
+                        )
+                    card.data = card.data
+                    card.save()
                 took_seconds = time.time() - t0
                 _cards_log(
                     f"Fixed {card!r}: {len(card.data['pictures'])} pictures "
@@ -150,8 +170,8 @@ def update_cards(limit=None, debug=False, dry_run=False):
                                     Picture(
                                         card=card_obj,
                                         img=picture["img"],
-                                        gifsrc=picture["gifsrc"] or "",
-                                        mp4src=picture["mp4src"] or "",
+                                        gifsrc=picture["gifsrc"] or None,
+                                        mp4src=picture["mp4src"] or None,
                                         caption=picture["caption"],
                                         caption_html=picture["caption_html"],
                                         order_index=order_index,
@@ -170,19 +190,58 @@ def update_cards(limit=None, debug=False, dry_run=False):
     return count_updated, count_tried
 
 
+def _migrate_legacy_card(card: Card):
+    with transaction.atomic():
+        pictures = card.data.pop("pictures")
+        pictures_objs = []
+        for order_index, picture in enumerate(pictures):
+            pictures_objs.append(
+                Picture(
+                    card=card,
+                    img=picture["img"],
+                    gifsrc=picture.get("gifsrc") or None,
+                    mp4src=picture["mp4src"] or None,
+                    caption=picture["caption"],
+                    caption_html=picture["caption_html"],
+                    order_index=order_index,
+                )
+            )
+        Picture.objects.bulk_create(pictures_objs)
+        card.data = card.data
+        card.save()
+
+
 @cache_control(max_age=settings.DEBUG and 10 or 60 * 60 * 6, public=True)
 def api_card(request, pk):
     card = get_object_or_404(Card, pk=pk)
     if request.GET.get("url") and request.GET["url"] != card.url:
         return http.HttpResponseBadRequest("wrong URL")
-    if not card.data["pictures"]:
+
+    # TEMPORARY CODE
+    if card.data.get("pictures"):
+        print("LEGACY!")
+        _migrate_legacy_card(card)
+
+    pictures = []
+    qs = Picture.objects.filter(card=card).order_by("order_index")
+    for picture in qs.values():
+        pictures.append(
+            {
+                "img": picture["img"],
+                "gifsrc": picture["gifsrc"] or None,
+                "mp4src": picture["mp4src"] or None,
+                "caption": picture["caption"],
+                "caption_html": picture["caption_html"],
+            }
+        )
+    if not pictures:
         return http.Http404("Card has no pictures")
     return JsonResponse(
         {
             "id": card.id,
             "text": card.data["text"],
             "date": card.created,
-            "pictures": card.data["pictures"],
+            "pictures": pictures,
         }
     )
 
