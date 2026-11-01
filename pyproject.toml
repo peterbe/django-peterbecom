@@ -68,7 +68,7 @@ dependencies = [
     "psycopg[binary,pool]>=3.3.4",
     "crawlerdetect==0.4.2",
     "anthropic==2.3.0",
-    "openai==3.35.1",
+    "openai==3.41.0",
     "zstandard>=0.25.0",
 ]
 
