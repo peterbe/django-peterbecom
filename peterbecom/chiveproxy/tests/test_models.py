@@ -16,7 +16,7 @@ def _create_card():
 
 
 @pytest.mark.django_db
-def test_set_image_proxy_file_path(settings):
+def test_set_image_proxy_conversions(settings):
     card = _create_card()
     picture = Picture.objects.create(
         card=card,
@@ -27,8 +27,8 @@ def test_set_image_proxy_file_path(settings):
         caption_html="Bla<br>bla<br>",
         order_index=0,
     )
-    assert picture.image_proxy_file_path
-    image_proxy_file_path = (
-        settings.IMAGE_PROXY_CACHE_ROOT / picture.image_proxy_file_path
-    )
+    assert picture.image_proxy_conversions
+    img = picture.image_proxy_conversions["img"]
+    assert img
+    image_proxy_file_path = settings.IMAGE_PROXY_CACHE_ROOT / img
     assert not image_proxy_file_path.exists()
