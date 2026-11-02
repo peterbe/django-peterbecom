@@ -29,6 +29,7 @@ class Picture(models.Model):
     caption_html = models.TextField(default="")
     transcription = models.TextField(default="")
     image_proxy_conversions = models.JSONField(default=dict)
+    transcript = models.TextField(default="")
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 

@@ -93,6 +93,7 @@ def test_card_happy_path(client):
         "mp4src": first_picture.mp4src or None,
         "caption": first_picture.caption,
         "caption_html": first_picture.caption_html,
+        "transcript": "",
     }
 
 
@@ -125,7 +126,16 @@ def test_card_legacy(client):
     assert card_json["date"]
     assert card_json["id"] == card.id
     assert card_json["text"] == "Example card"
-    assert card_json["pictures"] == card.data["pictures"]
+    assert card_json["pictures"] == [
+        {
+            "caption": "Bla\nbla\n",
+            "caption_html": "Bla<br>bla<br>",
+            "gifsrc": None,
+            "img": "https://example.com/image.jpg",
+            "mp4src": None,
+            "transcript": "",
+        }
+    ]
 
 
 @pytest.mark.django_db
