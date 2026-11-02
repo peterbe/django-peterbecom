@@ -48,19 +48,10 @@ def remove_banned_pictures(limit=100, dry_run=False):
             if any(_is_banned(banned_part, needle) for needle in needles):
                 print("SKIP THIS PICTURE!!!!")
                 print(picture)
+                print("banned_part:", banned_part)
                 if not dry_run:
                     picture.delete()
-
-    # for card in Card.objects.all().order_by("-created")[:limit]:
-    #     updated_pictures = filter_pictures(card.data["pictures"])
-    #     if updated_pictures != card.data["pictures"]:
-    #         print(
-    #             "REMOVED",
-    #             [p for p in card.data["pictures"] if p not in updated_pictures],
-    #         )
-    #         if not dry_run:
-    #             card.data["pictures"] = updated_pictures
-    #             card.save()
+                    break
 
 
 @periodic_task(crontab(hour="*", minute="10"))
