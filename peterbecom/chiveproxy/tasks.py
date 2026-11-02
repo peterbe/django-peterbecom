@@ -7,27 +7,26 @@ from django.utils import timezone
 from huey import crontab
 from huey.contrib.djhuey import periodic_task, task
 
-from peterbecom.chiveproxy.models import Card
+from peterbecom.chiveproxy.models import Card, Picture
 from peterbecom.chiveproxy.preload_image_proxies import (
     load_all_image_proxies,
     # load_image_proxy,
 )
 
-
-def filter_pictures(pictures):
-    filtered_pictures = []
-    for picture in pictures:
-        keep = True
-        for banned_part in settings.BANNED_CHIVE_URL_PARTS:
-            needles = [x for x in (picture.get("mp4src"), picture.get("img")) if x]
-            if any(_is_banned(banned_part, needle) for needle in needles):
-                print("SKIP THIS PICTURE!!!!")
-                print(picture)
-                keep = False
-                break
-        if keep:
-            filtered_pictures.append(picture)
-    return filtered_pictures
+# def filter_pictures(pictures):
+#     filtered_pictures = []
+#     for picture in pictures:
+#         keep = True
+#         for banned_part in settings.BANNED_CHIVE_URL_PARTS:
+#             needles = [x for x in (picture.get("mp4src"), picture.get("img")) if x]
+#             if any(_is_banned(banned_part, needle) for needle in needles):
+#                 print("SKIP THIS PICTURE!!!!")
+#                 print(picture)
+#                 keep = False
+#                 break
+#         if keep:
+#             filtered_pictures.append(picture)
+#     return filtered_pictures
 
 
 def _is_banned(banned_part: str | re.Pattern, needle: str) -> bool:
@@ -38,18 +37,30 @@ def _is_banned(banned_part: str | re.Pattern, needle: str) -> bool:
     return False
 
 
-def remove_banned_pictures(limit=10, dry_run=False):
+def remove_banned_pictures(limit=100, dry_run=False):
+    qs = Picture.objects.select_related("card").order_by("-created")[:limit]
+    for picture in qs:
+        needles = [picture.img]
+        if picture.mp4src:
+            needles.append(picture.mp4src)
 
-    for card in Card.objects.all().order_by("-created")[:limit]:
-        updated_pictures = filter_pictures(card.data["pictures"])
-        if updated_pictures != card.data["pictures"]:
-            print(
-                "REMOVED",
-                [p for p in card.data["pictures"] if p not in updated_pictures],
-            )
-            if not dry_run:
-                card.data["pictures"] = updated_pictures
-                card.save()
+        for banned_part in settings.BANNED_CHIVE_URL_PARTS:
+            if any(_is_banned(banned_part, needle) for needle in needles):
+                print("SKIP THIS PICTURE!!!!")
+                print(picture)
+                if not dry_run:
+                    picture.delete()
+
+    # for card in Card.objects.all().order_by("-created")[:limit]:
+    #     updated_pictures = filter_pictures(card.data["pictures"])
+    #     if updated_pictures != card.data["pictures"]:
+    #         print(
+    #             "REMOVED",
+    #             [p for p in card.data["pictures"] if p not in updated_pictures],
+    #         )
+    #         if not dry_run:
+    #             card.data["pictures"] = updated_pictures
+    #             card.save()
 
 
 @periodic_task(crontab(hour="*", minute="10"))
