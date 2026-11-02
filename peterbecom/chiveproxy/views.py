@@ -240,6 +240,7 @@ def api_card(request, pk):
                 "mp4src": picture["mp4src"] or None,
                 "caption": picture["caption"],
                 "caption_html": picture["caption_html"],
+                "transcript": picture["transcript"],
             }
         )
     if not pictures:
