@@ -326,3 +326,5 @@ class LLMCallsForm(forms.Form):
     status = forms.CharField(required=False)
     use_case = forms.CharField(required=False)
     batch_size = forms.IntegerField(required=False)
+
+    id = forms.IntegerField(required=False)

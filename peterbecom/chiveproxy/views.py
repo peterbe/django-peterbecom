@@ -109,7 +109,7 @@ def update_cards_without_pictures_periodically():
     _cards_log("Updating cards without pictures")
     qs = Card.objects
     for card in qs.order_by("-created")[:100]:
-        if card.data["pictures"]:
+        if Picture.objects.filter(card=card).exists():
             continue
         retry_cache_key = f"retried:{card.pk}"
         _cards_log("retry cache key:", retry_cache_key, repr(card), "HAS NO PICTURES")

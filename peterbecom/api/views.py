@@ -2253,10 +2253,13 @@ def llmcalls(request):
             "model": form.cleaned_data["model"],
             "use_case": form.cleaned_data["use_case"],
             "batch_size": batch_size,
+            "id": form.cleaned_data["id"],
         },
         "aggregates": {},
     }
     query = LLMCall.objects.all()
+    if form.cleaned_data["id"]:
+        query = query.filter(id=form.cleaned_data["id"])
 
     for key in ("status", "model", "use_case"):
         status_counts = query.values(key).annotate(total=Count(key))
@@ -2272,7 +2275,23 @@ def llmcalls(request):
     context["count"] = query.count()
     qs = query.order_by("-created")
 
-    for call in qs.values()[:batch_size]:
+    # Deliberately omitting `response` and `messages` because they're huge
+    value_fields = [
+        "id",
+        "status",
+        "use_case",
+        "model",
+        "error",
+        "attempts",
+        "took_seconds",
+        "metadata",
+        "created",
+        "modified",
+    ]
+    if form.cleaned_data["id"]:
+        value_fields.extend(["response", "messages"])
+
+    for call in qs.values(*value_fields)[:batch_size]:
         context["calls"].append(call)
     return json_response(context)
 
