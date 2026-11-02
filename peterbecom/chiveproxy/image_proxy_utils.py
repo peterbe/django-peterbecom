@@ -1,5 +1,6 @@
 import hashlib
 from pathlib import Path
+from typing import TypedDict
 from urllib.parse import urlparse
 
 from django.conf import settings
@@ -8,7 +9,14 @@ from django.utils import timezone
 NO_CONVERT_FILE_EXTENSIONS = ("mp4", "avif")
 
 
-def url_to_destination(url: str) -> tuple[str, Path, Path]:
+class Destination(TypedDict):
+    destination_file_extension: str
+    origin_destination_file_name: Path
+    destination_file_name: Path
+    destination_file_relative_path: Path
+
+
+def url_to_destination(url: str) -> Destination:
     cache_root = settings.IMAGE_PROXY_CACHE_ROOT
     if not cache_root.exists():
         cache_root.mkdir(parents=True)
@@ -33,11 +41,12 @@ def url_to_destination(url: str) -> tuple[str, Path, Path]:
         / f"{prefix}{seeded[9:]}.{destination_file_extension}"
     )
 
-    return (
-        destination_file_extension,
-        origin_destination_file_name,
-        destination_file_name,
-    )
+    return {
+        "destination_file_extension": destination_file_extension,
+        "origin_destination_file_name": origin_destination_file_name,
+        "destination_file_name": destination_file_name,
+        "destination_file_relative_path": destination_file_name.relative_to(cache_root),
+    }
 
 
 def _seeded_token(seed: str, length=16) -> str:

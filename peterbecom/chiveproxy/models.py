@@ -1,6 +1,8 @@
 from django.db import models
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import pre_save
 from django.dispatch import receiver
+
+from peterbecom.chiveproxy.image_proxy_utils import url_to_destination
 
 
 class Card(models.Model):
@@ -30,6 +32,13 @@ class Picture(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
+    @classmethod
+    def set_image_proxy_file_path(cls, instance):
+
+        file_path = url_to_destination(instance.img)["destination_file_relative_path"]
+        if file_path:
+            instance.image_proxy_file_path = file_path
+
 
 @receiver(pre_save, sender=Card)
 def set_text(sender, instance, **kwargs):
@@ -37,14 +46,9 @@ def set_text(sender, instance, **kwargs):
         instance.text = instance.data.get("text") or ""
 
 
-@receiver(post_save, sender=Picture)
-def preload_image_proxies(sender, instance, created, **kwargs):
-    if not created:
+@receiver(pre_save, sender=Picture)
+def set_image_proxy_file_path(sender, instance, **kwargs):
+    if instance.image_proxy_file_path:
         return
 
-    print(f"Preloading image proxies for {instance} on card {instance.card}")
-
-    # deliberately lazy import to avoid circular import issues
-    from peterbecom.chiveproxy.tasks import preload_image_proxy_task
-
-    preload_image_proxy_task(instance.id, sleep_delay=1)
+    sender.set_image_proxy_file_path(instance)

@@ -7,10 +7,10 @@ from django.utils import timezone
 from huey import crontab
 from huey.contrib.djhuey import periodic_task, task
 
-from peterbecom.chiveproxy.models import Card, Picture
+from peterbecom.chiveproxy.models import Card
 from peterbecom.chiveproxy.preload_image_proxies import (
     load_all_image_proxies,
-    load_image_proxy,
+    # load_image_proxy,
 )
 
 
@@ -110,11 +110,11 @@ def preload_image_proxies_task(card_id: int, sleep_delay: float = 1):
     load_all_image_proxies(card, sleep_delay=sleep_delay)
 
 
-@task()
-def preload_image_proxy_task(picture_id: int, sleep_delay: float = 1):
-    picture = Picture.objects.get(id=picture_id)
-    print("Preloading image proxy for", repr(picture_id))
-    load_image_proxy(picture, sleep_delay=sleep_delay)
+# @task()
+# def preload_image_proxy_task(picture_id: int, sleep_delay: float = 1):
+#     picture = Picture.objects.get(id=picture_id)
+#     print("Preloading image proxy for", repr(picture_id))
+#     load_image_proxy(picture, sleep_delay=sleep_delay)
 
 
 @periodic_task(crontab(minute="55"))

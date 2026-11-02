@@ -17,6 +17,8 @@ from huey import crontab
 from huey.contrib.djhuey import periodic_task
 from PIL import Image, UnidentifiedImageError
 
+from peterbecom.chiveproxy.tasks import preload_image_proxies_task
+
 from .image_proxy_utils import (
     NO_CONVERT_FILE_EXTENSIONS,
     url_to_destination,
@@ -187,6 +189,9 @@ def update_cards(limit=None, debug=False, dry_run=False):
                     f"Got card {url} ({'got data' if data else 'no data!'})"
                     f" (took {took_seconds:.1f} seconds)"
                 )
+
+                preload_image_proxies_task(card.id)
+
             except TimeoutExpired:
                 new_value = previous_value + 1
                 cache.set(key, new_value, 60 * 60)
@@ -287,9 +292,10 @@ def image_proxy(request):
     url = form.cleaned_data["url"]
 
     destination_cache: list[str] = []
-    destination_file_extension, origin_destination_file_name, destination_file_name = (
-        url_to_destination(url)
-    )
+    destination = url_to_destination(url)
+    destination_file_extension = destination["destination_file_extension"]
+    origin_destination_file_name = destination["origin_destination_file_name"]
+    destination_file_name = destination["destination_file_name"]
 
     if not destination_file_name.parent.exists():
         destination_file_name.parent.mkdir(parents=True)

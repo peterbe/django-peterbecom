@@ -65,6 +65,7 @@ def load_all_image_proxies(card: Card, sleep_delay: float = 0.1):
 
 
 def load_image_proxy(picture, sleep_delay: float = 0.1):
+    raise ValueError("This function is deprecated")
     print(f"Loading all image proxies for {picture} on {picture.card}")
     for wrapped_url in get_image_proxies(picture):
         print(f"Loading image proxy URL {wrapped_url}")
