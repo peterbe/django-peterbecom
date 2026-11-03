@@ -345,7 +345,6 @@ def image_proxy(request):
             # Now that it's been downloaded, the file extension might be a a lie
             if origin_destination_file_name.suffix in (".webp", ".jpeg", ".jpg"):
                 file_type = _get_image_file_type(origin_destination_file_name)
-                # print(f"PETERBE {origin_destination_file_name=}   ---->   {file_type=}")
                 expected_file_type = _get_file_type_by_extension(
                     origin_destination_file_name.suffix
                 )
