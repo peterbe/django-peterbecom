@@ -469,5 +469,6 @@ def _get_extension_by_type(file_type: str) -> str | None:
         "webp": ".webp",
         "avif": ".avif",
         "mp4": ".mp4",
+        "gif": ".gif",
     }
     return type_to_extension.get(file_type.lower())
