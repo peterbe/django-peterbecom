@@ -47,50 +47,59 @@ def _execute_completion(llm_call_id, timeout=60):
     print(f"Executing LLMCall {llm_call!r}")
 
     t0 = time.time()
-    if llm_call.model.startswith("claude"):
-        client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+    try:
+        if llm_call.model.startswith("claude"):
+            client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
 
-        messages = []
-        system_prompt = None
-        for message in llm_call.messages:
-            if message["role"] == "system":
-                if system_prompt is not None:
-                    raise ValueError("Multiple system prompts not supported")
-                system_prompt = message["content"]
+            messages = []
+            system_prompt = None
+            for message in llm_call.messages:
+                if message["role"] == "system":
+                    if system_prompt is not None:
+                        raise ValueError("Multiple system prompts not supported")
+                    system_prompt = message["content"]
+                else:
+                    messages.append(message)
+
+            if system_prompt is None:
+                # When the system prompt is not needed, you get this error
+                # even if you pass it as None:
+                #   anthropic.BadRequestError: Error code: 400 - \
+                #    {'type': 'error', 'error': {'type': 'invalid_request_error',
+                #    'message': 'system: Input should be a valid array'},
+                #    'request_id': 'xxxx'}
+                response = client.messages.create(
+                    model="claude-opus-5",
+                    max_tokens=1000,  # necessary??
+                    messages=messages,
+                    timeout=timeout,
+                )
             else:
-                messages.append(message)
+                response = client.messages.create(
+                    model="claude-opus-5",
+                    max_tokens=1000,  # necessary??
+                    system=system_prompt,
+                    messages=messages,
+                    timeout=timeout,
+                )
 
-        if system_prompt is None:
-            # When the system prompt is not needed, you get this error
-            # even if you pass it as None:
-            #   anthropic.BadRequestError: Error code: 400 - \
-            #    {'type': 'error', 'error': {'type': 'invalid_request_error',
-            #    'message': 'system: Input should be a valid array'},
-            #    'request_id': 'xxxx'}
-            response = client.messages.create(
-                model="claude-opus-5",
-                max_tokens=1000,  # necessary??
-                messages=messages,
+        elif llm_call.model.startswith("openai-"):
+            client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
+            response = client.responses.create(
+                model=llm_call.model.replace("openai-", ""),
+                input=llm_call.messages,
                 timeout=timeout,
             )
         else:
-            response = client.messages.create(
-                model="claude-opus-5",
-                max_tokens=1000,  # necessary??
-                system=system_prompt,
-                messages=messages,
-                timeout=timeout,
-            )
-
-    elif llm_call.model.startswith("openai-"):
-        client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
-        response = client.responses.create(
-            model=llm_call.model.replace("openai-", ""),
-            input=llm_call.messages,
-            timeout=timeout,
+            raise NotImplementedError(f"Model {llm_call.model} not supported")
+    except anthropic.BadRequestError as err:
+        print(llm_call, "errored", err)
+        LLMCall.objects.filter(id=llm_call_id).update(
+            status="error",
+            error=str(err),
+            took_seconds=time.time() - t0,
         )
-    else:
-        raise NotImplementedError(f"Model {llm_call.model} not supported")
+        return
 
     try:
         print(llm_call, "succeeded")
