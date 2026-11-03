@@ -69,14 +69,14 @@ def _execute_completion(llm_call_id, timeout=60):
                 #    'message': 'system: Input should be a valid array'},
                 #    'request_id': 'xxxx'}
                 response = client.messages.create(
-                    model="claude-opus-5",
+                    model=llm_call.model,
                     max_tokens=1000,  # necessary??
                     messages=messages,
                     timeout=timeout,
                 )
             else:
                 response = client.messages.create(
-                    model="claude-opus-5",
+                    model=llm_call.model,
                     max_tokens=1000,  # necessary??
                     system=system_prompt,
                     messages=messages,
@@ -93,6 +93,8 @@ def _execute_completion(llm_call_id, timeout=60):
         else:
             raise NotImplementedError(f"Model {llm_call.model} not supported")
     except anthropic.BadRequestError as err:
+        if settings.DEBUG:
+            raise
         print(llm_call, "errored", err)
         LLMCall.objects.filter(id=llm_call_id).update(
             status="error",
