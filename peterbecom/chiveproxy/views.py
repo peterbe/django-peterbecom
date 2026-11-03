@@ -1,5 +1,6 @@
 import shutil
 import time
+from pathlib import Path
 from subprocess import TimeoutExpired
 from urllib.parse import urlparse
 
@@ -341,6 +342,35 @@ def image_proxy(request):
             )
             destination_cache.append("fetched")
 
+            # Now that it's been downloaded, the file extension might be a a lie
+            if origin_destination_file_name.suffix in (".webp", ".jpeg", ".jpg"):
+                file_type = _get_image_file_type(origin_destination_file_name)
+                # print(f"PETERBE {origin_destination_file_name=}   ---->   {file_type=}")
+                expected_file_type = _get_file_type_by_extension(
+                    origin_destination_file_name.suffix
+                )
+                if expected_file_type is None:
+                    raise ValueError(
+                        f"Unknown file extension: {origin_destination_file_name.suffix}"
+                    )
+
+                if file_type != expected_file_type:
+                    print(
+                        f"IMAGE_PROXY WARNING: File type mismatch for {origin_destination_file_name}: "
+                        f"expected {expected_file_type}, got {file_type}"
+                    )
+                    correct_extension = _get_extension_by_type(file_type)
+                    if not correct_extension:
+                        raise ValueError(
+                            f"Cannot determine correct extension for file type: {file_type}"
+                        )
+
+                    new_name = origin_destination_file_name.with_suffix(
+                        correct_extension
+                    )
+                    origin_destination_file_name.rename(new_name)
+                    origin_destination_file_name = new_name
+
         if (
             origin_destination_file_name.name.endswith(".webp")
             or destination_file_extension in NO_CONVERT_FILE_EXTENSIONS
@@ -410,3 +440,34 @@ def fetch_image(url: str) -> bytes:
     response = requests.get(url)
     response.raise_for_status()
     return response.content
+
+
+def _get_image_file_type(file_path: Path) -> str:
+    try:
+        image = Image.open(file_path)
+        return image.format.lower()
+    except UnidentifiedImageError:
+        return "unknown"
+
+
+def _get_file_type_by_extension(file_extension: str) -> str | None:
+    extension_to_type = {
+        ".jpg": "jpeg",
+        ".jpeg": "jpeg",
+        ".png": "png",
+        ".webp": "webp",
+        ".avif": "avif",
+        ".mp4": "mp4",
+    }
+    return extension_to_type.get(file_extension.lower())
+
+
+def _get_extension_by_type(file_type: str) -> str | None:
+    type_to_extension = {
+        "jpeg": ".jpg",
+        "png": ".png",
+        "webp": ".webp",
+        "avif": ".avif",
+        "mp4": ".mp4",
+    }
+    return type_to_extension.get(file_type.lower())
