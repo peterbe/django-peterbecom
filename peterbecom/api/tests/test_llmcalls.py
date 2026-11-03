@@ -50,6 +50,7 @@ def test_ok(admin_client):
         "metadata": {},
         "model": "gpt-3.5-turbo",
         "modified": first["modified"],
+        "response": llm_call.response,
         "status": "success",
         "took_seconds": 1.23,
         "use_case": "testing",
