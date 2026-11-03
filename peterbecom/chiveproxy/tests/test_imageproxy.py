@@ -93,6 +93,44 @@ def test_image_proxy_jpeg(client, requestsmock):
     assert "max-age=0" not in response["Cache-Control"]
 
 
+def test_image_proxy_misnamed_extension(client, requestsmock):
+    with open("peterbecom/chiveproxy/tests/not_actually_webp.webp", "rb") as f:
+        requestsmock.get(
+            "https://choive.com/content/not_actually_webp.webp", content=f.read()
+        )
+    url = reverse("chiveproxy:image_proxy")
+    response = client.get(
+        url, {"url": "https://choive.com/content/not_actually_webp.webp"}
+    )
+    assert response.status_code == 200
+    assert response["Content-Type"] == "image/webp"
+    assert "public" in response["Cache-Control"]
+    assert "max-age=" in response["Cache-Control"]
+    assert "max-age=0" not in response["Cache-Control"]
+
+
+def test_image_proxy_misnamed_extension_redirect_to_file(client, requestsmock):
+    with open("peterbecom/chiveproxy/tests/not_actually_webp.webp", "rb") as f:
+        requestsmock.get(
+            "https://choive.com/content/not_actually_webp.webp", content=f.read()
+        )
+    url = reverse("chiveproxy:image_proxy")
+    response = client.get(
+        url,
+        {
+            "url": "https://choive.com/content/not_actually_webp.webp",
+            "redirect_to_file": True,
+        },
+    )
+    assert response.status_code == 302
+    assert re.findall(
+        r"/image_proxy/\w{4}/\w{2}/\w{2}/\w/test-\w{7}\.webp", response["Location"]
+    )
+    assert "public" in response["Cache-Control"]
+    assert "max-age=" in response["Cache-Control"]
+    assert "max-age=0" not in response["Cache-Control"]
+
+
 def test_image_proxy_avif(client, requestsmock):
     with open("peterbecom/chiveproxy/tests/test_image.avif", "rb") as f:
         requestsmock.get("https://choive.com/content/test.avif", content=f.read())
