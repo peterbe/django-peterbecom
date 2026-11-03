@@ -2287,9 +2287,10 @@ def llmcalls(request):
         "metadata",
         "created",
         "modified",
+        "response",
     ]
     if form.cleaned_data["id"]:
-        value_fields.extend(["response", "messages"])
+        value_fields.extend(["messages"])
 
     for call in qs.values(*value_fields)[:batch_size]:
         context["calls"].append(call)
