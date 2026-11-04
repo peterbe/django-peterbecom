@@ -125,7 +125,11 @@ def delete_old_cards(dry_run=False):
 @periodic_task(crontab(minute="*/5"))
 def start_image_transcription():
     then = timezone.now() - timezone.timedelta(days=2)
-    pictures = Picture.objects.filter(created__gte=then, transcript__isnull=True)
+    pictures = Picture.objects.filter(
+        created__gte=then,
+        transcript__isnull=True,
+        image_proxy_conversions__img__isnull=False,
+    )
     print(
         f"Starting image transcription task {timezone.now()}: "
         f"{pictures.count()} pictures to process"
