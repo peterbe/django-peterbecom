@@ -201,8 +201,6 @@ def _get_spellcheck_messages(paragraph: str, model="gpt-5"):
             "content": "Your job is to rewrite the paragraph without changing "
             "the meaning, but correcting any grammar and punctuation mistakes. "
             "Only return the rewritten paragraph and nothing else. "
-            "Avoid using Unicode quotation marks, "
-            "use regular ASCII quotes instead."
             "".strip(),
         }
     )
