@@ -122,7 +122,7 @@ def delete_old_cards(dry_run=False):
         qs.delete()
 
 
-@periodic_task(crontab(minute="5"))
+@periodic_task(crontab(minute="*/5"))
 def start_image_transcription():
     then = timezone.now() - timezone.timedelta(days=2)
     pictures = Picture.objects.filter(created__gte=then, transcript__isnull=True)
