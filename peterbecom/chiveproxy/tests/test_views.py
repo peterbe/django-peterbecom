@@ -134,7 +134,7 @@ def test_card_legacy(client):
             "gifsrc": None,
             "img": "https://example.com/image.jpg",
             "mp4src": None,
-            "transcript": "",
+            "transcript": None,
         }
     ]
 
