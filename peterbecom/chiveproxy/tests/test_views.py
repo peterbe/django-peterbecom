@@ -51,6 +51,7 @@ def _create_card(create_picture=True):
             mp4src=None,
             caption="Bla\nbla\n",
             caption_html="Bla<br>bla<br>",
+            transcript="Something something",
             order_index=0,
         )
 
@@ -93,7 +94,7 @@ def test_card_happy_path(client):
         "mp4src": first_picture.mp4src or None,
         "caption": first_picture.caption,
         "caption_html": first_picture.caption_html,
-        "transcript": "",
+        "transcript": "Something something",
     }
 
 
