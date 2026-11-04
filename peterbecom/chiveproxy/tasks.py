@@ -7,6 +7,7 @@ from django.utils import timezone
 from huey import crontab
 from huey.contrib.djhuey import periodic_task, task
 
+from peterbecom.chiveproxy.image_transcript import get_image_transcript
 from peterbecom.chiveproxy.models import Card, Picture
 from peterbecom.chiveproxy.preload_image_proxies import (
     load_all_image_proxies,
@@ -112,13 +113,6 @@ def preload_image_proxies_task(card_id: int, sleep_delay: float = 1):
     load_all_image_proxies(card, sleep_delay=sleep_delay)
 
 
-# @task()
-# def preload_image_proxy_task(picture_id: int, sleep_delay: float = 1):
-#     picture = Picture.objects.get(id=picture_id)
-#     print("Preloading image proxy for", repr(picture_id))
-#     load_image_proxy(picture, sleep_delay=sleep_delay)
-
-
 @periodic_task(crontab(minute="55"))
 def delete_old_cards(dry_run=False):
     DAYS = 600
@@ -126,3 +120,53 @@ def delete_old_cards(dry_run=False):
     print("CHIVEPROXY CARDS", qs.count(), "ARE OLDER THAN", DAYS, "DAYS")
     if not dry_run:
         qs.delete()
+
+
+@periodic_task(crontab(minute="5"))
+def start_image_transcription():
+    then = timezone.now() - timezone.timedelta(days=2)
+    pictures = Picture.objects.filter(created__gte=then, transcript__isnull=True)
+    print(
+        f"Starting image transcription task {timezone.now()}: "
+        f"{pictures.count()} pictures to process"
+    )
+
+    max_count = 10
+    count = 0
+
+    count_success = 0
+    count_failure = 0
+    count_progress = 0
+    count_skipped = 0
+    for picture in pictures[: max_count * 10]:
+        fp = settings.IMAGE_PROXY_CACHE_ROOT / picture.image_proxy_conversions["img"]
+        if not fp.exists():
+            print(f"Image proxy file does not exist: {fp}")
+            count_skipped += 1
+            continue
+
+        llm_call = get_image_transcript(fp)
+        print("LLM call result:", llm_call)
+        if llm_call.status == "success":
+            count_success += 1
+            transcript = ""
+            for row in llm_call.response["content"]:
+                if row["type"] == "text":
+                    transcript = row["text"].strip()
+            picture.transcript = transcript
+            picture.save()
+        elif llm_call.status == "progress":
+            count_progress += 1
+            count += 1
+            time.sleep(1)
+        else:
+            count_failure += 1
+            print(f"LLM call failed for {fp}: {llm_call}")
+
+        if count >= max_count:
+            break
+
+    print(
+        "start_image_transcription: "
+        f"{count_success=} {count_failure=} {count_progress=} {count_skipped=}"
+    )
