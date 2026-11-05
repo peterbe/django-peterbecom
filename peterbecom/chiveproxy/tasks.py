@@ -113,6 +113,9 @@ def start_image_transcription():
         created__gte=then,
         transcript__isnull=True,
         image_proxy_conversions__img__isnull=False,
+        # because won't be looking at the img anyway if it as a video or gif
+        mp4src__isnull=True,
+        gifsrc__isnull=True,
     )
     print(
         f"Starting image transcription task {timezone.now()}: "

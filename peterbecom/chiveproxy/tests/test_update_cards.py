@@ -77,10 +77,10 @@ def test_update_cards_happy_path(mock_get_cards, mock_get_card, requestsmock):
     assert first.method == "GET"
     assert (
         first.url
-        == "https://chive.peterbe.com/api/imageproxy?url=https%3A%2F%2Fchoive.com%2Fwp-content%2Fuploads%2Ffake-0.jpg"
+        == "https://chive.peterbe.com/api/imageproxy?url=https%3A%2F%2Fchoive.com%2Fwp-content%2Fuploads%2Ffake-0.jpg&redirect_to_file=true"
     )
     assert second.method == "GET"
     assert (
         second.url
-        == "https://chive.peterbe.com/api/imageproxy?url=https%3A%2F%2Fchoive.com%2Fwp-content%2Fuploads%2Ffake-0.jpg"
+        == "https://chive.peterbe.com/api/imageproxy?url=https%3A%2F%2Fchoive.com%2Fwp-content%2Fuploads%2Ffake-0.jpg&redirect_to_file=true"
     )

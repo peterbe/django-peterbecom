@@ -2,8 +2,6 @@ from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
-from peterbecom.chiveproxy.image_proxy_utils import url_to_destination
-
 
 class Card(models.Model):
     url = models.URLField(max_length=400, db_index=True)
@@ -33,30 +31,30 @@ class Picture(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
-    @classmethod
-    def set_image_proxy_conversions(cls, instance):
+    # @classmethod
+    # def set_image_proxy_conversions(cls, instance):
 
-        data = instance.image_proxy_conversions or {}
+    #     data = instance.image_proxy_conversions or {}
 
-        file_path = url_to_destination(instance.img)["destination_file_relative_path"]
-        if file_path:
-            data["img"] = str(file_path)
+    #     file_path = url_to_destination(instance.img)["destination_file_relative_path"]
+    #     if file_path:
+    #         data["img"] = str(file_path)
 
-        if instance.gifsrc:
-            file_path = url_to_destination(instance.gifsrc)[
-                "destination_file_relative_path"
-            ]
-            if file_path:
-                data["gifsrc"] = str(file_path)
+    #     if instance.gifsrc:
+    #         file_path = url_to_destination(instance.gifsrc)[
+    #             "destination_file_relative_path"
+    #         ]
+    #         if file_path:
+    #             data["gifsrc"] = str(file_path)
 
-        if instance.mp4src:
-            file_path = url_to_destination(instance.mp4src)[
-                "destination_file_relative_path"
-            ]
-            if file_path:
-                data["mp4src"] = str(file_path)
+    #     if instance.mp4src:
+    #         file_path = url_to_destination(instance.mp4src)[
+    #             "destination_file_relative_path"
+    #         ]
+    #         if file_path:
+    #             data["mp4src"] = str(file_path)
 
-        instance.image_proxy_conversions = data
+    #     instance.image_proxy_conversions = data
 
 
 @receiver(pre_save, sender=Card)
@@ -65,6 +63,6 @@ def set_text(sender, instance, **kwargs):
         instance.text = instance.data.get("text") or ""
 
 
-@receiver(pre_save, sender=Picture)
-def set_image_proxy_conversions(sender, instance, **kwargs):
-    sender.set_image_proxy_conversions(instance)
+# @receiver(pre_save, sender=Picture)
+# def set_image_proxy_conversions(sender, instance, **kwargs):
+#     sender.set_image_proxy_conversions(instance)
