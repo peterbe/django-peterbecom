@@ -35,13 +35,14 @@ def get_all_image_proxies(card: Card):
             # wrapped_urls.append(wrapped_url)
 
 
-
 def load_all_image_proxies(card: Card, sleep_delay: float = 0.1):
     print(f"Loading all image proxies for {card}")
     for picture_id, key, wrapped_url in get_all_image_proxies(card):
         response = _fetch_image(wrapped_url)
         print("RESPONSE", response)
-        print(f"Fetched image response for picture_id {picture_id}, key {key}: {response}")
+        print(
+            f"Fetched image response for picture_id {picture_id}, key {key}: {response}"
+        )
         _save_redirected_url(picture_id, key, response.url)
         print("URL:                 ", response.url)
         print("Content-Length:      ", response.headers["content-length"])
@@ -53,16 +54,12 @@ def load_all_image_proxies(card: Card, sleep_delay: float = 0.1):
 
 def _save_redirected_url(picture_id: int, key: str, url: str):
     path = urlparse(url).path
-    # print(f"{path=}")
-    rel_path = path.replace('/image_proxy/', '')
+    rel_path = path.replace("/image_proxy/", "")
     picture = Picture.objects.get(id=picture_id)
-    print("BEFORE", picture.image_proxy_conversions)
     if key not in picture.image_proxy_conversions:
+        print("BEFORE", picture.image_proxy_conversions)
         picture.image_proxy_conversions[key] = rel_path
         picture.save()
-    print("AFTER", picture.image_proxy_conversions)
-    # if key == "mp4":
-    #     picture.mp4src = path
-    # elif key == "img":
-    #     picture.img = path
-    # picture.save()
+        print("AFTER", picture.image_proxy_conversions)
+    else:
+        print(f"Key {key} already exists in image_proxy_conversions")
