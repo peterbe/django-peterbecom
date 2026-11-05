@@ -7,8 +7,8 @@ from .models import Card, Picture
 
 
 def _wrap_url(url: str) -> str:
-    # qs = urlencode({"url": url, "redirect_to_file": "true"})
-    qs = urlencode({"url": url})
+    qs = urlencode({"url": url, "redirect_to_file": "true"})
+    # qs = urlencode({"url": url})
     return f"https://chive.peterbe.com/api/imageproxy?{qs}"
 
 
@@ -35,15 +35,15 @@ def get_all_image_proxies(card: Card):
             wrapped_urls.append(wrapped_url)
 
         for wrapped_url in wrapped_urls:
-            yield wrapped_url
+            yield (picture.id, wrapped_url)
 
 
 def load_all_image_proxies(card: Card, sleep_delay: float = 0.1):
     print(f"Loading all image proxies for {card}")
-    for wrapped_url in get_all_image_proxies(card):
+    for picture_id, wrapped_url in get_all_image_proxies(card):
         response = _fetch_image(wrapped_url)
         print("RESPONSE", response)
-        print(f"Fetched image response: {response}")
+        print(f"Fetched image response for picture_id {picture_id}: {response}")
         print("URL:                 ", response.url)
         print("Content-Length:      ", response.headers["content-length"])
         print("Content-Type:        ", response.headers["content-type"])
