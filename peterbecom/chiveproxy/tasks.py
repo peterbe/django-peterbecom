@@ -11,23 +11,7 @@ from peterbecom.chiveproxy.image_transcript import get_image_transcript
 from peterbecom.chiveproxy.models import Card, Picture
 from peterbecom.chiveproxy.preload_image_proxies import (
     load_all_image_proxies,
-    # load_image_proxy,
 )
-
-# def filter_pictures(pictures):
-#     filtered_pictures = []
-#     for picture in pictures:
-#         keep = True
-#         for banned_part in settings.BANNED_CHIVE_URL_PARTS:
-#             needles = [x for x in (picture.get("mp4src"), picture.get("img")) if x]
-#             if any(_is_banned(banned_part, needle) for needle in needles):
-#                 print("SKIP THIS PICTURE!!!!")
-#                 print(picture)
-#                 keep = False
-#                 break
-#         if keep:
-#             filtered_pictures.append(picture)
-#     return filtered_pictures
 
 
 def _is_banned(banned_part: str | re.Pattern, needle: str) -> bool:

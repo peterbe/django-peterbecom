@@ -23,7 +23,7 @@ def get_cards(limit=None, debug=False, html=None):
         if debug:
             print(f"SUCKS ({timezone.now()}):", *args)
 
-    base = "https://thechive.com/"
+    base = f"https://{settings.CHIVEPROXY_NETLOC}/"
     if html is None:
         html = html_getter.suck(base, debug=debug)
         assert html, base
@@ -112,7 +112,7 @@ def get_cards(limit=None, debug=False, html=None):
 
 
 def get_card(url):
-    assert url.startswith("https://thechive.com"), url
+    assert url.startswith(f"https://{settings.CHIVEPROXY_NETLOC}/"), url
 
     # The cache is really just to assure we don't run it more than once
     # in a short timeframe. ...by some accident or local dev.
