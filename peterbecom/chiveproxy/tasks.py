@@ -113,6 +113,7 @@ def start_image_transcription():
         created__gte=then,
         transcript__isnull=True,
         image_proxy_conversions__img__isnull=False,
+        transcript_error__isnull=True,
         # because won't be looking at the img anyway if it as a video or gif
         mp4src__isnull=True,
         gifsrc__isnull=True,
@@ -154,6 +155,8 @@ def start_image_transcription():
             count += 1
             time.sleep(1)
         else:
+            picture.transcript_error = str(llm_call.error)
+            picture.save()
             count_failure += 1
             print(f"LLM call failed for {fp}: {llm_call}")
 
@@ -179,6 +182,9 @@ def start_image_transcription():
                 picture.transcript = transcript
                 picture.save()
                 count_progress_success += 1
+            elif llm_call.status == "error":
+                picture.transcript_error = str(llm_call.error)
+                picture.save()
 
     print(
         "start_image_transcription: "
