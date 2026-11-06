@@ -128,6 +128,8 @@ def start_image_transcription():
     count_success = 0
     count_failure = 0
     count_progress = 0
+    in_progress: list[int] = []
+    count_progress_success = 0
     count_skipped = 0
     for picture in pictures[: max_count * 10]:
         fp = settings.IMAGE_PROXY_CACHE_ROOT / picture.image_proxy_conversions["img"]
@@ -148,6 +150,7 @@ def start_image_transcription():
             picture.save()
         elif llm_call.status == "progress":
             count_progress += 1
+            in_progress.append(picture.id)
             count += 1
             time.sleep(1)
         else:
@@ -157,7 +160,28 @@ def start_image_transcription():
         if count >= max_count:
             break
 
+    if in_progress:
+        print(f"Going to check back on {len(in_progress)} in progress calls")
+        time.sleep(5)
+
+        pictures = Picture.objects.filter(id__in=in_progress)
+        for picture in pictures:
+            fp = (
+                settings.IMAGE_PROXY_CACHE_ROOT / picture.image_proxy_conversions["img"]
+            )
+            llm_call = get_image_transcript(fp)
+            print("LLM call result:", llm_call)
+            if llm_call.status == "success":
+                transcript = ""
+                for row in llm_call.response["content"]:
+                    if row["type"] == "text":
+                        transcript = row["text"].strip()
+                picture.transcript = transcript
+                picture.save()
+                count_progress_success += 1
+
     print(
         "start_image_transcription: "
-        f"{count_success=} {count_failure=} {count_progress=} {count_skipped=}"
+        f"{count_success=} {count_failure=} {count_progress=} "
+        f"{count_progress_success=} {count_skipped=}"
     )
