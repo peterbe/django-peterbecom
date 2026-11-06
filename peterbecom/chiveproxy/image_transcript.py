@@ -39,6 +39,8 @@ def get_llm_response_image_transcript(
         media_type = "image/webp"
     elif image_path.suffix.lower() == ".png":
         media_type = "image/png"
+    elif image_path.suffix.lower() == ".avif":
+        media_type = "image/avif"
     elif image_path.suffix.lower() == ".jpg" or image_path.suffix.lower() == ".jpeg":
         media_type = "image/jpeg"
     else:
