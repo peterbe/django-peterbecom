@@ -1,8 +1,10 @@
 import base64
+import tempfile
 from pathlib import Path
 
 from django.conf import settings
 from django.utils import timezone
+from PIL import Image
 
 from peterbecom.llmcalls.models import LLMCall
 from peterbecom.llmcalls.tasks import execute_completion
@@ -32,15 +34,25 @@ def get_llm_response_image_transcript(
     if isinstance(image_path, str):
         image_path = Path(image_path)
 
-    with open(image_path, "rb") as f:
-        image_data = base64.standard_b64encode(f.read()).decode("utf-8")
-
     if image_path.suffix.lower() == ".webp":
         media_type = "image/webp"
+        with open(image_path, "rb") as f:
+            image_data = base64.standard_b64encode(f.read()).decode("utf-8")
     elif image_path.suffix.lower() == ".png":
+        media_type = "image/png"
+        with open(image_path, "rb") as f:
+            image_data = base64.standard_b64encode(f.read()).decode("utf-8")
+    elif image_path.suffix.lower() == ".avif":
+        with tempfile.NamedTemporaryFile(suffix=".png") as tmp:
+            image = Image.open(image_path)
+            image.save(tmp.name, "PNG", quality=100)
+            with open(tmp.name, "rb") as f:
+                image_data = base64.standard_b64encode(f.read()).decode("utf-8")
         media_type = "image/png"
     elif image_path.suffix.lower() == ".jpg" or image_path.suffix.lower() == ".jpeg":
         media_type = "image/jpeg"
+        with open(image_path, "rb") as f:
+            image_data = base64.standard_b64encode(f.read()).decode("utf-8")
     else:
         raise ValueError(f"Unsupported image format: {image_path.suffix}")
 
