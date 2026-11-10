@@ -13,25 +13,25 @@ def test_cards_empty(client):
     assert response.json()["cards"] == []
 
 
-def _create_card_legacy_style():
-    card = Card.objects.create(url="http://example.com", text="Bla bla", data={})
-    card.data = {
-        "img": "http://example.com/image.jpg",
-        "uri": str(card.id),
-        "date": card.created.strftime("%Y-%m-%d"),
-        "text": "Example card",
-        "pictures": [
-            {
-                "img": "https://example.com/image.jpg",
-                "gifsrc": None,
-                "mp4src": None,
-                "caption": "Bla\nbla\n",
-                "caption_html": "Bla<br>bla<br>",
-            },
-        ],
-    }
-    card.save()
-    return card
+# def _create_card_legacy_style():
+#     card = Card.objects.create(url="http://example.com", text="Bla bla", data={})
+#     card.data = {
+#         "img": "http://example.com/image.jpg",
+#         "uri": str(card.id),
+#         "date": card.created.strftime("%Y-%m-%d"),
+#         "text": "Example card",
+#         "pictures": [
+#             {
+#                 "img": "https://example.com/image.jpg",
+#                 "gifsrc": None,
+#                 "mp4src": None,
+#                 "caption": "Bla\nbla\n",
+#                 "caption_html": "Bla<br>bla<br>",
+#             },
+#         ],
+#     }
+#     card.save()
+#     return card
 
 
 def _create_card(create_picture=True):
@@ -98,45 +98,45 @@ def test_card_happy_path(client):
     }
 
 
-@pytest.mark.django_db
-def test_cards_legacy(client):
-    card = _create_card_legacy_style()
+# @pytest.mark.django_db
+# def test_cards_legacy(client):
+#     card = _create_card_legacy_style()
 
-    url = reverse("chiveproxy:api_cards")
-    response = client.get(url)
-    assert response.status_code == 200
-    cards = response.json()["cards"]
-    print("CARDS:", cards)
-    assert cards[0]["count_pictures"] == 1
-    assert cards[0]["id"] == card.id
-    assert cards[0]["img"] == "http://example.com/image.jpg"
-    assert cards[0]["uri"] == card.id
-    assert cards[0]["url"] == "http://example.com"
+#     url = reverse("chiveproxy:api_cards")
+#     response = client.get(url)
+#     assert response.status_code == 200
+#     cards = response.json()["cards"]
+#     print("CARDS:", cards)
+#     assert cards[0]["count_pictures"] == 1
+#     assert cards[0]["id"] == card.id
+#     assert cards[0]["img"] == "http://example.com/image.jpg"
+#     assert cards[0]["uri"] == card.id
+#     assert cards[0]["url"] == "http://example.com"
 
 
-@pytest.mark.django_db
-def test_card_legacy(client):
-    card = _create_card_legacy_style()
+# @pytest.mark.django_db
+# def test_card_legacy(client):
+#     card = _create_card_legacy_style()
 
-    url = reverse("chiveproxy:api_card", args=[card.id])
-    response = client.get(url)
-    assert response.status_code == 200
+#     url = reverse("chiveproxy:api_card", args=[card.id])
+#     response = client.get(url)
+#     assert response.status_code == 200
 
-    card_json = response.json()
+#     card_json = response.json()
 
-    assert card_json["date"]
-    assert card_json["id"] == card.id
-    assert card_json["text"] == "Example card"
-    assert card_json["pictures"] == [
-        {
-            "caption": "Bla\nbla\n",
-            "caption_html": "Bla<br>bla<br>",
-            "gifsrc": None,
-            "img": "https://example.com/image.jpg",
-            "mp4src": None,
-            "transcript": None,
-        }
-    ]
+#     assert card_json["date"]
+#     assert card_json["id"] == card.id
+#     assert card_json["text"] == "Example card"
+#     assert card_json["pictures"] == [
+#         {
+#             "caption": "Bla\nbla\n",
+#             "caption_html": "Bla<br>bla<br>",
+#             "gifsrc": None,
+#             "img": "https://example.com/image.jpg",
+#             "mp4src": None,
+#             "transcript": None,
+#         }
+#     ]
 
 
 @pytest.mark.django_db
@@ -167,3 +167,74 @@ def test_card_brotli_compressed(client):
     response = client.get(url, HTTP_ACCEPT_ENCODING="zstd")
     assert response.status_code == 200
     assert response.headers.get("Content-Encoding") == "zstd"
+
+
+@pytest.mark.django_db
+def test_picture_search(client):
+
+    card = Card.objects.create(url="http://example.com", text="First card", data={})
+    card.data = {
+        "img": "http://example.com/image.jpg",
+        "uri": str(card.id),
+        "date": card.created.strftime("%Y-%m-%d"),
+    }
+    card.save()
+    Picture.objects.create(
+        card=card,
+        img="https://example.com/image.jpg",
+        gifsrc=None,
+        mp4src=None,
+        caption="Bla\nbla\n",
+        caption_html="Bla<br>bla<br>",
+        transcript="Something something funny",
+        order_index=0,
+    )
+    Picture.objects.create(
+        card=card,
+        img="https://example.com/image2.jpg",
+        gifsrc=None,
+        mp4src=None,
+        caption="Funnies and bunnies",
+        caption_html="Funnies and bunnies",
+        transcript=None,
+        order_index=1,
+    )
+    card2 = Card.objects.create(url="http://example.com", text="Second card", data={})
+    card2.data = {
+        "img": "http://example.com/image.jpg",
+        "uri": str(card2.id),
+        "date": card2.created.strftime("%Y-%m-%d"),
+        "text": "Another card",
+    }
+    card2.save()
+    Picture.objects.create(
+        card=card2,
+        img="https://example.com/image-3.jpg",
+        gifsrc=None,
+        mp4src=None,
+        caption="",
+        caption_html="",
+        transcript="Bunny",
+        order_index=0,
+    )
+
+    url = reverse("chiveproxy:api_search_pictures", args=[])
+    response = client.get(url, {"query": "Bunny"})
+    assert response.status_code == 200
+
+    j = response.json()
+    assert j["metadata"]["count"] == 2
+    assert j["metadata"]["query"] == "Bunny"
+    assert len(j["pictures"]) == 2
+    assert j["pictures"][0]["card"]["text"] == "Second card"
+    assert j["pictures"][0]["card"]["id"] == card2.id
+    assert j["pictures"][0]["card"]["date"]
+    assert j["pictures"][1]["card"]["text"] == "First card"
+    assert j["pictures"][1]["card"]["id"] == card.id
+
+    response = client.get(url, {})
+    assert response.status_code == 400
+    response = client.get(url, {"query": ""})
+    assert response.status_code == 400
+    response = client.get(url, {"query": "a"})
+    assert response.status_code == 400

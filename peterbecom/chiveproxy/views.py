@@ -1,4 +1,5 @@
 import shutil
+import time
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -6,7 +7,7 @@ import requests
 from django import forms, http
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Min
+from django.db.models import Min, Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.cache import patch_cache_control
@@ -60,10 +61,10 @@ def api_cards(request):
 
         count_pictures = Picture.objects.filter(card=card).count()
 
-        # TEMPORARY CODE
-        if not count_pictures and card.data.get("pictures"):
-            _migrate_legacy_card(card)
-            count_pictures = Picture.objects.filter(card=card).count()
+        # # TEMPORARY CODE
+        # if not count_pictures and card.data.get("pictures"):
+        #     _migrate_legacy_card(card)
+        #     count_pictures = Picture.objects.filter(card=card).count()
 
         if not count_pictures:
             print(f"WARNING! {card!r} does not have any pictures")
@@ -86,6 +87,90 @@ def api_cards(request):
     context["_oldest_card"] = Card.objects.all().aggregate(oldest=Min("created"))[
         "oldest"
     ]
+    return JsonResponse(context)
+
+
+class SearchPicturesForm(forms.Form):
+    query = forms.CharField(required=True)
+    batch_size = forms.IntegerField(required=False)
+
+    def clean_query(self):
+        query = self.cleaned_data.get("query")
+        if not query:
+            raise forms.ValidationError("Query is required")
+        query = query.strip()
+        if len(query) < 2:
+            raise forms.ValidationError("Query must be at least 2 characters long")
+        return query
+
+    def clean_batch_size(self):
+        batch_size = self.cleaned_data.get("batch_size")
+        if batch_size is None:
+            return 10
+        if batch_size <= 0:
+            raise forms.ValidationError("Batch size must be a positive integer")
+        if batch_size > 100:
+            raise forms.ValidationError("Batch size must not exceed 100")
+        return batch_size
+
+
+@cache_control(max_age=settings.DEBUG and 10 or 60 * 60, public=True)
+def api_search_pictures(request):
+    context = {
+        "pictures": [],
+        "metadata": {},
+    }
+    form = SearchPicturesForm(request.GET)
+    if not form.is_valid():
+        return http.HttpResponseBadRequest(form.errors.as_text())
+
+    query = form.cleaned_data["query"]
+    context["metadata"]["query"] = query
+
+    pictures = Picture.objects.order_by("-card__created", "order_index").filter(
+        Q(caption__search=query) | Q(transcript__isnull=False, transcript__search=query)
+    )
+    t0 = time.time()
+    context["metadata"]["count"] = pictures.count()
+    pictures = pictures[: form.cleaned_data["batch_size"]]
+
+    fields = (
+        "id",
+        "card_id",
+        "img",
+        "gifsrc",
+        "mp4src",
+        "caption",
+        "caption_html",
+        "transcript",
+        "card__id",
+        "card__text",
+        "card__created",
+    )
+
+    context["metadata"]["batch_size"] = form.cleaned_data["batch_size"]
+
+    for picture in pictures.values(*fields):
+        context["pictures"].append(
+            {
+                "id": picture["id"],
+                # "card_id": picture["card_id"],
+                "img": picture["img"],
+                "gifsrc": picture["gifsrc"] or None,
+                "mp4src": picture["mp4src"] or None,
+                "caption": picture["caption"],
+                "caption_html": picture["caption_html"],
+                "transcript": picture["transcript"],
+                "card": {
+                    "id": picture["card__id"],
+                    "text": picture["card__text"],
+                    "date": picture["card__created"],
+                },
+            }
+        )
+
+    t1 = time.time()
+    context["metadata"]["took_seconds"] = t1 - t0
     return JsonResponse(context)
 
 
