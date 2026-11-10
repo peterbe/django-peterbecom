@@ -15,5 +15,6 @@ urlpatterns = [
     path("api/cards/", views.api_cards, name="api_cards"),
     path("api/cards/<int:pk>", append_slash),
     path("api/cards/<int:pk>/", views.api_card, name="api_card"),
+    path("api/pictures/search", views.api_search_pictures, name="api_search_pictures"),
     path("api/imageproxy", views.image_proxy, name="image_proxy"),
 ]
