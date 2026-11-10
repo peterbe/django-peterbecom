@@ -1,4 +1,5 @@
 import shutil
+import time
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -129,6 +130,7 @@ def api_search_pictures(request):
     pictures = Picture.objects.order_by("-card__created", "order_index").filter(
         Q(caption__search=query) | Q(transcript__isnull=False, transcript__search=query)
     )
+    t0 = time.time()
     context["metadata"]["count"] = pictures.count()
     pictures = pictures[: form.cleaned_data["batch_size"]]
 
@@ -167,6 +169,8 @@ def api_search_pictures(request):
             }
         )
 
+    t1 = time.time()
+    context["metadata"]["took_seconds"] = t1 - t0
     return JsonResponse(context)
 
 
