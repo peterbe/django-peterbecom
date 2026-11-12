@@ -13,27 +13,6 @@ def test_cards_empty(client):
     assert response.json()["cards"] == []
 
 
-# def _create_card_legacy_style():
-#     card = Card.objects.create(url="http://example.com", text="Bla bla", data={})
-#     card.data = {
-#         "img": "http://example.com/image.jpg",
-#         "uri": str(card.id),
-#         "date": card.created.strftime("%Y-%m-%d"),
-#         "text": "Example card",
-#         "pictures": [
-#             {
-#                 "img": "https://example.com/image.jpg",
-#                 "gifsrc": None,
-#                 "mp4src": None,
-#                 "caption": "Bla\nbla\n",
-#                 "caption_html": "Bla<br>bla<br>",
-#             },
-#         ],
-#     }
-#     card.save()
-#     return card
-
-
 def _create_card(create_picture=True):
     card = Card.objects.create(url="http://example.com", text="Bla bla", data={})
     card.data = {
@@ -89,6 +68,7 @@ def test_card_happy_path(client):
     pictures = Picture.objects.filter(card=card).order_by("order_index")
     first_picture = pictures[0]
     assert card_json["pictures"][0] == {
+        "id": first_picture.id,
         "img": first_picture.img,
         "gifsrc": first_picture.gifsrc or None,
         "mp4src": first_picture.mp4src or None,
@@ -96,47 +76,6 @@ def test_card_happy_path(client):
         "caption_html": first_picture.caption_html,
         "transcript": "Something something",
     }
-
-
-# @pytest.mark.django_db
-# def test_cards_legacy(client):
-#     card = _create_card_legacy_style()
-
-#     url = reverse("chiveproxy:api_cards")
-#     response = client.get(url)
-#     assert response.status_code == 200
-#     cards = response.json()["cards"]
-#     print("CARDS:", cards)
-#     assert cards[0]["count_pictures"] == 1
-#     assert cards[0]["id"] == card.id
-#     assert cards[0]["img"] == "http://example.com/image.jpg"
-#     assert cards[0]["uri"] == card.id
-#     assert cards[0]["url"] == "http://example.com"
-
-
-# @pytest.mark.django_db
-# def test_card_legacy(client):
-#     card = _create_card_legacy_style()
-
-#     url = reverse("chiveproxy:api_card", args=[card.id])
-#     response = client.get(url)
-#     assert response.status_code == 200
-
-#     card_json = response.json()
-
-#     assert card_json["date"]
-#     assert card_json["id"] == card.id
-#     assert card_json["text"] == "Example card"
-#     assert card_json["pictures"] == [
-#         {
-#             "caption": "Bla\nbla\n",
-#             "caption_html": "Bla<br>bla<br>",
-#             "gifsrc": None,
-#             "img": "https://example.com/image.jpg",
-#             "mp4src": None,
-#             "transcript": None,
-#         }
-#     ]
 
 
 @pytest.mark.django_db
