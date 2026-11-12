@@ -232,6 +232,7 @@ def api_card(request, pk):
     for picture in qs.values():
         pictures.append(
             {
+                "id": picture["id"],
                 "img": picture["img"],
                 "gifsrc": picture["gifsrc"] or None,
                 "mp4src": picture["mp4src"] or None,
