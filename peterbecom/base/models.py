@@ -264,21 +264,22 @@ class AnalyticsRollupsByBotDaily(models.Model):
 
             agg_query = (
                 AnalyticsEvent.objects.filter(
-                    created__gte=start_of_day, created__lt=end_of_day
+                    created__gte=start_of_day,
+                    created__lt=end_of_day,
+                    data__is_bot__isnull=False,
                 )
-                .values("type", "is_bot")
+                .values("type", "data__is_bot")
                 .annotate(count=Count("id"))
             )
-            agg_query = agg_query.order_by("type", "is_bot", "-count")
             bulk = []
             for agg in agg_query:
-                print(f"{agg['count']:>5} {agg['type']:<20} {agg['is_bot']}")
+                print(f"{agg['count']:>5} {agg['type']:<20} {agg['data__is_bot']}")
                 bulk.append(
                     cls(
                         day=day,
                         count=agg["count"],
                         type=agg["type"],
-                        is_bot=agg["is_bot"],
+                        is_bot=agg["data__is_bot"],
                     )
                 )
                 if len(bulk) > 100:
