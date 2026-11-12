@@ -369,11 +369,14 @@ def rate_blog_comment(comment):
             OK_DOMAINS.append("www.youtube.com")
             MAX_LENGTH = 2000
             result["good"]["deep"] = f"on page {page}"
-        elif comment.parent:
+        elif (
+            comment.parent
+            and len(comment.comment) < 400
+            and comment.comment.count("\n") <= 2
+        ):
             # It's a reply!
             # If it's really short and has no bad, it should be fine as is!
-            if len(comment.comment) < 400 and comment.comment.count("\n") <= 2:
-                result["good"]["shortreply"] = "special and reply and short"
+            result["good"]["shortreply"] = "special and reply and short"
 
     def find_links(attrs, new=False):
         href = attrs[(None, "href")]
