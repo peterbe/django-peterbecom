@@ -249,31 +249,31 @@ def analytics_rollups_by_bot_daily():
     AnalyticsRollupsByBotDaily.rollup()
 
 
-@periodic_task(crontab(minute="*/15") if settings.DEBUG else crontab(hour=0, minute=0))
+@periodic_task(crontab(minute="*/16") if settings.DEBUG else crontab(hour=0, minute=0))
 @log_task_run
 def analytics_rollups_pathname_daily():
     AnalyticsRollupsPathnameDaily.rollup()
 
 
-@periodic_task(crontab(minute="*/15") if settings.DEBUG else crontab(hour=0, minute=0))
+@periodic_task(crontab(minute="*/17") if settings.DEBUG else crontab(hour=0, minute=0))
 @log_task_run
 def analytics_rollups_pathname_by_bot_daily():
     AnalyticsRollupsPathnameByBotDaily.rollup()
 
 
-@periodic_task(crontab(minute="*/15") if settings.DEBUG else crontab(hour=10))
+@periodic_task(crontab(minute="*/18") if settings.DEBUG else crontab(hour=10))
 @log_task_run
 def analytics_rollup_comments_referrer_pathname_daily():
     AnalyticsRollupCommentsReferrerDaily.rollup()
 
 
-@periodic_task(crontab(minute="*/15") if settings.DEBUG else crontab(hour=10))
+@periodic_task(crontab(minute="*/19") if settings.DEBUG else crontab(hour=10))
 @log_task_run
 def requestlog_rollups_bot_agent_status_code_daily():
     RequestLogRollupsBotAgentStatusCodeDaily.rollup()
 
 
-@periodic_task(crontab(minute="*/15") if settings.DEBUG else crontab(hour=10))
+@periodic_task(crontab(minute="*/20") if settings.DEBUG else crontab(hour=10))
 @log_task_run
 def requestlog_rollups_querystring_daily():
     RequestLogRollupsQuerystringDaily.rollup()
