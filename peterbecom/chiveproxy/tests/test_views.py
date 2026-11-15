@@ -14,12 +14,11 @@ def test_cards_empty(client):
 
 
 def _create_card(create_picture=True):
-    card = Card.objects.create(url="http://example.com", text="Bla bla", data={})
+    card = Card.objects.create(url="http://example.com", text="Example card", data={})
     card.data = {
         "img": "http://example.com/image.jpg",
         "uri": str(card.id),
         "date": card.created.strftime("%Y-%m-%d"),
-        "text": "Example card",
     }
     card.save()
     if create_picture:
@@ -50,6 +49,74 @@ def test_cards_happy_path(client):
     assert cards[0]["img"] == "http://example.com/image.jpg"
     assert cards[0]["uri"] == card.id
     assert cards[0]["url"] == "http://example.com"
+
+
+@pytest.mark.django_db
+def test_cards_search(client):
+    card = Card.objects.create(
+        url="http://example.com", text="Example <script>One</script>", data={}
+    )
+    card.data = {
+        "img": "http://example.com/image.jpg",
+        "uri": str(card.id),
+        "date": card.created.strftime("%Y-%m-%d"),
+    }
+    card.save()
+    Picture.objects.create(
+        card=card,
+        img="https://example.com/image.jpg",
+        gifsrc=None,
+        mp4src=None,
+        caption="Bla\nbla\n",
+        caption_html="Bla<br>bla<br>",
+        transcript="Something something",
+        order_index=0,
+    )
+
+    card2 = Card.objects.create(url="http://example.com", text="One Two", data={})
+    card2.data = {
+        "img": "http://example.com/image.jpg",
+        "uri": str(card2.id),
+        "date": card2.created.strftime("%Y-%m-%d"),
+    }
+    card2.save()
+    Picture.objects.create(
+        card=card2,
+        img="https://example.com/image.jpg",
+        gifsrc=None,
+        mp4src=None,
+        caption="Bla\nbla\n",
+        caption_html="Bla<br>bla<br>",
+        transcript="Something something",
+        order_index=0,
+    )
+
+    card3 = Card.objects.create(url="http://example.com", text="Two Three", data={})
+    card3.data = {
+        "img": "http://example.com/image.jpg",
+        "uri": str(card3.id),
+        "date": card3.created.strftime("%Y-%m-%d"),
+    }
+    card3.save()
+    # No pictures for card3
+
+    url = reverse("chiveproxy:api_cards")
+    response = client.get(url, {"search": "examples"})
+    assert response.status_code == 200
+    cards = response.json()["cards"]
+    assert len(cards) == 1
+    assert cards[0]["id"] == card.id
+    assert cards[0]["img"] == "http://example.com/image.jpg"
+    assert cards[0]["uri"] == card.id
+    assert cards[0]["url"] == "http://example.com"
+    assert cards[0]["count_pictures"] == 1
+    assert cards[0]["text"] == "Example <script>One</script>"
+    assert cards[0]["text_headline"] == "<mark>Example</mark>  One"
+
+    response = client.get(url, {"search": "two"})
+    assert response.status_code == 200
+    cards = response.json()["cards"]
+    assert len(cards) == 1
 
 
 @pytest.mark.django_db

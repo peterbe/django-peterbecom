@@ -74,11 +74,16 @@ def update_cards(limit=None, debug=False, dry_run=False):
                 t0 = time.time()
                 data = get_card(url)
                 if data and data.get("pictures"):
+                    text = data.pop("text")
                     pictures = data.pop("pictures")
                     card.update(data)
                     if not dry_run:
                         with transaction.atomic():
-                            card_obj = Card.objects.create(url=url, data=card)
+                            card_obj = Card.objects.create(
+                                url=url,
+                                text=text,
+                                data=card,
+                            )
 
                             pictures_objs = []
                             for order_index, picture in enumerate(pictures):
