@@ -70,17 +70,6 @@ def api_cards(request):
         if "img" not in card.data:
             continue
 
-        # count_pictures = Picture.objects.filter(card=card).count()
-
-        # # TEMPORARY CODE
-        # if not count_pictures and card.data.get("pictures"):
-        #     _migrate_legacy_card(card)
-        #     count_pictures = Picture.objects.filter(card=card).count()
-
-        # if not count_pictures:
-        #     print(f"WARNING! {card!r} does not have any pictures")
-        #     continue
-
         item = {
             "text": card.text,
             "img": card.data["img"],
@@ -93,7 +82,7 @@ def api_cards(request):
             "uri": card.id,
         }
         if search:
-            item["text_headline"] = card.text_headline
+            item["text_headline"] = card.text_headline.strip()
         cards.append(item)
 
     card_ids = [card["id"] for card in cards]

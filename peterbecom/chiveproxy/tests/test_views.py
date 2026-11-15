@@ -54,7 +54,9 @@ def test_cards_happy_path(client):
 
 @pytest.mark.django_db
 def test_cards_search(client):
-    card = Card.objects.create(url="http://example.com", text="Example One", data={})
+    card = Card.objects.create(
+        url="http://example.com", text="Example <script>One</script>", data={}
+    )
     card.data = {
         "img": "http://example.com/image.jpg",
         "uri": str(card.id),
@@ -112,8 +114,8 @@ def test_cards_search(client):
     assert cards[0]["uri"] == card.id
     assert cards[0]["url"] == "http://example.com"
     assert cards[0]["count_pictures"] == 1
-    assert cards[0]["text"] == "Example One"
-    assert cards[0]["text_headline"] == "<mark>Example</mark> One"
+    assert cards[0]["text"] == "Example <script>One</script>"
+    assert cards[0]["text_headline"] == "<mark>Example</mark>  One"
 
     response = client.get(url, {"search": "two"})
     assert response.status_code == 200
