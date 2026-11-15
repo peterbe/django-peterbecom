@@ -262,7 +262,7 @@ def api_card(request, pk):
     return JsonResponse(
         {
             "id": card.id,
-            "text": card.data["text"],
+            "text": card.text,
             "date": card.created,
             "pictures": pictures,
         }

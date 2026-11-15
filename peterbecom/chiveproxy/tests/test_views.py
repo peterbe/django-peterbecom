@@ -14,12 +14,11 @@ def test_cards_empty(client):
 
 
 def _create_card(create_picture=True):
-    card = Card.objects.create(url="http://example.com", text="Bla bla", data={})
+    card = Card.objects.create(url="http://example.com", text="Example card", data={})
     card.data = {
         "img": "http://example.com/image.jpg",
         "uri": str(card.id),
         "date": card.created.strftime("%Y-%m-%d"),
-        "text": "Example card",
     }
     card.save()
     if create_picture:
@@ -61,7 +60,6 @@ def test_cards_search(client):
         "img": "http://example.com/image.jpg",
         "uri": str(card.id),
         "date": card.created.strftime("%Y-%m-%d"),
-        # "text": "Example card",
     }
     card.save()
     Picture.objects.create(
@@ -80,7 +78,6 @@ def test_cards_search(client):
         "img": "http://example.com/image.jpg",
         "uri": str(card2.id),
         "date": card2.created.strftime("%Y-%m-%d"),
-        # "text": "Example card",
     }
     card2.save()
     Picture.objects.create(
@@ -99,7 +96,6 @@ def test_cards_search(client):
         "img": "http://example.com/image.jpg",
         "uri": str(card3.id),
         "date": card3.created.strftime("%Y-%m-%d"),
-        # "text": "Example card",
     }
     card3.save()
     # No pictures for card3

@@ -1,6 +1,4 @@
 from django.db import models
-from django.db.models.signals import pre_save
-from django.dispatch import receiver
 
 
 class Card(models.Model):
@@ -31,9 +29,3 @@ class Picture(models.Model):
     transcript_error = models.TextField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
-
-
-@receiver(pre_save, sender=Card)
-def set_text(sender, instance, **kwargs):
-    if not instance.text and instance.data:
-        instance.text = instance.data.get("text") or ""
