@@ -6,8 +6,9 @@ from urllib.parse import urlparse
 import requests
 from django import forms, http
 from django.conf import settings
+from django.contrib.postgres.search import SearchHeadline
 from django.db import transaction
-from django.db.models import Min, Q
+from django.db.models import Count, Min, Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.cache import patch_cache_control
@@ -52,37 +53,58 @@ def api_cards(request):
 
     search = request.GET.get("search")
     if search:
-        qs = qs.filter(text__search=search)
+        qs = qs.filter(
+            text__search=search,
+        ).annotate(
+            text_headline=SearchHeadline("text", search),
+        )
         context["search"] = {"string": search, "count": qs.count()}
 
+    cards = []
     for card in qs.order_by("-created")[:batch_size]:
         if "img" not in card.data:
             continue
 
-        count_pictures = Picture.objects.filter(card=card).count()
+        # count_pictures = Picture.objects.filter(card=card).count()
 
         # # TEMPORARY CODE
         # if not count_pictures and card.data.get("pictures"):
         #     _migrate_legacy_card(card)
         #     count_pictures = Picture.objects.filter(card=card).count()
 
-        if not count_pictures:
-            print(f"WARNING! {card!r} does not have any pictures")
-            continue
+        # if not count_pictures:
+        #     print(f"WARNING! {card!r} does not have any pictures")
+        #     continue
 
-        context["cards"].append(
-            {
-                "text": card.data["text"],
-                "img": card.data["img"],
-                "url": card.url,
-                "id": card.id,
-                "created": card.created,
-                "human_time": "",
-                "count_pictures": count_pictures,
-                # This last one is for legacy backwards compat
-                "uri": card.id,
-            }
-        )
+        item = {
+            "text": card.data["text"],
+            "img": card.data["img"],
+            "url": card.url,
+            "id": card.id,
+            "created": card.created,
+            "human_time": "",
+            "count_pictures": 0,
+            # This last one is for legacy backwards compat
+            "uri": card.id,
+        }
+        if search:
+            item["text_headline"] = card.text_headline
+        cards.append(item)
+
+    card_ids = [card["id"] for card in cards]
+    picture_counts: dict[int, int] = {}
+    for agg in (
+        Picture.objects.filter(card_id__in=card_ids)
+        .values("card_id")
+        .annotate(count=Count("id"))
+    ):
+        picture_counts[agg["card_id"]] = agg["count"]
+
+    for card in cards:
+        card_id = card["id"]
+        card["count_pictures"] = picture_counts.get(card_id, 0)
+        if card["count_pictures"]:
+            context["cards"].append(card)
 
     context["_oldest_card"] = Card.objects.all().aggregate(oldest=Min("created"))[
         "oldest"
