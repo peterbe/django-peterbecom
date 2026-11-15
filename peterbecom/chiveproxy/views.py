@@ -56,7 +56,12 @@ def api_cards(request):
         qs = qs.filter(
             text__search=search,
         ).annotate(
-            text_headline=SearchHeadline("text", search),
+            text_headline=SearchHeadline(
+                "text",
+                search,
+                start_sel="<mark>",
+                stop_sel="</mark>",
+            ),
         )
         context["search"] = {"string": search, "count": qs.count()}
 
@@ -77,7 +82,7 @@ def api_cards(request):
         #     continue
 
         item = {
-            "text": card.data["text"],
+            "text": card.text,
             "img": card.data["img"],
             "url": card.url,
             "id": card.id,
