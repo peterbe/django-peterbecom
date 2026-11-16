@@ -2,7 +2,7 @@ from django.urls import path, re_path
 
 from peterbecom.api import spellcheck
 
-from . import analytics, classification, comment_ai, rewrite, spam, views
+from . import analytics, chiveproxy, classification, comment_ai, rewrite, spam, views
 
 app_name = "api"
 
@@ -120,6 +120,11 @@ urlpatterns = [
         "valid-llmcall-use-cases",
         views.valid_llmcall_use_cases,
         name="valid_llmcall_use_cases",
+    ),
+    path(
+        "chiveproxy/banned-url-patterns",
+        chiveproxy.banned_url_patterns,
+        name="chiveproxy_banned_url_patterns",
     ),
     path("", views.catch_all, name="catch_all"),
 ]
