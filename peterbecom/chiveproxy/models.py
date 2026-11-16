@@ -29,3 +29,12 @@ class Picture(models.Model):
     transcript_error = models.TextField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
+
+
+class BannedUrlPattern(models.Model):
+    pattern = models.CharField(max_length=400)
+    is_regex = models.BooleanField(default=False)
+    case_insensitive = models.BooleanField(default=False)
+    kills = models.PositiveIntegerField(default=0)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
