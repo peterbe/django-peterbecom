@@ -1,6 +1,6 @@
 import pytest
 
-from peterbecom.chiveproxy.models import Card, Picture
+from peterbecom.chiveproxy.models import BannedUrlPattern, Card, Picture
 from peterbecom.chiveproxy.tasks import remove_banned_pictures
 
 
@@ -10,9 +10,10 @@ def test_remove_banned_pictures():
         "img": "https://example.com/Refuse2Delete.png?attachment_cache_bust=5310465&w=600",
         "uri": "9884c7ac",
         "date": "2026-10-1",
-        "text": "Bla bla bla",
     }
-    card1 = Card.objects.create(url="http://example.com/1", data=data)
+    card1 = Card.objects.create(
+        url="http://example.com/1", data=data, text="Bla bla bla"
+    )
     for p in [
         {
             "img": "https://example.com/2/Hana-Good-One-GIF-45.jpg",
@@ -35,9 +36,10 @@ def test_remove_banned_pictures():
         "img": "https://example.com/2",
         "uri": "xxx111",
         "date": "2026-10-1",
-        "text": "Bla bla bla",
     }
-    card2 = Card.objects.create(url="http://example.com/2", data=data)
+    card2 = Card.objects.create(
+        url="http://example.com/2", text="Bla bla bla", data=data
+    )
     for p in [
         {
             "img": "https://example.com/2/Hana-Good-One-GIF-45.jpg",
@@ -55,7 +57,43 @@ def test_remove_banned_pictures():
         },
     ]:
         Picture.objects.create(card=card2, **p)
+
+    pattern1 = BannedUrlPattern.objects.create(
+        pattern="Thisisalsobanned.mp4",
+        is_regex=False,
+        case_insensitive=False,
+    )
+    pattern2 = BannedUrlPattern.objects.create(
+        pattern="this-is-banned.png",
+        is_regex=False,
+        case_insensitive=False,
+    )
     remove_banned_pictures()
+
+    pattern1.refresh_from_db()
+    assert pattern1.kills == 1
+    pattern2.refresh_from_db()
+    assert pattern2.kills == 1
 
     assert Picture.objects.filter(card=card1).count() == 1
     assert Picture.objects.filter(card=card2).count() == 1
+
+    pattern3 = BannedUrlPattern.objects.create(
+        pattern=r"Delete-part-\d+-\.png",
+        is_regex=True,
+        case_insensitive=True,
+    )
+    pattern4 = BannedUrlPattern.objects.create(
+        pattern=r"(One|Two)-GIF.mp4",
+        is_regex=True,
+        case_insensitive=False,
+    )
+    remove_banned_pictures()
+
+    assert Picture.objects.filter(card=card1).count() == 0
+    assert Picture.objects.filter(card=card2).count() == 0
+
+    pattern3.refresh_from_db()
+    assert pattern3.kills == 1
+    pattern4.refresh_from_db()
+    assert pattern4.kills == 1

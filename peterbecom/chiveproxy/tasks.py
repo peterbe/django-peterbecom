@@ -3,19 +3,25 @@ import re
 import time
 
 from django.conf import settings
+from django.db.models import F
 from django.utils import timezone
 from huey import crontab
 from huey.contrib.djhuey import periodic_task, task
 
 from peterbecom.chiveproxy.image_transcript import get_image_transcript
-from peterbecom.chiveproxy.models import Card, Picture
+from peterbecom.chiveproxy.models import BannedUrlPattern, Card, Picture
 from peterbecom.chiveproxy.preload_image_proxies import (
     load_all_image_proxies,
 )
 
 
-def _is_banned(banned_part: str | re.Pattern, needle: str) -> bool:
+def _is_banned(
+    banned_part: str | re.Pattern, needle: str, case_insensitive: bool = False
+) -> bool:
     if isinstance(banned_part, str):
+        if case_insensitive:
+            banned_part = banned_part.lower()
+            needle = needle.lower()
         return banned_part in needle
     elif isinstance(banned_part, re.Pattern):
         return bool(banned_part.search(needle))
@@ -24,18 +30,47 @@ def _is_banned(banned_part: str | re.Pattern, needle: str) -> bool:
 
 def remove_banned_pictures(limit=100, dry_run=False):
     qs = Picture.objects.select_related("card").order_by("-created")[:limit]
+
+    patterns: list[tuple[int, str, bool, bool]] = []
+    patterns_qs = (
+        BannedUrlPattern.objects.filter(
+            modified__gte=timezone.now() - datetime.timedelta(days=30)
+        )
+        .order_by("-modified")
+        .values("id", "pattern", "is_regex", "case_insensitive")
+    )
+    for pattern in patterns_qs:
+        patterns.append(
+            (
+                pattern["id"],
+                pattern["pattern"],
+                pattern["is_regex"],
+                pattern["case_insensitive"],
+            )
+        )
+
     for picture in qs:
         needles = [picture.img]
         if picture.mp4src:
             needles.append(picture.mp4src)
 
-        for banned_part in settings.BANNED_CHIVE_URL_PARTS:
-            if any(_is_banned(banned_part, needle) for needle in needles):
+        for id, pattern, is_regex, case_insensitive in patterns:
+            if is_regex:
+                banned_part = re.compile(
+                    pattern, re.IGNORECASE if case_insensitive else 0
+                )
+            else:
+                banned_part = pattern
+            if any(
+                _is_banned(banned_part, needle, case_insensitive=case_insensitive)
+                for needle in needles
+            ):
                 print("SKIP THIS PICTURE!!!!")
                 print(picture)
-                print("banned_part:", banned_part)
+                print("banned_part:", pattern)
                 if not dry_run:
                     picture.delete()
+                    BannedUrlPattern.objects.filter(id=id).update(kills=F("kills") + 1)
                     break
 
 
@@ -88,6 +123,13 @@ def _delete_old_image_proxy_files():
 
         if count >= MAX_COUNT:
             break
+
+
+@periodic_task(crontab(minute="25"))
+def delete_old_banned_url_patterns():
+    BannedUrlPattern.objects.filter(
+        modified__lt=timezone.now() - datetime.timedelta(days=100)
+    ).delete()
 
 
 @task()

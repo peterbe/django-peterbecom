@@ -460,6 +460,3 @@ HTML_GETTER_EXECUTABLE = config("HTML_GETTER_EXECUTABLE", default=None)
 
 
 IMAGE_PROXY_CACHE_ROOT = BASE_DIR / "cache" / "image_proxy"
-
-
-BANNED_CHIVE_URL_PARTS = []
