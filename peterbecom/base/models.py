@@ -184,6 +184,7 @@ class AnalyticsEvent(models.Model):
         "search-error",
         "pageview",
         "logo",
+        "chiveproxy-pageview",
     }
 
     type = models.CharField(max_length=100)
