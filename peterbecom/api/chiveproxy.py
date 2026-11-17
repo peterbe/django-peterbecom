@@ -5,6 +5,7 @@ from django import forms, http
 from peterbecom.api.views import api_superuser_required
 from peterbecom.base.utils import json_response
 from peterbecom.chiveproxy.models import BannedUrlPattern
+from peterbecom.chiveproxy.tasks import remove_banned_pictures
 
 
 class BannedUrlPatternForm(forms.ModelForm):
@@ -36,6 +37,8 @@ def banned_url_patterns(request):
                 is_regex=form.cleaned_data["is_regex"],
                 case_insensitive=form.cleaned_data["case_insensitive"],
             )
+            remove_banned_pictures()
+
             return json_response({"ok": True}, status=201)
         else:
             return json_response({"errors": form.errors}, status=400)
