@@ -19,8 +19,8 @@ def banned_url_patterns(request):
         id = request.GET.get("id")
         if not id:
             return json_response({"error": "No ID"}, status=400)
-        for signature in BannedUrlPattern.objects.filter(id=id):
-            signature.delete()
+        for pattern in BannedUrlPattern.objects.filter(id=id):
+            pattern.delete()
             return json_response({"ok": True})
         return json_response({"error": "Not found"}, status=404)
 
