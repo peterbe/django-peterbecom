@@ -237,6 +237,7 @@ def test_picture_search(client):
     assert j["pictures"][0]["card"]["date"]
     assert j["pictures"][1]["card"]["text"] == "First card"
     assert j["pictures"][1]["card"]["id"] == card.id
+    assert j["pictures"][1]["card"]["img"] == "http://example.com/image.jpg"
 
     response = client.get(url, {})
     assert response.status_code == 400

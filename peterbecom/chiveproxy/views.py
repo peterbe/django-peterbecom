@@ -162,6 +162,7 @@ def api_search_pictures(request):
         "card__id",
         "card__text",
         "card__created",
+        "card__data",
     )
 
     context["metadata"]["batch_size"] = form.cleaned_data["batch_size"]
@@ -181,6 +182,9 @@ def api_search_pictures(request):
                     "id": picture["card__id"],
                     "text": picture["card__text"],
                     "date": picture["card__created"],
+                    "img": picture["card__data"].get("img")
+                    if picture["card__data"]
+                    else None,
                 },
             }
         )
